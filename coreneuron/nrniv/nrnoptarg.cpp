@@ -63,7 +63,7 @@ static struct param_dbl {
     {"--tstop -e", 100.0, 0.0, 1e9, "Stop time (ms). (100)"},
     {"--dt -dt", -1000., -1000., 1e9, "Fixed time step. The default value is set by defaults.dat or is 0.025."},
     {"--dt_io -i", 0.1, 1e-9, 1e9, "Dt of I/O. (0.1)"},
-    {"--voltage -v", -65.0, 1e-9, 1e9,
+    {"--voltage -v", -65.0, -1e9, 1e9,
      "Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...). (-65.)"},
     {"--celsius -l", -1000., -1000., 1000.,
      "Temperature in degC. The default value is set in defaults.dat or else is 34.0."},
