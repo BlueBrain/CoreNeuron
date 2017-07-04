@@ -32,7 +32,7 @@ fi
 
 cat out[0-9]*.dat > out_cn.dat
 sort -k 1n,1n -k 2n,2n out_cn.dat > sort_out.dat
-diff sort_out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat
+diff -w sort_out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat
 
 if [ -s diff.dat ] 
 then

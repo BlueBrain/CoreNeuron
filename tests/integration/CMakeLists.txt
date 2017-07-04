@@ -29,8 +29,8 @@
 
 # List of tests with arguments
 set(TEST_CASE_ARGS
-  "ring!--datpath=${CMAKE_CURRENT_SOURCE_DIR}/ring --outpath=${CMAKE_CURRENT_BINARY_DIR}/ring --celsius=6.3 --tstop=100. -mpi"
-  "ring_IClamp!--datpath=${CMAKE_CURRENT_SOURCE_DIR}/ring_IClamp --outpath=${CMAKE_CURRENT_BINARY_DIR}/ring_IClamp --celsius=6.3 --tstop=100. -mpi")
+  "ring!--datpath=${CMAKE_CURRENT_SOURCE_DIR}/ring --outpath=${CMAKE_CURRENT_BINARY_DIR}/ring --tstop=100. --celsius=6.3 -mpi"
+  "ring_gap!--datpath=${CMAKE_CURRENT_SOURCE_DIR}/ring_gap --outpath=${CMAKE_CURRENT_BINARY_DIR}/ring_gap --tstop=100. --celsius=6.3 -mpi")
 
 
 
@@ -38,7 +38,7 @@ set(TEST_CASE_ARGS
 foreach (args_line ${TEST_CASE_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
 if(MPI_FOUND)
-  string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;1")
+  string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
 endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
