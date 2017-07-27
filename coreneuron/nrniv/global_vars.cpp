@@ -39,7 +39,7 @@ void set_globals(const char* path) {
     FILE* f = fopen(fname.c_str(), "r");
     if (!f) {
         printf("ignore: could not open %s\n", fname.c_str());
-        delete n2v;
+        delete n2v; n2v=NULL;
         return;
     }
 
@@ -98,5 +98,5 @@ void set_globals(const char* path) {
   }
 #endif
 
-    delete n2v;
+    delete n2v; n2v=NULL;
 }

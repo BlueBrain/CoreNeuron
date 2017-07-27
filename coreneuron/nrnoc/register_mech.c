@@ -150,6 +150,7 @@ void alloc_mech(int n) {
         int i;
         for (i = 0; i < memb_func_size_; ++i) {
             nrn_mech_data_layout_[i] = 1;
+            memb_func[i].alloc = NULL; //mark as non-instantiated
         }
     }
     nrn_dparam_ptr_start_ = (int*)ecalloc(memb_func_size_, sizeof(int));

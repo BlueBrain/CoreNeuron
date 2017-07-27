@@ -32,6 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrn_datareader.h"
+#include "coreneuron/utils/sdprintf.h"
 
 static int ngroup_w;
 static int* gidgroups_w;
@@ -47,8 +48,10 @@ static void read_phasegap(data_reader& F, int imult, NrnThread& nt);
 static void setup_ThreadData(NrnThread& nt);
 
 // Functions to load and clean data;
-extern void nrn_init_and_load_data(int argc, char** argv, bool run_setup_cleanup = true);
-extern void nrn_cleanup();
+extern void nrn_init_and_load_data(int argc, char** argv,
+                                   bool nrnmpi_under_nrncontrol = true,
+                                   bool run_setup_cleanup = true);
+extern void nrn_cleanup(bool clean_ion_global_map /*= true*/);
 extern void nrn_setup_cleanup();
 
 namespace coreneuron {

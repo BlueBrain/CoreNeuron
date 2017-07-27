@@ -784,10 +784,24 @@ inline void mech_layout(data_reader& F, T* data, int cnt, int sz, int layout) {
  * allocated with malloc(). This is not the case here, so let's try and fix
  * things up first. */
 
-void nrn_cleanup() {
+void nrn_cleanup(bool clean_ion_global_map) {
     gid2in.clear();
     gid2out.clear();
 
+    //clean ezOpt parser allocated memory (if any)
+    nrnopt_delete();
+
+    //clean ions global maps
+    if (clean_ion_global_map)
+    {
+      for (int i=0; i<nrn_ion_global_map_size; i++)
+        free(nrn_ion_global_map[i]);
+      free(nrn_ion_global_map);
+      nrn_ion_global_map = NULL;
+      nrn_ion_global_map_size=0;
+    }
+
+    //clean NrnThreads
     for (int it = 0; it < nrn_nthread; ++it) {
         NrnThread* nt = nrn_threads + it;
         NrnThreadMembList* next_tml = NULL;
@@ -1632,6 +1646,7 @@ for (int i=0; i < nt.end; ++i) {
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
+    F.close();
 
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {

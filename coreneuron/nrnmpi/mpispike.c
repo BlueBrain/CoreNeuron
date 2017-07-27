@@ -526,7 +526,7 @@ static MPI_Comm multisend_comm;
 
 void nrnmpi_multisend_comm() {
     if (!multisend_comm) {
-        MPI_Comm_dup(MPI_COMM_WORLD, &multisend_comm);
+        MPI_Comm_dup(&nrnmpi_world_comm, &multisend_comm);
     }
 }
 
