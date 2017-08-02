@@ -68,7 +68,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     if ((x))           \
         ;              \
     else               \
-    asm("trap;")
+        asm("trap;")
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
