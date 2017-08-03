@@ -112,7 +112,7 @@ static param_str param_str_args[] = {
 
 static void graceful_exit(int);
 
-static ez::ezOptionParser* opt = NULL;
+static ez::ezOptionParser* opt;
 
 int nrnopt_parse(int argc, const char* argv[]) {
     opt = new ez::ezOptionParser;

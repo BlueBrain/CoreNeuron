@@ -269,7 +269,6 @@ void read_phase1(data_reader& F, int imult, NrnThread& nt) {
     // the extra netcon_srcgid will be filled in later
     netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
     F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
-    F.close();
 
 #if 0
   // for checking whether negative gids fit into the gid space
@@ -1646,7 +1645,6 @@ for (int i=0; i < nt.end; ++i) {
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, NULL, nt.id);
     }
-    F.close();
 
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {
