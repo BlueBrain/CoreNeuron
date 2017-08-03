@@ -40,7 +40,7 @@ void set_globals(const char* path) {
     if (!f) {
         printf("ignore: could not open %s\n", fname.c_str());
         delete n2v;
-        n2v=NULL;
+        n2v = NULL;
         return;
     }
 
@@ -100,5 +100,5 @@ void set_globals(const char* path) {
 #endif
 
     delete n2v;
-    n2v=NULL;
+    n2v = NULL;
 }

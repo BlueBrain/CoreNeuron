@@ -787,20 +787,19 @@ void nrn_cleanup(bool clean_ion_global_map) {
     gid2in.clear();
     gid2out.clear();
 
-    //clean ezOpt parser allocated memory (if any)
+    // clean ezOpt parser allocated memory (if any)
     nrnopt_delete();
 
-    //clean ions global maps
-    if (clean_ion_global_map)
-    {
-      for (int i=0; i<nrn_ion_global_map_size; i++)
-        free(nrn_ion_global_map[i]);
-      free(nrn_ion_global_map);
-      nrn_ion_global_map = NULL;
-      nrn_ion_global_map_size=0;
+    // clean ions global maps
+    if (clean_ion_global_map) {
+        for (int i = 0; i < nrn_ion_global_map_size; i++)
+            free(nrn_ion_global_map[i]);
+        free(nrn_ion_global_map);
+        nrn_ion_global_map = NULL;
+        nrn_ion_global_map_size = 0;
     }
 
-    //clean NrnThreads
+    // clean NrnThreads
     for (int it = 0; it < nrn_nthread; ++it) {
         NrnThread* nt = nrn_threads + it;
         NrnThreadMembList* next_tml = NULL;

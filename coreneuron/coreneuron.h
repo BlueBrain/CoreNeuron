@@ -45,7 +45,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
 
 #if defined(__cplusplus)
-#include "coreneuron/nrniv/memory.h"                 //Memory alignments and padding
+#include "coreneuron/nrniv/memory.h"  //Memory alignments and padding
 
 extern "C" {
 #endif
