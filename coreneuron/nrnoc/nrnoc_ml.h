@@ -84,7 +84,9 @@ typedef struct Memb_list {
     int* _permute;
     double* data;
     Datum* pdata;
-    ThreadDatum* _thread; /* thread specific data (when static is no good) */
+    double* data_not_permuted;  // FIXME temporary store to understand data layout
+    Datum* pdata_not_permuted;  // FIXME temporary store to undertsand data layout
+    ThreadDatum* _thread;       /* thread specific data (when static is no good) */
     NetReceiveBuffer_t* _net_receive_buffer;
     NetSendBuffer_t* _net_send_buffer;
     int nodecount; /* actual node count */

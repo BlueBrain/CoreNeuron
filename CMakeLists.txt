@@ -125,7 +125,7 @@ if (NOT ENABLE_NET_RECEIVE_BUFFERING)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
 endif()
 
-find_package(mod2c 2.0.0  REQUIRED)
+find_package(mod2c 2.1.0  REQUIRED)
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 # Threading
