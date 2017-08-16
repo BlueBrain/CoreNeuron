@@ -444,22 +444,23 @@ void nrn_thread_table_check() {
 void nrn_multithread_job(void* (*job)(NrnThread*)) {
     int i;
 #if defined(_OPENMP)
-
+  printf("\n..openmp \n");
 /* Todo : Remove schedule clause usage by using OpenMP 3 API.
  *        Need better CMake handling for checking OpenMP 3 support.
  */
 // clang-format off
-#if defined(ENABLE_OMP_RUNTIME_SCHEDULE)
-    #pragma omp parallel for private(i) shared(nrn_threads, job, nrn_nthread, \
-                                           nrnmpi_myid) schedule(runtime)
-#else
     // default(none) removed to avoid issue with opari2
-    #pragma omp parallel for private(i) shared(nrn_threads, job, nrn_nthread, \
-                                           nrnmpi_myid) schedule(static, 1)
-#endif
-    // clang-format on
-    for (i = 0; i < nrn_nthread; ++i) {
+    #pragma omp parallel  private(i) shared(nrn_threads, job, nrn_nthread, nrnmpi_myid)
+    {
+  
+      #pragma omp master
+     printf("Number of Omp threads : %d", omp_get_num_threads());
+
+      #pragma omp for
+      for (i = 0; i < nrn_nthread; ++i) {
         (*job)(nrn_threads + i);
+        printf("TID : %d \n", omp_get_thread_num());
+      }
     }
 #else
 
