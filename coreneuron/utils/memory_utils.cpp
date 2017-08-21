@@ -84,7 +84,7 @@ double nrn_mallinfo(void) {
     file.open ("/proc/self/statm");
     buffer << file.rdbuf();
     file.close();
-    uint64_t  total_virtual_memory;
+    unsigned long long int   total_virtual_memory;
     buffer >> total_virtual_memory;
     mbs = (total_virtual_memory * sysconf(_SC_PAGESIZE))/ (1024.0 * 1024.0);
 #endif
