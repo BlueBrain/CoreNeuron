@@ -44,6 +44,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 #include "memory_utils.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
 
