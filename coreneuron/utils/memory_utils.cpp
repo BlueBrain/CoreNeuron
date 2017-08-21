@@ -72,21 +72,25 @@ double nrn_mallinfo(void) {
         KERN_SUCCESS)
         return (size_t)0L; /* Can't access? */
     return info.resident_size / (1024.0 * 1024.0);
-/*
-#elif defined HAVE_MALLOC_H
-    struct mallinfo m;
-    m = mallinfo();
-    mbs = (m.hblkhd + m.uordblks) / (1024.0 * 1024.0);
-*/
 #else
     std::ifstream file;
     std::stringstream buffer;
     file.open ("/proc/self/statm");
-    buffer << file.rdbuf();
-    file.close();
-    unsigned long long int   total_virtual_memory;
-    buffer >> total_virtual_memory;
-    mbs = (total_virtual_memory * sysconf(_SC_PAGESIZE))/ (1024.0 * 1024.0);
+    if (file.is_open()) {
+      buffer << file.rdbuf();
+      file.close();
+      unsigned long long int   total_virtual_memory;
+      buffer >> total_virtual_memory;
+      mbs = (total_virtual_memory * sysconf(_SC_PAGESIZE))/ (1024.0 * 1024.0);
+    } else {
+  #if defined HAVE_MALLOC_H
+      struct mallinfo m;
+      m = mallinfo();
+      mbs = (m.hblkhd + m.uordblks) / (1024.0 * 1024.0);
+  #else
+      mbs = -1;
+  #endif
+    }
 #endif
     return mbs;
 }
