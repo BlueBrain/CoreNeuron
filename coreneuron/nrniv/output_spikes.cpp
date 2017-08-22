@@ -27,6 +27,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
+#include <std::except> // std::lenght_error
+#include <vector>
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/output_spikes.h"
@@ -41,8 +43,12 @@ static MUTDEC
 
     void
     mk_spikevec_buffer(int sz) {
-    spikevec_time.reserve(sz);
-    spikevec_gid.reserve(sz);
+    try {
+      spikevec_time.reserve(sz);
+      spikevec_gid.reserve(sz);
+    } catch (const std::length_error& le) {
+      std::cerr << "Lenght error" << le.what() << std::endl;
+    }
     MUTCONSTRUCT(1);
 }
 
