@@ -35,13 +35,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/sdprintf.h"
 
 std::vector<double> spikevec_time;
-std::vector<int>    spikevec_gid;
+std::vector<int> spikevec_gid;
 
 static MUTDEC
 
     void
     mk_spikevec_buffer(int sz) {
-    spikevec_time.reserve (sz);
+    spikevec_time.reserve(sz);
     spikevec_gid.reserve(sz);
     MUTCONSTRUCT(1);
 }
