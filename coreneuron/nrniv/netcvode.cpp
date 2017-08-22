@@ -429,9 +429,11 @@ InputPreSyn::~InputPreSyn() {
 void PreSyn::record(double tt) {
     spikevec_lock();
     assert(spikevec_size < spikevec_buffer_size);
-    spikevec_gid[spikevec_size] = gid_;
-    spikevec_time[spikevec_size] = tt;
-    ++spikevec_size;
+    if (gid_ > -1) {
+      spikevec_gid[spikevec_size] = gid_;
+      spikevec_time[spikevec_size] = tt;
+      ++spikevec_size;
+    }
     spikevec_unlock();
 }
 
