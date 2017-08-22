@@ -444,7 +444,6 @@ void nrn_thread_table_check() {
 void nrn_multithread_job(void* (*job)(NrnThread*)) {
     int i;
 #if defined(_OPENMP)
-
 /* Todo : Remove schedule clause usage by using OpenMP 3 API.
  *        Need better CMake handling for checking OpenMP 3 support.
  */

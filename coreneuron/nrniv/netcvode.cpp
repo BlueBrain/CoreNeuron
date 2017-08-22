@@ -429,8 +429,8 @@ InputPreSyn::~InputPreSyn() {
 void PreSyn::record(double tt) {
     spikevec_lock();
     if (gid_ > -1) {
-      spikevec_gid.push_back  (gid_);
-      spikevec_time.push_back (tt);
+        spikevec_gid.push_back(gid_);
+        spikevec_time.push_back(tt);
     }
     spikevec_unlock();
 }
