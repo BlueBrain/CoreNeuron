@@ -27,7 +27,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
-#include <std::except> // std::lenght_error
+#include <stdexcept> // std::lenght_error
 #include <vector>
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
