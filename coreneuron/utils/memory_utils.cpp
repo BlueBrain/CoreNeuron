@@ -75,14 +75,12 @@ double nrn_mallinfo(void) {
     return info.resident_size / (1024.0 * 1024.0);
 #else
     std::ifstream file;
-    std::stringstream buffer;
     file.open("/proc/self/statm");
     if (file.is_open()) {
-        buffer << file.rdbuf();
+        unsigned long long int total_size, res_size, shared_size, text_size, lib_size, data_size, dt_size;
+        file >> total_size  >> res_size  >> shared_size  >> text_size  >> lib_size  >> data_size  >> dt_size;
         file.close();
-        unsigned long long int total_virtual_memory;
-        buffer >> total_virtual_memory;
-        mbs = (total_virtual_memory * sysconf(_SC_PAGESIZE)) / (1024.0 * 1024.0);
+        mbs = (data_size * sysconf(_SC_PAGESIZE)) / (1024.0 * 1024.0);
     } else {
 #if defined HAVE_MALLOC_H
         struct mallinfo m;
