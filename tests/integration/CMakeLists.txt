@@ -50,10 +50,10 @@ set(TEST_CASE_ARGS
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
     foreach(test_suffix "multisend" "binqueue" "permute1" "permute2")
-        file(copy "${cmake_current_source_dir}/${data_dir}/out.dat.ref" destination "${cmake_current_source_dir}/${data_dir}_${test_suffix}/")
+      file(COPY "${cmake_current_source_dir}/${data_dir}/out.dat.ref" DESTINATION "${cmake_current_source_dir}/${data_dir}_${test_suffix}/")
     endforeach()
 endforeach()
-file(copy "${cmake_current_source_dir}/ring/out.dat.ref" destination "${cmake_current_source_dir}/ring_spike_buffer/")
+file(COPY "${cmake_current_source_dir}/ring/out.dat.ref" DESTINATION "${cmake_current_source_dir}/ring_spike_buffer/")
 
 #Configure test scripts
 foreach (args_line ${TEST_CASE_ARGS})
