@@ -76,7 +76,7 @@ double nrn_mallinfo(void) {
     std::ifstream file;
     file.open("/proc/self/statm");
     if (file.is_open()) {
-        unsigned long long int skip__this_info, data_size;
+        unsigned long long int skip_this_info, data_size;
         file >> skip_this_info >> skip_this_info >> skip_this_info >> skip_this_info >>
             skip_this_info >> data_size;
         file.close();
