@@ -76,9 +76,8 @@ double nrn_mallinfo(void) {
     std::ifstream file;
     file.open("/proc/self/statm");
     if (file.is_open()) {
-        unsigned long long int skip_this_info, data_size;
-        file >> skip_this_info >> skip_this_info >> skip_this_info >> skip_this_info >>
-            skip_this_info >> data_size;
+        unsigned long long int data_size;
+        file >> data_size >> data_size;
         file.close();
         mbs = (data_size * sysconf(_SC_PAGESIZE)) / (1024.0 * 1024.0);
     } else {
