@@ -36,9 +36,9 @@
 
 # Initial Setup
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
 PROJECT(coreneuron)
-
+include (ExternalProject)
 set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
 
 set(VERSION_MAJOR "1")
@@ -60,6 +60,10 @@ option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" OFF
 option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
 option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
+
+
+set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
+set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
 
 ## mech / mod options
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
@@ -127,7 +131,25 @@ if (NOT ENABLE_NET_RECEIVE_BUFFERING)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
 endif()
 
-find_package(mod2c 2.0.0  REQUIRED)
+find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${PROJECT_SOURCE_DIR}/external/mod2c")
+find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
+if (NOT MOD2C_FOUND)
+  message (FATAL_ERROR "missing mod2c submodule :run on top directory of your sources (git > 1.8.2 required):
+      git submodule update --init --remote
+      ")
+endif()
+set(ExternalProjectCMakeArgs
+     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+     -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
+     -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
+   )
+
+ExternalProject_Add(mod2c
+  SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/mod2c
+  CMAKE_ARGS ${ExternalProjectCMakeArgs}
+  CMAKE_CACHE_ARGS ${ExternalProjectCMakeArgs}
+  )
+
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 # Threading
