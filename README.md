@@ -22,6 +22,13 @@ First, install mod2c using the instructions provided [here](http://github.com/Bl
 
 Set the appropriate MPI wrappers for the C and C++ compilers, e.g.:
 
+##### MOd2c as a submodule
+Alternatively to download and build mod2c as separate project, it is possible to build mod2c as a submodule of coreneuron.
+To do so you need to execute the following commands as part of your git process
+```bash
+git submodule update --remote
+```
+
 ```bash
 export CC=mpicc
 export CXX=mpicxx
