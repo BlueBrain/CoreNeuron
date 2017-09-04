@@ -16,18 +16,18 @@ CoreNEURON supports limited features provided by [NEURON](https://www.neuron.yal
 * [PGI OpenACC Compiler >=16.3](https://www.pgroup.com/resources/accel.htm) [Optional, for GPU systems]
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
 
+##### MOd2c as a submodule
+MOD2C can be downloaded and built directly by coreNeuron: to do so you should add this option to your Cmake invokation:
+```bash
+cmake .. -DBUILD_MOD2C=ON
+```
+
 # Installation
 
 First, install mod2c using the instructions provided [here](http://github.com/BlueBrain/mod2c). Make sure to install mod2c and CoreNEURON in the same installation directory (using CMAKE\_INSTALL\_PREFIX).
 
 Set the appropriate MPI wrappers for the C and C++ compilers, e.g.:
 
-##### MOd2c as a submodule
-Alternatively to download and build mod2c as separate project, it is possible to build mod2c as a submodule of coreneuron.
-To do so you need to execute the following commands as part of your git process
-```bash
-git submodule update --remote
-```
 
 ```bash
 export CC=mpicc
