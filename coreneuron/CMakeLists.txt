@@ -57,7 +57,6 @@ endif()
 if(NOT MOD2C_UNITS STREQUAL "MOD2C_UNITS-NOTFOUND")
 set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" ${MOD2C})
 endif()
-message(STATUS "====> MODLUNIT = ${MOD2C_UNITS}")
 
 # Macro sets up build rule for .c files from .mod files.
 # Parameters:
