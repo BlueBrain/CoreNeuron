@@ -28,7 +28,6 @@ First, install mod2c using the instructions provided [here](http://github.com/Bl
 
 Set the appropriate MPI wrappers for the C and C++ compilers, e.g.:
 
-
 ```bash
 export CC=mpicc
 export CXX=mpicxx
