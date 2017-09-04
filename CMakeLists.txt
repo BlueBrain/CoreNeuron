@@ -126,7 +126,17 @@ if (NOT ENABLE_NET_RECEIVE_BUFFERING)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
 endif()
 
-find_package(mod2c 2.0.0  REQUIRED)
+if (NOT BUILD_MOD2C)
+  find_package(mod2c 2.0.0  REQUIRED)
+endif()
+if (NOT MOD2C_FOUND)
+  ExternalProject_Add(mod2c
+    GIT_REPOSITORY "https://github.com/BlueBrain/mod2c"
+    GIT_TAG "coreneuron_submodule"
+    UPDATE_COMMAND ""
+    INSTALL_COMMAND ""
+    )
+endif()
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 # Threading
