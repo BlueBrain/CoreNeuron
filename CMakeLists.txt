@@ -38,7 +38,7 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 PROJECT(coreneuron)
-
+include (ExternalProject)
 set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
 
 set(VERSION_MAJOR "1")
@@ -130,11 +130,19 @@ if (NOT BUILD_MOD2C)
   find_package(mod2c 2.0.0  REQUIRED)
 endif()
 if (NOT MOD2C_FOUND)
+  set(ExternalProjectCMakeArgs
+       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+       -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
+       -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+     )
   ExternalProject_Add(mod2c
     GIT_REPOSITORY "https://github.com/BlueBrain/mod2c"
     GIT_TAG "coreneuron_submodule"
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ""
+    DOWNLOAD_DIR ${PROJECT_SOURCE_DIR}
+    SOURCE_DIR ${PROJECT_BINARY_DIR}/external/mod2c
+    INSTALL_DIR ${PROJECT_BINARY_DIR}/external
+    CMAKE_ARGS ${ExternalProjectCMakeArgs}
     )
 endif()
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
