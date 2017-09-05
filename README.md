@@ -17,10 +17,7 @@ CoreNEURON supports limited features provided by [NEURON](https://www.neuron.yal
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
 
 ##### MOd2c as a submodule
-MOD2C can be downloaded and built directly by coreNeuron: to do so you should add this option to your Cmake invokation:
-```bash
-cmake .. -DBUILD_MOD2C=ON
-```
+MOD2C is actually downloaded and built.
 
 # Installation
 
