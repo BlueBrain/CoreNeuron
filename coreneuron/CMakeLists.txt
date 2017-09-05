@@ -62,7 +62,6 @@ macro(mod2c_target name input)
     list(APPEND MOD2C_${name}_MODS "${mod2c_modname_}")
 
     add_custom_command(OUTPUT "${mod2c_output_}"
-      DEPENDS ${input} "${PROJECT_BINARY_DIR}/external/mod2c/bin/mod2c_core"
       COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
       COMMAND ${MOD2C} "${mod2c_modname_}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
