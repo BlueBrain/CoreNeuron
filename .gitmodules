@@ -1,0 +1,3 @@
+[submodule "external/mod2c"]
+	path = external/mod2c
+	url = https://github.com/BlueBrain/mod2c
