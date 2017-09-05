@@ -16,7 +16,7 @@ CoreNEURON supports limited features provided by [NEURON](https://www.neuron.yal
 * [PGI OpenACC Compiler >=16.3](https://www.pgroup.com/resources/accel.htm) [Optional, for GPU systems]
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
 
-##### MOd2c as a submodule
+##### MOd2c build
 MOD2C is actually downloaded and built.
 
 # Installation
