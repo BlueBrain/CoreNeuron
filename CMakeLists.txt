@@ -61,6 +61,10 @@ option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
 option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
 
+
+set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
+set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
+
 ## mech / mod options
 set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
 set(ADDITIONAL_MECHS "" CACHE FILEPATH "File containing list of additional mechanism MOD files")
@@ -129,7 +133,7 @@ endif()
 set(ExternalProjectCMakeArgs
      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
      -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
-     -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+     -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
    )
 ExternalProject_Add(mod2c
   UPDATE_COMMAND ""
