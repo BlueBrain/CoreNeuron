@@ -36,7 +36,7 @@
 
 # Initial Setup
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 PROJECT(coreneuron)
 include (ExternalProject)
 set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
@@ -135,12 +135,13 @@ set(ExternalProjectCMakeArgs
      -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
      -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
    )
+
 ExternalProject_Add(mod2c
-  UPDATE_COMMAND ""
   SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/mod2c
-  INSTALL_DIR ${PROJECT_BINARY_DIR}/external
   CMAKE_ARGS ${ExternalProjectCMakeArgs}
+  CMAKE_CACHE_ARGS ${ExternalProjectCMakeArgs}
   )
+
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 # Threading
