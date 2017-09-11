@@ -17,7 +17,12 @@ CoreNEURON supports limited features provided by [NEURON](https://www.neuron.yal
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
 
 ##### MOd2c build
-MOD2C is actually downloaded and built.
+MOD2C is actually downloaded and built autmatically if you have used `--recursive` option to clone this repository.
+otherwise you need to execute the following commands:
+```bash
+git submodule init
+git submodule update
+```
 
 # Installation
 
