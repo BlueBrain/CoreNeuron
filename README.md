@@ -21,7 +21,7 @@ MOD2C is actually downloaded and built autmatically if you have used `--recursiv
 otherwise you need to execute the following commands:
 ```bash
 git submodule init
-git submodule update
+git submodule update --remote
 ```
 
 # Installation
