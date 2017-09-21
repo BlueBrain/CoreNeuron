@@ -36,7 +36,7 @@
 
 # Initial Setup
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
 PROJECT(coreneuron)
 include (ExternalProject)
 set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
