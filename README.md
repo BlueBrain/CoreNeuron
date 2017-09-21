@@ -20,8 +20,7 @@ CoreNEURON supports limited features provided by [NEURON](https://www.neuron.yal
 MOD2C is actually downloaded and built autmatically if you have used `--recursive` option to clone this repository.
 otherwise you need to execute the following commands:
 ```bash
-git submodule init
-git submodule update --remote
+git submodule update --init --remote
 ```
 
 # Installation
