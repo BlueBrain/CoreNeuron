@@ -130,6 +130,13 @@ if (NOT ENABLE_NET_RECEIVE_BUFFERING)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
 endif()
 
+find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${PROJECT_SOURCE_DIR}/external/mod2c")
+find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
+if (NOT MOD2C_FOUND)
+  message (FATAL_ERROR "missing mod2c submodule :run on top directory of your sources (git > 1.8.2 required):
+      git submodule update --init --remote
+      ")
+endif()
 set(ExternalProjectCMakeArgs
      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
      -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
