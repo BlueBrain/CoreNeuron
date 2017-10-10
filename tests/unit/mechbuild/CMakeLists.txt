@@ -31,9 +31,9 @@ set(TEST_LABEL unit modinclude)
 
 # Additional mechs for testing mech inclusion are stored in extra_mech and extra_mech2.
 
-set(extra_mechs_file "${CMAKE_CURRENT_SOURCE_DIR}/extra_mechs")
-set(extra_mechs_dir1 "${CMAKE_CURRENT_SOURCE_DIR}/extra_mech1")
-set(extra_mechs_dir2 "${CMAKE_CURRENT_SOURCE_DIR}/extra_mech2")
+set(extra_mechs_file "${CMAKE_CURRENT_BINARY_DIR}/extra_mechs")
+set(extra_mechs_dir1 "${CMAKE_CURRENT_BINARY_DIR}/extra_mech1")
+set(extra_mechs_dir2 "${CMAKE_CURRENT_BINARY_DIR}/extra_mech2")
 
 file(GLOB_RECURSE extra_mechs1 RELATIVE "${extra_mechs_dir1}" "${extra_mechs_dir1}/*.mod")
 file(GLOB_RECURSE extra_mechs2 RELATIVE "${extra_mechs_dir2}" "${extra_mechs_dir2}/*.mod")
