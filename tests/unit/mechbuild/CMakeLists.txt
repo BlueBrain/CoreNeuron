@@ -32,8 +32,8 @@ set(TEST_LABEL unit modinclude)
 # Additional mechs for testing mech inclusion are stored in extra_mech and extra_mech2.
 
 set(extra_mechs_file "${CMAKE_CURRENT_BINARY_DIR}/extra_mechs")
-set(extra_mechs_dir1 "${CMAKE_CURRENT_BINARY_DIR}/extra_mech1")
-set(extra_mechs_dir2 "${CMAKE_CURRENT_BINARY_DIR}/extra_mech2")
+set(extra_mechs_dir1 "${CMAKE_CURRENT_SOURCE_DIR}/extra_mech1")
+set(extra_mechs_dir2 "${CMAKE_CURRENT_SOURCE_DIR}/extra_mech2")
 
 file(GLOB_RECURSE extra_mechs1 RELATIVE "${extra_mechs_dir1}" "${extra_mechs_dir1}/*.mod")
 file(GLOB_RECURSE extra_mechs2 RELATIVE "${extra_mechs_dir2}" "${extra_mechs_dir2}/*.mod")
@@ -59,8 +59,8 @@ endmacro()
 
 set(BACM_CMAKEOPTS "-DADDITIONAL_MECHS=${extra_mechs_file} -DADDITIONAL_MECHPATH='${extra_mechs_dir1};${extra_mechs_dir2}'")
 set(BACM_MUST_HAVE ${all_extra_mods})
-set (BACM_DIR1 ${extra_mechs_dir1})
-set (BACM_DIR2 ${extra_mechs_dir2})
+set(BACM_DIR1 ${extra_mechs_dir1})
+set(BACM_DIR2 ${extra_mechs_dir2})
 list_to_spacesep(BACM_MUST_HAVE)
 
 set(BACM_MUST_NOT_HAVE ${nd_mods}) # Neurodamus-derived module
