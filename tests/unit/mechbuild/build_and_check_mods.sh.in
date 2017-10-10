@@ -9,7 +9,6 @@ cmakeopts=(@BACM_CMAKEOPTS@)
 shoudhave=(@BACM_MUST_HAVE@)
 shoudnthave=(@BACM_MUST_NOT_HAVE@)
 
-echo `ls ${cmakediropt}`
 # Perform a dummy build of coreneuron with various
 # configuration options. Print out the mechanisms
 # found by scanning the generated mod_func.c file.
