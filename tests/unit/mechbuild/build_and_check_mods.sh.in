@@ -21,7 +21,7 @@ shoudnthave=(@BACM_MUST_NOT_HAVE@)
 # Remaining arguments are passed to CMake.
 #
 # It does not clean up after itself.
-
+set -x
 function check_modl_reg_mechs() {
     cmcache="$1"
     shift
