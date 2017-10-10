@@ -59,6 +59,8 @@ endmacro()
 
 set(BACM_CMAKEOPTS "-DADDITIONAL_MECHS=${extra_mechs_file} -DADDITIONAL_MECHPATH='${extra_mechs_dir1};${extra_mechs_dir2}'")
 set(BACM_MUST_HAVE ${all_extra_mods})
+set (BACM_DIR1 ${extra_mechs_dir1})
+set (BACM_DIR2 ${extra_mechs_dir2})
 list_to_spacesep(BACM_MUST_HAVE)
 
 set(BACM_MUST_NOT_HAVE ${nd_mods}) # Neurodamus-derived module
