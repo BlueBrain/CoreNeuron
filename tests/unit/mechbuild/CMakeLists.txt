@@ -67,7 +67,7 @@ list_to_spacesep(BACM_MUST_HAVE)
 set(BACM_MUST_NOT_HAVE ${nd_mods}) # Neurodamus-derived module
 list_to_spacesep(BACM_MUST_NOT_HAVE)
 
-make_bacm_test(bacm-extra-no-nd)
+#make_bacm_test(bacm-extra-no-nd)
 
 # Test: Neurodamus mechs, only part of extra 
 
@@ -79,7 +79,7 @@ list_to_spacesep(BACM_MUST_HAVE)
 set(BACM_MUST_NOT_HAVE ${extra_mechs1})
 list_to_spacesep(BACM_MUST_NOT_HAVE)
 
-make_bacm_test(bacm-nd-extra2only)
+#make_bacm_test(bacm-nd-extra2only)
 
 #
 

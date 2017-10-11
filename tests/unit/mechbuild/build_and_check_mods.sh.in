@@ -52,9 +52,7 @@ function check_modl_reg_mechs() {
 	echo "CMake failed" >&2
 	exit 1;
     fi
-    cat cmake.out
     make coreneuron >& make.out
-    cat make.out
 
     if [ -e coreneuron/mod_func.c ]; then
 	sed -e '/printf.*\.mod/!d' -e 's/.*" *\(.*\)\.mod.*/\1.mod/' coreneuron/mod_func.c
