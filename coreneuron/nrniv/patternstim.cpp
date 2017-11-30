@@ -75,6 +75,14 @@ void nrn_set_extra_thread0_vdata() {
 
 // fname is the filename of an output_spikes.h format raster file.
 void nrn_mkPatternStim(const char* fname) {
+
+    // if rank doesn't have any cells, return immediately
+    NrnThread *nt = nrn_threads;
+
+    if(nt && nt->ncell == 0) {
+      return;
+    }
+
     int type = nrn_get_mechtype("PatternStim");
     if (!memb_func[type].sym) {
         printf("nrn_set_extra_thread_vdata must be called (after mk_mech, and before nrn_setup\n");
@@ -90,7 +98,7 @@ void nrn_mkPatternStim(const char* fname) {
 #endif
 
     Point_process* pnt = nrn_artcell_instantiate("PatternStim");
-    NrnThread* nt = nrn_threads + pnt->_tid;
+    nt = nrn_threads + pnt->_tid;
     Memb_list* ml = nt->_ml_list[type];
     int layout = nrn_mech_data_layout_[type];
     int sz = nrn_prop_param_size_[type];
