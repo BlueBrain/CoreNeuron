@@ -78,6 +78,14 @@ void nrn_set_extra_thread0_vdata() {
 // fname is the filename of an output_spikes.h format raster file.
 // todo : add function for memory cleanup (to be called at the end of simulation)
 void nrn_mkPatternStim(const char* fname) {
+
+    // if rank doesn't have any cells, return immediately
+    NrnThread *nt = nrn_threads;
+
+    if(nt && nt->ncells == 0) {
+      return;
+    }
+
     int type = nrn_get_mechtype("PatternStim");
     if (!memb_func[type].sym) {
         printf("nrn_set_extra_thread_vdata must be called (after mk_mech, and before nrn_setup\n");
