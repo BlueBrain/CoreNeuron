@@ -112,7 +112,8 @@ void output_spikes_parallel(const char* outpath) {
     MPI_File fh;
     MPI_Status status;
 
-    int op_status = MPI_File_open(MPI_COMM_WORLD, fname.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    // ibm mpi (bg-q) expects char* instead of const char* (even though it's standard)
+    int op_status = MPI_File_open(MPI_COMM_WORLD, (char*) fname.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
     if(op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
         std::cerr << "Error while opening spike output file " << fname << std::endl;
         abort();
