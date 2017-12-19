@@ -28,6 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
 #include <sstream>
+#include <string.h>
 #include <stdexcept> // std::lenght_error
 #include <vector>
 #include "coreneuron/nrnconf.h"
@@ -93,9 +94,8 @@ void output_spikes_parallel(const char* outpath) {
     strcpy(spike_data, "");
 
     // populate buffer with all spike entries
-    int i;
     char spike_entry[SPIKE_RECORD_LEN];
-    for(i = 0; i < num_spikes; i++) {
+    for(unsigned i = 0; i < num_spikes; i++) {
         snprintf(spike_entry, 64, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
         strcat(spike_data, spike_entry);
     }
@@ -142,7 +142,7 @@ void output_spikes_serial(const char* outpath) {
         return;
     }
 
-    for (int i = 0; i < spikevec_gid.size(); ++i)
+    for (unsigned i = 0; i < spikevec_gid.size(); ++i)
         if (spikevec_gid[i] > -1)
             fprintf(f, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
 
@@ -163,7 +163,7 @@ void output_spikes(const char* outpath) {
 
 
 void validation(std::vector<std::pair<double, int> >& res) {
-    for (int i = 0; i < spikevec_gid.size(); ++i)
+    for (unsigned i = 0; i < spikevec_gid.size(); ++i)
         if (spikevec_gid[i] > -1)
             res.push_back(std::make_pair(spikevec_time[i], spikevec_gid[i]));
 }
