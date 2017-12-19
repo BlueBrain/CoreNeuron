@@ -24,14 +24,13 @@ fi
 # diff outputed files with reference
 cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 
-if [ ! -f out0.dat ]
+if [ ! -f out.dat ]
 then
   echo "No output files. Test failed!"
   exit 1
 fi
 
-cat out[0-9]*.dat > out_cn.dat
-sort -k 1n,1n -k 2n,2n out_cn.dat > sort_out.dat
+sort -k 1n,1n -k 2n,2n out.dat > sort_out.dat
 diff -w sort_out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
 
 if [ -s diff.dat ] 
