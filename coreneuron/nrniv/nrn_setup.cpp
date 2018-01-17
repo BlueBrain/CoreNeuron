@@ -632,7 +632,7 @@ void nrn_setup(const char* filesdat, int byte_swap, bool run_setup_cleanup) {
     /* nrn_multithread_job supports serial, pthread, and openmp. */
     coreneuron::phase_wrapper<(coreneuron::phase)2>();
 
-    if (nrnopt_get_flag("--report"))
+    if ((nrnopt_get_flag("--report")==1) || (nrnopt_get_flag("--report")==2))
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
     double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
@@ -1713,7 +1713,9 @@ for (int i=0; i < nt.end; ++i) {
     delete[] pnt_offset;
 }
 
-/** read mapping information for neurons */
+/** read mapping information for neurons 
+ *  FIXME: mapping of section to segment 
+ * */
 void read_phase3(data_reader& F, int imult, NrnThread& nt) {
     (void)imult;
 

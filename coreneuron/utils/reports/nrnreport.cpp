@@ -29,16 +29,55 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
 #include "coreneuron/nrniv/nrn_assert.h"
-
+#include "coreneuron/nrnoc/mech_mapping.hpp"
+#include "coreneuron/utils/tokenizer.hpp"
 #ifdef ENABLE_REPORTING
 #include "reportinglib/Records.h"
 #endif
 
-int step = 0;
+extern int nrn_get_mechtype(const char*);
+static std::vector<ReportGenerator*> reports;
+/*
+ * ---                           ---
+ *     Public API implementation
+ * ---                           ---
+ */
+
+void register_report(int type,
+                     double start,
+                     double stop,
+                     double dt,
+                     double delay,
+                     double dt_report,
+                     std::string report_path,
+                     std::string report_filter) {
+#ifdef ENABLE_REPORTING
+    reports.push_back(new ReportGenerator(type, start, stop, dt, delay, dt_report, report_path, report_filter));
+    reports[reports.size()-1]->register_report();
+#else
+    if (nrnmpi_myid == 0)
+       printf("\n WARNING! : Can't enable reports, recompile with ReportingLib! \n");
+#endif
+
+}
+
+void finalize_report () {
+  for (std::vector<ReportGenerator*>::iterator it = reports.begin(); it != reports.end(); it++) {
+    ReportGenerator* report = *it;
+  // C++11 for (auto report: reports) {
+    if (report) delete report;
+  }
+  reports.clear();
+}
+
+void ReportEvent::selectGIDtoReport (NrnThread* nt , int gid) {
+   gids_to_report[nt].push_back(gid);
+}
 
 /** constructor */
 ReportEvent::ReportEvent(double t) {
@@ -47,7 +86,6 @@ ReportEvent::ReportEvent(double t) {
 }
 
 /** on deliver, call ReportingLib and setup next event */
-
 void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 // avoid pgc++-Fatal-/opt/pgi/linux86-64/16.5/bin/pggpp2ex TERMINATED by signal 11
 #ifdef ENABLE_REPORTING
@@ -59,14 +97,7 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
     {
 // each thread needs to know its own step
 #ifdef ENABLE_REPORTING
-        // TODO: do not rebuild this cellid vector each reporting dt!
-        std::vector<int> temp;
-        for (int i = 0; i < nt->ncell; i++) {
-            PreSyn& presyn = nt->presyns[i];
-            temp.push_back(presyn.gid_);
-        }
-        std::sort(temp.begin(), temp.end());
-        records_nrec(step, nt->ncell, &temp[0]);
+        records_nrec(step, gids_to_report[nt].size(), &gids_to_report[nt][0]);
 #endif
         send(t + dt, nc, nt);
         step++;
@@ -78,6 +109,27 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 #endif  // ENABLE_REPORTING
 }
 
+/*
+ * filter string from command line in the following format:
+ *  VAR(, VAR)*
+ */
+ void ReportGenerator::parseFilterString (std::string filter_list) {
+   std::vector<std::string> tokens = tokenize(filter_list.c_str(), ',');
+   for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+   std::string& element = *it;
+  //C++11 for (auto&& element : tokenize(filter_list.c_str(), ',')){
+    std::vector<std::string> tok (tokenize(element.c_str(), '.'));
+    int type                     = nrn_get_mechtype (tok[0].c_str());
+    std::string var_name         = tok[1];
+    if (filters.find(type) == filters.end()) {
+        filters[type] =  std::vector<std::string> ();
+        filters[type].push_back(var_name);
+    }
+    else
+        filters[type].push_back(var_name);
+  }
+}
+
 /** based on command line arguments, setup reportinglib interface */
 ReportGenerator::ReportGenerator(int rtype,
                                  double start_,
@@ -85,13 +137,14 @@ ReportGenerator::ReportGenerator(int rtype,
                                  double dt_,
                                  double delay,
                                  double dt_report_,
-                                 std::string path) {
-    start = start_;
-    stop = stop_;
-    dt = dt_;
-    dt_report = dt_report_;
-    mindelay = delay;
-
+                                 std::string path, 
+                                 std::string filter_str) {
+    start         = start_;
+    stop          = stop_;
+    dt            = dt_;
+    dt_report     = dt_report_;
+    mindelay      = delay;
+    parseFilterString (filter_str);
     switch (rtype) {
         case 1:
             type = SomaReport;
@@ -103,6 +156,10 @@ ReportGenerator::ReportGenerator(int rtype,
             report_filepath = path + std::string("/voltage");
             break;
 
+        case 3:
+            type = SynapseReport;
+            report_filepath = path + std::string("/synapse");
+            break;
         default:
             if (nrnmpi_myid == 0) {
                 std::cout << " WARNING: Invalid report type, enabling Soma reports!\n";
@@ -112,22 +169,99 @@ ReportGenerator::ReportGenerator(int rtype,
     }
 }
 
-#ifdef ENABLE_REPORTING
+bool ReportGenerator::something_need_to_be_reported (NrnThread& nt, std::vector<int>& nodes_gid) {
+    bool result = false;
+    NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
+    if (! nt.ncell) return false;
+    switch (type) {
+      case CompartmentReport:
+      case SomaReport:
+        result = true;
+        break;
+      default:
+        for (int i = 0; i < nt.ncell; ++i) {
+          int gid = nt.presyns[i].gid_;
+          for (ReportFilter::iterator filter = filters.begin(); filter != filters.end(); filter++) {
+          //C++11  for (const auto&  filter : filters) {
+               int synapse_type = filter->first;
+               Memb_list *ml = nt._ml_list[synapse_type];
+               if (ml && ml->nodecount) {
+                 int local_gid = nodes_gid[ml->nodeindices[i]];
+                 if (local_gid != gid) continue;
+                 for (int i = 0; i <  ml->nodecount; i++)  {
+                  if (*getVarLocationFromVarName (synapse_type, "selected_for_report", ml, i)) {
+                    result = true;
+                    break;
+                  }
+                 }
+                 if (result == true) break;
+               }
+           }
+        }
+    }
+    return result;
+}
 
+bool ReportGenerator::synapseReportThisGID (NrnThread& nt, std::vector<int>& nodes_gid, int gid) {
+  bool result = false;
+  for (ReportFilter::iterator filter = filters.begin(); filter != filters.end(); filter++) {
+  // C++11 for (const auto&  filter : filters) {
+      int synapse_type = filter->first;
+      Memb_list *ml = nt._ml_list[synapse_type];
+      if (ml && ml->nodecount) {
+        for (int i = 0; i <  ml->nodecount; i++)  {
+           int local_gid = nodes_gid[ml->nodeindices[i]];
+           if (local_gid != gid) continue;
+           if (*getVarLocationFromVarName (synapse_type, "selected_for_report", ml, i)) {
+             result = true;
+             break;
+           }
+        }
+        if (result == true) break;
+      }
+  }
+  return result;
+}
+// register GIDs for every compartment, it consist in a backward sweep then forward sweep algorithm
+std::vector<int> ReportGenerator::registerGIDs (NrnThread& nt) {
+     std::vector<int> nodes_gid (nt.end, -1);
+     // backward sweep: from presyn compartment propagate back GID to parent
+     for(int i=0; i < nt.n_presyn; i++) {
+         int gid = nt.presyns[i].gid_;
+         int thvar_index = nt.presyns[i].thvar_index_;
+         // only for non artificial cells
+         if (thvar_index >= 0) {
+             // setting all roots gids of the presyns nodes,
+             // index 0 have parent set to 0, so we must stop at j > 0
+             // also 0 is the parent of all, so it is an error to attribute a GID to it.
+               nodes_gid[thvar_index]  = gid;
+               for (int j = thvar_index; j > 0; j=nt._v_parent_index[j]) {
+                       nodes_gid[nt._v_parent_index[j]] = gid;
+               }
+         }
+     }
+     // forward sweep: setting all compartements nodes to the GID of its root, 
+     //  already setup up on above loop, and it is working only because compartments are stored just in order to parents
+     for(int i=nt.ncell + 1; i < nt.end; i++) {
+             nodes_gid[i] = nodes_gid[nt._v_parent_index[i]];
+     }
+  return nodes_gid;
+}
+
+#ifdef ENABLE_REPORTING
 void ReportGenerator::register_report() {
     /* simulation dt */
     records_set_atomic_step(dt);
-
+    std::map<int,bool> registered;
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
+        std::vector<int> nodes_gid = registerGIDs(nt);
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
 
-        /** avoid empty NrnThread */
-        if (nt.ncell) {
-            /** new event for every thread : we start recording
-             * reports at t = 0 (to be consistent with neurodamus).
-             * t could be 0 at the begining or some different value
-             * for checkpoint-restart simulations */
+        /** dont create events on NrnThread  that dont need to report anything
+         *  this is also requirement from reportinglib
+         * */
+        if ( something_need_to_be_reported(nt, nodes_gid)) {
             events.push_back(new ReportEvent(dt));
             events[ith]->send(t, net_cvode_instance, &nt);
 
@@ -148,20 +282,21 @@ void ReportGenerator::register_report() {
             for (int i = 0; i < nt.ncell; ++i) {
                 /** for this gid, get mapping information */
                 int gid = nt.presyns[i].gid_;
+                int nsections = 0;
+                int nsegments = 0;
                 CellMapping* m = mapinfo->get_cell_mapping(gid);
+                if ((type == CompartmentReport) || (type == SomaReport)) {
+                  if (m == NULL) {
+                      std::cout << "Error : Compartment mapping information is missing! \n";
+                      continue;
+                  }
+                  nsections = m->num_segments();
+                  nsegments = m->num_sections();
 
-                if (m == NULL) {
-                    std::cout << "Error : Compartment mapping information is missing! \n";
-                    continue;
+                  section_count += nsections;
+                  segment_count += nsegments;
+                  extra_node++;
                 }
-
-                int nsections = m->num_segments();
-                int nsegments = m->num_sections();
-
-                section_count += nsections;
-                segment_count += nsegments;
-                extra_node++;
-
                 /** for full compartment reports, set extra mapping */
                 if (type == CompartmentReport) {
                     extra[0] = nsegments;
@@ -170,14 +305,16 @@ void ReportGenerator::register_report() {
                     extra[3] = m->get_seclist_segment_count("dend");
                     extra[4] = m->get_seclist_segment_count("apic");
                 }
+                if (type == CompartmentReport || type == SomaReport || synapseReportThisGID(nt, nodes_gid, gid)) {
+                  events[ith]->selectGIDtoReport(&nt, gid);
 
-                /** add report variable : @todo api changes in reportinglib*/
-                records_add_report((char*)reportname, gid, gid, gid, start, stop, dt_report,
+                  /** add report variable : @todo api changes in reportinglib*/
+                  records_add_report((char*)reportname, gid, gid, gid, start, stop, dt_report,
                                    sizemapping, (char*)kind, extramapping, (char*)unit);
 
-                /** add extra mapping : @todo api changes in reportinglib*/
-                records_extra_mapping((char*)reportname, gid, 5, extra);
-
+                  /** add extra mapping : @todo api changes in reportinglib*/
+                  records_extra_mapping((char*)reportname, gid, 5, extra);
+                }
                 if (type == SomaReport) {
                     /** get  section list mapping for soma */
                     SecMapping* s = m->get_seclist_mapping("soma");
@@ -191,7 +328,9 @@ void ReportGenerator::register_report() {
 
                     /** add segment for reporting */
                     records_add_var_with_mapping((char*)reportname, gid, v, sizemapping, mapping);
-                } else {
+                    // sum of sections and segments plus one initial extra node
+                    // should be equal to number of nodes in coreneuron.
+                } else if (type == CompartmentReport) {
                     for (size_t j = 0; j < m->size(); j++) {
                         SecMapping* s = m->secmapvec[j];
 
@@ -213,19 +352,43 @@ void ReportGenerator::register_report() {
                         }
                     }
                 }
+                else { //synapse report
+                    for (ReportFilter::iterator filter = filters.begin();  filter != filters.end(); filter++) {
+                    // C++11 for (const auto&  filter : filters) {
+                      int synapse_type = filter->first;
+                      Memb_list *ml = nt._ml_list[synapse_type];
+                      //TODO if all nt dont have an ml: emit a message to user to tell that it try to report something that is
+                      //      not existing in loaded model
+                      if (! ml ) {
+                       continue;
+                      }
+                          for (size_t j = 0; j < filter->second.size(); j++) {
+                            std::string& var_name = filter->second[j];
+                      // C++11 for (const auto& var_name : filter.second) {
+                          for (size_t i = 0; i < ml->nodecount; i++) {
+                               int local_gid = nodes_gid[ml->nodeindices[i]];
+                               if (local_gid != gid) continue;
+                               if(*getVarLocationFromVarName (synapse_type, "selected_for_report", ml, i)) {
+                                registered[gid] = true;
+                                double* var_value   =  getVarLocationFromVarName (synapse_type, var_name.c_str(), ml, i); // pointer to synapse variable
+                                double* synapse_id  =  getVarLocationFromVarName (synapse_type, "synapseID", ml, i);
+                                mapping[0] = *synapse_id;
+                                records_add_var_with_mapping((char*)reportname, gid, var_value, sizemapping, mapping);
+                              }
+                          }
+                      }
+                    }
+                }
             }
-
-            // sum of sections and segments plus one initial extra node
-            // should be equal to number of nodes in coreneuron.
-            nrn_assert((section_count + segment_count + extra_node) == nt.end);
+            events[ith]->sortSelectedGIDs();
         }
     }
-
+    
     /** in the current implementation, we call flush during every spike exchange
      *  interval. Hence there should be sufficient buffer to hold all reports
      *  for the duration of mindelay interval. In the below call we specify the
      *  number of timesteps that we have to buffer.
-     *  TODO: revisit this because spike exchnage can happen few steps before/after
+     *  TODO: revisit this because spike exchange can happen few steps before/after
      *  mindelay interval and hence adding two extra timesteps to buffer.
      */
     int timesteps_to_buffer = mindelay / dt_report + 2;
@@ -238,8 +401,10 @@ void ReportGenerator::register_report() {
     if (nrnmpi_myid == 0) {
         if (type == SomaReport)
             std::cout << " Soma report registration finished!\n";
-        else
+        else if (type == CompartmentReport)
             std::cout << " Full compartment report registration finished!\n";
+        else
+           std::cout << " Synapse report registration finished ! \n";
     }
 }
 

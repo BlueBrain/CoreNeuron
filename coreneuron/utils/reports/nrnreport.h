@@ -38,7 +38,30 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 #include <map>
+#include <vector>
 #include "coreneuron/nrniv/netcon.h"
+
+/*
+ * ---            ---
+ *     Public API
+ * ---            ---
+ */
+void register_report(int type,
+                     double start,
+                     double stop,
+                     double dt,
+                     double delay,
+                     double dt_report,
+                     std::string report_path,
+                     std::string report_filter);
+
+void finalize_report ();
+
+/*
+ * ---                 ---
+ *     TODO  clean up
+ * ---                 ---
+ */
 
 /** global instance */
 extern NetCvode* net_cvode_instance;
@@ -49,16 +72,26 @@ class ReportEvent : public DiscreteEvent {
     /** every thread or event can have different dt */
     double dt;
     unsigned long step;
+    std::map<NrnThread*, std::vector<int> > gids_to_report;
 
   public:
     ReportEvent(double t);
-
+    void selectGIDtoReport (NrnThread*, int);
+    void sortSelectedGIDs () {
+      std::map<NrnThread*, std::vector<int> >::iterator it;
+      for (it = gids_to_report.begin(); it != gids_to_report.end(); it++) {
+        std::vector<int>& gids = it->second;
+      //C++11 for (auto& gids: gids_to_report) {
+        std::sort(gids.begin(), gids.end());
+      }
+    }
     /** on deliver, call ReportingLib and setup next event */
     virtual void deliver(double t, NetCvode* nc, NrnThread* nt);
 };
 
 /** possible voltage report types */
-enum ReportType { SomaReport, CompartmentReport };
+enum ReportType { SomaReport, CompartmentReport, SynapseReport };
+typedef std::map<int, std::vector<std::string> > ReportFilter;  // more practical to iterate compared to multimap
 
 /** class for managing report generation with ReportingLib */
 class ReportGenerator {
@@ -71,6 +104,7 @@ class ReportGenerator {
     double dt_report;
     double mindelay;
     ReportType type;
+    ReportFilter filters;
     std::string report_filepath;
 
   public:
@@ -80,8 +114,13 @@ class ReportGenerator {
                     double dt,
                     double delay,
                     double dt_report,
-                    std::string path);
+                    std::string report_path,
+                    std::string rport_filter);
 
+    void             parseFilterString             (std::string filter_list);
+    bool             something_need_to_be_reported (NrnThread& nt, std::vector<int>& nodes_gid);
+    bool             synapseReportThisGID          (NrnThread& nt, std::vector<int>& nodes_gid, int gid);
+    std::vector<int> registerGIDs                  (NrnThread& nt);
 #ifdef ENABLE_REPORTING
     void register_report();
 #endif

@@ -66,8 +66,8 @@ static param_int param_int_args[] = {
     {"--nwarp -W", 0, 0, 1000000, "Number of warps to balance. (0)"},
     {"--ms-subintervals", 2, 1, 2, "Number of multisend subintervals, 1 or 2. (2)"},
     {"--ms-phases", 2, 1, 2, "Number of multisend phases, 1 or 2. (2)"},
-    {"--report -r", 0, 0, 2,
-     "Enable voltage report (0 for disable, 1 for soma, 2 for full compartment)."},
+    {"--report -r", 0, 0, 3,
+     "Enable voltage report (0 for disable, 1 for soma, 2 for full compartment, 3 for synapses)."},
     {"--multiple -z", 1, 1, 10000000,
      "Model duplication factor. Model size is normal size * (int)."},
     {"--extracon -x", 0, 0, 10000000,
@@ -108,6 +108,7 @@ static param_str param_str_args[] = {
     {"--outpath -o", ".", "Path to place output data files. (.)"},
     {"--write-config", "", "Write configuration file filename."},
     {"--read-config", "", "Read configuration file filename."},
+    {"--report-filters", "", "Synapses mechanisms and variables list to report"},
     {NULL, NULL, NULL}};
 
 static void graceful_exit(int);
