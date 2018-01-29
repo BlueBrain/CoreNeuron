@@ -28,6 +28,10 @@
 include_directories(utils/randoms)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${MPI_INCLUDE_PATH})
+MESSAGE (STATUS "from coreneuronLib, vtune include is : ${VTUNE_INCLUDE_DIRS}")
+if (VTUNE_FOUND)
+  include_directories(${VTUNE_INCLUDE_DIRS})
+endif()
 
 FILE(GLOB_RECURSE coreneuron_all_headers "*.h")
 FILE(GLOB_RECURSE coreneuron_all_templates "*.ipp")
@@ -274,7 +278,7 @@ if(ENABLE_REPORTINGLIB)
   set(link_reportinglib ${REPORTINGLIB_LIBRARIES})
 endif()
 target_link_libraries(coreneuron ${MPI_C_LIBRARIES}
-    ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} )
+  ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} ${VTUNE_LIBRARIES})
 
 
 set_target_properties(coreneuron PROPERTIES

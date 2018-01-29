@@ -15,6 +15,10 @@ static int cray_acc_debug_orig = 0;
 static int cray_acc_debug_zero = 0;
 #endif
 
+#ifdef VTUNE_PROFILING
+#include <ittnotify.h>
+#endif
+
 extern int nrnmpi_myid;
 
 void start_profile() {
@@ -31,6 +35,10 @@ void start_profile() {
 
 #ifdef CUDA_PROFILING
     start_cuda_profile();
+#endif
+
+#ifdef VTUNE_PROFILING
+    __itt_resume();
 #endif
 }
 
@@ -50,4 +58,9 @@ void stop_profile() {
 #ifdef CUDA_PROFILING
     stop_cuda_profile();
 #endif
+
+#ifdef VTUNE_PROFILING
+    __itt_pause();
+#endif
+
 }
