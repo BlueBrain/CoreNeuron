@@ -257,6 +257,8 @@ endif(CORENEURON_MAIN)
 # Tests
 if(Boost_FOUND)
     add_subdirectory(tests)
+else()
+    message(STATUS "Boost not found, disabling tests")
 endif(Boost_FOUND)
 
 
