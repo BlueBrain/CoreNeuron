@@ -372,7 +372,6 @@ static void graceful_exit(int err) {
 #if defined(nrnoptargtest)
 // for testing, compile with: g++ -g -I../.. nrnoptarg.cpp
 
-int nrnmpi_myid;
 
 int main(int argc, const char* argv[]) {
     nrnopt_parse(argc, argv);
