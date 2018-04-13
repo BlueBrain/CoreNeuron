@@ -1,0 +1,57 @@
+#
+# This makefile has the rules necessary for making the custom version of coreneuron
+# executable called "special_core" from various mod files. The variable "MODOBJFILES"
+# should be set on the command line to list the .o files that are needed.
+#
+
+prefix = @CMAKE_INSTALL_PREFIX@
+bindir = $(prefix)/bin
+libdir = $(prefix)/lib@LIB_SUFFIX@
+incdir = $(prefix)/include
+
+enable_mpi = @ENABLE_MPI@
+enable_report = @ENABLE_REPORTINGLIB@
+
+INCLUDES = -I. -I.. -I$(incdir) $(UserINCFLAGS) -I@MPI_C_INCLUDE_PATH@ -I@reportinglib_INCLUDE_DIR@
+LDFLAGS = $(UserLDFLAGS)
+
+CC = @CMAKE_C_COMPILER@
+CXX = @CMAKE_CXX_COMPILER@
+MPICC = @MPI_C_COMPILER@
+MPICXX = @MPI_CXX_COMPILER@
+
+CFLAGS = @CMAKE_C_FLAGS@ @OpenMP_C_FLAGS@
+CXXFLAGS = @CMAKE_CXX_FLAGS@ @OpenMP_CXX_FLAGS@
+DEFS = @EXTRA_DEFS@
+
+COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
+CXXCOMPILE = $(CXX) $(INCLUDES) $(CXXFLAGS)
+
+CCLD = $(CC)
+CXXLD = $(CXX)
+
+CXXLINK = $(CXXLD) $(CXXFLAGS) $(LDFLAGS)
+LINK = $(CCLD) $(CFLAGS) $(LDFLAGS)
+
+CNRNLIBS = -L$(libdir) -lcoreneuron
+NRNIVOBJS = $(libdir)/corebluron_main.cpp.o
+
+.SUFFIXES: .cpp .mod .o
+
+#%.o : %.mod
+
+.mod.cpp:
+	$(bindir)/mod2c_core $*
+
+.cpp.o:
+	$(CXXCOMPILE) -c $*.cpp
+
+.mod.o:
+	$(bindir)/mod2c_core $*
+	$(CXXCOMPILE) -c $*.cpp
+
+mod_func.o: mod_func.c
+	$(CXXCOMPILE) -c $<
+
+special_core: $(MODOBJFILES) $(COBJFILES) mod_func.o
+	$(CXXLINK) -o special_core $(NRNIVOBJS) $(MODOBJFILES) mod_func.o $(COBJFILES) $(CNRNLIBS) $(LIBS)
