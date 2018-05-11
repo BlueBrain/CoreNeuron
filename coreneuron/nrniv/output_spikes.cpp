@@ -31,6 +31,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdexcept>  // std::lenght_error
 #include <vector>
+#include <algorithm>
+#include <numeric>
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrniv/output_spikes.h"
@@ -65,6 +67,73 @@ void spikevec_unlock() {
 }
 
 #if NRNMPI
+
+void sort_spikes() {
+    double min_time, max_time;
+    double lmin_time = *(std::min_element(spikevec_time.begin(), spikevec_time.end()));
+    double lmax_time = *(std::max_element(spikevec_time.begin(), spikevec_time.end()));
+    MPI_Allreduce(&lmin_time, &min_time, 1,
+                  MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&lmax_time, &max_time, 1,
+                  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    int nranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &nranks);
+
+    // Note: the vectors are allocated one elements too large to be able to
+    // use them also as offset buffers in MPI_Alltoallv
+    std::vector<int> snd_cnts = std::vector<int>(nranks+1, 0);
+    std::vector<int> rcv_cnts = std::vector<int>(nranks+1, 0);
+
+    double bin_t = (max_time - min_time) / nranks;
+    // first find number of spikes in each time window
+    for (const auto& st : spikevec_time) {
+        int idx = (int)(st - min_time)/bin_t;
+        snd_cnts[idx+1]++;
+    }
+
+    // now let each rank know how many spikes they will receive
+    // and get in turn all the buffer sizes to receive
+    MPI_Alltoall(&snd_cnts[1], 1, MPI_INTEGER,
+                 &rcv_cnts[1], 1, MPI_INTEGER, MPI_COMM_WORLD);
+
+    // prepare new sorted vectors
+    std::vector<double> svt_buf = std::vector<double>(spikevec_time.size());
+    std::vector<int> svg_buf = std::vector<int>(spikevec_gid.size());
+
+    // now exchange data
+    MPI_Alltoallv(&spikevec_time[0], &snd_cnts[1], &snd_cnts[0], MPI_DOUBLE,
+                  &svt_buf[0], &rcv_cnts[1], &rcv_cnts[0], MPI_DOUBLE,
+                  MPI_COMM_WORLD);
+    MPI_Alltoallv(&spikevec_gid[0], &snd_cnts[1], &snd_cnts[0], MPI_INTEGER,
+                  &svg_buf[0], &rcv_cnts[1], &rcv_cnts[0], MPI_INTEGER,
+                  MPI_COMM_WORLD);
+
+    // first build a permutation vector
+    std::vector<std::size_t> perm(spikevec_time.size());
+    std::iota(perm.begin(), perm.end(), 0);
+    // sort by gid (second predicate first)
+    std::stable_sort(perm.begin(), perm.end(),
+        [&](std::size_t i, std::size_t j){
+            return svg_buf[i] < svg_buf[j];
+        });
+    // then sort by time
+    std::stable_sort(perm.begin(), perm.end(),
+        [&](std::size_t i, std::size_t j){
+            return svt_buf[i] < svt_buf[j];
+        });
+    // now apply permutation to time and gid into original vectors
+    std::transform(perm.begin(), perm.end(), spikevec_time.begin(),
+        [&](std::size_t i) {
+            return svt_buf[i];
+        });
+    std::transform(perm.begin(), perm.end(), spikevec_gid.begin(),
+        [&](std::size_t i) {
+            return svg_buf[i];
+        });
+}
+
+
 /** Write generated spikes to out.dat using mpi parallel i/o.
  *  \todo : MPI related code should be factored into nrnmpi.c
  *          Check spike record length which is set to 64 chars
@@ -78,6 +147,7 @@ void output_spikes_parallel(const char* outpath) {
     if (nrnmpi_myid == 0) {
         remove(fname.c_str());
     }
+    sort_spikes();
     nrnmpi_barrier();
 
     // each spike record in the file is time + gid (64 chars sufficient)
