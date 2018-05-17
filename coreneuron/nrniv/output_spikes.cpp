@@ -68,24 +68,47 @@ void spikevec_unlock() {
 
 #if NRNMPI
 
-void sort_spikes() {
-    double min_time, max_time;
+void local_spikevec_sort(std::vector<double>& isvect, std::vector<int>& isvecg,
+                std::vector<double>& osvect, std::vector<int>& osvecg) {
+
+    osvect.resize(isvect.size());
+    osvecg.resize(isvecg.size());
+    // first build a permutation vector
+    std::vector<std::size_t> perm(isvect.size());
+    std::iota(perm.begin(), perm.end(), 0);
+    // sort by gid (second predicate first)
+    std::stable_sort(perm.begin(), perm.end(),
+        [&](std::size_t i, std::size_t j){
+            return isvecg[i] < isvecg[j];
+        });
+    // then sort by time
+    std::stable_sort(perm.begin(), perm.end(),
+        [&](std::size_t i, std::size_t j){
+            return isvect[i] < isvect[j];
+        });
+    // now apply permutation to time and gid output vectors
+    std::transform(perm.begin(), perm.end(), osvect.begin(),
+        [&](std::size_t i) {
+            return isvect[i];
+        });
+    std::transform(perm.begin(), perm.end(), osvecg.begin(),
+        [&](std::size_t i) {
+            return isvecg[i];
+        });
+}
+
+void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_gid) {
     double lmin_time = *(std::min_element(spikevec_time.begin(), spikevec_time.end()));
     double lmax_time = *(std::max_element(spikevec_time.begin(), spikevec_time.end()));
-    MPI_Allreduce(&lmin_time, &min_time, 1,
-                  MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    MPI_Allreduce(&lmax_time, &max_time, 1,
-                  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    double min_time = nrnmpi_dbl_allmin(lmin_time);
+    double max_time = nrnmpi_dbl_allmax(lmax_time);
 
-    int nranks;
-    MPI_Comm_size(MPI_COMM_WORLD, &nranks);
-
-    // Note: the vectors are allocated one elements too large to be able to
+    // Note: the vectors are allocated one element too large to be able to
     // use them also as offset buffers in MPI_Alltoallv
-    std::vector<int> snd_cnts = std::vector<int>(nranks+1, 0);
-    std::vector<int> rcv_cnts = std::vector<int>(nranks+1, 0);
+    std::vector<int> snd_cnts(nrnmpi_numprocs+1, 0);
+    std::vector<int> rcv_cnts(nrnmpi_numprocs+1, 0);
 
-    double bin_t = (max_time - min_time) / nranks;
+    double bin_t = (max_time - min_time) / nrnmpi_numprocs;
     // first find number of spikes in each time window
     for (const auto& st : spikevec_time) {
         int idx = (int)(st - min_time)/bin_t;
@@ -94,43 +117,22 @@ void sort_spikes() {
 
     // now let each rank know how many spikes they will receive
     // and get in turn all the buffer sizes to receive
-    MPI_Alltoall(&snd_cnts[1], 1, MPI_INTEGER,
-                 &rcv_cnts[1], 1, MPI_INTEGER, MPI_COMM_WORLD);
-
+    nrnmpi_int_alltoall(&snd_cnts[1], &rcv_cnts[1], 1);
+    std::size_t new_sz = 0;
+    for (const auto& r : rcv_cnts) {
+        new_sz += r;
+    }
     // prepare new sorted vectors
-    std::vector<double> svt_buf = std::vector<double>(spikevec_time.size());
-    std::vector<int> svg_buf = std::vector<int>(spikevec_gid.size());
+    std::vector<double> svt_buf(new_sz, 0.0);
+    std::vector<int> svg_buf(new_sz, 0);
 
     // now exchange data
-    MPI_Alltoallv(&spikevec_time[0], &snd_cnts[1], &snd_cnts[0], MPI_DOUBLE,
-                  &svt_buf[0], &rcv_cnts[1], &rcv_cnts[0], MPI_DOUBLE,
-                  MPI_COMM_WORLD);
-    MPI_Alltoallv(&spikevec_gid[0], &snd_cnts[1], &snd_cnts[0], MPI_INTEGER,
-                  &svg_buf[0], &rcv_cnts[1], &rcv_cnts[0], MPI_INTEGER,
-                  MPI_COMM_WORLD);
+    nrnmpi_dbl_alltoallv(spikevec_time.data(), &snd_cnts[1], &snd_cnts[0],
+                         svt_buf.data(), &rcv_cnts[1], &rcv_cnts[0]);
+    nrnmpi_int_alltoallv(spikevec_gid.data(), &snd_cnts[1], &snd_cnts[0],
+                         svg_buf.data(), &rcv_cnts[1], &rcv_cnts[0]);
 
-    // first build a permutation vector
-    std::vector<std::size_t> perm(spikevec_time.size());
-    std::iota(perm.begin(), perm.end(), 0);
-    // sort by gid (second predicate first)
-    std::stable_sort(perm.begin(), perm.end(),
-        [&](std::size_t i, std::size_t j){
-            return svg_buf[i] < svg_buf[j];
-        });
-    // then sort by time
-    std::stable_sort(perm.begin(), perm.end(),
-        [&](std::size_t i, std::size_t j){
-            return svt_buf[i] < svt_buf[j];
-        });
-    // now apply permutation to time and gid into original vectors
-    std::transform(perm.begin(), perm.end(), spikevec_time.begin(),
-        [&](std::size_t i) {
-            return svt_buf[i];
-        });
-    std::transform(perm.begin(), perm.end(), spikevec_gid.begin(),
-        [&](std::size_t i) {
-            return svg_buf[i];
-        });
+    local_spikevec_sort(svt_buf, svg_buf, spikevec_time, spikevec_gid);
 }
 
 
@@ -147,7 +149,7 @@ void output_spikes_parallel(const char* outpath) {
     if (nrnmpi_myid == 0) {
         remove(fname.c_str());
     }
-    sort_spikes();
+    sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 
     // each spike record in the file is time + gid (64 chars sufficient)
@@ -206,6 +208,11 @@ void output_spikes_serial(const char* outpath) {
     ss << outpath << "/out.dat";
     std::string fname = ss.str();
 
+    // reserve some space for sorted spikevec buffers
+    std::vector<double> sorted_spikevec_time(spikevec_time.size());
+    std::vector<int> sorted_spikevec_gid(spikevec_gid.size());
+    local_spikevec_sort(spikevec_time, spikevec_gid, sorted_spikevec_time, sorted_spikevec_gid);
+
     // remove if file already exist
     remove(fname.c_str());
 
@@ -215,9 +222,9 @@ void output_spikes_serial(const char* outpath) {
         return;
     }
 
-    for (unsigned i = 0; i < spikevec_gid.size(); ++i)
-        if (spikevec_gid[i] > -1)
-            fprintf(f, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
+    for (std::size_t i = 0; i < sorted_spikevec_gid.size(); ++i)
+        if (sorted_spikevec_gid[i] > -1)
+            fprintf(f, "%.8g\t%d\n", sorted_spikevec_time[i], sorted_spikevec_gid[i]);
 
     fclose(f);
 }
