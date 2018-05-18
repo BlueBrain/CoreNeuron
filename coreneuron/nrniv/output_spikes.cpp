@@ -103,21 +103,28 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     double min_time = nrnmpi_dbl_allmin(lmin_time);
     double max_time = nrnmpi_dbl_allmax(lmax_time);
 
-    // Note: the vectors are allocated one element too large to be able to
-    // use them also as offset buffers in MPI_Alltoallv
-    std::vector<int> snd_cnts(nrnmpi_numprocs+1, 0);
-    std::vector<int> rcv_cnts(nrnmpi_numprocs+1, 0);
+    // Allocate send and receive counts and displacements for MPI_Alltoallv
+    std::vector<int> snd_cnts(nrnmpi_numprocs, 0);
+    std::vector<int> rcv_cnts(nrnmpi_numprocs, 0);
+    std::vector<int> snd_dsps(nrnmpi_numprocs, 0);
+    std::vector<int> rcv_dsps(nrnmpi_numprocs, 0);
 
     double bin_t = (max_time - min_time) / nrnmpi_numprocs;
     // first find number of spikes in each time window
     for (const auto& st : spikevec_time) {
         int idx = (int)(st - min_time)/bin_t;
-        snd_cnts[idx+1]++;
+        snd_cnts[idx]++;
+    }
+    for (int i = 1; i < nrnmpi_numprocs; i++) {
+        snd_dsps[i] = snd_dsps[i-1] + snd_cnts[i-1];
     }
 
     // now let each rank know how many spikes they will receive
     // and get in turn all the buffer sizes to receive
-    nrnmpi_int_alltoall(&snd_cnts[1], &rcv_cnts[1], 1);
+    nrnmpi_int_alltoall(&snd_cnts[0], &rcv_cnts[0], 1);
+    for (int i = 1; i < nrnmpi_numprocs; i++) {
+        rcv_dsps[i] = rcv_dsps[i-1] + rcv_cnts[i-1];
+    }
     std::size_t new_sz = 0;
     for (const auto& r : rcv_cnts) {
         new_sz += r;
@@ -127,10 +134,10 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     std::vector<int> svg_buf(new_sz, 0);
 
     // now exchange data
-    nrnmpi_dbl_alltoallv(spikevec_time.data(), &snd_cnts[1], &snd_cnts[0],
-                         svt_buf.data(), &rcv_cnts[1], &rcv_cnts[0]);
-    nrnmpi_int_alltoallv(spikevec_gid.data(), &snd_cnts[1], &snd_cnts[0],
-                         svg_buf.data(), &rcv_cnts[1], &rcv_cnts[0]);
+    nrnmpi_dbl_alltoallv(spikevec_time.data(), &snd_cnts[0], &snd_dsps[0],
+                         svt_buf.data(), &rcv_cnts[0], &rcv_dsps[0]);
+    nrnmpi_int_alltoallv(spikevec_gid.data(), &snd_cnts[0], &snd_dsps[0],
+                         svg_buf.data(), &rcv_cnts[0], &rcv_dsps[0]);
 
     local_spikevec_sort(svt_buf, svg_buf, spikevec_time, spikevec_gid);
 }
