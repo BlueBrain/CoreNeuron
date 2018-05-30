@@ -100,3 +100,16 @@ endif()
   endfunction(exec_test)
 
 endif()
+
+if (ENABLE_REPORTINGLIB)
+    foreach(TEST_NAME "1")
+        set (SIM_NAME "reporting_${TEST_NAME}")
+        set (CONFIG_ARG "${TEST_NAME}")
+        configure_file(reportinglib/${TEST_NAME}.conf.in ${SIM_NAME}/${TEST_NAME}.conf @ONLY)
+        configure_file(reportinglib/reporting_test.sh.in ${SIM_NAME}/reporting_test.sh @ONLY)
+        configure_file(reportinglib/${TEST_NAME}.check.in ${SIM_NAME}/${TEST_NAME}.check @ONLY)
+        add_test(NAME ${SIM_NAME}
+            COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
+             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
+    endforeach()
+endif()

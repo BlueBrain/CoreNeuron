@@ -1,0 +1,21 @@
+#! /bin/sh
+
+#NOTE: binary diff is not a good idea as it dont reflect what people use to read reports
+
+OK=0
+FAILED=1
+
+if [ -f test_1.bbp ] 
+then
+   #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
+   # for ascii files that will be using grep for instance.
+   nb_recorded=$(@reportinglib_somaDump@ test_1.bbp | wc -l)
+   if [ $nb_recorded -eq 100 ]; then
+     exit $OK
+   else
+     exit $FAILED
+   fi
+else
+   exit $FAILED
+fi
+
