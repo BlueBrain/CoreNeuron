@@ -89,7 +89,9 @@ typedef struct nrnran123_State {
     char which_;
 } nrnran123_State;
 
-typedef struct nrnran123_array4x32 { uint32_t v[4]; } nrnran123_array4x32;
+typedef struct nrnran123_array4x32 {
+    uint32_t v[4];
+} nrnran123_array4x32;
 
 /* do this on launch to make nrnran123_newstream threadsafe */
 extern DEVICE void nrnran123_mutconstruct(void);
@@ -155,6 +157,6 @@ extern DEVICE nrnran123_array4x32 nrnran123_iran(uint32_t seq, uint32_t id1, uin
 extern DEVICE double nrnran123_uint2dbl(uint32_t);
 extern void nrnran123_set_gpu_globalindex(uint32_t gix);
 
-} //namespace coreneuron
+}  // namespace coreneuron
 
 #endif
