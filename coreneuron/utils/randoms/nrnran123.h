@@ -89,9 +89,7 @@ typedef struct nrnran123_State {
     char which_;
 } nrnran123_State;
 
-typedef struct nrnran123_array4x32 {
-    uint32_t v[4];
-} nrnran123_array4x32;
+typedef struct nrnran123_array4x32 { uint32_t v[4]; } nrnran123_array4x32;
 
 /* do this on launch to make nrnran123_newstream threadsafe */
 extern DEVICE void nrnran123_mutconstruct(void);

@@ -163,8 +163,8 @@ add_definitions(-DCORENEURON_BUILD)
 option (ENABLE_SELECTIVE_GPU_PROFILING "Enable GPU profiling only for Solver" ON)
 option (ENABLE_OPENACC "Enable use of OpenACC" OFF)
 
-set(CLANG_FORMAT_MIN_VERSION "5.0")
-set(CLANG_FORMAT_MAX_VERSION "5.9")
+set(CLANG_FORMAT_MIN_VERSION "4.0")
+set(CLANG_FORMAT_MAX_VERSION "4.9")
 find_package(ClangFormat)
 
 if(CLANG_FORMAT_FOUND)
