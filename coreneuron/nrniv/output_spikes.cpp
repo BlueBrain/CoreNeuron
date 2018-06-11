@@ -68,9 +68,10 @@ void spikevec_unlock() {
 
 #if NRNMPI
 
-void local_spikevec_sort(std::vector<double>& isvect, std::vector<int>& isvecg,
-                std::vector<double>& osvect, std::vector<int>& osvecg) {
-
+void local_spikevec_sort(std::vector<double>& isvect,
+                         std::vector<int>& isvecg,
+                         std::vector<double>& osvect,
+                         std::vector<int>& osvecg) {
     osvect.resize(isvect.size());
     osvecg.resize(isvecg.size());
     // first build a permutation vector
@@ -78,23 +79,15 @@ void local_spikevec_sort(std::vector<double>& isvect, std::vector<int>& isvecg,
     std::iota(perm.begin(), perm.end(), 0);
     // sort by gid (second predicate first)
     std::stable_sort(perm.begin(), perm.end(),
-        [&](std::size_t i, std::size_t j){
-            return isvecg[i] < isvecg[j];
-        });
+                     [&](std::size_t i, std::size_t j) { return isvecg[i] < isvecg[j]; });
     // then sort by time
     std::stable_sort(perm.begin(), perm.end(),
-        [&](std::size_t i, std::size_t j){
-            return isvect[i] < isvect[j];
-        });
+                     [&](std::size_t i, std::size_t j) { return isvect[i] < isvect[j]; });
     // now apply permutation to time and gid output vectors
     std::transform(perm.begin(), perm.end(), osvect.begin(),
-        [&](std::size_t i) {
-            return isvect[i];
-        });
+                   [&](std::size_t i) { return isvect[i]; });
     std::transform(perm.begin(), perm.end(), osvecg.begin(),
-        [&](std::size_t i) {
-            return isvecg[i];
-        });
+                   [&](std::size_t i) { return isvecg[i]; });
 }
 
 void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_gid) {
@@ -112,18 +105,18 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     double bin_t = (max_time - min_time) / nrnmpi_numprocs;
     // first find number of spikes in each time window
     for (const auto& st : spikevec_time) {
-        int idx = (int)(st - min_time)/bin_t;
+        int idx = (int)(st - min_time) / bin_t;
         snd_cnts[idx]++;
     }
     for (int i = 1; i < nrnmpi_numprocs; i++) {
-        snd_dsps[i] = snd_dsps[i-1] + snd_cnts[i-1];
+        snd_dsps[i] = snd_dsps[i - 1] + snd_cnts[i - 1];
     }
 
     // now let each rank know how many spikes they will receive
     // and get in turn all the buffer sizes to receive
     nrnmpi_int_alltoall(&snd_cnts[0], &rcv_cnts[0], 1);
     for (int i = 1; i < nrnmpi_numprocs; i++) {
-        rcv_dsps[i] = rcv_dsps[i-1] + rcv_cnts[i-1];
+        rcv_dsps[i] = rcv_dsps[i - 1] + rcv_cnts[i - 1];
     }
     std::size_t new_sz = 0;
     for (const auto& r : rcv_cnts) {
@@ -134,14 +127,13 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     std::vector<int> svg_buf(new_sz, 0);
 
     // now exchange data
-    nrnmpi_dbl_alltoallv(spikevec_time.data(), &snd_cnts[0], &snd_dsps[0],
-                         svt_buf.data(), &rcv_cnts[0], &rcv_dsps[0]);
-    nrnmpi_int_alltoallv(spikevec_gid.data(), &snd_cnts[0], &snd_dsps[0],
-                         svg_buf.data(), &rcv_cnts[0], &rcv_dsps[0]);
+    nrnmpi_dbl_alltoallv(spikevec_time.data(), &snd_cnts[0], &snd_dsps[0], svt_buf.data(),
+                         &rcv_cnts[0], &rcv_dsps[0]);
+    nrnmpi_int_alltoallv(spikevec_gid.data(), &snd_cnts[0], &snd_dsps[0], svg_buf.data(),
+                         &rcv_cnts[0], &rcv_dsps[0]);
 
     local_spikevec_sort(svt_buf, svg_buf, spikevec_time, spikevec_gid);
 }
-
 
 /** Write generated spikes to out.dat using mpi parallel i/o.
  *  \todo : MPI related code should be factored into nrnmpi.c
