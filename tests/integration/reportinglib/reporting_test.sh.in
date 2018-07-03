@@ -2,5 +2,5 @@
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:@CMAKE_BINARY_DIR@/lib:@reportinglib_LIB_DIR@
 export OMP_NUM_THREADS=1
-@SRUN_PREFIX@ @CMAKE_BINARY_DIR@/bin/coreneuron_exec --read-config @TEST_NAME@.conf
-exit `@CMAKE_BINARY_DIR@/reportinglib/@TEST_NAME@.check`
+@SRUN_PREFIX@ @CMAKE_BINARY_DIR@/bin/coreneuron_exec --read-config @TEST_NAME@.conf -mpi
+exit `./@TEST_NAME@.check`
