@@ -9,7 +9,7 @@ if [ -f test_1.bbp ]
 then
    #checking something with @reportinglib_BIN_DIR@/dump test_1.bbp
    # for ascii files that will be using grep for instance.
-   nb_recorded=$(@reportinglib_somaDump@ test_1.bbp | wc -l)
+   nb_recorded=$(@reportinglib_somaDump@ test_1.bbp 1| wc -l)
    if [ $nb_recorded -eq 100 ]; then
      exit $OK
    else
