@@ -30,8 +30,7 @@ then
   exit 1
 fi
 
-sort -k 1n,1n -k 2n,2n out.dat > sort_out.dat
-diff -w sort_out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
+diff -w out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
 
 if [ -s diff.dat ]
 then
