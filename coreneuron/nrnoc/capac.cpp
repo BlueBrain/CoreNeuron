@@ -182,8 +182,7 @@ void nrn_alloc_capacitance(double* data, Datum* pdata, int type) {
     data[0] = DEF_cm; /*default capacitance/cm^2*/
 }
 
-void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int type)
-{
+void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int type) {
     (void)type;
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
@@ -204,13 +203,12 @@ void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int type)
     for (_iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         i_cap = VEC_RHS(ni[_iml]);
-        VEC_RHS(ni[_iml]) /= 1.e-3*cm;
-        //fprintf(stderr, "== nrn_div_cap: RHS[%d]=%.12f\n", ni[_iml], VEC_RHS(ni[_iml])) ;
+        VEC_RHS(ni[_iml]) /= 1.e-3 * cm;
+        // fprintf(stderr, "== nrn_div_cap: RHS[%d]=%.12f\n", ni[_iml], VEC_RHS(ni[_iml])) ;
     }
 }
 
-void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int type)
-{
+void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int type) {
     (void)type;
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
@@ -232,7 +230,7 @@ void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int type)
     _PRAGMA_FOR_INIT_ACC_LOOP_
     for (_iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
-        VEC_RHS(ni[_iml]) *= cfac*cm;
+        VEC_RHS(ni[_iml]) *= cfac * cm;
     }
 }
 }  // namespace coreneuron
