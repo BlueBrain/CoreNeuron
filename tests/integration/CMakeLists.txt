@@ -29,8 +29,13 @@ set(COMMON_ARGS "--tstop 100. --celsius 6.3 -mpi")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
-set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
-set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+if(ENABLE_OPENACC)
+    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8 --gpu")
+    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16 --gpu")
+else(ENABLE_OPENACC)
+    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
+    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+endif()
 
 # List of tests with arguments
 set(TEST_CASE_ARGS
