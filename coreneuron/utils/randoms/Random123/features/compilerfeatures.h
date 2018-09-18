@@ -209,7 +209,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #include "sunprofeatures.h"
 #elif defined(__OPEN64__)
 #include "open64features.h"
-#elif defined(__clang__)
+#elif defined(__clang__) || defined(__bgclang__)
 #include "clangfeatures.h"
 #elif defined(_CRAYC)
 #include "crayfeatures.h"

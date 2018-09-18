@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   Please let the authors know of any successes (or failures). */
 #endif
 
-#ifdef __powerpc__
+#if defined(__powerpc__) && !defined(__bgclang__)
 #include <ppu_intrinsics.h>
 #endif
 
