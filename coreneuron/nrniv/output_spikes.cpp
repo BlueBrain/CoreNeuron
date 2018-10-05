@@ -96,11 +96,11 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     double min_time = nrnmpi_dbl_allmin(lmin_time);
     double max_time = nrnmpi_dbl_allmax(lmax_time);
 
-    // Allocate send and receive counts and displacements for MPI_Alltoallv
-    std::vector<int> snd_cnts(nrnmpi_numprocs, 0);
-    std::vector<int> rcv_cnts(nrnmpi_numprocs, 0);
-    std::vector<int> snd_dsps(nrnmpi_numprocs, 0);
-    std::vector<int> rcv_dsps(nrnmpi_numprocs, 0);
+    // allocate send and receive counts and displacements for MPI_Alltoallv
+    std::vector<int> snd_cnts(nrnmpi_numprocs);
+    std::vector<int> rcv_cnts(nrnmpi_numprocs);
+    std::vector<int> snd_dsps(nrnmpi_numprocs);
+    std::vector<int> rcv_dsps(nrnmpi_numprocs);
 
     double bin_t = (max_time - min_time) / nrnmpi_numprocs;
     // first find number of spikes in each time window
