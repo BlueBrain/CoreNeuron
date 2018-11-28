@@ -351,7 +351,7 @@ std::vector<int> map_gids(NrnThread& nt) {
 #endif  // ENABLE_REPORTING
 
 // number of min-delay intervals to buffer
-static int num_min_delay_to_buffer = 500;
+static int num_min_delay_to_buffer = 100;
 
 /// number of min-delays completed since last flush
 static int num_min_delays_completed = 0;
