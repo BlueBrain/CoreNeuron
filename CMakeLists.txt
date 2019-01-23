@@ -289,8 +289,9 @@ else()
     message(STATUS "Boost not found, disabling tests")
 endif(Boost_FOUND)
 
-configure_file(config/nrniv_makefile_core.in configs/nrniv_makefile_core @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/configs/nrniv_makefile_core DESTINATION ${BIN_INSTALL_DIR}/)
+set(nmodl_makefile "config/corenrnmodl_makefile")
+configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
+install(FILES ${nmodl_makefile} DESTINATION ${BIN_INSTALL_DIR}/)
 
 # Documentation
 #include(DoxygenRule)

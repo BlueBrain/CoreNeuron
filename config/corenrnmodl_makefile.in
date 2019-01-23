@@ -1,0 +1,71 @@
+#
+# This makefile has the rules necessary for making the custom version of coreneuron
+# executable called "corenrn-special" from various mod files.
+# Mod files are looked up in the cwd, unless MODS_PATH is set
+
+# Mechanisms version are by default 0.0, but should be overriden
+MECH_VERSION = 0.0
+MODS_PATH = .
+ROOT = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+
+prefix = @CMAKE_INSTALL_PREFIX@
+bindir = $(prefix)/bin
+libdir = $(prefix)/lib@LIB_SUFFIX@
+incdir = $(prefix)/include
+
+enable_mpi = @ENABLE_MPI@
+enable_report = @ENABLE_REPORTINGLIB@
+
+INCLUDES = -I. -I.. -I$(incdir) $(UserINCFLAGS) -I@MPI_C_INCLUDE_PATH@ -I@reportinglib_INCLUDE_DIR@
+LDFLAGS = $(UserLDFLAGS)
+
+CC = @CMAKE_C_COMPILER@
+CXX = @CMAKE_CXX_COMPILER@
+MPICC = @MPI_C_COMPILER@
+MPICXX = @MPI_CXX_COMPILER@
+
+CFLAGS = @CMAKE_C_FLAGS@ @OpenMP_C_FLAGS@
+CXXFLAGS = @CMAKE_CXX_FLAGS@ @OpenMP_CXX_FLAGS@
+DEFS := @EXTRA_DEFS@
+
+COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
+CXXCOMPILE = $(CXX) $(INCLUDES) $(CXXFLAGS)
+
+CXX_BUILD = $(CXX) $(CXXFLAGS) $(LDFLAGS)
+SHAREDLIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
+CXX_LINK_EXE = $(CXX_BUILD) $(CMAKE_EXE_LINKER_FLAGS)
+CXX_LINK_SHARED = $(CXX_BUILD) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
+
+CNRNLIBS = -L$(libdir) -lcoreneuron
+# NRNIVOBJS = $(libdir)/corebluron_main.cpp.o
+MOD_FILES = $(wildcard $(MODS_PATH)/*.mod)
+MOD_OBJS = $(notdir $(MOD_FILES:.mod=.mod.o))
+SPECIAL = corenrn-special
+COREMECH_LIB = libnrnmech-core-$(MECH_VERSION)@CMAKE_SHARED_LIBRARY_SUFFIX@
+
+
+$(SPECIAL): $(COREMECH_LIB)
+	@echo Building special from MOD_FILES $(MOD_FILES)
+	@echo MOD_OBJS = $(MOD_OBJS)
+	$(CXX_LINK_EXE) -o $(SPECIAL) apps/coreneuron.cpp \
+	  -L $(libdir) -rpath $(libdir) -l nrnmech-core
+
+
+$(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
+	@echo BUILDING lib $(COREMECH_LIB)
+	$(CXX_LINK_SHARED) mod_func.o $(NRNIVOBJS) $(MOD_OBJS) $(COBJFILES) \
+	  $(CNRNLIBS) $(LIBS) mod_func.cpp -o CXX_LINK_SHARED
+	touch mechlib.built
+
+
+# Generic build
+%.mod.o:
+	MODLUNIT=$(ROOT)/external/mod2c/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc
+	$(CXXCOMPILE) -c modc/$*.cpp
+
+# We require mod_func configured with the mods for registering them
+mod_func.cpp:
+	perl @MOD_FUNC_C_PL@ $(notdir ${MOD_FILES}) > mod_func.cpp
+
+mod_func.o: mod_func.cpp
+	$(CXXCOMPILE) -c $<
