@@ -1,0 +1,10 @@
+#!/bin/sh
+#-----------------------------------------------------------------------------
+# corenrnmodl uses make to compile additonal mod files for coreneuron
+# Copyright 2019 Blue Brain Project
+# -----------------------------------------------------------------------------
+
+ROOTDIR=$(readlink -f $(dirname $BASH_SOURCE)/..)
+MODS_PATH=${1:-.}
+
+make -f "${ROOTDIR}/share/corenrnmodl_makefile" MODS_PATH="$MODS_PATH"

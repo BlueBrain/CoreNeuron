@@ -295,29 +295,35 @@ endif()
 if(ENABLE_REPORTINGLIB)
     set(link_reportinglib ${reportinglib_LIBRARY})
 endif()
-target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
-    ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} )
 
+
+target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
+                      ${link_reportinglib} ${link_cudacoreneuron} ${CUDA_LIBRARIES} )
 
 set_target_properties(coreneuron PROPERTIES
-                            VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
-                            SOVERSION ${VERSION_MAJOR}
-                            CLEAN_DIRECT_OUTPUT 1)
+                      VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
+                      SOVERSION ${VERSION_MAJOR}
+                      CLEAN_DIRECT_OUTPUT 1)
 
 install(TARGETS coreneuron
-             LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-             ARCHIVE DESTINATION ${LIB_INSTALL_DIR} )
-         install(FILES "engine.h" DESTINATION include/coreneuron)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(FILES "engine.h"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron)
 
 if(ENABLE_DEV_FILES_INSTALLATION)
     install(DIRECTORY .
-                DESTINATION include/coreneuron
-                FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
+            FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
 
     install(DIRECTORY ./mech/modfile/.
-                DESTINATION share/mod
-                FILES_MATCHING PATTERN "*.mod")
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/mod
+            FILES_MATCHING PATTERN "*.mod")
+
+    install(FILES ${KINDERIV_H}
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
-install(FILES ${MOD2C_BINARY} DESTINATION ${BIN_INSTALL_DIR}/)
-install(FILES ${MOD2C_UNITS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/)
+install(PROGRAMS ${MOD2C_BINARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${MOD2C_UNITS} DESTINATION ${CMAKE_INSTALL_DATADIR})

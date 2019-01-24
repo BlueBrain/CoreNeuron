@@ -45,14 +45,12 @@ COREMECH_LIB = libnrnmech-core-$(MECH_VERSION)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 
 $(SPECIAL): $(COREMECH_LIB)
-	@echo Building special from MOD_FILES $(MOD_FILES)
-	@echo MOD_OBJS = $(MOD_OBJS)
 	$(CXX_LINK_EXE) -o $(SPECIAL) apps/coreneuron.cpp \
-	  -L $(libdir) -rpath $(libdir) -l nrnmech-core
+	  -L $(libdir) -Wl,-rpath $(libdir) -l nrnmech-core
 
 
 $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
-	@echo BUILDING lib $(COREMECH_LIB)
+	@echo BUILDING lib $(COREMECH_LIB) from Mod files $(MOD_FILES)
 	$(CXX_LINK_SHARED) mod_func.o $(NRNIVOBJS) $(MOD_OBJS) $(COBJFILES) \
 	  $(CNRNLIBS) $(LIBS) mod_func.cpp -o CXX_LINK_SHARED
 	touch mechlib.built
@@ -60,7 +58,7 @@ $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
 
 # Generic build
 %.mod.o:
-	MODLUNIT=$(ROOT)/external/mod2c/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc
+	MODLUNIT=$(ROOT)/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc
 	$(CXXCOMPILE) -c modc/$*.cpp
 
 # We require mod_func configured with the mods for registering them

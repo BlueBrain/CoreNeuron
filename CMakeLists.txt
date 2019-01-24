@@ -289,9 +289,8 @@ else()
     message(STATUS "Boost not found, disabling tests")
 endif(Boost_FOUND)
 
-set(nmodl_makefile "config/corenrnmodl_makefile")
-configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
-install(FILES ${nmodl_makefile} DESTINATION ${BIN_INSTALL_DIR}/)
+
+add_subdirectory(mods_building)
 
 # Documentation
 #include(DoxygenRule)

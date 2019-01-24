@@ -33,11 +33,9 @@ add_definitions(-DADDITIONAL_MECHS)
 add_executable(coreneuron_exec "${CMAKE_CURRENT_SOURCE_DIR}/coreneuron.cpp")
 
 set_target_properties(coreneuron_exec PROPERTIES
-                            OUTPUT_NAME "coreneuron_exec"
-                            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+                      OUTPUT_NAME "coreneuron_exec")
 
 target_link_libraries(coreneuron_exec coreneuron ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${reportinglib_LIBRARY})
 
 install(TARGETS coreneuron_exec
-         DESTINATION ${BIN_INSTALL_DIR}/)
-
+        DESTINATION "${CMAKE_INSTALL_BINDIR}")
