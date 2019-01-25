@@ -7,6 +7,7 @@
 MECH_VERSION = 0.0
 MODS_PATH = .
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@-core
 
 prefix = @CMAKE_INSTALL_PREFIX@
 bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
@@ -50,8 +51,8 @@ CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHA
 CNRNLIBS = -L$(libdir) -lcoreneuron
 MOD_FILES = $(wildcard $(MODS_PATH)/*.mod)
 MOD_OBJS = $(notdir $(MOD_FILES:.mod=.mod.o))
-SPECIAL = corenrn-special
-COREMECH_LIB = libcorenrnmech@CMAKE_SHARED_LIBRARY_SUFFIX@.$(MECH_VERSION)
+SPECIAL = $(OUTPUT)/corenrn-special
+COREMECH_LIB = $(OUTPUT)/libcorenrnmech@CMAKE_SHARED_LIBRARY_SUFFIX@.$(MECH_VERSION)
 
 
 #  ======== MAIN BUILD RULES ============
@@ -63,6 +64,7 @@ $(SPECIAL): $(COREMECH_LIB)
 
 
 $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
+	mkdir -p $(OUTPUT)
 	@echo BUILDING lib $(COREMECH_LIB) from Mod files $(MOD_FILES)
 	$(CXX_LINK_SHARED) mod_func.o $(NRNIVOBJS) $(MOD_OBJS) $(COBJFILES) \
 	  $(CNRNLIBS) $(LIBS) -o ${COREMECH_LIB}
@@ -77,5 +79,6 @@ $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
 mod_func.o: build_always
 	perl @MOD_FUNC_C_PL@ $(notdir ${MOD_FILES}) > mod_func.cpp
 	$(CXXCOMPILE) -c mod_func.cpp
+
 
 .PHONY: build_always
