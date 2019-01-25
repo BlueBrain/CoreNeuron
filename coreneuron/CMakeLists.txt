@@ -305,6 +305,15 @@ set_target_properties(coreneuron PROPERTIES
                       SOVERSION ${VERSION_MAJOR}
                       CLEAN_DIRECT_OUTPUT 1)
 
+
+# Extract lib includes to the whole project
+get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
+get_target_property(CORE_CXX_FLAGS coreneuron COMPILE_FLAGS)
+message("FLAGS=${CXX_FLAGS}")
+
+set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
+
+
 install(TARGETS coreneuron
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})

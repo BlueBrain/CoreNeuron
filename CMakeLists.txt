@@ -99,27 +99,22 @@ include(DeclareMod2CSubModule)
 include(FindPkgConfig)
 include(CTest)
 
-set(EXTRA_DEFS "")
 
 #Find all dependencies
 if (ENABLE_MPI)
     find_package(MPI REQUIRED)
     add_definitions("-DNRNMPI=1")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DNRNMPI=1")
 else()
     message(STATUS "Use of MPI disabled by user-provided option")
     add_definitions("-DNRNMPI=0")
     add_definitions("-DNRN_MULTISEND=0")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DNRNMPI=0")
 endif()
 
 #Memory layout transformation: 0 for SoA and 1 for AoS
 if (ENABLE_SOA)
     add_definitions("-DLAYOUT=0")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DLAYOUT=0")
 else()
     add_definitions("-DLAYOUT=1")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DLAYOUT=1")
 endif()
 
 #OpenMP runtime schedule
@@ -130,19 +125,16 @@ endif()
 #Disable hoc_exp wrapper for exp
 if (DISABLE_HOC_EXP)
     add_definitions("-DDISABLE_HOC_EXP")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DDISABLE_HOC_EXP")
 endif()
 
 #Enable use of splay tree for queuing (for models using net_move)
 if (ENABLE_SPLAYTREE_QUEUING)
     add_definitions("-DENABLE_SPLAYTREE_QUEUING")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DENABLE_SPLAYTREE_QUEUING")
 endif()
 
 #Turn off event buffering if asked
 if (NOT ENABLE_NET_RECEIVE_BUFFERING)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
-    set(EXTRA_DEFS "${EXTRA_DEFS} -DNET_RECEIVE_BUFFERING=0")
 endif()
 
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
@@ -162,7 +154,6 @@ if(ENABLE_REPORTINGLIB)
     if(reportinglib_FOUND)
         include_directories(${reportinglib_INCLUDE_DIR})
         add_definitions("-DENABLE_REPORTING")
-        set(EXTRA_DEFS "${EXTRA_DEFS} -DENABLE_REPORTING")
     else(reportinglib_FOUND)
         message(FATAL_ERROR "Enabled use of ReportingLib but ReportingLib installion not found!")
     endif(reportinglib_FOUND)
@@ -171,13 +162,11 @@ endif(ENABLE_REPORTINGLIB)
 CHECK_INCLUDE_FILES (malloc.h have_malloc_h)
 if(have_malloc_h)
   add_definitions("-DHAVE_MALLOC_H")
-  set(EXTRA_DEFS "${EXTRA_DEFS} -DHAVE_MALLOC_H")
 endif()
 
 # Some mechanisms use NEURON specific code which is skipped
 # using this macro for CoreNeuron build
 add_definitions(-DCORENEURON_BUILD)
-set(EXTRA_DEFS "${EXTRA_DEFS} -DCORENEURON_BUILD")
 
 option (ENABLE_SELECTIVE_GPU_PROFILING "Enable GPU profiling only for Solver" ON)
 option (ENABLE_OPENACC "Enable use of OpenACC" OFF)

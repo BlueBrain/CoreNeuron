@@ -6,5 +6,6 @@
 
 ROOTDIR=$(readlink -f $(dirname $BASH_SOURCE)/..)
 MODS_PATH=${1:-.}
+MECH_VERSION=${2:-"0.0"}
 
-make -f "${ROOTDIR}/share/corenrnmodl_makefile" MODS_PATH="$MODS_PATH"
+make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" MODS_PATH="$MODS_PATH" MECH_VERSION="$MECH_VERSION"

@@ -6,64 +6,76 @@
 # Mechanisms version are by default 0.0, but should be overriden
 MECH_VERSION = 0.0
 MODS_PATH = .
-ROOT = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 
 prefix = @CMAKE_INSTALL_PREFIX@
-bindir = $(prefix)/bin
-libdir = $(prefix)/lib@LIB_SUFFIX@
-incdir = $(prefix)/include
+bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
+libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
+incdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
 
+# Additional variables set in CMAKE usable here
+# - @CORENRN_COMPILE_DEFS@
+# - @CORENRN_LINK_DEFS@
+
+# We rebuild the include dirs since a lot of stuff changes place
 enable_mpi = @ENABLE_MPI@
 enable_report = @ENABLE_REPORTINGLIB@
 
-INCLUDES = -I. -I.. -I$(incdir) $(UserINCFLAGS) -I@MPI_C_INCLUDE_PATH@ -I@reportinglib_INCLUDE_DIR@
-LDFLAGS = $(UserLDFLAGS)
+INCLUDES = -I$(incdir) -I$(incdir)/coreneuron/utils/randoms $(UserINCFLAGS)
+ifneq (@MPI_C_INCLUDE_PATH@,)
+    INCLUDES += -I@MPI_C_INCLUDE_PATH@
+endif
+ifneq (@reportinglib_INCLUDE_DIR@,)
+    INCLUDES += -I@reportinglib_INCLUDE_DIR@
+endif
+
+LDFLAGS = @CORENRN_LINK_DEFS@ $(UserLDFLAGS)
 
 CC = @CMAKE_C_COMPILER@
 CXX = @CMAKE_CXX_COMPILER@
 MPICC = @MPI_C_COMPILER@
 MPICXX = @MPI_CXX_COMPILER@
 
-CFLAGS = @CMAKE_C_FLAGS@ @OpenMP_C_FLAGS@
-CXXFLAGS = @CMAKE_CXX_FLAGS@ @OpenMP_CXX_FLAGS@
-DEFS := @EXTRA_DEFS@
+CFLAGS = @CMAKE_C_FLAGS@ @OpenMP_C_FLAGS@ -fPIC
+CXXFLAGS = @CMAKE_CXX_FLAGS@ @OpenMP_CXX_FLAGS@ -fPIC
 
-COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
-CXXCOMPILE = $(CXX) $(INCLUDES) $(CXXFLAGS)
+COMPILE = $(CC) $(CFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES) 
+CXXCOMPILE = $(CXX) $(CXXFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES) 
 
-CXX_BUILD = $(CXX) $(CXXFLAGS) $(LDFLAGS)
+CXX_LINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
 SHAREDLIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
-CXX_LINK_EXE = $(CXX_BUILD) $(CMAKE_EXE_LINKER_FLAGS)
-CXX_LINK_SHARED = $(CXX_BUILD) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
+CXX_LINK_EXE = $(CXX_LINK) $(CMAKE_EXE_LINKER_FLAGS)
+CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
 
 CNRNLIBS = -L$(libdir) -lcoreneuron
-# NRNIVOBJS = $(libdir)/corebluron_main.cpp.o
 MOD_FILES = $(wildcard $(MODS_PATH)/*.mod)
 MOD_OBJS = $(notdir $(MOD_FILES:.mod=.mod.o))
 SPECIAL = corenrn-special
-COREMECH_LIB = libnrnmech-core-$(MECH_VERSION)@CMAKE_SHARED_LIBRARY_SUFFIX@
+COREMECH_LIB = libcorenrnmech@CMAKE_SHARED_LIBRARY_SUFFIX@.$(MECH_VERSION)
 
+
+#  ======== MAIN BUILD RULES ============
 
 $(SPECIAL): $(COREMECH_LIB)
-	$(CXX_LINK_EXE) -o $(SPECIAL) apps/coreneuron.cpp \
-	  -L $(libdir) -Wl,-rpath $(libdir) -l nrnmech-core
+    # Take the main and link with nrnmech. Rpath is to look for the lib in the same dir
+	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a $(CNRNLIBS) $(COREMECH_LIB)  \
+      -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) -o $(SPECIAL)
 
 
 $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
 	@echo BUILDING lib $(COREMECH_LIB) from Mod files $(MOD_FILES)
 	$(CXX_LINK_SHARED) mod_func.o $(NRNIVOBJS) $(MOD_OBJS) $(COBJFILES) \
-	  $(CNRNLIBS) $(LIBS) mod_func.cpp -o CXX_LINK_SHARED
-	touch mechlib.built
+	  $(CNRNLIBS) $(LIBS) -o ${COREMECH_LIB}
 
 
-# Generic build
+# Generic mod objects
 %.mod.o:
-	MODLUNIT=$(ROOT)/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc
-	$(CXXCOMPILE) -c modc/$*.cpp
+	MODLUNIT=$(ROOT)/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc/
+	$(CXXCOMPILE) -c modc/$*.cpp -o $@
 
 # We require mod_func configured with the mods for registering them
-mod_func.cpp:
+mod_func.o: build_always
 	perl @MOD_FUNC_C_PL@ $(notdir ${MOD_FILES}) > mod_func.cpp
+	$(CXXCOMPILE) -c mod_func.cpp
 
-mod_func.o: mod_func.cpp
-	$(CXXCOMPILE) -c $<
+.PHONY: build_always
