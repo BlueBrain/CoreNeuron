@@ -5,7 +5,22 @@
 # -----------------------------------------------------------------------------
 set -xe
 ROOTDIR=$(readlink -f $(dirname $BASH_SOURCE)/..)
-MODS_PATH=${1:-.}
-MECH_VERSION=${2:-"0.0"}
+MECH_VERSION=0.0
 
-make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" MODS_PATH="$MODS_PATH" MECH_VERSION="$MECH_VERSION" #"$@"
+# Accept version and output options
+while getopts "v:o:" OPTION; do
+    [ $OPTION = v ] && VERSION=$OPTARG
+    [ $OPTION = o ] && OUTPUT=$OPTARG
+done
+
+if [ $OUTPUT ]; then
+    MODL_EXTRA_OPTS="OUTPUT=$OUTPUT $MODL_EXTRA_OPTS"
+fi
+
+# Mod path is last parameter
+eval MODS_PATH=\${$OPTIND:-.}
+
+# Fail early if no mods
+ls $MODS_PATH/*.mod
+
+make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" $MODL_EXTRA_OPTS MECH_VERSION="$MECH_VERSION" MODS_PATH="$MODS_PATH"
