@@ -7,14 +7,11 @@ if (CORENRN_COMPILE_FLAGS)
     string(REPLACE ";" " -D" CORENRN_COMPILE_DEFS "${CORENRN_COMPILE_DEFS}")
 endif()
 # Link libraries
-string(REPLACE ";" " " CORENRN_LINK_DEFS ${CORENRN_LINK_LIBS})
-#if (CORENRN_LINK_LIBS)
-#    set(CORENRN_LINK_DEFS "${CMAKE_LINK_LIBRARY_FLAG} ${CORENRN_LINK_LIBS}")
-#    string(REPLACE ";" " ${CMAKE_LINK_LIBRARY_FLAG} " CORENRN_LINK_DEFS ${CORENRN_LINK_DEFS})
-#endif()
+string(REPLACE ";" " " CORENRN_LINK_DEFS "${CORENRN_LINK_LIBS}")
+message("LINK LIBS = ${CORENRN_LINK_DEFS}")
 
 configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
-        
+
 # Makefile
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${nmodl_makefile}
         DESTINATION ${CMAKE_INSTALL_DATADIR})

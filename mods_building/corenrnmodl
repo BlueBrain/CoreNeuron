@@ -3,24 +3,58 @@
 # corenrnmodl uses make to compile additonal mod files for coreneuron
 # Copyright 2019 Blue Brain Project
 # -----------------------------------------------------------------------------
-set -xe
+set -e
+APP_NAME=$(basename $0)
 ROOTDIR=$(readlink -f $(dirname $BASH_SOURCE)/..)
-MECH_VERSION=0.0
+declare -A params
 
-# Accept version and output options
-while getopts "v:o:" OPTION; do
-    [ $OPTION = v ] && VERSION=$OPTARG
-    [ $OPTION = o ] && OUTPUT=$OPTARG
+OPTS=$(getopt -o n:v:o:i:l:h --long name:,version:,output:,incflags:,linkflags: -- "$@")
+eval set -- $OPTS
+while ! [ "$1" = "--" ]; do
+    case "$1" in
+    -n|--name)
+        params[MECH_NAME]=$2;;
+    -v|--version)
+        params[MECH_VERSION]="$2";;
+    -o|--output)
+        params[OUTPUT]="$2";;
+    -i|--incflags)
+        params[INCFLAGS]="$2";;
+    -l|--linkflags)
+        params[LINKFLAGS]="$2";;
+    -h)
+        echo "$APP_NAME [options, ...] [mods_path]"
+        echo "options:"
+        echo "  -n, --name:      Optionally add mech name to library, as suffix"
+        echo "  -v, --version:   Set libcorenrnmech version (default: 0.0)"
+        echo "  -o, --output:    Set the output dir (default: <arch>-core)"
+        echo "  -i, --incflags:  Definitions passed to the compiler, typically '-I dir..'"
+        echo "  -l, --linkflags: Definitions passed to the linker, typically '-Lx -lylib..'"
+        exit 0
+    esac
+    shift 2
 done
 
-if [ $OUTPUT ]; then
-    MODL_EXTRA_OPTS="OUTPUT=$OUTPUT $MODL_EXTRA_OPTS"
-fi
+shift  # discard -- separator
 
-# Mod path is last parameter
-eval MODS_PATH=\${$OPTIND:-.}
+if [ $# -gt 1 ]; then
+    echo "Error: invalid numbe of arguments. Syntax: use '$APP_NAME -h' "
+    exit 1
+fi
+# If defined will be in $1
+params[MODS_PATH]=$1
+
+OPTIONS=()
+for var in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
+    [ "${params[$var]}" ] && OPTIONS+=("$var=${params[$var]}")
+done
 
 # Fail early if no mods
-ls $MODS_PATH/*.mod
+if ! ls "${params[MODS_PATH]:-.}"/*.mod; then
+    echo "No mods found! For options use '$APP_NAME -h'"
 
-make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" $MODL_EXTRA_OPTS MECH_VERSION="$MECH_VERSION" MODS_PATH="$MODS_PATH"
+echo "Invoking nrn makefile with: ${OPTIONS[@]}"
+# NOTE: While this script handles whitespaces correctly, make doesnt! bug #712
+set -x
+make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" "${OPTIONS[@]}"
+

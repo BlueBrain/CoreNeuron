@@ -4,12 +4,14 @@
 # Mod files are looked up in the cwd, unless MODS_PATH is set
 
 # Mechanisms version are by default 0.0, but should be overriden
+MECH_NAME =
 MECH_VERSION = 0.0
 MODS_PATH = .
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@-core
 
 prefix = @CMAKE_INSTALL_PREFIX@
+datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@
 bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
 libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
 incdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
@@ -40,8 +42,8 @@ MPICXX = @MPI_CXX_COMPILER@
 CFLAGS = @CMAKE_C_FLAGS@ @OpenMP_C_FLAGS@ -fPIC
 CXXFLAGS = @CMAKE_CXX_FLAGS@ @OpenMP_CXX_FLAGS@ -fPIC
 
-COMPILE = $(CC) $(CFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES) 
-CXXCOMPILE = $(CXX) $(CXXFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES) 
+COMPILE = $(CC) $(CFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES)
+CXXCOMPILE = $(CXX) $(CXXFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES)
 
 CXX_LINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
 SHAREDLIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
@@ -52,7 +54,10 @@ CNRNLIBS = -L$(libdir) -lcoreneuron
 MOD_FILES = $(wildcard $(MODS_PATH)/*.mod)
 MOD_OBJS = $(notdir $(MOD_FILES:.mod=.mod.o))
 SPECIAL = $(OUTPUT)/corenrn-special
-COREMECH_LIB = $(OUTPUT)/libcorenrnmech@CMAKE_SHARED_LIBRARY_SUFFIX@.$(MECH_VERSION)
+ifneq (MECH_NAME,)
+    LIB_SUFFIX = _$(MECH_NAME)
+endif
+COREMECH_LIB = $(OUTPUT)/libcorenrnmech$(LIB_SUFFIX)-$(MECH_VERSION)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 
 #  ======== MAIN BUILD RULES ============
@@ -72,12 +77,12 @@ $(COREMECH_LIB): $(MOD_OBJS) $(COBJFILES) mod_func.o
 
 # Generic mod objects
 %.mod.o:
-	MODLUNIT=$(ROOT)/share/nrnunits.lib $(ROOT)/bin/mod2c_core $(MODS_PATH)/$*.mod -o modc/
+	MODLUNIT=$(ROOT)/share/nrnunits.lib $(bindir)/mod2c_core $(MODS_PATH)/$*.mod -o modc/
 	$(CXXCOMPILE) -c modc/$*.cpp -o $@
 
 # We require mod_func configured with the mods for registering them
 mod_func.o: build_always
-	perl @MOD_FUNC_C_PL@ $(notdir ${MOD_FILES}) > mod_func.cpp
+	perl $(datadir)/mod_func.c.pl $(notdir ${MOD_FILES}) > mod_func.cpp
 	$(CXXCOMPILE) -c mod_func.cpp
 
 

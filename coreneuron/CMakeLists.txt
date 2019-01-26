@@ -308,9 +308,6 @@ set_target_properties(coreneuron PROPERTIES
 
 # Extract lib includes to the whole project
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
-get_target_property(CORE_CXX_FLAGS coreneuron COMPILE_FLAGS)
-message("FLAGS=${CXX_FLAGS}")
-
 set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
 
 
@@ -332,6 +329,9 @@ if(ENABLE_DEV_FILES_INSTALLATION)
 
     install(FILES ${KINDERIV_H}
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+    install(FILES ${MOD_FUNC_C_PL}
+            DESTINATION ${CMAKE_INSTALL_DATADIR})
 endif()
 
 install(PROGRAMS ${MOD2C_BINARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
