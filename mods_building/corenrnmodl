@@ -1,60 +1,59 @@
 #!/bin/sh
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # corenrnmodl uses make to compile additonal mod files for coreneuron
 # Copyright 2019 Blue Brain Project
 # -----------------------------------------------------------------------------
 set -e
 APP_NAME=$(basename $0)
-ROOTDIR=$(readlink -f $(dirname $BASH_SOURCE)/..)
-declare -A params
+_PARENT="$(dirname $BASH_SOURCE)/.."
+ROOTDIR=$(perl -e "use Cwd 'abs_path'; print abs_path('$_PARENT')")
 
-OPTS=$(getopt -o n:v:o:i:l:h --long name:,version:,output:,incflags:,linkflags: -- "$@")
-eval set -- $OPTS
-while ! [ "$1" = "--" ]; do
-    case "$1" in
-    -n|--name)
-        params[MECH_NAME]=$2;;
-    -v|--version)
-        params[MECH_VERSION]="$2";;
-    -o|--output)
-        params[OUTPUT]="$2";;
-    -i|--incflags)
-        params[INCFLAGS]="$2";;
-    -l|--linkflags)
-        params[LINKFLAGS]="$2";;
-    -h)
+while getopts "n:v:o:i:l:h" OPT; do
+    case "$OPT" in
+    n)
+        params_MECH_NAME="$OPTARG";;
+    v)
+        params_MECH_VERSION="$OPTARG";;
+    o)
+        params_OUTPUT="$OPTARG";;
+    i)
+        params_INCFLAGS="$OPTARG";;
+    l)
+        params_LINKFLAGS="$OPTARG";;
+    h)
         echo "$APP_NAME [options, ...] [mods_path]"
-        echo "options:"
-        echo "  -n, --name:      Optionally add mech name to library, as suffix"
-        echo "  -v, --version:   Set libcorenrnmech version (default: 0.0)"
-        echo "  -o, --output:    Set the output dir (default: <arch>-core)"
-        echo "  -i, --incflags:  Definitions passed to the compiler, typically '-I dir..'"
-        echo "  -l, --linkflags: Definitions passed to the linker, typically '-Lx -lylib..'"
-        exit 0
+        echo "Options:"
+        echo "  -n <name>       Optionally add mech name to library, as suffix"
+        echo "  -v <version>    Set libcorenrnmech version (default: 0.0)"
+        echo "  -o <output_dir> Set the output dir (default: <arch>-core)"
+        echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
+        echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
+        exit 0;;
+    ?)
+        exit 1;;
     esac
-    shift 2
 done
 
-shift  # discard -- separator
+shift $(($OPTIND - 1))
 
 if [ $# -gt 1 ]; then
-    echo "Error: invalid numbe of arguments. Syntax: use '$APP_NAME -h' "
+    echo "Error: $APP_NAME expects at most one mod dir. See syntax: '$APP_NAME -h' "
     exit 1
 fi
 # If defined will be in $1
-params[MODS_PATH]=$1
+params_MODS_PATH=$1
 
-OPTIONS=()
-for var in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
-    [ "${params[$var]}" ] && OPTIONS+=("$var=${params[$var]}")
+
+make_params=()
+for param in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
+    var="params_${param}"
+    [ "${!var}" ] && make_params+=("$param=${!var}")
 done
 
 # Fail early if no mods
-if ! ls "${params[MODS_PATH]:-.}"/*.mod; then
-    echo "No mods found! For options use '$APP_NAME -h'"
+ls "${params_MODS_PATH:-.}"/*.mod || { echo "No mods found"; exit 1; }
 
-echo "Invoking nrn makefile with: ${OPTIONS[@]}"
 # NOTE: While this script handles whitespaces correctly, make doesnt! bug #712
 set -x
-make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" "${OPTIONS[@]}"
+make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" "${make_params[@]}"
 
