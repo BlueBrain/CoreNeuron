@@ -318,14 +318,10 @@ install(TARGETS coreneuron
 install(FILES "engine.h"
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron)
 
-if(ENABLE_DEV_FILES_INSTALLATION)
+if(ENABLE_HEADER_INSTALL)
     install(DIRECTORY .
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
             FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
-
-    install(DIRECTORY ./mech/modfile/.
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/mod
-            FILES_MATCHING PATTERN "*.mod")
 
     install(FILES ${KINDERIV_H}
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

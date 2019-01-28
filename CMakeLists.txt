@@ -278,7 +278,7 @@ else()
 endif(Boost_FOUND)
 
 
-add_subdirectory(mods_building)
+add_subdirectory(extra)
 
 # Documentation
 #include(DoxygenRule)
