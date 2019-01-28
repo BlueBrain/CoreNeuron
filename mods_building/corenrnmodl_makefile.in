@@ -7,7 +7,7 @@
 MECH_NAME =
 MECH_VERSION = 0.0
 MODS_PATH = .
-OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@-core
+OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@_core
 
 bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
 libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
@@ -46,14 +46,16 @@ special = $(OUTPUT)/corenrn-special
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
 endif
-coremech_lib = $(OUTPUT)/libcorenrnmech$(LIB_SUFFIX)-$(MECH_VERSION)@CMAKE_SHARED_LIBRARY_SUFFIX@
+coremech_libname = corenrnmech$(LIB_SUFFIX)-$(MECH_VERSION)
+coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 
 #  ======== MAIN BUILD RULES ============
 
 $(special): $(coremech_lib)
-    # Take the main and link with nrnmech. Rpath is to look for the lib in the same dir
-	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a $(coremech_lib) \
+    # Take the main and link with nrnmech.
+	# RPATH is set for ORIGIN and coreneuron lib
+	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -L $(OUTPUT) -l$(coremech_libname) \
 	  $(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) -o $(special)
 
 
@@ -66,8 +68,8 @@ $(coremech_lib): $(mod_objs) mod_func.o
 # Generic mod objects
 %.mod.o:
 	MODLUNIT=$(datadir)/nrnunits.lib \
-	  $(bindir)/mod2c_core $(MODS_PATH)/$*.mod -o modc-core/
-	$(CXXCOMPILE) -c modc-core/$*.cpp -o $@
+	  $(bindir)/mod2c_core $(MODS_PATH)/$*.mod -o modc_core/
+	$(CXXCOMPILE) -c modc_core/$*.cpp -o $@
 
 # We require mod_func configured with the mods for registering them
 mod_func.o: build_always
