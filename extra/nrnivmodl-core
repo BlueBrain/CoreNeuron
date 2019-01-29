@@ -1,6 +1,6 @@
 #!/bin/sh
 # -----------------------------------------------------------------------------
-# corenrnmodl uses make to compile additonal mod files for coreneuron
+# nrnivmodl-core uses make to compile additonal mod files for coreneuron
 # Copyright 2019 Blue Brain Project
 # -----------------------------------------------------------------------------
 set -e
@@ -55,4 +55,4 @@ done
 ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
 
 set -x
-make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" "${make_params[@]}"
+make -j4 -f "${ROOTDIR}/share/nrnivmodl_core_makefile" "${make_params[@]}"

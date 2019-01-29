@@ -1,6 +1,6 @@
 #
 # This makefile has the rules necessary for making the custom version of coreneuron
-# executable called "corenrn-special" from various mod files.
+# executable called "special-core" from various mod files.
 # Mod files are looked up in the cwd, unless MODS_PATH is set
 
 # Mechanisms version are by default 0.0, but should be overriden
@@ -42,7 +42,7 @@ CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHA
 CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
 mod_files = $(wildcard $(MODS_PATH)/*.mod)
 mod_objs = $(notdir $(mod_files:.mod=.mod.o))
-special = $(OUTPUT)/corenrn-special
+special = $(OUTPUT)/special-core
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
 endif
