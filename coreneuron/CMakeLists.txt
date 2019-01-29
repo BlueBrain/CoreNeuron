@@ -203,7 +203,7 @@ mod2c_from_file(OPTMECH "${ADDITIONAL_MECHS}" "${ADDITIONAL_MECHPATH}")
 # For 'non-standard' mod files, need to generate registering function in mod_func.c
 
 set(MOD_FUNC_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func.cpp")
-set(MOD_FUNC_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl" CACHE STRING "Create mod registration c source")
+set(MOD_FUNC_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 
 # ... pass as argument to the perl script the list of mod file names;
 add_custom_command(OUTPUT "${MOD_FUNC_C}"

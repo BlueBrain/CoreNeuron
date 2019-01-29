@@ -40,7 +40,8 @@ if [ $# -gt 1 ]; then
     echo "Error: $APP_NAME expects at most one mod dir. See syntax: '$APP_NAME -h' "
     exit 1
 fi
-# If defined will be in $1
+# If defined mods dir be in $1
+# Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
 params_MODS_PATH=$1
 
 
@@ -51,9 +52,7 @@ for param in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
 done
 
 # Fail early if no mods
-ls "${params_MODS_PATH:-.}"/*.mod || { echo "No mods found"; exit 1; }
+ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
 
-# NOTE: While this script handles whitespaces correctly, make doesnt! bug #712
 set -x
 make -j4 -f "${ROOTDIR}/share/corenrnmodl_makefile" "${make_params[@]}"
-
