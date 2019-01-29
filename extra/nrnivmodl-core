@@ -4,6 +4,7 @@
 # Copyright 2019 Blue Brain Project
 # -----------------------------------------------------------------------------
 set -e
+
 APP_NAME=$(basename $0)
 _PARENT="$(dirname $BASH_SOURCE)/.."
 ROOTDIR=$(perl -e "use Cwd 'abs_path'; print abs_path('$_PARENT')")
@@ -40,19 +41,21 @@ if [ $# -gt 1 ]; then
     echo "Error: $APP_NAME expects at most one mod dir. See syntax: '$APP_NAME -h' "
     exit 1
 fi
+
 # If defined mods dir be in $1
 # Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
 params_MODS_PATH=$1
 
-
 make_params=()
+
 for param in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
     var="params_${param}"
     [ "${!var}" ] && make_params+=("$param=${!var}")
 done
 
-# Fail early if no mods
+# warn if no mod files provided
 ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
 
 set -x
+
 make -j4 -f "${ROOTDIR}/share/nrnivmodl_core_makefile" "${make_params[@]}"

@@ -19,11 +19,14 @@ datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@
 # - @CORENRN_LINK_DEFS@
 
 LDFLAGS = @CORENRN_LINK_DEFS@ $(UserLDFLAGS)
+
 # We rebuild the include dirs since a lot of stuff changes place
 INCLUDES = -I$(incdir) -I$(incdir)/coreneuron/utils/randoms $(UserINCFLAGS)
+
 ifneq (@MPI_C_INCLUDE_PATH@,)
     INCLUDES += -I@MPI_C_INCLUDE_PATH@
 endif
+
 ifneq (@reportinglib_INCLUDE_DIR@,)
     INCLUDES += -I@reportinglib_INCLUDE_DIR@
 endif
@@ -40,17 +43,21 @@ CXX_LINK_EXE = $(CXX_LINK) @CMAKE_EXE_LINKER_FLAGS@
 CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
 
 CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
+
 mod_files = $(wildcard $(MODS_PATH)/*.mod)
 mod_objs = $(notdir $(mod_files:.mod=.mod.o))
 special = $(OUTPUT)/special-core
+
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
 endif
+
 coremech_libname = corenrnmech$(LIB_SUFFIX)-$(MECH_VERSION)
 coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 
 #  ======== MAIN BUILD RULES ============
+
 
 $(special): $(coremech_lib)
     # Take the main and link with nrnmech.
@@ -70,6 +77,7 @@ $(coremech_lib): $(mod_objs) mod_func.o
 	MODLUNIT=$(datadir)/nrnunits.lib \
 	  $(bindir)/mod2c_core $(MODS_PATH)/$*.mod -o modc_core/
 	$(CXXCOMPILE) -c modc_core/$*.cpp -o $@
+
 
 # We require mod_func configured with the mods for registering them
 mod_func.o: build_always

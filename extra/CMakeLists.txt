@@ -2,6 +2,7 @@ set(nmodl_makefile "nrnivmodl_core_makefile")
 set(nmodl_compile_scipt "nrnivmodl-core")
 
 get_directory_property(CORENRN_COMPILE_FLAGS COMPILE_DEFINITIONS)
+
 if (CORENRN_COMPILE_FLAGS)
     set(CORENRN_COMPILE_DEFS "-D${CORENRN_COMPILE_FLAGS}")
     string(REPLACE ";" " -D" CORENRN_COMPILE_DEFS "${CORENRN_COMPILE_DEFS}")
