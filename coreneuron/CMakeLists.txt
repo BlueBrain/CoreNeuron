@@ -308,7 +308,7 @@ set_target_properties(coreneuron PROPERTIES
 
 # Extract lib includes to the whole project
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
-if(${CORENRN_LINK_LIBS})
+if(CORENRN_LINK_LIBS)
     set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
 endif()
 
