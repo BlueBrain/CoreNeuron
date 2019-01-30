@@ -44,45 +44,64 @@ CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHA
 
 CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
 
+MODC_DIR = modc_core
+OBJS_DIR = mechbuild_core
 mod_files = $(wildcard $(MODS_PATH)/*.mod)
-mod_objs = $(notdir $(mod_files:.mod=.mod.o))
-special = $(OUTPUT)/special-core
+mod_names = $(notdir $(mod_files:.mod=))
+modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
+mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
+kinderiv_h = $(MODC_DIR)/_kinderiv.h
 
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
 endif
 
+special  = $(OUTPUT)/special-core
 coremech_libname = corenrnmech$(LIB_SUFFIX)-$(MECH_VERSION)
 coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 
-#  ======== MAIN BUILD RULES ============
-
+# ======== MAIN BUILD RULES ============
 
 $(special): $(coremech_lib)
-    # Take the main and link with nrnmech.
+	# Take the main and link with nrnmech.
 	# RPATH is set for ORIGIN and coreneuron lib
 	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -L $(OUTPUT) -l$(coremech_libname) \
 	  $(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) -o $(special)
 
 
-$(coremech_lib): $(mod_objs) mod_func.o
-	mkdir -p $(OUTPUT)
+$(coremech_lib): mod_func.o $(mod_objs)
 	@echo BUILDING lib $(coremech_lib) from Mod files $(mod_files)
 	$(CXX_LINK_SHARED) mod_func.o $(mod_objs) $(CORENRNLIB_FLAGS) -o ${coremech_lib}
 
 
-# Generic mod objects
-%.mod.o:
+$(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h)
+	$(CXXCOMPILE) -c $< -o $@
+
+
+$(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(OUTPUT)
 	MODLUNIT=$(datadir)/nrnunits.lib \
-	  $(bindir)/mod2c_core $(MODS_PATH)/$*.mod -o modc_core/
-	$(CXXCOMPILE) -c modc_core/$*.cpp -o $@
+	  $(bindir)/mod2c_core $< -o $(MODC_DIR)/
 
 
-# We require mod_func configured with the mods for registering them
+# Mod registration: Generate mod_func and compile
 mod_func.o: build_always
 	perl $(datadir)/mod_func.c.pl $(notdir ${mod_files}) > mod_func.cpp
 	$(CXXCOMPILE) -c mod_func.cpp
 
+
+# Header to avoid function callbacks using function pointers
+$(kinderiv_h): $(modc_files)
+	python $(datadir)/kinderiv.py $(MODC_DIR)
+	# copy props to avoid rebuild everything if not needed
+	cp -p _kinderiv.h $(kinderiv_h)
+
+
+# == AUX ==
+
+$(OUTPUT):
+	mkdir -p $(OUTPUT)
+	mkdir -p $(MODC_DIR)
+	mkdir -p $(OBJS_DIR)
 
 .PHONY: build_always
