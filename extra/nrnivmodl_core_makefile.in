@@ -7,7 +7,8 @@
 MECH_NAME =
 MECH_VERSION = 0.0
 MODS_PATH = .
-OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@_core
+OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@
+SYSMODS = @CORENRN_STDMODS@
 
 bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
 libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
@@ -18,7 +19,8 @@ datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@
 # - @CORENRN_COMPILE_DEFS@
 # - @CORENRN_LINK_DEFS@
 
-LDFLAGS = @CORENRN_LINK_DEFS@ $(UserLDFLAGS)
+LDFLAGS = $(UserLDFLAGS) @CORENRN_LINK_DEFS@
+CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
 
 # We rebuild the include dirs since a lot of stuff changes place
 INCLUDES = -I$(incdir) -I$(incdir)/coreneuron/utils/randoms $(UserINCFLAGS)
@@ -33,24 +35,23 @@ endif
 
 CC = @CMAKE_C_COMPILER@
 CXX = @CMAKE_CXX_COMPILER@
-CFLAGS = @CMAKE_C_FLAGS@ -fPIC
-CXXFLAGS = @CMAKE_CXX_FLAGS@ -fPIC
+CFLAGS = @CMAKE_C_FLAGS@ @BUILD_TYPE_C_FLAGS@
+CXXFLAGS = @CMAKE_CXX_FLAGS@ @BUILD_TYPE_CXX_FLAGS@
 
 COMPILE = $(CC) $(CFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES)
 CXXCOMPILE = $(CXX) $(CXXFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES)
-CXX_LINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
-CXX_LINK_EXE = $(CXX_LINK) @CMAKE_EXE_LINKER_FLAGS@
-CXX_LINK_SHARED = $(CXX_LINK) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
+CXX_LINK_EXE = $(CXX) $(CXXFLAGS) @CMAKE_EXE_LINKER_FLAGS@
+CXX_LINK_SHARED = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LIBRARY_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
 
-CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
-
-MODC_DIR = modc_core
-OBJS_DIR = mechbuild_core
+MODC_DIR = $(OUTPUT)/modc_core
+OBJS_DIR = $(OUTPUT)/build_core
 mod_files = $(wildcard $(MODS_PATH)/*.mod)
 mod_names = $(notdir $(mod_files:.mod=))
 modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
 mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
+mod_func_o = $(OBJS_DIR)/_mod_func.o
+mod_func_c = $(MODC_DIR)/_mod_func.cpp
 
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
@@ -63,20 +64,21 @@ coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 
 # ======== MAIN BUILD RULES ============
 
+# Take the main and link with nrnmech.
+# RPATH is set for ORIGIN and coreneuron lib
 $(special): $(coremech_lib)
-	# Take the main and link with nrnmech.
-	# RPATH is set for ORIGIN and coreneuron lib
-	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -L $(OUTPUT) -l$(coremech_libname) \
+	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -L $(OUTPUT) -l$(coremech_libname) $(LD_FLAGS) \
 	  $(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) -o $(special)
 
 
-$(coremech_lib): mod_func.o $(mod_objs)
-	@echo BUILDING lib $(coremech_lib) from Mod files $(mod_files)
-	$(CXX_LINK_SHARED) mod_func.o $(mod_objs) $(CORENRNLIB_FLAGS) -o ${coremech_lib}
+$(coremech_lib): $(mod_func_o) $(mod_objs)
+	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files)"
+	$(CXX_LINK_SHARED) $(mod_func_o) $(mod_objs) $(LD_FLAGS) $(CORENRNLIB_FLAGS) -o ${coremech_lib}
 
 
+# Generic build cpp->o. Need PIC for shared lib
 $(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h)
-	$(CXXCOMPILE) -c $< -o $@
+	$(CXXCOMPILE) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c $< -o $@
 
 
 $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(OUTPUT)
@@ -84,17 +86,15 @@ $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(OUTPUT)
 	  $(bindir)/mod2c_core $< -o $(MODC_DIR)/
 
 
-# Mod registration: Generate mod_func and compile
-mod_func.o: build_always
-	perl $(datadir)/mod_func.c.pl $(notdir ${mod_files}) > mod_func.cpp
-	$(CXXCOMPILE) -c mod_func.cpp
+# Mod registration. Compiled by generic rule
+$(mod_func_c): build_always | $(OUTPUT)
+	perl $(datadir)/mod_func.c.pl $(SYSMODS) $(notdir ${mod_files}) > $(mod_func_c)
 
 
 # Header to avoid function callbacks using function pointers
-$(kinderiv_h): $(modc_files)
-	python $(datadir)/kinderiv.py $(MODC_DIR)
-	# copy props to avoid rebuild everything if not needed
-	cp -p _kinderiv.h $(kinderiv_h)
+# One copy file w props to avoid rebuild everything if not needed
+$(kinderiv_h): $(modc_files) | $(OUTPUT)
+	cd $(MODC_DIR) && python $(datadir)/kinderiv.py
 
 
 # == AUX ==

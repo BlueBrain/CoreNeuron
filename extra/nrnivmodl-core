@@ -9,7 +9,7 @@ APP_NAME=$(basename $0)
 _PARENT="$(dirname $BASH_SOURCE)/.."
 ROOTDIR=$(perl -e "use Cwd 'abs_path'; print abs_path('$_PARENT')")
 
-while getopts "n:v:o:i:l:h" OPT; do
+while getopts "n:v:o:i:l:ch" OPT; do
     case "$OPT" in
     n)
         params_MECH_NAME="$OPTARG";;
@@ -21,6 +21,8 @@ while getopts "n:v:o:i:l:h" OPT; do
         params_INCFLAGS="$OPTARG";;
     l)
         params_LINKFLAGS="$OPTARG";;
+    c)
+        params_SYSMODS="";;
     h)
         echo "$APP_NAME [options, ...] [mods_path]"
         echo "Options:"
@@ -29,6 +31,8 @@ while getopts "n:v:o:i:l:h" OPT; do
         echo "  -o <output_dir> Set the output dir (default: <arch>-core)"
         echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
         echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
+        echo "  -c              (clean) Dont use default system mods:"
+        echo "                  'expsyn.mod exp2syn.mod  hh.mod  netstim.mod passive.mod  pattern.mod stim.mod'"
         exit 0;;
     ?)
         exit 1;;
@@ -50,7 +54,7 @@ make_params=()
 
 for param in MECH_NAME MECH_VERSION OUTPUT INCFLAGS LINKFLAGS MODS_PATH; do
     var="params_${param}"
-    [ "${!var}" ] && make_params+=("$param=${!var}")
+    [ -n "${!var}" ] && make_params+=("$param=${!var}")
 done
 
 # warn if no mod files provided
