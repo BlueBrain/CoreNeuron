@@ -20,11 +20,11 @@ datadir_mod2c = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/mod2c
 # - @CORENRN_COMPILE_DEFS@
 # - @CORENRN_LINK_DEFS@
 
-LDFLAGS = $(UserLDFLAGS) @CORENRN_LINK_DEFS@
+LDFLAGS = $(LINKFLAGS) @CORENRN_LINK_DEFS@
 CORENRNLIB_FLAGS = -L$(libdir) -lcoreneuron
 
 # We rebuild the include dirs since a lot of stuff changes place
-INCLUDES = $(UserINCFLAGS) -I$(incdir) -I$(incdir)/coreneuron/utils/randoms
+INCLUDES = $(INCFLAGS) -I$(incdir) -I$(incdir)/coreneuron/utils/randoms
 ifneq (@MPI_C_INCLUDE_PATH@,)
     INCLUDES += -I@MPI_C_INCLUDE_PATH@
 endif
