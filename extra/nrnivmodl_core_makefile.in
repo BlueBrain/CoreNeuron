@@ -13,7 +13,9 @@ OPTMODS = @CORENRN_OPTMODS@
 bindir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
 libdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
 incdir = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
-datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@
+datadir= @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/coreneuron
+datadir_mod2c = @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/mod2c
+
 
 # Additional variables set in CMAKE usable here
 # - @CORENRN_COMPILE_DEFS@
@@ -49,9 +51,13 @@ mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
 mod_names = $(mod_files:.mod=)
 modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
 mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
+
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
 mod_func_c = $(MODC_DIR)/_mod_func.cpp
+dimplic_src= $(datadir)/scopmath_core/dimplic.cpp
+dimplic_c  = $(MODC_DIR)/_dimplic.cpp
+dimplic_o  = $(OBJS_DIR)/_dimplic.o
 
 ifneq ($(MECH_NAME),)
     LIB_SUFFIX = _$(MECH_NAME)
@@ -67,22 +73,23 @@ coremech_lib = $(OUTPUT)/lib$(coremech_libname)@CMAKE_SHARED_LIBRARY_SUFFIX@
 # Take the main and link with nrnmech.
 # RPATH is set for ORIGIN and coreneuron lib
 $(special): $(coremech_lib)
-	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -o $(special) -L $(OUTPUT) -l$(coremech_libname)  \
+	$(CXX_LINK_EXE) $(libdir)/libcoreneuron_main.a -o $(special) -L $(OUTPUT) -l$(coremech_libname) \
 	  $(CORENRNLIB_FLAGS) -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
-$(coremech_lib): $(mod_func_o) $(mod_objs)
+$(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_objs) 
 	@echo "#BUILDING lib $(coremech_lib) from Mod files $(mod_files)"
-	$(CXX_LINK_SHARED) -o ${coremech_lib} $(mod_func_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(LDFLAGS)
+	$(CXX_LINK_SHARED) -o ${coremech_lib} \
+	  $(mod_func_o) $(dimplic_o) $(mod_objs) $(CORENRNLIB_FLAGS) $(LDFLAGS)
 
 
 # Generic build cpp->o. Need PIC for shared lib
-$(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h)
+$(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h) | ${OUTPUT}
 	$(CXXCOMPILE) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c $< -o $@
 
 
 $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(OUTPUT)
-	MODLUNIT=$(datadir)/nrnunits.lib \
+	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  $(bindir)/mod2c_core $< -o $(MODC_DIR)/
 
 
@@ -97,8 +104,11 @@ $(kinderiv_h): $(modc_files) | $(OUTPUT)
 	cd $(MODC_DIR) && python $(datadir)/kinderiv.py
 
 
-# == AUX ==
+$(dimplic_c): $(dimplic_src) | $(OUTPUT)
+	cp $(dimplic_src) $(dimplic_c)
 
+
+# == INIT ==
 $(OUTPUT):
 	mkdir -p $(OUTPUT)
 	mkdir -p $(MODC_DIR)

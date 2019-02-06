@@ -62,4 +62,4 @@ ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
 
 set -x
 
-make -j4 -f "${ROOTDIR}/share/nrnivmodl_core_makefile" "${make_params[@]}"
+make -j4 -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"

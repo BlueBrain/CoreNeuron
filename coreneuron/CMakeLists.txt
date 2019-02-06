@@ -306,15 +306,12 @@ set_target_properties(coreneuron PROPERTIES
                       CLEAN_DIRECT_OUTPUT 1)
 
 
-# Extract link libs to the whole project
+# Extract link defs to the whole project
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
-if(CORENRN_LINK_LIBS)
-    set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
-endif()
+set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
 
 # Share built-in OPTIONAL MODS also with rest of project
-string(REPLACE ";" " " CORENRN_OPTMODS "${MOD2C_OPTMECH_MODS}")
-set(CORENRN_OPTMODS "${CORENRN_OPTMODS}" PARENT_SCOPE)
+set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
 
 
 install(TARGETS coreneuron
@@ -330,11 +327,18 @@ if(ENABLE_HEADER_INSTALL)
             FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
 
     install(FILES ${KINDERIV_PY}
-            DESTINATION ${CMAKE_INSTALL_DATADIR})
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
 
     install(FILES ${MOD_FUNC_C_PL}
-            DESTINATION ${CMAKE_INSTALL_DATADIR})
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
+
+    install(DIRECTORY "scopmath_core"
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron
+            FILES_MATCHING PATTERN "dimplic.cpp")
 endif()
 
-install(PROGRAMS ${MOD2C_BINARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES ${MOD2C_UNITS} DESTINATION ${CMAKE_INSTALL_DATADIR})
+install(PROGRAMS ${MOD2C_BINARY}
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(FILES ${MOD2C_UNITS}
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/mod2c)

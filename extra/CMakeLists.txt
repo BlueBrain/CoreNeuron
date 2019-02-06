@@ -9,8 +9,21 @@ if (CORENRN_COMPILE_FLAGS)
 endif()
 
 # Link libraries
-string(REPLACE ";" " " CORENRN_LINK_DEFS "${CORENRN_LINK_LIBS}")
-message("LINK LIBS = ${CORENRN_LINK_DEFS}")
+# CMake does some magic to transform sys libs to -l<libname>. We replicate it
+foreach(link_lib ${CORENRN_LINK_LIBS})
+    get_filename_component(pth ${link_lib} DIRECTORY)
+    if("${pth}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
+        get_filename_component(libname ${link_lib} NAME_WE)
+        string(REGEX REPLACE "^lib" "" libname ${libname})
+        set(CORENRN_LINK_DEFS "${CORENRN_LINK_DEFS} -l${libname}")
+    else()
+        set(CORENRN_LINK_DEFS "${CORENRN_LINK_DEFS} ${link_lib}")
+    endif()
+endforeach()
+
+# Additional mods
+string(REPLACE ";" " " CORENRN_OPTMODS "${CORENRN_OPTMECH_MODS}")
+
 
 # Compiler flags depending on BUILD_TYPE shared as BUILD_TYPE_<LANG>_FLAGS
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
@@ -23,7 +36,7 @@ configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
 
 # Makefile
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${nmodl_makefile}
-        DESTINATION ${CMAKE_INSTALL_DATADIR})
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron/)
 
 # Launcher
 install(PROGRAMS ${nmodl_compile_scipt}

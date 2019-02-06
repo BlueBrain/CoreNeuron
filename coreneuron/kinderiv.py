@@ -117,7 +117,7 @@ if __name__ == '__main__':
         print("Warning: No .cpp's found in given path. Creating dummy file")
 
     for fname in fnames:
-        print("Processing " + fname)
+        # print("Processing " + fname)
         with open(os.path.join(use_dir, fname), "r") as f:
             process_modc(f)
 
