@@ -158,7 +158,6 @@ macro(mod2c_from_file name modlist searchpath)
         message(WARNING "Note: halfgap.mod is found in specified mechanism search directory!")
     else()
         set(GAPMOD "${PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
-        set(MECH_STDMODS ${MECH_STDMODS} halfgap.mod)
         mod2c_target(${name} "${GAPMOD}")
         list(APPEND MOD_PATHS ${GAPMOD})
         message(STATUS "Adding halfgap.mod mod file for tests!")
@@ -307,15 +306,15 @@ set_target_properties(coreneuron PROPERTIES
                       CLEAN_DIRECT_OUTPUT 1)
 
 
-# Extract lib includes to the whole project
+# Extract link libs to the whole project
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
 if(CORENRN_LINK_LIBS)
     set(CORENRN_LINK_LIBS ${CORENRN_LINK_LIBS} PARENT_SCOPE)
 endif()
 
-# Share STD MODS also with rest of project
-string(REPLACE ";" " " CORENRN_STDMODS "${MECH_STDMODS}")
-set(CORENRN_STDMODS "${CORENRN_STDMODS}" PARENT_SCOPE)
+# Share built-in OPTIONAL MODS also with rest of project
+string(REPLACE ";" " " CORENRN_OPTMODS "${MOD2C_OPTMECH_MODS}")
+set(CORENRN_OPTMODS "${CORENRN_OPTMODS}" PARENT_SCOPE)
 
 
 install(TARGETS coreneuron
