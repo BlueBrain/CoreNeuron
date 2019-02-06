@@ -26,6 +26,7 @@
 
 
 # CompilerFlagsHelpers.cmake
+#
 # set of Convenience functions for portable compiler flags
 
 
@@ -134,13 +135,12 @@ foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
 		set(CMAKE_${COMPILER_LANGUAGE}_POSITION_INDEPENDENT "-fPIC")
 		set(CMAKE_${COMPILER_LANGUAGE}_VECTORIZE "")
 
-        if(CMAKE_${COMPILER_LANGUAGE}_COMPILER_IS_ICC)
-            ## unknown compiler flags produce error on Cray and hence just set this for intel now
-            set(IGNORE_UNKNOWN_PRAGMA_FLAGS "-Wno-unknown-pragmas")
-            ## Intel O3 is extreme
-	    	set(CMAKE_${COMPILER_LANGUAGE}_OPT_AGGRESSIVE "-O2")
-        endif()
-
+		if(CMAKE_${COMPILER_LANGUAGE}_COMPILER_IS_ICC)
+			## unknown compiler flags produce error on Cray and hence just set this for intel now
+			set(IGNORE_UNKNOWN_PRAGMA_FLAGS "-Wno-unknown-pragmas")
+			## Intel O3 is extreme
+			set(CMAKE_${COMPILER_LANGUAGE}_OPT_AGGRESSIVE "-O2")
+		endif()
 	endif()
 
 endforeach()

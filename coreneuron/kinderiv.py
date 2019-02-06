@@ -112,7 +112,7 @@ if __name__ == '__main__':
         use_dir = sys.argv[1]
         assert os.path.isdir(use_dir), "Dir {} doesnt exist".format(use_dir)
 
-    fnames= sorted(f for f in os.listdir(use_dir) if f.endswith(".cpp"))
+    fnames = sorted(f for f in os.listdir(use_dir) if f.endswith(".cpp"))
     if not fnames:
         print("Warning: No .cpp's found in given path. Creating dummy file")
 

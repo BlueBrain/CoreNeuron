@@ -98,7 +98,6 @@ include(DeclareMod2CSubModule)
 include(FindPkgConfig)
 include(CTest)
 
-
 #Find all dependencies
 if (ENABLE_MPI)
     find_package(MPI REQUIRED)
