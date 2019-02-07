@@ -89,13 +89,18 @@ $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(OUTPUT)
 	  $(bindir)/mod2c_core $< -o $(MODC_DIR)/
 
 
-# Mod registration. Compiled by generic rule
+# Mod registration. Compiled by generic rule. Dont overwrite if not changed
 $(mod_func_c): build_always | $(OUTPUT)
-	perl $(datadir)/mod_func.c.pl $(OPTMODS) $(mod_files) > $(mod_func_c)
+	perl $(datadir)/mod_func.c.pl $(OPTMODS) $(mod_files) > $(mod_func_c).tmp
+	diff -q $(mod_func_c).tmp $(mod_func_c) || echo "Replacing mod_func.c" && mv $(mod_func_c).tmp $(mod_func_c)
 
 
 # Header to avoid function callbacks using function pointers
-$(kinderiv_h): $(modc_files) | $(OUTPUT)
+# Move all mods to temp and bring back only those required
+$(kinderiv_h): $(modc_files) build_always | $(OUTPUT)
+	cd $(MODC_DIR) && mkdir -p _tmp &&	mv [^_]*.cpp _tmp/ && \
+	  mv $(addprefix _tmp/,$(notdir $(modc_files))) ./ || true
+	rm -rf $(MODC_DIR)/_tmp
 	cd $(MODC_DIR) && python $(datadir)/kinderiv.py
 
 

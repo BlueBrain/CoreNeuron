@@ -114,10 +114,11 @@ if __name__ == '__main__':
 
     fnames = sorted(f for f in os.listdir(use_dir) if f.endswith(".cpp"))
     if not fnames:
-        print("Warning: No .cpp's found in given path. Creating dummy file")
+        print("[Kinderiv] Warning: No .cpp's found in given path. Creating dummy file")
+    else:
+        print("[Kinderiv] Using cpp files " + str(fnames))
 
     for fname in fnames:
-        # print("Processing " + fname)
         with open(os.path.join(use_dir, fname), "r") as f:
             process_modc(f)
 
@@ -128,4 +129,5 @@ if __name__ == '__main__':
     if os.path.isfile(kf) and filecmp.cmp(kftmp, kf):
         os.remove(kftmp)
     else:
+        print("[Kinderiv] Replacing existing file")
         os.rename(kftmp, kf)
