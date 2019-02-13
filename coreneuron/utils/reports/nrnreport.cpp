@@ -241,7 +241,8 @@ void register_soma_report(NrnThread& nt,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
 
-        /** add extra mapping */
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);
+	/** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             /** 1st key is section-id and 1st value is segment of soma */
@@ -276,7 +277,9 @@ void register_compartment_report(NrnThread& nt,
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
-        /** add extra mapping */
+        
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);	
+	/** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
@@ -312,7 +315,9 @@ void register_custom_report(NrnThread& nt,
         records_add_report((char*)config.output_path, gid, gid, gid, config.start, config.stop,
                            config.report_dt, sizemapping, (char*)config.type_str, extramapping,
                            (char*)config.unit);
-        /** add extra mapping : @todo api changes in reportinglib*/
+        
+        records_set_report_max_buffer_size_hint ((char*)config.output_path, config.buffer_size);	
+	/** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping((char*)config.output_path, gid, 5, extra);
         for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
@@ -359,11 +364,7 @@ static int num_min_delays_completed = 0;
 void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
     // flush before buffer is full
-    if (num_min_delays_completed >= (num_min_delay_to_buffer - 2)) {
-        records_flush(t);
-        num_min_delays_completed = 0;
-    }
-    num_min_delays_completed++;
+    records_end_iteration(t);
 #endif
 }
 
@@ -376,10 +377,6 @@ void nrn_flush_reports(double t) {
  */
 void setup_report_engine(double dt_report, double mindelay) {
 #ifdef ENABLE_REPORTING
-    int timesteps_to_buffer = mindelay / dt_report + 2;
-    timesteps_to_buffer *= num_min_delay_to_buffer;
-
-    records_set_steps_to_buffer(timesteps_to_buffer);
     /** reportinglib setup */
     records_setup_communicator();
     records_finish_and_share();
