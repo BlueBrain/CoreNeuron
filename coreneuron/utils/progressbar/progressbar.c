@@ -32,6 +32,9 @@ enum { WHITESPACE_LENGTH = 2 };
 /// The amount of width taken up by the border of the bar component.
 enum { BAR_BORDER_WIDTH = 2 };
 
+/// Progress Bar max number of updates
+enum { BAR_UPDATES_NUMBER = 1000 };
+
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
 /// should be less than the
 /// number of seconds in one minute, and the number of minutes should be less than the number of
@@ -57,6 +60,7 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
 
     new->max = max;
     new->value = 0;
+    new->prev_value = 0;
     new->t = 0;
     new->start = time(NULL);
     assert(3 == strlen(format) && "format must be 3 characters in length");
@@ -94,7 +98,13 @@ void progressbar_free(progressbar* bar) {
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    progressbar_draw(bar);
+    // The progress bar will be printed only if the minimum interval
+    // to print max BAR_UPDATES_NUMBER bars has passed from the
+    // previous progress bar printing.
+    if ((bar->value - bar->prev_value) >= bar->max / BAR_UPDATES_NUMBER) {
+        progressbar_draw(bar);
+        bar->prev_value = bar->value;
+    }
 }
 
 /**
