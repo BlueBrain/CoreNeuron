@@ -33,7 +33,16 @@ enum { WHITESPACE_LENGTH = 2 };
 enum { BAR_BORDER_WIDTH = 2 };
 
 /// Progress Bar max number of updates
-enum { BAR_UPDATES_NUMBER = 1000 };
+enum { BAR_UPDATES_NUMBER = 500 };
+
+/// Progress Bar interval of updates (seconds)
+enum { BAR_UPDATES_INTERVAL = 5 };
+
+/// Progress Bar time of change of updates (seconds)
+enum { BAR_UPDATES_CHANGE = 120 };
+
+/// Progress Bar number of slow updates
+enum { BAR_UPDATES_SLOW = BAR_UPDATES_NUMBER - BAR_UPDATES_INTERVAL * BAR_UPDATES_CHANGE };
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
 /// should be less than the
@@ -63,6 +72,7 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
     new->prev_value = 0;
     new->t = 0;
     new->start = time(NULL);
+    new->prev_t = time(NULL);
     assert(3 == strlen(format) && "format must be 3 characters in length");
     new->format.begin = format[0];
     new->format.fill = format[1];
@@ -98,12 +108,16 @@ void progressbar_free(progressbar* bar) {
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    // The progress bar will be printed only if the minimum interval
-    // to print max BAR_UPDATES_NUMBER bars has passed from the
-    // previous progress bar printing.
-    if ((bar->value - bar->prev_value) >= bar->max / BAR_UPDATES_NUMBER) {
+    // Progress bar will be printed every BAR_UPDATES_INTERVAL seconds
+    // for the first BAR_UPDATES_CHANGE seconds and then output max
+    // BAR_UPDATES_NUMBER progress bars.
+    time_t cur_time = time(NULL);
+    int change = difftime(cur_time, bar->start) <= BAR_UPDATES_CHANGE;
+    if ((change && difftime(cur_time, bar->prev_t) >= BAR_UPDATES_INTERVAL) ||
+        (!change && (bar->value - bar->prev_value) >= bar->max / BAR_UPDATES_SLOW)) {
         progressbar_draw(bar);
         bar->prev_value = bar->value;
+        bar->prev_t = cur_time;
     }
 }
 
@@ -200,7 +214,7 @@ static void progressbar_draw(const progressbar* bar) {
     // Draw the ETA
     fputc(' ', stdout);
     fprintf(stdout, ETA_FORMAT, bar->t, eta.hours, eta.minutes, eta.seconds);
-    fputc('\r', stdout);
+    fputc('\n', stdout);
 }
 
 /**

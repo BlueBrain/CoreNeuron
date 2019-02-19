@@ -38,6 +38,9 @@ typedef struct _progressbar_t {
     /// time progressbar was started
     time_t start;
 
+    /// time progressbar was updated for last time
+    time_t prev_t;
+
     /// label
     const char* label;
 
