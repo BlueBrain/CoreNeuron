@@ -45,7 +45,10 @@ enum {
 
     /// Number of progress bar redraws after the Initial period to draw maximum of
     /// BAR_DRAW_COUNT_MAX in total
-    BAR_DRAW_COUNT_REMAINING = BAR_DRAW_COUNT_MAX - BAR_DRAW_INIT_PERIOD / BAR_DRAW_INTERVAL
+    BAR_DRAW_COUNT_REMAINING =
+        BAR_DRAW_COUNT_MAX - BAR_DRAW_INIT_PERIOD / BAR_DRAW_INTERVAL  // assumes that the time of
+                                                                       // the simulation is smaller
+                                                                       // than BAR_DRAW_INTERVAL
 };
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
@@ -75,11 +78,11 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
     new->max = max;
     new->value = 0;
     new->prev_value = 0;
-    new->value_init_per_last = 0;
+    new->value_init_period_last = 0;
     new->t = 0;
     new->start = time(NULL);
     new->prev_t = time(NULL);
-    new->eta_init_per_last = 0;
+    new->eta_init_period_last = 0;
     assert(3 == strlen(format) && "format must be 3 characters in length");
     new->format.begin = format[0];
     new->format.fill = format[1];
@@ -122,20 +125,25 @@ void progressbar_update(progressbar* bar, unsigned long value, double t) {
     // which option draws the progress bar less times.
     time_t cur_time = time(NULL);
     int sim_time = difftime(cur_time, bar->start);
-    int draw_init_per = sim_time <= BAR_DRAW_INIT_PERIOD;
+    int draw_init_period = sim_time <= BAR_DRAW_INIT_PERIOD;
     int eta_s = progressbar_remaining_seconds(bar);
 
-    if (draw_init_per) {
-        bar->eta_init_per_last = eta_s;
-        bar->value_init_per_last = bar->value;
+    if (draw_init_period) {
+        bar->eta_init_period_last = eta_s;
+        bar->value_init_period_last = bar->value;
     }
 
-    int draw_init_freq =
-        draw_init_per || bar->eta_init_per_last / BAR_DRAW_INTERVAL <= BAR_DRAW_COUNT_REMAINING;
-    if ((draw_init_freq && difftime(cur_time, bar->prev_t) >= BAR_DRAW_INTERVAL) ||
-        (!draw_init_freq &&
-         (bar->value - bar->prev_value) >=
-             (bar->max - bar->value_init_per_last) / BAR_DRAW_COUNT_REMAINING)) {
+    int draw_remaining_period_with_freq =
+        bar->eta_init_period_last / BAR_DRAW_INTERVAL <= BAR_DRAW_COUNT_REMAINING;
+    int is_more_than_time_interval = difftime(cur_time, bar->prev_t) >= BAR_DRAW_INTERVAL;
+    int is_more_than_steps_interval =
+        (bar->value - bar->prev_value) >=
+        (bar->max - bar->value_init_period_last) / BAR_DRAW_COUNT_REMAINING;
+
+    int draw_init_freq = draw_init_period || draw_remaining_period_with_freq;
+
+    if ((draw_init_freq && is_more_than_time_interval) ||
+        (!draw_init_freq && is_more_than_steps_interval)) {
         progressbar_draw(bar);
         bar->prev_value = bar->value;
         bar->prev_t = cur_time;
