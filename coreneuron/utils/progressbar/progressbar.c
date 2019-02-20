@@ -32,17 +32,21 @@ enum { WHITESPACE_LENGTH = 2 };
 /// The amount of width taken up by the border of the bar component.
 enum { BAR_BORDER_WIDTH = 2 };
 
-/// Progress Bar max number of updates
-enum { BAR_UPDATES_NUMBER = 500 };
+/// Progress Bar redraw mechanism variables
+enum {
+    /// The maximum number of bar redraws (to avoid frequent output in long runs)
+    BAR_DRAW_COUNT_MAX = 500,
 
-/// Progress Bar interval of updates (seconds)
-enum { BAR_UPDATES_INTERVAL = 5 };
+    /// Reference bar redraw interval (seconds)
+    BAR_DRAW_INTERVAL = 5,
 
-/// Progress Bar time of change of updates (seconds)
-enum { BAR_UPDATES_CHANGE = 120 };
+    /// The Initial period, when BAR_DRAW_INTERVAL is always respected (seconds)
+    BAR_DRAW_INIT_PERIOD = 120,
 
-/// Progress Bar number of slow updates
-enum { BAR_UPDATES_SLOW = BAR_UPDATES_NUMBER - BAR_UPDATES_INTERVAL * BAR_UPDATES_CHANGE };
+    /// Number of progress bar redraws after the Initial period to draw maximum of
+    /// BAR_DRAW_COUNT_MAX in total
+    BAR_DRAW_COUNT_REMAINING = BAR_DRAW_COUNT_MAX - BAR_DRAW_INIT_PERIOD / BAR_DRAW_INTERVAL
+};
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
 /// should be less than the
@@ -55,6 +59,7 @@ typedef struct {
 } progressbar_time_components;
 
 static void progressbar_draw(const progressbar* bar);
+static int progressbar_remaining_seconds(const progressbar* bar);
 
 /**
  * Create a new progress bar with the specified label, max number of steps, and format string.
@@ -70,9 +75,11 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
     new->max = max;
     new->value = 0;
     new->prev_value = 0;
+    new->value_init_per_last = 0;
     new->t = 0;
     new->start = time(NULL);
     new->prev_t = time(NULL);
+    new->eta_init_per_last = 0;
     assert(3 == strlen(format) && "format must be 3 characters in length");
     new->format.begin = format[0];
     new->format.fill = format[1];
@@ -108,13 +115,27 @@ void progressbar_free(progressbar* bar) {
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    // Progress bar will be printed every BAR_UPDATES_INTERVAL seconds
-    // for the first BAR_UPDATES_CHANGE seconds and then output max
-    // BAR_UPDATES_NUMBER progress bars.
+    // Progress bar will be drawn every BAR_DRAW_INTERVAL seconds
+    // for the first BAR_DRAW_INIT_PERIOD seconds (Initial period) and
+    // then choose between drawing every BAR_DRAW_INTERVAL seconds or
+    // draw the bar BAR_DRAW_REMAINING_UPDATES times, depending on
+    // which option draws the progress bar less times.
     time_t cur_time = time(NULL);
-    int change = difftime(cur_time, bar->start) <= BAR_UPDATES_CHANGE;
-    if ((change && difftime(cur_time, bar->prev_t) >= BAR_UPDATES_INTERVAL) ||
-        (!change && (bar->value - bar->prev_value) >= bar->max / BAR_UPDATES_SLOW)) {
+    int sim_time = difftime(cur_time, bar->start);
+    int draw_init_per = sim_time <= BAR_DRAW_INIT_PERIOD;
+    int eta_s = progressbar_remaining_seconds(bar);
+
+    if (draw_init_per) {
+        bar->eta_init_per_last = eta_s;
+        bar->value_init_per_last = bar->value;
+    }
+
+    int draw_init_freq =
+        draw_init_per || bar->eta_init_per_last / BAR_DRAW_INTERVAL <= BAR_DRAW_COUNT_REMAINING;
+    if ((draw_init_freq && difftime(cur_time, bar->prev_t) >= BAR_DRAW_INTERVAL) ||
+        (!draw_init_freq &&
+         (bar->value - bar->prev_value) >=
+             (bar->max - bar->value_init_per_last) / BAR_DRAW_COUNT_REMAINING)) {
         progressbar_draw(bar);
         bar->prev_value = bar->value;
         bar->prev_t = cur_time;
@@ -214,7 +235,7 @@ static void progressbar_draw(const progressbar* bar) {
     // Draw the ETA
     fputc(' ', stdout);
     fprintf(stdout, ETA_FORMAT, bar->t, eta.hours, eta.minutes, eta.seconds);
-    fputc('\n', stdout);
+    fputc('\r', stdout);
 }
 
 /**

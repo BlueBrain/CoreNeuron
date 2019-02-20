@@ -32,14 +32,20 @@ typedef struct _progressbar_t {
     /// current value
     unsigned long value;
 
-    /// value of the previous progress bar printed in output
+    /// value of the previous progress bar drawn in output
     unsigned long prev_value;
+
+    /// latest value of progress bar in the Initial period
+    unsigned long value_init_per_last;
 
     /// time progressbar was started
     time_t start;
 
-    /// time progressbar was updated for last time
+    /// time progressbar was drawn for last time
     time_t prev_t;
+
+    /// latest ETA time (seconds) in the Initial period
+    int eta_init_per_last;
 
     /// label
     const char* label;
