@@ -46,9 +46,9 @@ enum {
     /// Number of progress bar redraws after the Initial period to draw maximum of
     /// BAR_DRAW_COUNT_MAX in total
     BAR_DRAW_COUNT_REMAINING =
-        BAR_DRAW_COUNT_MAX - BAR_DRAW_INIT_PERIOD / BAR_DRAW_INTERVAL  // assumes that the time of
-                                                                       // the simulation is smaller
-                                                                       // than BAR_DRAW_INTERVAL
+        BAR_DRAW_COUNT_MAX -
+        BAR_DRAW_INIT_PERIOD / BAR_DRAW_INTERVAL  // assumes that the time that 4-5 simulation steps
+                                                  // take is less than BAR_DRAW_INTERVAL
 };
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
