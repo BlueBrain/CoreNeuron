@@ -63,12 +63,14 @@ CoreNEURON has support for GPUs using the OpenACC programming model when enabled
 ```bash
 module purge
 module purge all
-module load pgi/18.4 cuda/9.0.176 cmake/3.5  #change pgi and cuda modules
+module load pgi/18.4 cuda/9.0.176 cmake  #change pgi and cuda modules
 
 export CC=mpicc
 export CXX=mpicxx
 
-cmake .. -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files" -DCMAKE_C_FLAGS:STRING="-O2" -DCMAKE_CXX_FLAGS:STRING="-O2" -DCOMPILE_LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=$EXPER_DIR/install/ -DCUDA_HOST_COMPILER=`which gcc` -DCUDA_PROPAGATE_HOST_FLAGS=OFF -DENABLE_SELECTIVE_GPU_PROFILING=ON -DENABLE_OPENACC=ON
+cmake .. -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files" -DCMAKE_C_FLAGS:STRING="-O2" -DCMAKE_CXX_FLAGS:STRING="-O2" \ 
+-DCOMPILE_LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=$EXPER_DIR/install/ -DCUDA_HOST_COMPILER=`which gcc` \ 
+-DCUDA_PROPAGATE_HOST_FLAGS=OFF -DENABLE_SELECTIVE_GPU_PROFILING=ON -DENABLE_OPENACC=ON
 ```
 
 Note that the CUDA Toolkit version should be compatible with PGI compiler installed on your system. Otherwise you have to add extra C/C++ flags. For example, if we are using CUDA Toolkit 9.0 installation but PGI default target is CUDA 8.0 then we have to add :
@@ -86,7 +88,8 @@ If there are large functions / procedures in MOD file that are not inlined by co
 CoreNEURON uses the Random123 library written in CUDA. If you are **not using `NrnRandom123`** in your model and have issues with CUDA compilation/linking (or CUDA Toolkit is not installed), you can disable the CUDA dependency using the CMake option `-DENABLE_CUDA_MODULES=OFF` :
 
 ```bash
-cmake ..  -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files" -DCMAKE_C_FLAGS:STRING="-O2" -DCMAKE_CXX_FLAGS:STRING="-O2" -DCOMPILE_LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=$EXPER_DIR/install/ -DENABLE_CUDA_MODULES=OFF -DENABLE_OPENACC=ON
+cmake ..  -DADDITIONAL_MECHPATH="/path/of/folder/with/mod_files" -DCMAKE_C_FLAGS:STRING="-O2" -DCMAKE_CXX_FLAGS:STRING="-O2" \
+-DCOMPILE_LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=$EXPER_DIR/install/ -DENABLE_CUDA_MODULES=OFF -DENABLE_OPENACC=ON
 ```
 
 You have to run GPU executable with the `--gpu` or `-gpu` option as:
@@ -125,7 +128,8 @@ We have tested the build process on the following platforms:
 * One can specify C/C++ optimization flags specific to the compiler and architecture with `-DCMAKE_CXX_FLAGS` and `-DCMAKE_C_FLAGS` options to the CMake command. For example, on a BG-Q:
 
 ```bash
-cmake .. -DCMAKE_CXX_FLAGS="-O3 -qtune=qp -qarch=qp -q64 -qhot=simd -qsmp -qthreaded" -DCMAKE_C_FLAGS="-O3 -qtune=qp -qarch=qp -q64 -qhot=simd -qsmp -qthreaded"
+cmake .. -DCMAKE_CXX_FLAGS="-O3 -qtune=qp -qarch=qp -q64 -qhot=simd -qsmp -qthreaded" \
+-DCMAKE_C_FLAGS="-O3 -qtune=qp -qarch=qp -q64 -qhot=simd -qsmp -qthreaded"
 ```
 
 * By default OpenMP threading is enabled. You can disable it with `-DCORENEURON_OPENMP=OFF`

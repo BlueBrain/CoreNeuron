@@ -141,6 +141,9 @@ foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
 			## Intel O3 is extreme
 			set(CMAKE_${COMPILER_LANGUAGE}_OPT_AGGRESSIVE "-O2")
 		endif()
+		if (CMAKE_${COMPILER_LANGUAGE}_COMPILER_ID STREQUAL "PGI")
+                        set(CMAKE_${COMPILER_LANGUAGE}_WARNING_ALL "")
+                endif()
 	endif()
 
 endforeach()
