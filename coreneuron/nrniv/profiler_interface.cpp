@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "coreneuron/nrnmpi/nrnmpi.h"
+#include "coreneuron/nrniv/profiler_interface.h"
+
 #ifdef CUDA_PROFILING
 #include "coreneuron/nrniv/cuda_profile.h"
 #endif
@@ -12,9 +14,14 @@
 #include <TAU.h>
 #endif
 
-#if defined(_OPENACC)
+#ifdef _OPENACC
 #include <openacc.h>
 #endif
+
+#ifdef CALIPER
+#include <caliper/cali.h>
+#endif
+
 
 namespace coreneuron {
 static int cray_acc_debug_orig = 0;
@@ -56,5 +63,30 @@ void stop_profile() {
     TAU_DISABLE_INSTRUMENTATION();
 #endif
 }
+
+
+#ifdef CALIPER
+
+template<>
+void Instrumentor::phase_begin<InstrumentorType::Caliper>(const char* name) {
+    CALI_MARK_BEGIN(name);
+}
+
+template<>
+void Instrumentor::phase_end<InstrumentorType::Caliper>(const char* name) {
+    CALI_MARK_END(name);
+}
+
+#else
+
+template<>
+void Instrumentor::phase_begin<InstrumentorType::Empty>(const char*) {
+}
+
+template<>
+void Instrumentor::phase_end<InstrumentorType::Empty>(const char*) {
+}
+
+#endif
 
 }  // namespace coreneuron

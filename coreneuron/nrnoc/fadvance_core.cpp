@@ -34,6 +34,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrn_acc_manager.h"
 #include "coreneuron/utils/reports/nrnreport.h"
 #include "coreneuron/utils/progressbar/progressbar.h"
+#include "coreneuron/nrniv/profiler_interface.h"
+
+#include <sstream>
 namespace coreneuron {
 
 static void* nrn_fixed_step_thread(NrnThread*);
@@ -189,6 +192,7 @@ void update(NrnThread* _nt) {
     }
 }
 
+
 void nonvint(NrnThread* _nt) {
     NrnThreadMembList* tml;
     if (nrn_have_gaps) {
@@ -196,16 +200,22 @@ void nonvint(NrnThread* _nt) {
     }
     errno = 0;
 
+    Instrumentor::phase_begin<INSTRUMENTOR>("NONVINT");
     for (tml = _nt->tml; tml; tml = tml->next)
         if (memb_func[tml->index].state) {
             mod_f_t s = memb_func[tml->index].state;
+            std::string ss("NRN_STATE:");
+            ss += nrn_get_mechname(tml->index);
+            Instrumentor::phase_begin<INSTRUMENTOR>(ss.c_str());
             (*s)(_nt, tml->ml, tml->index);
+            Instrumentor::phase_end<INSTRUMENTOR>(ss.c_str());
 #ifdef DEBUG
             if (errno) {
                 hoc_warning("errno set during calculation of states", (char*)0);
             }
 #endif
         }
+    Instrumentor::phase_end<INSTRUMENTOR>("NONVINT");
 }
 
 void nrn_ba(NrnThread* nt, int bat) {
@@ -221,7 +231,12 @@ void nrn_ba(NrnThread* nt, int bat) {
 static void* nrn_fixed_step_thread(NrnThread* nth) {
     /* check thresholds and deliver all (including binqueue)
        events up to t+dt/2 */
+    Instrumentor::phase_begin<INSTRUMENTOR>("FIXED_STEP_THREAD");
+
+    Instrumentor::phase_begin<INSTRUMENTOR>("DELIVER_NET_EVENTS");
     deliver_net_events(nth);
+    Instrumentor::phase_end<INSTRUMENTOR>("DELIVER_NET_EVENTS");
+
     nth->_t += .5 * nth->_dt;
 
     if (nth->ncell) {
@@ -233,16 +248,26 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         #pragma acc wait(stream_id)
 // clang-format on
 #endif
-
         fixed_play_continuous(nth);
+        Instrumentor::phase_begin<INSTRUMENTOR>("SETUP_TREE_MATRIX");
         setup_tree_matrix_minimal(nth);
+        Instrumentor::phase_end<INSTRUMENTOR>("SETUP_TREE_MATRIX");
+
+        Instrumentor::phase_begin<INSTRUMENTOR>("SOLVE_MINIMAL");
         nrn_solve_minimal(nth);
+        Instrumentor::phase_end<INSTRUMENTOR>("SOLVE_MINIMAL");
         second_order_cur(nth, secondorder);
+
+        Instrumentor::phase_begin<INSTRUMENTOR>("UPDATE");
         update(nth);
+        Instrumentor::phase_end<INSTRUMENTOR>("UPDATE");
     }
     if (!nrn_have_gaps) {
+        Instrumentor::phase_begin<INSTRUMENTOR>("LAST_PART");
         nrn_fixed_step_lastpart(nth);
+        Instrumentor::phase_end<INSTRUMENTOR>("LAST_PART");
     }
+    Instrumentor::phase_end<INSTRUMENTOR>("FIXED_STEP_THREAD");
     return (void*)0;
 }
 
