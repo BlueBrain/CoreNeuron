@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <limits.h>
+#include <unistd.h>
 #include "progressbar.h"
 
 ///  How wide we assume the screen is if termcap fails.
@@ -34,6 +35,9 @@ enum { BAR_BORDER_WIDTH = 2 };
 
 /// The maximum number of bar redraws (to avoid frequent output in long runs)
 enum { BAR_DRAW_COUNT_MAX = 500 };
+
+enum { BAR_DRAW_INTERVAL = 1,
+       BAR_DRAW_INTERVAL_NOTTY = 5 };
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
 /// should be less than the
@@ -62,7 +66,6 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
     new->max = max;
     new->value = 0;
     new->draw_time_interval = 1;
-    new->prev_sample_value = 0;
     new->t = 0;
     new->start = time(NULL);
     assert(3 == strlen(format) && "format must be 3 characters in length");
@@ -98,34 +101,44 @@ void progressbar_free(progressbar* bar) {
 
 /**
  * Increment an existing progressbar by `value` steps.
+ * Additionally issues a redraw in case a certain time interval has elapsed (min: 1sec)
+ * Reasons for a larger interval are:
+ *  - Stdout is not TTY
+ *  - Respect BAR_DRAW_COUNT_MAX
  */
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    // Sample ETA value every time the progress bar is redrawn to calculate the time intervals
-    // between progress bar redraws based on the max number of progress
-    // bar drawings wanted. ETA sampling makes the time intervals for redrawing adapt to the time
-    // the simulation takes while avoiding ETA extreme values in the first simulation steps or the
-    // end of the simulation. Up until the first ETA sample, progress bar is redrawn every 1
-    // second. The total number of progress bars drawn may surpass the BAR_DRAW_COUNT_MAX, but only
-    // by a little due to the ETA forecasting variability.
-    time_t cur_time = time(NULL);
-    int sim_time = difftime(cur_time, bar->start);
+    int sim_time = difftime(time(NULL), bar->start);
 
     // If there is not enough time passed to redraw the progress bar return
-    if ((sim_time - bar->prev_t) < bar->draw_time_interval)
+    if ((sim_time - bar->prev_t) < bar->draw_time_interval) {
         return;
+    }
 
     progressbar_draw(bar);
+
+    bar->drawn_count++;
     bar->prev_t = sim_time;
-    int eta_s = progressbar_remaining_seconds(bar);
-    bar->draw_time_interval = (eta_s) / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
-    if (bar->draw_time_interval < 1) {
-        bar->draw_time_interval = 1;  // avoid output in every time step
+
+    if (bar->drawn_count >= BAR_DRAW_COUNT_MAX || sim_time < 15) {
+        // Dont change the interval after the limit. Simulation should be over any moment and
+        // avoid the calc of draw_time_interval which could raise DIV/0
+        // Also, dont do it the first 15sec to avoid really bad estimates which could potentially
+        // delay a better estimate too far away in the future.
+        return;
     }
-    if (BAR_DRAW_COUNT_MAX > bar->drawn_count + 1) {
-        bar->drawn_count++;  // avoid division by zero in the next ETA calculation, if the
-        // progress bars drawn surpass the BAR_DRAW_COUNT_MAX
+
+    // Sample ETA to calculate the next interval until the redraw of the progressbar
+    int eta_s = progressbar_remaining_seconds(bar);
+    bar->draw_time_interval = eta_s / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
+
+    if (bar->draw_time_interval < BAR_DRAW_INTERVAL_NOTTY) {
+        bar->draw_time_interval =
+            isatty(STDOUT_FILENO)
+                ? ((bar->draw_time_interval < BAR_DRAW_INTERVAL)? BAR_DRAW_INTERVAL
+                                                                : bar->draw_time_interval)
+                : BAR_DRAW_INTERVAL_NOTTY;
     }
 }
 
