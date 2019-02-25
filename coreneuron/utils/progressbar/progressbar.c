@@ -32,14 +32,8 @@ enum { WHITESPACE_LENGTH = 2 };
 /// The amount of width taken up by the border of the bar component.
 enum { BAR_BORDER_WIDTH = 2 };
 
-/// Progress Bar redraw mechanism variables
-enum {
-    /// The maximum number of bar redraws (to avoid frequent output in long runs)
-    BAR_DRAW_COUNT_MAX = 500,
-
-    /// Number of ETA samples taken to calculate the time intervals between progress bar redraws
-    NUMBER_OF_ETA_SAMPLES = 1000
-};
+/// The maximum number of bar redraws (to avoid frequent output in long runs)
+enum { BAR_DRAW_COUNT_MAX = 500 };
 
 /// Models a duration of time broken into hour/minute/second components. The number of seconds
 /// should be less than the
@@ -67,12 +61,10 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
 
     new->max = max;
     new->value = 0;
-    new->draw_time_interval = 2;
+    new->draw_time_interval = 1;
     new->prev_sample_value = 0;
-    new->drawn_count = 0;
     new->t = 0;
     new->start = time(NULL);
-    new->prev_t = time(NULL);
     assert(3 == strlen(format) && "format must be 3 characters in length");
     new->format.begin = format[0];
     new->format.fill = format[1];
@@ -80,6 +72,8 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
 
     progressbar_update_label(new, label);
     progressbar_draw(new);
+    new->prev_t = difftime(time(NULL), new->start);
+    new->drawn_count = 1;
 
     return new;
 }
@@ -108,36 +102,30 @@ void progressbar_free(progressbar* bar) {
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    // Sample ETA value throughout the simulation to calculate the time intervals
+    // Sample ETA value every time the progress bar is redrawn to calculate the time intervals
     // between progress bar redraws based on the max number of progress
     // bar drawings wanted. ETA sampling makes the time intervals for redrawing adapt to the time
     // the simulation takes while avoiding ETA extreme values in the first simulation steps or the
-    // end of the simulation. Up until the first ETA sample, progress bar is redrawn every 2
-    // seconds. The total number of progress bars drawn may surpass the BAR_DRAW_COUNT_MAX, but only
+    // end of the simulation. Up until the first ETA sample, progress bar is redrawn every 1
+    // second. The total number of progress bars drawn may surpass the BAR_DRAW_COUNT_MAX, but only
     // by a little due to the ETA forecasting variability.
     time_t cur_time = time(NULL);
     int sim_time = difftime(cur_time, bar->start);
     int eta_s = progressbar_remaining_seconds(bar);
-
-    int sample_interval = bar->max / NUMBER_OF_ETA_SAMPLES;
-
-    int is_more_than_sample_interval = (bar->value - bar->prev_sample_value) >= sample_interval;
-
-    if (is_more_than_sample_interval) {
-        bar->prev_sample_value = bar->value;
-        bar->draw_time_interval = (eta_s) / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
-        if (bar->draw_time_interval < 1)
-            bar->draw_time_interval = 1;  // avoid output in every time step
-    }
 
     int is_more_than_draw_time_interval = (sim_time - bar->prev_t) >= bar->draw_time_interval;
 
     if (is_more_than_draw_time_interval) {
         progressbar_draw(bar);
         bar->prev_t = sim_time;
-        if (BAR_DRAW_COUNT_MAX > bar->drawn_count + 1)
+        bar->draw_time_interval = (eta_s) / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
+        if (bar->draw_time_interval < 1) {
+            bar->draw_time_interval = 1;  // avoid output in every time step
+        }
+        if (BAR_DRAW_COUNT_MAX > bar->drawn_count + 1) {
             bar->drawn_count++;  // avoid division by zero in the next ETA calculation, if the
-                                 // progress bars drawn surpass the BAR_DRAW_COUNT_MAX
+            // progress bars drawn surpass the BAR_DRAW_COUNT_MAX
+        }
     }
 }
 
@@ -235,6 +223,7 @@ static void progressbar_draw(const progressbar* bar) {
     fputc(' ', stdout);
     fprintf(stdout, ETA_FORMAT, bar->t, eta.hours, eta.minutes, eta.seconds);
     fputc('\r', stdout);
+    fflush(stdout);
 }
 
 /**
