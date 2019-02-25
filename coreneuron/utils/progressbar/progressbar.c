@@ -65,7 +65,7 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
 
     new->max = max;
     new->value = 0;
-    new->draw_time_interval = 1;
+    new->draw_time_interval = isatty(STDOUT_FILENO)? BAR_DRAW_INTERVAL : BAR_DRAW_INTERVAL_NOTTY;
     new->t = 0;
     new->start = time(NULL);
     assert(3 == strlen(format) && "format must be 3 characters in length");
