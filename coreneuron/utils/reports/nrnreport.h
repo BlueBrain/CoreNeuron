@@ -79,7 +79,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* filena
 void setup_report_engine(double dt_report, double mindelay);
 void finalize_report();
 void nrn_flush_reports(double t);
-void set_num_mindelay_to_buffer(int n);
+void set_report_buffer_size(int n);
 
 }  // namespace coreneuron
 #endif  //_H_NRN_REPORT_
