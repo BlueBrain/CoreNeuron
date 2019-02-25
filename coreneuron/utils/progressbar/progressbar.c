@@ -111,21 +111,21 @@ void progressbar_update(progressbar* bar, unsigned long value, double t) {
     // by a little due to the ETA forecasting variability.
     time_t cur_time = time(NULL);
     int sim_time = difftime(cur_time, bar->start);
+
+    // If there is not enough time passed to redraw the progress bar return
+    if ((sim_time - bar->prev_t) < bar->draw_time_interval)
+        return;
+
+    progressbar_draw(bar);
+    bar->prev_t = sim_time;
     int eta_s = progressbar_remaining_seconds(bar);
-
-    int is_more_than_draw_time_interval = (sim_time - bar->prev_t) >= bar->draw_time_interval;
-
-    if (is_more_than_draw_time_interval) {
-        progressbar_draw(bar);
-        bar->prev_t = sim_time;
-        bar->draw_time_interval = (eta_s) / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
-        if (bar->draw_time_interval < 1) {
-            bar->draw_time_interval = 1;  // avoid output in every time step
-        }
-        if (BAR_DRAW_COUNT_MAX > bar->drawn_count + 1) {
-            bar->drawn_count++;  // avoid division by zero in the next ETA calculation, if the
-            // progress bars drawn surpass the BAR_DRAW_COUNT_MAX
-        }
+    bar->draw_time_interval = (eta_s) / (BAR_DRAW_COUNT_MAX - bar->drawn_count);
+    if (bar->draw_time_interval < 1) {
+        bar->draw_time_interval = 1;  // avoid output in every time step
+    }
+    if (BAR_DRAW_COUNT_MAX > bar->drawn_count + 1) {
+        bar->drawn_count++;  // avoid division by zero in the next ETA calculation, if the
+        // progress bars drawn surpass the BAR_DRAW_COUNT_MAX
     }
 }
 
