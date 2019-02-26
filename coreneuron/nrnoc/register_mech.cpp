@@ -279,10 +279,6 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     pold = nrn_prop_param_size_[type];
     dpold = nrn_prop_dparam_size_[type];
     if (psize != pold || dpsize != dpold) {
-        printf("%s prop sizes differ psize %d %d   dpsize %d %d\n", memb_func[type].sym, psize,
-               pold, dpsize, dpold);
-        printf("Error: %s is different version of MOD file than the one used by NEURON!\n",
-               memb_func[type].sym);
         different_mod_files.push_back(type);
     }
     nrn_prop_param_size_[type] = psize;

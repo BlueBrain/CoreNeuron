@@ -1140,14 +1140,20 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         nmech = F.read_int();
         tml_index = new int[nmech];
         ml_nodecount = new int[nmech];
+        int diff_modfiles_count = 0;
         for (int i = 0; i < nmech; ++i) {
             tml_index[i] = F.read_int();
             ml_nodecount[i] = F.read_int();
             auto found_different_mod_file =
                 std::find(different_mod_files.begin(), different_mod_files.end(), tml_index[i]);
             if (found_different_mod_file != different_mod_files.end()) {
-                exit(1);
+                printf("Error: %s is different version of MOD file than the one used by NEURON!\n",
+                       nrn_get_mechname(tml_index[i]));
+                diff_modfiles_count++;
             }
+        }
+        if (diff_modfiles_count > 0) {
+            exit(1);
         }
         nt._nidata = F.read_int();
         nt._nvdata = F.read_int();
