@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
 #include "coreneuron/nrnoc/membfunc.h"
+#include <vector>
 
 namespace coreneuron {
 int secondorder = 0;
@@ -85,6 +86,9 @@ short* nrn_is_artificial_;
 static int ion_write_depend_size_;
 static int** ion_write_depend_;
 static void ion_write_depend(int type, int etype);
+
+/* Vector keeping the types (IDs) of different mod files between Neuron and CoreNeuron */
+std::vector<int> different_mod_files;
 
 bbcore_read_t* nrn_bbcore_read_;
 bbcore_write_t* nrn_bbcore_write_;
@@ -279,7 +283,7 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
                pold, dpsize, dpold);
         printf("Error: %s is different version of MOD file than the one used by NEURON!\n",
                memb_func[type].sym);
-        exit(1);
+        different_mod_files.push_back(type);
     }
     nrn_prop_param_size_[type] = psize;
     nrn_prop_dparam_size_[type] = dpsize;

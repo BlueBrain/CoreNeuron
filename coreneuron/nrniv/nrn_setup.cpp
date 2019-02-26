@@ -263,6 +263,9 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
 
+/// Vector storing indexes (IDs) of different mod files between Neuron and CoreNeuron
+extern std::vector<int> different_mod_files;
+
 // Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
 // Args marshaled by store_phase_args are used by phase1_wrapper
 // and phase2_wrapper.
@@ -1140,6 +1143,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         for (int i = 0; i < nmech; ++i) {
             tml_index[i] = F.read_int();
             ml_nodecount[i] = F.read_int();
+            auto found_different_mod_file =
+                std::find(different_mod_files.begin(), different_mod_files.end(), tml_index[i]);
+            if (found_different_mod_file != different_mod_files.end()) {
+                exit(1);
+            }
         }
         nt._nidata = F.read_int();
         nt._nvdata = F.read_int();
