@@ -87,8 +87,9 @@ static int ion_write_depend_size_;
 static int** ion_write_depend_;
 static void ion_write_depend(int type, int etype);
 
-/* Vector keeping the types (IDs) of different mod files between Neuron and CoreNeuron */
-std::vector<int> different_mod_files;
+/* Vector keeping the types (IDs) of different mechanisms of mod files between Neuron and CoreNeuron
+ */
+std::vector<int> different_mechanism_type;
 
 bbcore_read_t* nrn_bbcore_read_;
 bbcore_write_t* nrn_bbcore_write_;
@@ -279,9 +280,7 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     pold = nrn_prop_param_size_[type];
     dpold = nrn_prop_dparam_size_[type];
     if (psize != pold || dpsize != dpold) {
-        printf("%s prop sizes differ psize %d %d   dpsize %d %d\n", memb_func[type].sym, psize,
-               pold, dpsize, dpold);
-        different_mod_files.push_back(type);
+        different_mechanism_type.push_back(type);
     }
     nrn_prop_param_size_[type] = psize;
     nrn_prop_dparam_size_[type] = dpsize;
