@@ -1146,23 +1146,20 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         for (int i = 0; i < nmech; ++i) {
             tml_index[i] = F.read_int();
             ml_nodecount[i] = F.read_int();
-            if (std::find(different_mechanism_type.begin(), different_mechanism_type.end(),
+            if (nrnmpi_myid == 0 &&
+                std::find(different_mechanism_type.begin(), different_mechanism_type.end(),
                           tml_index[i]) != different_mechanism_type.end()) {
-                if (nrnmpi_myid == 0) {
-                    printf("Error: %s is a different MOD file than used by NEURON!\n",
-                           nrn_get_mechname(tml_index[i]));
-                }
+                printf("Error: %s is a different MOD file than used by NEURON!\n",
+                       nrn_get_mechname(tml_index[i]));
                 diff_modfiles_count++;
             }
         }
 
-        if (diff_modfiles_count > 0) {
-            if (nrnmpi_myid == 0) {
-                printf(
-                    "Error : NEURON and CoreNEURON must use same mod files for compatibility, %d different mod file(s) found. Re-compile special and special-core!\n",
-                    diff_modfiles_count);
-            }
-            graceful_exit(1);
+        if (nrnmpi_myid == 0 && diff_modfiles_count > 0) {
+            printf(
+                "Error : NEURON and CoreNEURON must use same mod files for compatibility, %d different mod file(s) found. Re-compile special and special-core!\n",
+                diff_modfiles_count);
+            nrn_abort(1);
         }
 
         nt._nidata = F.read_int();
@@ -2229,11 +2226,4 @@ size_t model_size(void) {
     return nbyte;
 }
 
-static void graceful_exit(int err) {
-#if NRNMPI
-    // actually, only avoid mpi message when all ranks exit(0)
-    nrnmpi_finalize();
-#endif
-    exit(nrnmpi_myid == 0 ? err : 0);
-}
 }  // namespace coreneuron
