@@ -11,11 +11,12 @@ pipeline {
                 sh "rm -rf build*"
                 sh "mkdir build_aos build_intel_aos"
                 sh "cd $WORKSPACE/build_aos"
+                echo 'AoS build'
                 sh """
                     cmake  \
                       -G 'Unix Makefiles'  \
                       -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_aos/ \
-                      -DCMAKE_BUILD_TYPE=$build_type  \
+                      -DCMAKE_BUILD_TYPE=Debug  \
                       -DENABLE_SOA=OFF\
                       -DTEST_MPI_EXEC_BIN="mpirun" -DTEST_EXEC_PREFIX="mpirun;-n;2" -DAUTO_TEST_WITH_SLURM=OFF -DAUTO_TEST_WITH_MPIEXEC=OFF \
                       $WORKSPACE/
@@ -27,11 +28,12 @@ pipeline {
             steps {
                 sh "mkdir build_soa build_intel_soa"
                 sh "cd $WORKSPACE/build_soa"
+                echo 'SoA build'
                 sh """
                     cmake  \
                       -G 'Unix Makefiles'  \
                       -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_soa/ \
-                      -DCMAKE_BUILD_TYPE=$build_type  \
+                      -DCMAKE_BUILD_TYPE=Debug  \
                       -DTEST_MPI_EXEC_BIN="mpirun" -DTEST_EXEC_PREFIX="mpirun;-n;2" -DAUTO_TEST_WITH_SLURM=OFF -DAUTO_TEST_WITH_MPIEXEC=OFF \
                       $WORKSPACE/
                     """
@@ -44,12 +46,14 @@ pipeline {
                 sh "export MPI_UNBUFFERED_STDIO=1"
 
                 sh "cd $WORKSPACE/build_aos"
+                echo 'Testing AoS'
                 sh "ctest --output-on-failure -T test --no-compress-output -E cppcheck_test"
             }
         }
         stage('test AoS'){
             steps{
                 sh "cd $WORKSPACE/build_soa"
+                echo 'Testing SoA'
                 sh "ctest --output-on-failure -T test --no-compress-output -E cppcheck_test"
             }
         }
