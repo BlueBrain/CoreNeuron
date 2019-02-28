@@ -11,7 +11,7 @@ pipeline {
                 sh "rm -rf build*"
                 sh "mkdir build_aos build_intel_aos"
                 sh "cd $WORKSPACE/build_aos"
-                echo "AoS build"
+                sh "echo "AoS build""
                 sh """
                     cmake  \
                       -G 'Unix Makefiles'  \
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 sh "mkdir build_soa build_intel_soa"
                 sh "cd $WORKSPACE/build_soa"
-                echo "SoA build"
+                sh "echo "SoA build""
                 sh """
                     cmake  \
                       -G 'Unix Makefiles'  \
@@ -46,14 +46,14 @@ pipeline {
                 sh "export MPI_UNBUFFERED_STDIO=1"
 
                 sh "cd $WORKSPACE/build_aos"
-                echo "Testing AoS"
+                sh "echo "Testing AoS""
                 sh "ctest --output-on-failure -T test --no-compress-output -E cppcheck_test"
             }
         }
         stage('test AoS'){
             steps{
                 sh "cd $WORKSPACE/build_soa"
-                echo "Testing SoA"
+                sh "echo "Testing SoA""
                 sh "ctest --output-on-failure -T test --no-compress-output -E cppcheck_test"
             }
         }
