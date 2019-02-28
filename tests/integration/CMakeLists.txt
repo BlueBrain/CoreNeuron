@@ -29,30 +29,28 @@ set(COMMON_ARGS "--tstop 100. --celsius 6.3 -mpi")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
+set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
+set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
 if(ENABLE_OPENACC)
-    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8 --gpu")
-    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16 --gpu")
-else(ENABLE_OPENACC)
-    set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
-    set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+  set(GPU_ARGS "--nwarp 8 --gpu")
 endif()
 
 # List of tests with arguments
 set(TEST_CASE_ARGS
-    "ring!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
-    "ring_binqueue!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
-    "ring_multisend!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
-    "ring_spike_buffer!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer -b 1"
-    "ring_duplicate!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate -z 3"
-    "ring_permute1!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
-    "ring_permute2!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
-    "ring_gap!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
-    "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
-    "ring_gap_multisend!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
-    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
-    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
+    "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
+    "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
+    "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
+    "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer -b 1"
+    "ring_duplicate!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate -z 3"
+    "ring_permute1!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
+    "ring_permute2!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
+    "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
+    "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
+    "ring_gap_multisend!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
+    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
+    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
 
-set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
+set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
@@ -113,6 +111,7 @@ endif()
     elseif(${SUBTEST_NAME} MATCHES "spikereplay")
       set(TEST_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME} --outpath ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME} --pattern ${CMAKE_CURRENT_SOURCE_DIR}/${SIM_NAME}/out.std --tstop 100. -mpi")
     endif()
+    set(TEST_ARGS "${TEST_ARGS} ${GPU_ARGS}")
 
     configure_file(integration_test.sh.in ${SIM_NAME}/integration_test.sh @ONLY)
 
