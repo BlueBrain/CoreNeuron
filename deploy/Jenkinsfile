@@ -50,7 +50,7 @@ pipeline {
                 sh "ctest --output-on-failure -T test --no-compress-output -E cppcheck_test"
             }
         }
-        stage('test SoA'){
+        stage('test AoS'){
             steps{
                 sh "cd $WORKSPACE/build_soa"
                 echo "Testing SoA"
