@@ -163,7 +163,8 @@ void nrn_init_and_load_data(int argc,
     nrn_feenableexcept();
 #endif
 
-    stop_profile();
+    /// profiler like tau/vtune : do not measure from begining
+    Instrumentor<INSTRUMENTOR_T>::stop_profile();
 
 // mpi initialisation
 #if NRNMPI
@@ -379,7 +380,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 }
 
 extern "C" int run_solve_core(int argc, char** argv) {
-    Instrumentor::phase_begin<INSTRUMENTOR>("MAIN");
+    Instrumentor::phase_begin<INSTRUMENTOR_T>("MAIN");
 
     std::vector<ReportConfiguration> configs;
     bool reports_needs_finalize = false;
@@ -398,9 +399,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 
     // initializationa and loading functions moved to separate
-    Instrumentor::phase_begin<INSTRUMENTOR>("LOAD_MODEL");
+    Instrumentor<INSTRUMENTOR_T>::phase_begin("LOAD_MODEL");
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
-    Instrumentor::phase_end<INSTRUMENTOR>("LOAD_MODEL");
+    Instrumentor<INSTRUMENTOR_T>::phase_end("LOAD_MODEL");
 
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
@@ -466,29 +467,28 @@ extern "C" int run_solve_core(int argc, char** argv) {
             handle_forward_skip(nrnopt_get_dbl("--forwardskip"), nrnopt_get_int("--prcellgid"));
         }
 
-        start_profile();
-
         /// Solver execution
-        Instrumentor::phase_begin<INSTRUMENTOR>("SOLVER");
+        Instrumentor<INSTRUMENTOR_T>::start_profile();
+        Instrumentor<INSTRUMENTOR_T>::phase_begin("SOLVER");
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
-        Instrumentor::phase_end<INSTRUMENTOR>("SOLVER");
+        Instrumentor<INSTRUMENTOR_T>::phase_end("SOLVER");
+        Instrumentor<INSTRUMENTOR_T>::stop_profile();
         // Report global cell statistics
         report_cell_stats();
+
 
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
     }
 
     // write spike information to outpath
-    Instrumentor::phase_begin<INSTRUMENTOR>("OUTPUT_SPIKE");
+    Instrumentor<INSTRUMENTOR_T>::phase_begin("OUTPUT_SPIKE");
     output_spikes(output_dir.c_str());
-    Instrumentor::phase_end<INSTRUMENTOR>("OUTPUT_SPIKE");
+    Instrumentor<INSTRUMENTOR_T>::phase_end("OUTPUT_SPIKE");
 
-    Instrumentor::phase_begin<INSTRUMENTOR>("CHECKPOINT");
+    Instrumentor<INSTRUMENTOR_T>::phase_begin("CHECKPOINT");
     write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
-    Instrumentor::phase_end<INSTRUMENTOR>("CHECKPOINT");
-
-    stop_profile();
+    Instrumentor<INSTRUMENTOR_T>::phase_end("CHECKPOINT");
 
     // must be done after checkpoint (to avoid deleting events)
     if (reports_needs_finalize) {
@@ -499,7 +499,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     nrn_cleanup();
 
     // tau needs to resume profile
-    start_profile();
+    Instrumentor<INSTRUMENTOR_T>::start_profile();
 
 // mpi finalize
 #if NRNMPI
@@ -509,7 +509,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 #endif
 
     finalize_data_on_device();
-    Instrumentor::phase_end<INSTRUMENTOR>("MAIN");
+    Instrumentor<INSTRUMENTOR_T>::phase_end("MAIN");
 
     return 0;
 }
