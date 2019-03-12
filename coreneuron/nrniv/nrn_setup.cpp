@@ -249,7 +249,11 @@ static int maxgid;
 #define NRN_SOA_BYTE_ALIGN (2 * sizeof(double))
 #endif
 
-static MUTDEC static size_t model_size(void);
+#ifdef _OPENMP
+static MUTDEC
+#endif
+
+static size_t model_size(void);
 
 /// Vector of maps for negative presyns
 std::vector<std::map<int, PreSyn*> > neg_gid2out;

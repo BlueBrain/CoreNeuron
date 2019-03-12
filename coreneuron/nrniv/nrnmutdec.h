@@ -85,6 +85,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
             omp_unset_lock(mut_); \
         }                         \
     }
+#else
+#define MUTDEC /**/
+#define MUTCONSTRUCTED (0)
+#define MUTCONSTRUCT(mkmut) /**/
+#define MUTDESTRUCT         /**/
+#define MUTLOCK             /**/
+#define MUTUNLOCK           /**/
 #endif
 
 #endif

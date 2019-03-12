@@ -173,7 +173,9 @@ void nrn_init_and_load_data(int argc,
     initnrn();
 
     // create mutex for nrn123, protect instance_count_
+#ifdef _OPENMP
     nrnran123_mutconstruct();
+#endif
 
     // set global variables
     // precedence is: set by user, globals.dat, 34.0

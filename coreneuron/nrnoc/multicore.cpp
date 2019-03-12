@@ -232,6 +232,11 @@ void nrn_multithread_job(void* (*job)(NrnThread*)) {
     }
 #endif
 // clang-format on
+#else
+    for (i = 1; i < nrn_nthread; ++i) {
+        (*job)(nrn_threads + i);
+    }
+    (*job)(nrn_threads);
 #endif
 }
 }  // namespace coreneuron
