@@ -253,7 +253,8 @@ static int maxgid;
 static MUTDEC
 #endif
 
-static size_t model_size(void);
+    static size_t
+    model_size(void);
 
 /// Vector of maps for negative presyns
 std::vector<std::map<int, PreSyn*> > neg_gid2out;
@@ -686,8 +687,7 @@ void nrn_setup(const char* filesdat,
     // Fortunately, empty threads work fine.
     // Allocate NrnThread* nrn_threads of size ngroup (minimum 2)
     // Note that rank with 0 dataset/cellgroup works fine
-    nrn_threads_create(ngroup <= 1 ? 2 : ngroup,
-                       nrnopt_get_flag("--threading") ? 1 : 0);  // serial/parallel threads
+    nrn_threads_create(ngroup <= 1 ? 2 : ngroup);  // serial/parallel threads
 
 #if 1 || CHKPNTDEBUG  // only required for NrnThreadChkpnt.file_id
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];

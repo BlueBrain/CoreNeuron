@@ -59,12 +59,13 @@ uint32_t nrnran123_get_globalindex() {
 }
 
 #ifdef _OPENMP
-static MUTDEC
-
-void nrnran123_mutconstruct() {
+static MUTDEC void nrnran123_mutconstruct() {
     if (!mut_) {
         MUTCONSTRUCT(1);
     }
+}
+#else
+void nrnran123_mutconstruct() {
 }
 #endif
 

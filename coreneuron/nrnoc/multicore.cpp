@@ -73,13 +73,12 @@ int nrn_nthread = 0;
 NrnThread* nrn_threads = NULL;
 void (*nrn_mk_transfer_thread_data_)();
 
-static int nrn_thread_parallel_;
 static int table_check_cnt_;
 static ThreadDatum* table_check_;
 
 int nrn_inthread_;
 
-void nrn_threads_create(int n, int parallel) {
+void nrn_threads_create(int n) {
     int i, j;
     NrnThread* nt;
     if (nrn_nthread != n) {
