@@ -18,34 +18,29 @@
 #include <TAU.h>
 #endif
 
-
 namespace coreneuron {
 
 namespace detail {
 
-template<typename TProfilerImpl>
+template <class... TProfilerImpl>
 struct Instrumentor {
-    Instrumentor();
-
     inline static void phase_begin(const char* name) {
-        TProfilerImpl::phase_begin(name);
+        std::initializer_list<int>{(TProfilerImpl::phase_begin(name), 0)...};
     }
     inline static void phase_end(const char* name) {
-        TProfilerImpl::phase_end(name);
+        std::initializer_list<int>{(TProfilerImpl::phase_end(name), 0)...};
     }
     inline static void start_profile() {
-        TProfilerImpl::start_profile();
+        std::initializer_list<int>{(TProfilerImpl::start_profile(), 0)...};
     }
     inline static void stop_profile() {
-        TProfilerImpl::stop_profile();
+        std::initializer_list<int>{(TProfilerImpl::stop_profile(), 0)...};
     }
-
 };
 
-
-
 #if defined(CALIPER)
-struct Caliper : Instrumentor<Caliper> {
+
+struct Caliper {
     inline static void phase_begin(const char* name) {
         CALI_MARK_BEGIN(name);
     };
@@ -54,95 +49,88 @@ struct Caliper : Instrumentor<Caliper> {
         CALI_MARK_END(name);
     };
 
-    inline static void start_profile() {};
+    inline static void start_profile(){};
 
-    inline static void stop_profile() {};
+    inline static void stop_profile(){};
 };
 
-using InstrumentorImpl = Caliper;
-
-
-#elif defined(CUDA_PROFILING)
-
-struct CudaProfiling : Instrumentor<CudaProfiling> {
-    inline static void phase_begin(const char* name) {
-    };
-
-    inline static void phase_end(const char* name) {
-    };
-
-    inline static void start_profile() {
-	cudaProfilerStart();
-    };
-
-    inline static void stop_profile() {
-	cudaProfilerStop();
-    };
-};
-
-using InstrumentorImpl = CudaProfiling;
-
-
-#elif defined(CRAYPAT)
-struct CrayPat : Instrumentor<CrayPat> {
-    inline static void phase_begin(const char* name) {
-    };
-
-    inline static void phase_end(const char* name) {
-    };
-
-    inline static void start_profile() {
-	PAT_record(PAT_STATE_ON);
-    };
-
-    inline static void stop_profile() {
-	PAT_record(PAT_STATE_OFF);
-    };
-};
-
-using InstrumentorImpl = CrayPat;
-
-
-#elif defined(TAU)
-struct Tau : Instrumentor<Tau> {
-    inline static void phase_begin(const char* name) {
-    };
-
-    inline static void phase_end(const char* name) {
-    };
-
-    inline static void start_profile() {
-	TAU_ENABLE_INSTRUMENTATION();
-    };
-
-    inline static void stop_profile() {
-	TAU_DISABLE_INSTRUMENTATION();
-    };
-};
-
-using InstrumentorImpl = Tau;
-
-#else
-
-struct NullInstrumentor : Instrumentor<NullInstrumentor> {
-    inline static void phase_begin(const char* name) {};
-    inline static void phase_end(const char* name) {};
-    inline static void start_profile() {};
-    inline static void stop_profile() {};
-};
-using InstrumentorImpl = NullInstrumentor;
 #endif
 
-template<typename TProfilerImpl>
-inline Instrumentor<TProfilerImpl>::Instrumentor() {
-    static_assert(std::is_base_of<Instrumentor<TProfilerImpl>, TProfilerImpl>::value,
-                  "Not a valid instrumentor implementation");
-}
+#if defined(CUDA_PROFILING)
 
-} // namespace detail
+struct CudaProfiling {
+    inline static void phase_begin(const char* name){};
 
-using Instrumentor = detail::Instrumentor<detail::InstrumentorImpl>;
+    inline static void phase_end(const char* name){};
 
+    inline static void start_profile() {
+        cudaProfilerStart();
+    };
 
+    inline static void stop_profile() {
+        cudaProfilerStop();
+    };
+};
+
+#endif
+
+#if defined(CRAYPAT)
+
+struct CrayPat {
+    inline static void phase_begin(const char* name){};
+
+    inline static void phase_end(const char* name){};
+
+    inline static void start_profile() {
+        PAT_record(PAT_STATE_ON);
+    };
+
+    inline static void stop_profile() {
+        PAT_record(PAT_STATE_OFF);
+    };
+};
+#endif
+
+#if defined(TAU)
+
+struct Tau {
+    inline static void phase_begin(const char* name){};
+
+    inline static void phase_end(const char* name){};
+
+    inline static void start_profile() {
+        TAU_ENABLE_INSTRUMENTATION();
+    };
+
+    inline static void stop_profile() {
+        TAU_DISABLE_INSTRUMENTATION();
+    };
+};
+
+#endif
+
+struct NullInstrumentor {
+    inline static void phase_begin(const char* name){};
+    inline static void phase_end(const char* name){};
+    inline static void start_profile(){};
+    inline static void stop_profile(){};
+};
+
+}  // namespace detail
+
+using Instrumentor = detail::Instrumentor<
+#if defined CALIPER
+    detail::Caliper,
+#endif
+#if defined(CUDA_PROFILING)
+    detail::CudaProfiling,
+#endif
+#if defined(CRAYPAT)
+    detail::CrayPat,
+#endif
+#if defined(TAU)
+    detail::Tau,
+#endif
+    detail::NullInstrumentor>;
 
 }  // namespace coreneuron
