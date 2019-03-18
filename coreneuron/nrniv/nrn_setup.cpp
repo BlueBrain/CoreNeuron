@@ -687,7 +687,7 @@ void nrn_setup(const char* filesdat,
     // Fortunately, empty threads work fine.
     // Allocate NrnThread* nrn_threads of size ngroup (minimum 2)
     // Note that rank with 0 dataset/cellgroup works fine
-    nrn_threads_create(ngroup <= 1 ? 2 : ngroup);  // serial/parallel threads
+    nrn_threads_create(ngroup <= 1 ? 2 : ngroup);
 
 #if 1 || CHKPNTDEBUG  // only required for NrnThreadChkpnt.file_id
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
