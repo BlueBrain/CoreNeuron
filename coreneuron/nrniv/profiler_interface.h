@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <type_traits>
 
 #if defined(CALIPER)

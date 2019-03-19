@@ -380,7 +380,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 }
 
 extern "C" int run_solve_core(int argc, char** argv) {
-    Instrumentor::phase_begin("MAIN");
+    Instrumentor::phase_begin("main");
 
     std::vector<ReportConfiguration> configs;
     bool reports_needs_finalize = false;
@@ -399,9 +399,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 
     // initializationa and loading functions moved to separate
-    Instrumentor::phase_begin("LOAD_MODEL");
+    Instrumentor::phase_begin("load-model");
     nrn_init_and_load_data(argc, argv, configs.size() > 0);
-    Instrumentor::phase_end("LOAD_MODEL");
+    Instrumentor::phase_end("load-model");
 
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
@@ -469,9 +469,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
         /// Solver execution
         Instrumentor::start_profile();
-        Instrumentor::phase_begin("SOLVER");
+        Instrumentor::phase_begin("simulation");
         BBS_netpar_solve(nrnopt_get_dbl("--tstop"));
-        Instrumentor::phase_end("SOLVER");
+        Instrumentor::phase_end("simulation");
         Instrumentor::stop_profile();
         // Report global cell statistics
         report_cell_stats();
@@ -482,13 +482,13 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 
     // write spike information to outpath
-    Instrumentor::phase_begin("OUTPUT_SPIKE");
+    Instrumentor::phase_begin("output-spike");
     output_spikes(output_dir.c_str());
-    Instrumentor::phase_end("OUTPUT_SPIKE");
+    Instrumentor::phase_end("output-spike");
 
-    Instrumentor::phase_begin("CHECKPOINT");
+    Instrumentor::phase_begin("checkpoint");
     write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
-    Instrumentor::phase_end("CHECKPOINT");
+    Instrumentor::phase_end("checkpoint");
 
     // must be done after checkpoint (to avoid deleting events)
     if (reports_needs_finalize) {
@@ -509,7 +509,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 #endif
 
     finalize_data_on_device();
-    Instrumentor::phase_end("MAIN");
+    Instrumentor::phase_end("main");
 
     return 0;
 }
