@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <type_traits>
 
-#if defined(CALIPER)
+#if defined(CORENEURON_CALIPER)
 #include <caliper/cali.h>
 #endif
 
@@ -39,7 +39,7 @@ struct Instrumentor {
     }
 };
 
-#if defined(CALIPER)
+#if defined(CORENEURON_CALIPER)
 
 struct Caliper {
     inline static void phase_begin(const char* name) {
@@ -120,7 +120,7 @@ struct NullInstrumentor {
 }  // namespace detail
 
 using Instrumentor = detail::Instrumentor<
-#if defined CALIPER
+#if defined CORENEURON_CALIPER
     detail::Caliper,
 #endif
 #if defined(CUDA_PROFILING)

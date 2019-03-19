@@ -26,6 +26,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <sstream>
+
 #include "coreneuron/coreneuron.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
@@ -36,7 +38,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/progressbar/progressbar.h"
 #include "coreneuron/nrniv/profiler_interface.h"
 
-#include <sstream>
 namespace coreneuron {
 
 static void* nrn_fixed_step_thread(NrnThread*);
