@@ -32,6 +32,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/test/unit_test.hpp>
 #include "nrniv/nrnoptarg.h"
 #include <float.h>
+#include "coreneuron/nrniv/cn_parameters.h"
+
 using namespace coreneuron;
 BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
@@ -124,8 +126,8 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     nrnopt_parse(argc, argv);
     
-    BOOST_CHECK(nrnopt_get_int("--seed") == -1);            // testing default value 
-    
+    BOOST_CHECK(cn_par.seed == -1);            // testing default value
+
     BOOST_CHECK(nrnopt_get_int("--spikebuf") == 100);
 
     BOOST_CHECK(nrnopt_get_flag("--threading") == true);

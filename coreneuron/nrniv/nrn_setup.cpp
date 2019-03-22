@@ -48,6 +48,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/node_permute.h"
 #include "coreneuron/nrniv/cellorder.h"
 #include "coreneuron/utils/reports/nrnsection_mapping.h"
+#include "coreneuron/nrniv/cn_parameters.h"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrniv/nrn2core_direct.h"
@@ -724,8 +725,8 @@ void nrn_setup(const char* filesdat,
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
-    std::string datapath = nrnopt_get_str("--datpath");
-    std::string restore_path = nrnopt_get_str("--restore");
+    std::string datapath = cn_par.datpath;
+    std::string restore_path = cn_par.restorepath;
 
     // if not restoring then phase2 files will be read from dataset directory
     if (!restore_path.length()) {
@@ -774,8 +775,9 @@ void nrn_setup(const char* filesdat,
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
-    double mindelay = set_mindelay(nrnopt_get_dbl("--mindelay"));
-    nrnopt_modify_dbl("--mindelay", mindelay);
+    double mindelay = set_mindelay(cn_par.mindelay);
+
+    cn_par.mindelay = mindelay;
 
     if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
         nrn_setup_cleanup();
