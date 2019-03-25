@@ -32,25 +32,18 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/test/unit_test.hpp>
 #include "nrniv/nrnoptarg.h"
 #include <float.h>
+#include <utils/CLI11/CLI.hpp>
 #include "coreneuron/nrniv/cn_parameters.h"
 
 using namespace coreneuron;
+
 BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     const char* argv[] = {
 
         "coreneuron_exec",
 
-        "--spikebuf",
-        "100",
-
-        "--threading",
-
-        "--datpath",
-        "/this/is/the/data/path",
-
-        "--checkpoint",
-        "/this/is/the/chkp/path",
+        "--mpi", //generic commands
 
         "--dt",
         "0.02",
@@ -58,53 +51,38 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "--tstop",
         "0.1",
 
-        "--filesdat",
-        "/this/is/the/file/path",
-
-        "--prcellgid",
-        "12",
-
         "--gpu",
 
-        "--dt_io",
-        "0.2",
-
-        "--forwardskip",
-        "0.02",
-
-        "--celsius",
-        "25.12",
-
-        "-mpi",
-
-        "--outpath",
-        "/this/is/the/output/path",
-
-        "--pattern",
-        "filespike.dat",
-
-        "--report-conf",
-        "report.conf",
+        "gpu", //gpu commands
 
         "--cell-permute",
         "2",
 
-        "--voltage",
-        "-32",
-
         "--nwarp",
         "8",
 
-        "--extracon",
-        "1000",
+        "input", //input subcommands
 
-        "--multiple",
-        "3",
+        "--datpath",
+        "/this/is/the/data/path",
 
-        "--binqueue",
+        "--filesdat",
+        "/this/is/the/file/path",
 
-        "--mindelay",
-        "0.1",
+        "--pattern",
+        "filespike.dat",
+
+        "--voltage",
+        "-32",
+
+        "--report-conf",
+        "report.conf",
+
+        "parallel", //parallel subcommands
+
+        "--threading",
+
+        "spike", //spike exchange subcommands
 
         "--ms-phases",
         "1",
@@ -112,80 +90,119 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "--ms-subintervals",
         "2",
 
+        "--multisend",
+
         "--spkcompress",
         "32",
 
-        "--multisend"};
+        "--binqueue",
+
+        "config", //config subcommands
+
+        "--spikebuf",
+        "100",
+
+        "--prcellgid",
+        "12",
+
+        "--forwardskip",
+        "0.02",
+
+        "--celsius",
+        "25.12",
+
+        "--extracon",
+        "1000",
+
+        "--multiple",
+        "3",
+
+        "--mindelay",
+        "0.1",
+
+        "output", //output subcommands
+
+        "--checkpoint",
+        "/this/is/the/chkp/path",
+
+        "--dt_io",
+        "0.2",
+
+        "--outpath",
+        "/this/is/the/output/path"};
 
     int argc = 0;
 
-    for (; strcmp(argv[argc], "--multisend"); argc++)
-        ;
+    for (; strcmp(argv[argc], "/this/is/the/output/path"); argc++);
 
     argc++;
-
-    nrnopt_parse(argc, argv);
     
-    BOOST_CHECK(cn_par.seed == -1);            // testing default value
+    cn_parameters cn_par_test;
 
-    BOOST_CHECK(nrnopt_get_int("--spikebuf") == 100);
+    CLI::App app_test{"CoreNeuron - Command Line Test!"};
 
-    BOOST_CHECK(nrnopt_get_flag("--threading") == true);
+    (app_test).parse((argc), (argv));
+    
+    BOOST_CHECK(cn_par_test.seed == 0);            // testing default value
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--datpath").c_str(), "/this/is/the/data/path"));
+    BOOST_CHECK(cn_par_test.spikebuf == 100);
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--checkpoint").c_str(), "/this/is/the/chkp/path"));
+    BOOST_CHECK(cn_par_test.threading == true);
 
-    BOOST_CHECK(nrnopt_get_dbl("--dt") == 0.02);
+    BOOST_CHECK(!strcmp(cn_par_test.datpath.c_str(), "/this/is/the/data/path"));
 
-    BOOST_CHECK(nrnopt_get_dbl("--tstop") == 0.1);
+    BOOST_CHECK(!strcmp(cn_par_test.checkpointpath.c_str(), "/this/is/the/chkp/path"));
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--filesdat").c_str(), "/this/is/the/file/path"));
+    BOOST_CHECK(cn_par_test.dt == 0.02);
 
-    BOOST_CHECK(nrnopt_get_int("--prcellgid") == 12);
+    BOOST_CHECK(cn_par_test.tstop == 0.1);
 
-    BOOST_CHECK(nrnopt_get_flag("--gpu") == true);
+    BOOST_CHECK(!strcmp(cn_par_test.filesdat.c_str(), "/this/is/the/file/path"));
 
-    BOOST_CHECK(nrnopt_get_dbl("--dt_io") == 0.2);
+    BOOST_CHECK(cn_par_test.prcellgid == 12);
 
-    BOOST_CHECK(nrnopt_get_dbl("--forwardskip") == 0.02);
+    BOOST_CHECK(cn_par_test.gpu == true);
 
-    BOOST_CHECK(nrnopt_get_dbl("--celsius") == 25.12);
+    BOOST_CHECK(cn_par_test.dt_io == 0.2);
 
-    BOOST_CHECK(nrnopt_get_flag("-mpi") == true);
+    BOOST_CHECK(cn_par_test.forwardskip == 0.02);
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--outpath").c_str(), "/this/is/the/output/path"));
+    BOOST_CHECK(cn_par_test.celsius == 25.12);
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--pattern").c_str(), "filespike.dat"));
+    BOOST_CHECK(cn_par_test.mpi_en == true);
 
-    BOOST_CHECK(!strcmp(nrnopt_get_str("--report-conf").c_str(), "report.conf"));
+    BOOST_CHECK(!strcmp(cn_par_test.outpath.c_str(), "/this/is/the/output/path"));
 
-    BOOST_CHECK(nrnopt_get_int("--cell-permute") == 2);
+    BOOST_CHECK(!strcmp(cn_par_test.patternstim.c_str(), "filespike.dat"));
 
-    BOOST_CHECK(nrnopt_get_dbl("--voltage") == -32);
+    BOOST_CHECK(!strcmp(cn_par_test.reportpath.c_str(), "report.conf"));
 
-    BOOST_CHECK(nrnopt_get_int("--nwarp") == 8);
+    BOOST_CHECK(cn_par_test.cell_interleave_permute == 2);
 
-    BOOST_CHECK(nrnopt_get_int("--extracon") == 1000);
+    BOOST_CHECK(cn_par_test.voltage == -32);
 
-    BOOST_CHECK(nrnopt_get_int("--multiple") == 3);
+    BOOST_CHECK(cn_par_test.nwarp == 8);
 
-    BOOST_CHECK(nrnopt_get_flag("--binqueue") == true);
+    BOOST_CHECK(cn_par_test.extracon == 1000);
 
-    BOOST_CHECK(nrnopt_get_dbl("--mindelay") == 0.1);
+    BOOST_CHECK(cn_par_test.multiple == 3);
 
-    BOOST_CHECK(nrnopt_get_int("--ms-phases") == 1);
+    BOOST_CHECK(cn_par_test.multisend == true);
 
-    BOOST_CHECK(nrnopt_get_int("--ms-subintervals") == 2);
+    BOOST_CHECK(cn_par_test.mindelay == 0.1);
 
-    BOOST_CHECK(nrnopt_get_int("--spkcompress") == 32);
+    BOOST_CHECK(cn_par_test.ms_phases == 1);
 
-    BOOST_CHECK(nrnopt_get_flag("--multisend") == true);
+    BOOST_CHECK(cn_par_test.ms_subint == 2);
+
+    BOOST_CHECK(cn_par_test.spkcompress == 32);
+
+    BOOST_CHECK(cn_par_test.multisend == true);
 
 
-    // check if nrnopt_modify_dbl works properly
-    nrnopt_modify_dbl("--dt", 18.1);
-    BOOST_CHECK(nrnopt_get_dbl("--dt") == 18.1);
+
+    cn_par_test.dt = 18.1;
+    BOOST_CHECK(cn_par_test.dt == 18.1);
 
     // check if default flags are false
     const char* argv_empty[] = {"coreneuron_exec"};
@@ -193,9 +210,9 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     nrnopt_parse(argc, argv_empty);
 
-    BOOST_CHECK(nrnopt_get_flag("--threading") == false);
-    BOOST_CHECK(nrnopt_get_flag("--gpu") == false);
-    BOOST_CHECK(nrnopt_get_flag("-mpi") == false);
-    BOOST_CHECK(nrnopt_get_flag("--binqueue") == false);
-    BOOST_CHECK(nrnopt_get_flag("--multisend") == false);
+    BOOST_CHECK(cn_par_test.threading == false);
+    BOOST_CHECK(cn_par_test.gpu == false);
+    BOOST_CHECK(cn_par_test.mpi_en == false);
+    BOOST_CHECK(cn_par_test.binqueue == false);
+    BOOST_CHECK(cn_par_test.multisend == false);
 }

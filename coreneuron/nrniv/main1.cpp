@@ -97,7 +97,7 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
     args.insert(0, " coreneuron ");
     args.append(" --skip-mpi-finalize ");
     if (use_mpi) {
-        args.append(" -mpi ");
+        args.append(" --mpi ");
     }
 
     // we can't modify string with strtok, make copy
@@ -437,7 +437,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     sub_config -> add_option("-b, --spikebuf", cn_par.spikebuf, "Spike buffer size.", true)
         ->check(CLI::Range(0, 2000000000));
     sub_config -> add_option("-g, --prcellgid", cn_par.prcellgid, "Output prcellstate information for the gid NUMBER.")
-        ->check(CLI::Range(0, 2000000000));
+        ->check(CLI::Range(-1, 2000000000));
     sub_config -> add_option("-k, --forwardskip", cn_par.forwardskip, "Forwardskip to TIME")
         ->check(CLI::Range(0., 1e9));
     sub_config -> add_option("-l, --celsius", cn_par.celsius, "Temperature in degC. The default value is set in defaults.dat or else is 34.0.", true)
