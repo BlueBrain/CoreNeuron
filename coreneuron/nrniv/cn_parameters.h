@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include "coreneuron/utils/CLI11/CLI.hpp"
 
 typedef std::string string_t;
 

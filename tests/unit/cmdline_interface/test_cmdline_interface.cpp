@@ -199,8 +199,6 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     BOOST_CHECK(cn_par_test.multisend == true);
 
-
-
     cn_par_test.dt = 18.1;
     BOOST_CHECK(cn_par_test.dt == 18.1);
 
