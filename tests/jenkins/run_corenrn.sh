@@ -17,11 +17,11 @@ else
 fi
 
 if [ "${TEST}" = "patstim" ]; then
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --pattern patstim.spk -mpi -d test${TEST}dat -e 100 -o ${TEST}
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 input --pattern patstim.spk -d test${TEST}dat output -o ${TEST}
 elif [ "${TEST}" = "ringtest" ]; then
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core -mpi -d coredat -e 100 -o ${TEST}
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 input -d coredat output -o ${TEST}
 else
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core -mpi -d test${TEST}dat -e 100 -o ${TEST}
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 input -d test${TEST}dat output -o ${TEST}
 fi
 
 cat ${TEST}/out.dat > ${TEST}/out_cn_${TEST}.spk
