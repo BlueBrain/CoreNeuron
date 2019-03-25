@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par){
         << std::endl
         << "CONFIGURATION" << std::endl
         << std::left << std::setw(15) << "Spike Buffer" << std::right << std::setw(7) << cn_par.spikebuf << "      "
-        << std::left << std::setw(15) << "Pr Cell Grid" << std::right << std::setw(7) << cn_par.prcellgid << "      "
+        << std::left << std::setw(15) << "Pr Cell Gid" << std::right << std::setw(7) << cn_par.prcellgid << "      "
         << std::left << std::setw(15) << "Forwardskip" << std::right << std::setw(7) << cn_par.forwardskip << std::endl
         << std::left << std::setw(15) << "Celsius" << std::right << std::setw(7) << cn_par.celsius << "      "
         << std::left << std::setw(15) << "Extracon" << std::right << std::setw(7) << cn_par.extracon << "      "

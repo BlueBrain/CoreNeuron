@@ -238,7 +238,8 @@ void nrn_init_and_load_data(int argc,
     mk_netcvode();
 
     // One part done before call to nrn_setup. Other part after.
-    if (cn_par.patternstim.empty()) {
+
+    if (!cn_par.patternstim.empty()) {
         nrn_set_extra_thread0_vdata();
     }
 
@@ -283,7 +284,7 @@ void nrn_init_and_load_data(int argc,
     report_mem_usage("After nrn_setup ");
 
     // Invoke PatternStim
-    if (cn_par.patternstim.empty()) {
+    if (!cn_par.patternstim.empty()) {
         nrn_mkPatternStim(cn_par.patternstim.c_str());
     }
 
@@ -291,7 +292,7 @@ void nrn_init_and_load_data(int argc,
     nrn_set_timeout(200.);
 
     // show all configuration parameters for current run
-    nrnopt_show();
+    //nrnopt_show();
     if (nrnmpi_myid == 0) {
         std::cout << " Start time (t) = " << t << std::endl << std::endl;
     }
@@ -401,7 +402,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         ->check(CLI::Range(0, 3));
 
     auto sub_input = app.add_subcommand("input", "Input dataset options.");
-    sub_input -> add_option("-d, --datapath", cn_par.datpath, "Path containing CoreNeuron data files.")
+    sub_input -> add_option("-d, --datpath", cn_par.datpath, "Path containing CoreNeuron data files.")
         ->check(CLI::ExistingPath);
     sub_input -> add_option("-f, --filesdat", cn_par.filesdat, "Name for the distribution file.", true)
         ->check(CLI::ExistingFile);
@@ -482,7 +483,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     report_mem_usage("After mk_mech");
 
-    if ((cn_par.reportpath).empty()) {
+    if (cn_par.reportpath.size()) {
         if (cn_par.multiple > 1) {
             if (nrnmpi_myid == 0)
                 printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
@@ -549,7 +550,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
         // Set the buffer size if is not the default value. Otherwise use report.conf on
         // register_report
-        if (!nrnopt_is_default_value("--report-buffer-size")) {
+        if (cn_par.report_buff_size!=4) {
             set_report_buffer_size(report_buffer_size);
         }
         setup_report_engine(min_report_dt, delay);
