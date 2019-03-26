@@ -1,6 +1,30 @@
-//
-// Created by bellotta on 3/22/19.
-//
+/*
+Copyright (c) 2016, Blue Brain Project
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 #ifndef CN_PARAMETERS_H
 #define CN_PARAMETERS_H
@@ -26,7 +50,7 @@
  * Please keep in mind that, due to the nature of the subcommands in CLI11,
  * the command line parameters for subcategories NEED to be come before the relative
  * parameter. e.g. --mpi --gpu gpu --nwarp
- * Also single dash long options are not supported anymore (-mpi -> --mpi). 
+ * Also single dash long options are not supported anymore (-mpi -> --mpi).
  */
 
 typedef std::string string_t;
@@ -71,16 +95,16 @@ struct cn_parameters {
     string_t reportpath;
     string_t checkpointpath;
 
-    CLI::App app{"CoreNeuron - Your friendly neuron simulator."};
+    CLI::App app{"CoreNeuron - Your friendly neuron simulator."}; ///CLI app that performs CLI parsing
 
-    cn_parameters();
+    cn_parameters(); ///Constructor that initializes the CLI11 app.
 
-    int parse (int argc, char** argv);
+    int parse (int argc, char** argv); /// Runs the CLI11_PARSE macro.
 
 };
 
-std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par);
+std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par); /// Printing method.
 
-extern cn_parameters cn_par;
+extern cn_parameters cn_par; /// Declaring global cn_parameters object for this instance of CoreNeuron.
 
 #endif //CN_PARAMETERS_H
