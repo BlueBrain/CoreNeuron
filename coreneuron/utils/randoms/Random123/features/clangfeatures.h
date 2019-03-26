@@ -33,23 +33,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __clangfeatures_dot_hpp
 
 #ifndef R123_USE_X86INTRIN_H
-#define R123_USE_X86INTRIN_H ((defined(__x86_64__) || defined(__i386__)))
+#if defined(__x86_64__) || defined(__i386__)
+#define R123_USE_X86INTRIN_H 1
+#else
+#define R123_USE_X86INTRIN_H 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_UNRESTRICTED_UNIONS
-#define R123_USE_CXX11_UNRESTRICTED_UNIONS __has_feature(cxx_unrestricted_unions)
+#if __has_feature(cxx_unrestricted_unions)
+#define R123_USE_CXX11_UNRESTRICTED_UNIONS 1
+#else
+#define R123_USE_CXX11_UNRESTRICTED_UNIONS 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_STATIC_ASSERT
-#define R123_USE_CXX11_STATIC_ASSERT __has_feature(cxx_static_assert)
+#if __has_feature(cxx_static_assert)
+#define R123_USE_CXX11_STATIC_ASSERT 1
+#else
+#define R123_USE_CXX11_STATIC_ASSERT 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_CONSTEXPR
-#define R123_USE_CXX11_CONSTEXPR __has_feature(cxx_constexpr)
+#if __has_feature(cxx_constexpr)
+#define R123_USE_CXX11_CONSTEXPR 1
+#else
+#define R123_USE_CXX11_CONSTEXPR 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_EXPLICIT_CONVERSIONS
-#define R123_USE_CXX11_EXPLICIT_CONVERSIONS __has_feature(cxx_explicit_conversions)
+#if __has_feature(cxx_explicit_conversions)
+#define R123_USE_CXX11_EXPLICIT_CONVERSIONS 1
+#else
+#define R123_USE_CXX11_EXPLICIT_CONVERSIONS 0
+#endif
 #endif
 
 // With clang-3.0, the apparently simpler:

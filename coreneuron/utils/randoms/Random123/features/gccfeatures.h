@@ -80,31 +80,58 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    earlier versions, the only way  to detect whether --std=c++0x was requested
    on the command line is to look at the __GCC_EXPERIMENTAL_CXX0X__ pp-symbol.
 */
-#define GNU_CXX11 \
-    (__cplusplus >= 201103L || (R123_GNUC_VERSION < 40700 && defined(__GCC_EXPERIMENTAL_CXX0X__)))
+#if (__cplusplus >= 201103L || (R123_GNUC_VERSION < 40700 && defined(__GCC_EXPERIMENTAL_CXX0X__)))
+#define GNU_CXX11 1
+#else
+#define GNU_CXX11 0
+#endif
 
 #ifndef R123_USE_CXX11_UNRESTRICTED_UNIONS
-#define R123_USE_CXX11_UNRESTRICTED_UNIONS ((R123_GNUC_VERSION >= 40600) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40600) && GNU_CXX11)
+#define R123_USE_CXX11_UNRESTRICTED_UNIONS 1
+#else
+#define R123_USE_CXX11_UNRESTRICTED_UNIONS 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_STATIC_ASSERT
-#define R123_USE_CXX11_STATIC_ASSERT ((R123_GNUC_VERSION >= 40300) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40300) && GNU_CXX11)
+#define R123_USE_CXX11_STATIC_ASSERT 1
+#else
+#define R123_USE_CXX11_STATIC_ASSERT 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_CONSTEXPR
-#define R123_USE_CXX11_CONSTEXPR ((R123_GNUC_VERSION >= 40600) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40600) && GNU_CXX11)
+#define R123_USE_CXX11_CONSTEXPR 1
+#else
+#define R123_USE_CXX11_CONSTEXPR 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_EXPLICIT_CONVERSIONS
-#define R123_USE_CXX11_EXPLICIT_CONVERSIONS ((R123_GNUC_VERSION >= 40500) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40500) && GNU_CXX11)
+#define R123_USE_CXX11_EXPLICIT_CONVERSIONS 1
+#else
+#define R123_USE_CXX11_EXPLICIT_CONVERSIONS 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_RANDOM
-#define R123_USE_CXX11_RANDOM ((R123_GNUC_VERSION >= 40500) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40500) && GNU_CXX11)
+#define R123_USE_CXX11_RANDOM 1
+#else
+#define R123_USE_CXX11_RANDOM 0
+#endif
 #endif
 
 #ifndef R123_USE_CXX11_TYPE_TRAITS
-#define R123_USE_CXX11_TYPE_TRAITS ((R123_GNUC_VERSION >= 40400) && GNU_CXX11)
+#if ((R123_GNUC_VERSION >= 40400) && GNU_CXX11)
+#define R123_USE_CXX11_TYPE_TRAITS 1
+#else
+#define R123_USE_CXX11_TYPE_TRAITS 0
+#endif
 #endif
 
 #ifndef R123_USE_AES_NI
@@ -159,7 +186,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_USE_ASM_GNU
-#define R123_USE_ASM_GNU (defined(__x86_64__) || defined(__i386__))
+#if (defined(__x86_64__) || defined(__i386__))
+#define R123_USE_ASM_GNU 1
+#else
+#define R123_USE_ASM_GNU 0
+#endif
 #endif
 
 #ifndef R123_USE_CPUID_MSVC
@@ -167,8 +198,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_USE_X86INTRIN_H
-#define R123_USE_X86INTRIN_H \
-    ((defined(__x86_64__) || defined(__i386__)) && R123_GNUC_VERSION >= 40402)
+#if ((defined(__x86_64__) || defined(__i386__)) && R123_GNUC_VERSION >= 40402)
+#define R123_USE_X86INTRIN_H 1
+#else
+#define R123_USE_X86INTRIN_H 0
+#endif
 #endif
 
 #ifndef R123_USE_IA32INTRIN_H
@@ -185,11 +219,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    so broken that I refuse to try to work around it.  If this
    affects you, figure out where your emmintrin.h lives and
    add an appropriate -I to your CPPFLAGS.  Or add -DR123_USE_SSE=0. */
-#define R123_USE_EMMINTRIN_H (R123_USE_SSE && (R123_GNUC_VERSION < 40402))
+#if (R123_USE_SSE && (R123_GNUC_VERSION < 40402))
+#define R123_USE_EMMINTRIN_H 1
+#else
+#define R123_USE_EMMINTRIN_H 0
+#endif
 #endif
 
 #ifndef R123_USE_SMMINTRIN_H
-#define R123_USE_SMMINTRIN_H ((R123_USE_SSE4_1 || R123_USE_SSE4_2) && (R123_GNUC_VERSION < 40402))
+#if ((R123_USE_SSE4_1 || R123_USE_SSE4_2) && (R123_GNUC_VERSION < 40402))
+#define R123_USE_SMMINTRIN_H 1
+#else
+#define R123_USE_SMMINTRIN_H 0
+#endif
 #endif
 
 #ifndef R123_USE_WMMINTRIN_H
@@ -221,7 +263,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_USE_MULHILO64_MULHI_INTRIN
-#define R123_USE_MULHILO64_MULHI_INTRIN (defined(__powerpc64__))
+#if (defined(__powerpc64__))
+#define R123_USE_MULHILO64_MULHI_INTRIN 1
+#else
+#define R123_USE_MULHILO64_MULHI_INTRIN 0
+#endif
 #endif
 
 #ifndef R123_MULHILO64_MULHI_INTRIN
