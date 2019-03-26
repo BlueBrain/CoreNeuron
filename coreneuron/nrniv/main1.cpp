@@ -57,7 +57,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/file_utils.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
 #include "coreneuron/nrniv/cn_parameters.h"
-#include "coreneuron/utils/CLI11/CLI.hpp"
 #include <string.h>
 #include <climits>
 
@@ -380,86 +379,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     #endif
     // read command line parameters and parameter config files
 
-    CLI::App app{"CoreNeuron - Your friendly neuron simulator."};
-
-    app.get_formatter()->column_width(50);
-    app.set_help_all_flag("-H, --help-all", "Print this help including subcommands and exit.");
-
-    app.set_config("--config", "config.ini", "Read parameters from ini file", false)
-        ->check(CLI::ExistingFile);
-    app.add_flag("--mpi", cn_par.mpi_en, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
-    app.add_flag("--gpu", cn_par.gpu, "Activate GPU computation.");
-    app.add_option("--dt", cn_par.dt, "Fixed time step. The default value is set by defaults.dat or is 0.025.", true)
-        ->check(CLI::Range(-1000.,1e9));
-    app.add_option("-e, --tstop", cn_par.tstop, "Stop Time in ms.")
-        ->check(CLI::Range(0., 1e9));
-    app.add_flag("--show", cn_par.print_arg, "Print arguments.");
-
-    auto sub_gpu = app.add_subcommand("gpu", "Commands relative to GPU.");
-    sub_gpu -> add_option("-W, --nwarp", cn_par.nwarp, "Number of warps to balance.", true)
-        ->check(CLI::Range(0, 1000000));
-    sub_gpu -> add_option("-R, --cell-permute", cn_par.cell_interleave_permute, "Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.", true)
-        ->check(CLI::Range(0, 3));
-
-    auto sub_input = app.add_subcommand("input", "Input dataset options.");
-    sub_input -> add_option("-d, --datpath", cn_par.datpath, "Path containing CoreNeuron data files.")
-        ->check(CLI::ExistingPath);
-    sub_input -> add_option("-f, --filesdat", cn_par.filesdat, "Name for the distribution file.", true)
-        ->check(CLI::ExistingFile);
-    sub_input -> add_option("-p, --pattern", cn_par.patternstim, "Apply patternstim using the specified spike file.")
-        ->check(CLI::ExistingFile);
-    sub_input -> add_option("-s, --seed", cn_par.seed, "Initialization seed for random number generator.")
-        ->check(CLI::Range(0, 100000000));
-    sub_input -> add_option("-v, --voltage", cn_par.voltage, "Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...).")
-        ->check(CLI::Range(-1e9, 1e9));
-    sub_input -> add_option("--read-config", cn_par.rconfigpath, "Read configuration file filename.")
-        ->check(CLI::ExistingPath);
-    sub_input -> add_option("--report-conf", cn_par.reportpath, "Reports configuration file.")
-        ->check(CLI::ExistingPath);
-    sub_input -> add_option("--restore", cn_par.restorepath, "Restore simulation from provided checkpoint directory.")
-        ->check(CLI::ExistingPath);
-
-    auto sub_parallel = app.add_subcommand("parallel", "Parallel processing options.");
-    sub_parallel -> add_flag("-c, --threading", cn_par.threading, "Parallel threads. The default is serial threads.");
-    sub_parallel -> add_flag("--skip-mpi-finalize", cn_par.skip_mpi_finalize, "Do not call mpi finalize.");
-
-    auto sub_spike = app.add_subcommand("spike", "Spike exchange options.");
-    sub_spike -> add_option("--ms-phases", cn_par.ms_phases, "Number of multisend phases, 1 or 2.", true)
-        ->check(CLI::Range(1, 2));
-    sub_spike -> add_option("--ms-subintervals", cn_par.ms_subint, "Number of multisend subintervals, 1 or 2.", true)
-        ->check(CLI::Range(1, 2));
-    sub_spike -> add_flag("--multisend", cn_par.multisend, "Use Multisend spike exchange instead of Allgather.");
-    sub_spike -> add_option("--spkcompress", cn_par.spkcompress, "Spike compression. Up to ARG are exchanged during MPI_Allgather.", true)
-        ->check(CLI::Range(0, 100000));
-    sub_spike->add_flag("--binqueue", cn_par.binqueue, "Use bin queue." );
-
-    auto sub_config = app.add_subcommand("config", "Config options.");
-    sub_config -> add_option("-b, --spikebuf", cn_par.spikebuf, "Spike buffer size.", true)
-        ->check(CLI::Range(0, 2000000000));
-    sub_config -> add_option("-g, --prcellgid", cn_par.prcellgid, "Output prcellstate information for the gid NUMBER.")
-        ->check(CLI::Range(-1, 2000000000));
-    sub_config -> add_option("-k, --forwardskip", cn_par.forwardskip, "Forwardskip to TIME")
-        ->check(CLI::Range(0., 1e9));
-    sub_config -> add_option("-l, --celsius", cn_par.celsius, "Temperature in degC. The default value is set in defaults.dat or else is 34.0.", true)
-        ->check(CLI::Range(-1000., 1000.));
-    sub_config -> add_option("-x, --extracon", cn_par.extracon, "Number of extra random connections in each thread to other duplicate models.")
-        ->check(CLI::Range(0, 10000000));
-    sub_config -> add_option("-z, --multiple", cn_par.multiple, "Model duplication factor. Model size is normal size * multiple")
-        ->check(CLI::Range(1, 10000000));
-    sub_config -> add_option("--mindelay", cn_par.mindelay, "Maximum integration interval (likely reduced by minimum NetCon delay).", true)
-        ->check(CLI::Range(0., 1e9));
-    sub_config -> add_option("--report-buffer-size", cn_par.report_buff_size, "Size in MB of the report buffer.")
-        ->check(CLI::Range(1, 128));
-
-    auto sub_output = app.add_subcommand("output", "Output configuration.");
-    sub_output -> add_option("-i, --dt_io", cn_par.dt_io, "Dt of I/O.", true)
-        ->check(CLI::Range(-1000., 1e9));
-    sub_output -> add_option("-o, --outpath", cn_par.outpath, "Path to place output data files.", true)
-        ->check(CLI::ExistingPath);
-    sub_output -> add_option("--checkpoint", cn_par.checkpointpath, "Enable checkpoint and specify directory to store related files.")
-        ->check(CLI::ExistingDirectory);
-
-    CLI11_PARSE(app, argc, argv);
+    cn_par.parse(argc, argv);
 
     if (cn_par.print_arg) {
         std::cout << std::fixed << std::setprecision(2);
@@ -467,7 +387,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     }
 
     std::ofstream out("last_config.ini");
-    out << app.config_to_str(true, true);
+    out << cn_par.app.config_to_str(true, true);
     out.close();
 
     // reads mechanism information from bbcore_mech.dat
