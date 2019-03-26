@@ -63,20 +63,8 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
         "input", //input subcommands
 
-        "--datpath",
-        "/this/is/the/data/path",
-
-        "--filesdat",
-        "/this/is/the/file/path",
-
-        "--pattern",
-        "filespike.dat",
-
         "--voltage",
         "-32",
-
-        "--report-conf",
-        "report.conf",
 
         "parallel", //parallel subcommands
 
@@ -122,26 +110,19 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
         "output", //output subcommands
 
-        "--checkpoint",
-        "/this/is/the/chkp/path",
-
         "--dt_io",
-        "0.2",
-
-        "--outpath",
-        "/this/is/the/output/path"};
+        "0.2"
+        };
 
     int argc = 0;
 
-    for (; strcmp(argv[argc], "/this/is/the/output/path"); argc++);
+    for (; strcmp(argv[argc], "0.2"); argc++);
 
     argc++;
     
     cn_parameters cn_par_test;
 
-    CLI::App app_test{"CoreNeuron - Command Line Test!"};
-
-    (app_test).parse((argc), (argv));
+    cn_par_test.parse(argc, const_cast<char**>(argv)); //discarding const as CLI11 interface is not const
     
     BOOST_CHECK(cn_par_test.seed == 0);            // testing default value
 
@@ -149,15 +130,9 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     BOOST_CHECK(cn_par_test.threading == true);
 
-    BOOST_CHECK(!strcmp(cn_par_test.datpath.c_str(), "/this/is/the/data/path"));
-
-    BOOST_CHECK(!strcmp(cn_par_test.checkpointpath.c_str(), "/this/is/the/chkp/path"));
-
     BOOST_CHECK(cn_par_test.dt == 0.02);
 
     BOOST_CHECK(cn_par_test.tstop == 0.1);
-
-    BOOST_CHECK(!strcmp(cn_par_test.filesdat.c_str(), "/this/is/the/file/path"));
 
     BOOST_CHECK(cn_par_test.prcellgid == 12);
 
@@ -170,12 +145,6 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     BOOST_CHECK(cn_par_test.celsius == 25.12);
 
     BOOST_CHECK(cn_par_test.mpi_en == true);
-
-    BOOST_CHECK(!strcmp(cn_par_test.outpath.c_str(), "/this/is/the/output/path"));
-
-    BOOST_CHECK(!strcmp(cn_par_test.patternstim.c_str(), "filespike.dat"));
-
-    BOOST_CHECK(!strcmp(cn_par_test.reportpath.c_str(), "report.conf"));
 
     BOOST_CHECK(cn_par_test.cell_interleave_permute == 2);
 
@@ -200,17 +169,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     BOOST_CHECK(cn_par_test.multisend == true);
 
     cn_par_test.dt = 18.1;
+    
     BOOST_CHECK(cn_par_test.dt == 18.1);
 
-    // check if default flags are false
-    const char* argv_empty[] = {"coreneuron_exec"};
-    argc = 1;
-
-    nrnopt_parse(argc, argv_empty);
-
-    BOOST_CHECK(cn_par_test.threading == false);
-    BOOST_CHECK(cn_par_test.gpu == false);
-    BOOST_CHECK(cn_par_test.mpi_en == false);
-    BOOST_CHECK(cn_par_test.binqueue == false);
-    BOOST_CHECK(cn_par_test.multisend == false);
 }
