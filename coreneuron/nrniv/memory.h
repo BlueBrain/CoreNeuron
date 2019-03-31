@@ -29,11 +29,52 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _H_MEMORY_
 #define _H_MEMORY_
 
-#include <stdlib.h>
 #include <string.h>
+
 #include "coreneuron/nrniv/nrn_assert.h"
 
+/// for gpu builds with unified memory support
+#if (defined(__CUDACC__) || defined(_OPENACC))
+
+#include <cuda_runtime_api.h>
+
+// TODO : error handling for CUDA routines
+inline void alloc_memory(void*& pointer, size_t num_bytes, size_t /*alignment*/) {
+    cudaMallocManaged(&pointer, num_bytes);
+}
+
+inline void calloc_memory(void*& pointer, size_t num_bytes, size_t /*alignment*/) {
+    alloc_memory(pointer, num_bytes, 64);
+    cudaMemset(pointer, 0, num_bytes);
+}
+
+inline void free_memory(void* pointer) {
+    cudaFree(pointer);
+}
+
+/// for cpu builds use posix memalign
+#else
+
+#include <stdlib.h>
+
+inline void alloc_memory(void*& pointer, size_t num_bytes, size_t alignment) {
+    nrn_assert(posix_memalign(&pointer, alignment, num_bytes) == 0);
+}
+
+inline void calloc_memory(void*& pointer, size_t num_bytes, size_t alignment) {
+    alloc_memory(pointer, num_bytes, alignment);
+    memset(pointer, 0, num_bytes);
+}
+
+inline void free_memory(void* pointer) {
+    free(pointer);
+}
+
+#endif
+
+
 namespace coreneuron {
+
 /** Independent function to compute the needed chunkding,
     the chunk argument is the number of doubles the chunk is chunkded upon.
 */
@@ -59,7 +100,7 @@ inline bool is_aligned(void* pointer, size_t alignment) {
  */
 inline void* emalloc_align(size_t size, size_t alignment) {
     void* memptr;
-    nrn_assert(posix_memalign(&memptr, alignment, size) == 0);
+    alloc_memory(memptr, size, alignment);
     nrn_assert(is_aligned(memptr, alignment));
     return memptr;
 }
@@ -71,9 +112,8 @@ inline void* ecalloc_align(size_t n, size_t alignment, size_t size) {
     if (n == 0) {
         return (void*)0;
     }
-    nrn_assert(posix_memalign(&p, alignment, n * size) == 0);
+    calloc_memory(p, n*size, alignment);
     nrn_assert(is_aligned(p, alignment));
-    memset(p, 1, n * size);  // Avoid native division by zero (cyme...)
     return p;
 }
 }  // namespace coreneuron

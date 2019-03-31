@@ -1030,9 +1030,9 @@ void nrn_cleanup(bool clean_ion_global_map) {
             Memb_list* ml = tml->ml;
 
             ml->data = NULL;  // this was pointing into memory owned by nt
-            free(ml->pdata);
+            free_memory(ml->pdata);
             ml->pdata = NULL;
-            free(ml->nodeindices);
+            free_memory(ml->nodeindices);
             ml->nodeindices = NULL;
             if (ml->_permute) {
                 delete[] ml->_permute;
@@ -1083,10 +1083,10 @@ void nrn_cleanup(bool clean_ion_global_map) {
         nt->_actual_a = NULL;
         nt->_actual_b = NULL;
 
-        free(nt->_v_parent_index);
+        free_memory(nt->_v_parent_index);
         nt->_v_parent_index = NULL;
 
-        free(nt->_data);
+        free_memory(nt->_data);
         nt->_data = NULL;
 
         free(nt->_idata);
@@ -1135,12 +1135,12 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->_shadow_rhs) {
-            free(nt->_shadow_rhs);
+            free_memory(nt->_shadow_rhs);
             nt->_shadow_rhs = NULL;
         }
 
         if (nt->_shadow_d) {
-            free(nt->_shadow_d);
+            free_memory(nt->_shadow_d);
             nt->_shadow_d = NULL;
         }
 
