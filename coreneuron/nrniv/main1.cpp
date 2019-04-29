@@ -399,9 +399,10 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 
     // initializationa and loading functions moved to separate
-    Instrumentor::phase_begin("load-model");
-    nrn_init_and_load_data(argc, argv, !configs.empty());
-    Instrumentor::phase_end("load-model");
+    {
+        Instrumentor::phase p("load-model");
+        nrn_init_and_load_data(argc, argv, !configs.empty());
+    }
 
     std::string checkpoint_path = nrnopt_get_str("--checkpoint");
     if (strlen(checkpoint_path.c_str())) {
@@ -482,13 +483,15 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 
     // write spike information to outpath
-    Instrumentor::phase_begin("output-spike");
-    output_spikes(output_dir.c_str());
-    Instrumentor::phase_end("output-spike");
+    {
+        Instrumentor::phase p("output-spike");
+        output_spikes(output_dir.c_str());
+    }
 
-    Instrumentor::phase_begin("checkpoint");
-    write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
-    Instrumentor::phase_end("checkpoint");
+    {
+        Instrumentor::phase p("checkpoint");
+        write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
+    }
 
     // must be done after checkpoint (to avoid deleting events)
     if (reports_needs_finalize) {

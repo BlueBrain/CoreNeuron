@@ -37,6 +37,7 @@ struct Instrumentor {
     inline static void stop_profile() {
         std::initializer_list<int>{(TProfilerImpl::stop_profile(), 0)...};
     }
+
 };
 
 #if defined(CORENEURON_CALIPER)
@@ -118,6 +119,17 @@ struct NullInstrumentor {
 };
 
 }  // namespace detail
+
+namespace Instrumentor {
+    struct phase {
+        phase() {
+            detail::Instrumentor::phase_begin();
+        }
+        ~phase() {
+            detail::Instrumentor::phase_end();
+        }
+    }
+}
 
 using Instrumentor = detail::Instrumentor<
 #if defined CORENEURON_CALIPER
