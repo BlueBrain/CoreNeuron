@@ -36,6 +36,10 @@
 #include <vector>
 #include <string.h>
 
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/async.h"
+
 namespace coreneuron {
 
 /*
@@ -44,14 +48,12 @@ namespace coreneuron {
 void parse_filter_string(char* filter, ReportConfiguration& config) {
     char* token = strtok(filter, ".");
     if (!token) {
-        std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
-        abort();
+        spdlog::error("Invalid report variable, should be mch_name.var_name", 1);
     }
     strcpy(config.mech_name, token);
     token = strtok(NULL, "\n");
     if (!token) {
-        std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
-        abort();
+        spdlog::error("Invalid report variable, should be mch_name.var_name", 1);
     }
     strcpy(config.var_name, token);
 }
@@ -67,9 +69,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
 
     FILE* fp = fopen(conf_file, "r");
     if (!fp) {
-        std::cerr << "Cannot open configuration file: " << conf_file << ", aborting execution"
-                  << std::endl;
-        abort();
+        spdlog::critical("Cannot open configuration file: bin: {0:b}, aborting execution", conf_file)
     }
 
     fgets(raw_line, MAX_FILEPATH_LEN, fp);
@@ -97,8 +97,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
         } else if (strcmp(report.type_str, "synapse") == 0) {
             report.type = SynapseReport;
         } else {
-            std::cerr << "Report error: unsupported type " << report.type_str << "\n";
-            abort();
+            spdlog::info("Report error: unsupported type bin: {0:b}", report.type_str);
         }
 
         if (report.type == SynapseReport)

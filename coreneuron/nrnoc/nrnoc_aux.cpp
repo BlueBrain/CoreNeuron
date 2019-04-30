@@ -31,6 +31,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnmpi/nrnmpidec.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/async.h"
+#include "spdlog/fmt/ostr.h"
 
 namespace coreneuron {
 int stoprun;
@@ -156,10 +160,7 @@ double hoc_Exp(double x) {
 void check_bbcore_write_version(const char* version) {
     if (strcmp(version, bbcore_write_version) != 0) {
         if (nrnmpi_myid == 0)
-            fprintf(stderr,
-                    "Error: Incompatible binary input dataset version (expected %s, input %s)\n",
-                    bbcore_write_version, version);
-        abort();
+            spdlog::info("Incompatible binary input dataset version {expected %s, input %s}", bbcore_write_version, version);
     }
 }
 }  // namespace coreneuron

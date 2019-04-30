@@ -59,6 +59,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <climits>
 
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/async.h"
+#include "spdlog/fmt/ostr.h"
+
 extern "C" {
 const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
@@ -437,9 +442,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         double tstop = nrnopt_get_dbl("--tstop");
 
         if (tstop < t && nrnmpi_myid == 0) {
-            printf("Error: Stop time (%lf) < Start time (%lf), restoring from checkpoint? \n",
-                   tstop, t);
-            abort();
+            spdlog::error("Error: Stop time (%lf) < Start time (%lf), restoring from checkpoint? {} {}", tstop, t);
         }
 
         // register all reports into reportinglib

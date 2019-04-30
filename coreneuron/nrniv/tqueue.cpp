@@ -518,7 +518,7 @@ void splay(SPBLK* n, SPTREE* q) {
 #ifdef DEBUG
     if (q->root != prev) {
         /*	fprintf(stderr, " *** bug in splay: n not in q *** " ); */
-        abort();
+        spdlog::debug("Error occurred");
     }
 #endif
 

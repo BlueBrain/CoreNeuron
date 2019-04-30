@@ -40,6 +40,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrnmutdec.h"
 #include "coreneuron/nrnmpi/nrnmpi_impl.h"
 #include "coreneuron/nrnmpi/nrnmpidec.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/async.h"
+#include "spdlog/fmt/ostr.h"
+
 
 namespace coreneuron {
 std::vector<double> spikevec_time;
@@ -191,14 +196,12 @@ void output_spikes_parallel(const char* outpath) {
     int op_status = MPI_File_open(MPI_COMM_WORLD, (char*)fname.c_str(),
                                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
     if (op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
-        std::cerr << "Error while opening spike output file " << fname << std::endl;
-        abort();
+        spdlog::error("Error while opening spike output file", fname);
     }
 
     op_status = MPI_File_write_at_all(fh, offset, spike_data, num_chars, MPI_BYTE, &status);
     if (op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
-        std::cerr << "Error while writing spike output " << std::endl;
-        abort();
+        spdlog::error("Error while writing spike output");
     }
 
     MPI_File_close(&fh);

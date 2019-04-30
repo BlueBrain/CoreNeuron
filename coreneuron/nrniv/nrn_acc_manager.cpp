@@ -11,6 +11,11 @@
 #include "coreneuron/nrniv/cuda_profile.h"
 #include "coreneuron/scopmath_core/newton_struct.h"
 
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/async.h"
+#include "spdlog/fmt/ostr.h"
+
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
@@ -392,7 +397,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 abort();
             }
         } else {
-            printf("\n WARNING: NrnThread %d not permuted, error for linear algebra?", i);
+            spdlog::warning("NrnThread %d not permuted, error for linear algebra?", i);
         }
     }
 

@@ -198,7 +198,7 @@ void nrn_abort(int errcode) {
     } else
 #endif
     {
-        abort();
+        spdlog::error("Error occurred, {}", 1);
     }
 }
 
