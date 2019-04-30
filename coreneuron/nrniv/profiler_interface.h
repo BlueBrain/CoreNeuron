@@ -55,6 +55,17 @@ struct Caliper {
     inline static void stop_profile(){};
 };
 
+namespace Caliper {
+    struct phase {
+        phase() {
+            detail::Caliper::phase_begin();
+				}
+        ~phase() {
+            detail::Caliper::phase_end();
+        }
+    }
+}
+
 #endif
 
 #if defined(CUDA_PROFILING)
@@ -73,6 +84,17 @@ struct CudaProfiling {
     };
 };
 
+namespace CudeProfiling {
+    struct phase {
+        phase() {
+            detail::CudeProfiling::phase_begin();
+        }
+        ~phase() {
+            detail::CudeProfiling::phase_end();
+        }
+    }
+}
+
 #endif
 
 #if defined(CRAYPAT)
@@ -90,6 +112,18 @@ struct CrayPat {
         PAT_record(PAT_STATE_OFF);
     };
 };
+
+namespace CrayPat {
+    struct phase {
+        phase() {
+            detail::CrayPat::phase_begin();
+        }
+        ~phase() {
+            detail::CrayPat::phase_end();
+        }
+    }
+}
+
 #endif
 
 #if defined(TAU)
@@ -107,6 +141,17 @@ struct Tau {
         TAU_DISABLE_INSTRUMENTATION();
     };
 };
+
+namespace Tau {
+    struct phase {
+        phase() {
+            detail::Tau::phase_begin();
+        }
+        ~phase() {
+            detail::Tau::phase_end();
+        }
+    }
+}
 
 #endif
 
