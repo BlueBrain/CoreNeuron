@@ -554,7 +554,7 @@ void update_net_receive_buffer(NrnThread* nt) {
 
 #ifdef _OPENACC
             if (nt->compute_gpu) {
-                // note that dont update nrb otherwise we loose pointers
+                // note that dont update nrb otherwise we lose pointers
 
                 /* update scalar elements */
                 acc_update_device(&nrb->_cnt, sizeof(int));
