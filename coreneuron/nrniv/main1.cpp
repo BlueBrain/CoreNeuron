@@ -299,10 +299,6 @@ void nrn_init_and_load_data(int argc,
 
     report_mem_usage("After mk_spikevec_buffer");
 
-    if (nrnopt_get_flag("-gpu")) {
-        //setup_nrnthreads_on_device(nrn_threads, nrn_nthread);
-    }
-
     if (nrn_have_gaps) {
         nrn_partrans::gap_update_indices();
     }
