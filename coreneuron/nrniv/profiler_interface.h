@@ -19,6 +19,10 @@
 #include <TAU.h>
 #endif
 
+#if defined(LIKWID_PERFMON)
+#include <likwid.h>
+#endif
+
 namespace coreneuron {
 
 namespace detail {
@@ -37,6 +41,12 @@ struct Instrumentor {
     inline static void stop_profile() {
         std::initializer_list<int>{(TProfilerImpl::stop_profile(), 0)...};
     }
+    inline static void init_profile() {
+        std::initializer_list<int>{(TProfilerImpl::init_profile(), 0)...};
+    }
+    inline static void finalize_profile() {
+        std::initializer_list<int>{(TProfilerImpl::finalize_profile(), 0)...};
+    }
 };
 
 #if defined(CORENEURON_CALIPER)
@@ -53,6 +63,10 @@ struct Caliper {
     inline static void start_profile(){};
 
     inline static void stop_profile(){};
+
+    inline static void init_profile(){};
+
+    inline static void finalize_profile(){};
 };
 
 #endif
@@ -71,6 +85,10 @@ struct CudaProfiling {
     inline static void stop_profile() {
         cudaProfilerStop();
     };
+
+    inline static void init_profile(){};
+
+    inline static void finalize_profile(){};
 };
 
 #endif
@@ -89,6 +107,10 @@ struct CrayPat {
     inline static void stop_profile() {
         PAT_record(PAT_STATE_OFF);
     };
+
+    inline static void init_profile(){};
+
+    inline static void finalize_profile(){};
 };
 #endif
 
@@ -106,6 +128,42 @@ struct Tau {
     inline static void stop_profile() {
         TAU_DISABLE_INSTRUMENTATION();
     };
+
+    inline static void init_profile(){};
+
+    inline static void finalize_profile(){};
+};
+
+#endif
+
+#if defined(LIKWID_PERFMON)
+
+struct Likwid {
+    inline static void phase_begin(const char* name){
+        LIKWID_MARKER_START(name);
+    };
+
+    inline static void phase_end(const char* name){
+        LIKWID_MARKER_STOP(name);
+    };
+
+    inline static void start_profile() {};
+
+    inline static void stop_profile() {};
+
+    inline static void init_profile(){
+        LIKWID_MARKER_INIT;
+
+#pragma omp parallel
+        {
+            LIKWID_MARKER_THREADINIT;
+        }
+
+    };
+
+    inline static void finalize_profile(){
+        LIKWID_MARKER_CLOSE;
+    };
 };
 
 #endif
@@ -115,6 +173,8 @@ struct NullInstrumentor {
     inline static void phase_end(const char* name){};
     inline static void start_profile(){};
     inline static void stop_profile(){};
+    inline static void init_profile(){};
+    inline static void finalize_profile(){};
 };
 
 }  // namespace detail
@@ -131,6 +191,9 @@ using Instrumentor = detail::Instrumentor<
 #endif
 #if defined(TAU)
     detail::Tau,
+#endif
+#if defined(LIKWID_PERFMON)
+    detail::Likwid,
 #endif
     detail::NullInstrumentor>;
 
