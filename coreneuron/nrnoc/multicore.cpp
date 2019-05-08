@@ -32,6 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/nrniv/memory.h"
 /*
 Now that threads have taken over the actual_v, v_node, etc, it might
 be a good time to regularize the method of freeing, allocating, and
@@ -64,10 +65,15 @@ it. We have two major cases, call to pc.nthread and change in
 model structure. We want to use Node* as much as possible and defer
 the handling of v_structure_change as long as possible.
 */
+#if !defined(NRN_SOA_BYTE_ALIGN)
+// for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the
+// simd memory bus)
+#define NRN_SOA_BYTE_ALIGN (8 * sizeof(double))
+#endif
 
 namespace coreneuron {
 #define CACHELINE_ALLOC(name, type, size) \
-    name = (type*)nrn_cacheline_alloc((void**)&name, size * sizeof(type))
+    name = (type*)emalloc_align(size * sizeof(type), NRN_SOA_BYTE_ALIGN)
 
 int nrn_nthread = 0;
 NrnThread* nrn_threads = NULL;
@@ -148,7 +154,7 @@ void nrn_threads_create(int n) {
 
 void nrn_threads_free() {
     if (nrn_nthread) {
-        free((void*)nrn_threads);
+        free_memory((void*)nrn_threads);
         nrn_threads = 0;
         nrn_nthread = 0;
     }

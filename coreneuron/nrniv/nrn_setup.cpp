@@ -2037,7 +2037,7 @@ for (int i=0; i < nt.end; ++i) {
     }
     nt.n_vecplay = n;
     if (n) {
-        nt._vecplay = (void**)ecalloc_align(n, NRN_SOA_BYTE_ALIGN, sizeof(void**));
+        nt._vecplay = (void**)ecalloc_align(n, NRN_SOA_BYTE_ALIGN, sizeof(void*));
     } else {
         nt._vecplay = NULL;
     }
