@@ -31,6 +31,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char** argv) {
     coreneuron::Instrumentor::init_profile();
-    solve_core(argc, argv);
+    auto solve_core_result = solve_core(argc, argv);
     coreneuron::Instrumentor::finalize_profile();
+    return solve_core_result
 }
