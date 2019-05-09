@@ -62,7 +62,7 @@ option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
 option(ENABLE_ISPC_TARGET "Enable ispc interoperability structs and data" OFF)
 option(ENABLE_NMODL "Enable external nmodl source-to-source compiler" OFF)
 option(ENABLE_CALIPER "Enable Caliper instrumentation" OFF)
-option(ENABLE_LIKWID "Enable LIKWID instrumentation" OFF)
+option(CORENEURON_ENABLE_LIKWID "Enable LIKWID instrumentation" OFF)
 
 ## set C++11 standard to be default
 set(CMAKE_CXX_STANDARD 11)
@@ -197,11 +197,12 @@ if(ENABLE_CALIPER)
 endif(ENABLE_CALIPER)
 
 # Code instrumentation
-if(ENABLE_LIKWID)
+set(LIKWID_ROOT "" CACHE PATH "Path likwid performance monitoring and benchmarking suite")
+if(CORENEURON_ENABLE_LIKWID)
     find_package(likwid REQUIRED)
-    include_directories(${LIKWID_INCLUDE_DIR})
+    include_directories(${likwid_INCLUDE_DIRS})
     add_definitions("-DLIKWID_PERFMON")
-endif(ENABLE_LIKWID)
+endif(CORENEURON_ENABLE_LIKWID)
 
 CHECK_INCLUDE_FILES (malloc.h have_malloc_h)
 if(have_malloc_h)
