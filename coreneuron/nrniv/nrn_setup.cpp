@@ -419,7 +419,8 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         }
     }
 
-    nt.presyns = new PreSyn[nt.n_presyn];
+    //nt.presyns = new PreSyn[nt.n_presyn];
+    nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
 
@@ -1123,7 +1124,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
                     free(nt->pnt2presyn_ix[i]);
                 }
             }
-            free(nt->pnt2presyn_ix);
+            free_memory(nt->pnt2presyn_ix);
         }
 
         if (nt->netcons) {
@@ -2098,6 +2099,13 @@ for (int i=0; i < nt.end; ++i) {
             checkpoint_restore_tqueue(nt, F);
         }
     }
+
+    if (nrn_ion_global_map_size) {
+        nrn_ion_global_map =
+            (double**)emalloc_align(sizeof(double*) * nrn_ion_global_map_size, NRN_SOA_BYTE_ALIGN);
+    }
+
+
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {
         int type = net_buf_receive_type_[i];

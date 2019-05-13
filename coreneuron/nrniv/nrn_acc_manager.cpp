@@ -42,10 +42,17 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
     /* @todo: why dt is not setup at this moment? */
     for (i = 0; i < nthreads; i++) {
-        (threads + i)->_dt = dt;
+        NrnThread* nt = threads + i;
         /* this thread will be computed on GPU */
         (threads + i)->compute_gpu = 1;
+        if (nt->end <= 0) {
+            // this is an empty thread and could be only artificial
+            // cells. In this case nothing is executed on gpu.
+            nt->compute_gpu = 0;
+        }
     }
+
+    return;
 
     /* -- copy NrnThread to device. this needs to be contigious vector because offset is used to
      * find
@@ -62,13 +69,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
     for (i = 0; i < nthreads; i++) {
         NrnThread* nt = threads + i;      // NrnThread on host
         NrnThread* d_nt = d_threads + i;  // NrnThread on device
-
-        if (nt->end <= 0) {
-            // this is an empty thread and could be only artificial
-            // cells. In this case nothing is executed on gpu.
-            nt->compute_gpu = 0;
-            continue;
-        }
 
         double* d__data;  // nrn_threads->_data on device
 
