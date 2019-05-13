@@ -122,8 +122,8 @@ struct NullInstrumentor {
 
 namespace Instrumentor {
     struct phase {
-        phase() {
-            detail::Instrumentor::phase_begin();
+        phase(const char* name) {
+            detail::Instrumentor::phase_begin(name);
         }
         ~phase() {
             detail::Instrumentor::phase_end();
