@@ -5,11 +5,18 @@
 
 // just for use_interleave_permute
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrniv/memory.h"
 
 #include <map>
 #include <set>
 #include <algorithm>
 #include <string.h>
+
+#if !defined(NRN_SOA_BYTE_ALIGN)
+// for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the
+// simd memory bus)
+#define NRN_SOA_BYTE_ALIGN (8 * sizeof(double))
+#endif
 
 using namespace std;
 namespace coreneuron {
@@ -617,10 +624,11 @@ static void admin2(int ncell,
     // ncore is the number of warps * warpsize
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
-    ncycles = new int[nwarp];
-    stridedispl = new int[nwarp + 1];  // running sum of ncycles (start at 0)
-    rootbegin = new int[nwarp + 1];    // index (+1) of first root in warp.
-    nodebegin = new int[nwarp + 1];    // index (+1) of first node in warp.
+
+    ncycles = (int*)ecalloc_align(nwarp, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    stridedispl = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    rootbegin = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    nodebegin = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));
 
     // rootbegin and nodebegin are the root index values + 1 of the last of
     // the sequence of constant groupindex
@@ -650,7 +658,8 @@ static void admin2(int ncell,
     }
 
     // strides
-    strides = new int[nstride];
+    //strides = new int[nstride];
+    strides = (int*)ecalloc_align(nstride, NRN_SOA_BYTE_ALIGN, sizeof(int));
     nstride = 0;
     for (size_t iwarp = 0; iwarp < (size_t)nwarp; ++iwarp) {
         size_t j = size_t(nodebegin[iwarp + 1]);

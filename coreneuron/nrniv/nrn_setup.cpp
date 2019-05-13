@@ -421,6 +421,22 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
 
     //nt.presyns = new PreSyn[nt.n_presyn];
     nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
+/*
+    nt.presyns->nc_index_ = 0;
+    nt.presyns->nc_cnt_ = 0;
+    nt.presyns->flag_ = false;
+    nt.presyns->thvar_index_ = -1;
+    nt.presyns->pntsrc_ = NULL;
+    nt.presyns->threshold_ = 10.;
+    nt.presyns->gid_ = -1;
+#if NRNMPI
+    nt.presyns->localgid_ = 0;
+#endif
+#if NRN_MULTISEND
+    nt.presyns->multisend_index_ = -1;
+#endif
+    nt.presyns->output_index_ = 0;
+*/
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
 
@@ -1017,8 +1033,8 @@ void nrn_cleanup(bool clean_ion_global_map) {
     // clean ions global maps
     if (clean_ion_global_map) {
         for (int i = 0; i < nrn_ion_global_map_size; i++)
-            free(nrn_ion_global_map[i]);
-        free(nrn_ion_global_map);
+            free_memory(nrn_ion_global_map[i]);
+        free_memory(nrn_ion_global_map);
         nrn_ion_global_map = NULL;
         nrn_ion_global_map_size = 0;
     }
@@ -1114,7 +1130,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->presyns) {
-            delete[] nt->presyns;
+            free_memory(nt->presyns);
             nt->presyns = NULL;
         }
 
@@ -2099,12 +2115,6 @@ for (int i=0; i < nt.end; ++i) {
             checkpoint_restore_tqueue(nt, F);
         }
     }
-
-    if (nrn_ion_global_map_size) {
-        nrn_ion_global_map =
-            (double**)emalloc_align(sizeof(double*) * nrn_ion_global_map_size, NRN_SOA_BYTE_ALIGN);
-    }
-
 
     // NetReceiveBuffering
     for (int i = 0; i < net_buf_receive_cnt_; ++i) {

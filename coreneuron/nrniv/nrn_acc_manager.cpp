@@ -52,6 +52,18 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         }
     }
 
+    if (nrn_ion_global_map_size) {
+        double** d_data =
+            (double**)acc_copyin(nrn_ion_global_map, sizeof(double*) * nrn_ion_global_map_size);
+        for (int j = 0; j < nrn_ion_global_map_size; j++) {
+            if (nrn_ion_global_map[j]) {
+                /* @todo: fix this constant size 3 :( */
+                double* d_mechmap = (double*)acc_copyin(nrn_ion_global_map[j], 3 * sizeof(double));
+                acc_memcpy_to_device(&(d_data[j]), &d_mechmap, sizeof(double*));
+            }
+        }
+    }
+
     return;
 
     /* -- copy NrnThread to device. this needs to be contigious vector because offset is used to
