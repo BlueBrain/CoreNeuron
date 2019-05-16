@@ -12,12 +12,6 @@
 #include <algorithm>
 #include <string.h>
 
-#if !defined(NRN_SOA_BYTE_ALIGN)
-// for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the
-// simd memory bus)
-#define NRN_SOA_BYTE_ALIGN (8 * sizeof(double))
-#endif
-
 using namespace std;
 namespace coreneuron {
 static size_t groupsize = 32;
@@ -657,7 +651,6 @@ static void admin2(int ncell,
     }
 
     // strides
-    //strides = new int[nstride];
     strides = (int*)ecalloc_align(nstride, NRN_SOA_BYTE_ALIGN, sizeof(int));
     nstride = 0;
     for (size_t iwarp = 0; iwarp < (size_t)nwarp; ++iwarp) {

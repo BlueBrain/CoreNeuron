@@ -65,11 +65,6 @@ it. We have two major cases, call to pc.nthread and change in
 model structure. We want to use Node* as much as possible and defer
 the handling of v_structure_change as long as possible.
 */
-#if !defined(NRN_SOA_BYTE_ALIGN)
-// for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the
-// simd memory bus)
-#define NRN_SOA_BYTE_ALIGN (8 * sizeof(double))
-#endif
 
 namespace coreneuron {
 #define CACHELINE_ALLOC(name, type, size) \

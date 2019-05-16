@@ -33,6 +33,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrniv/nrn_assert.h"
 
+#if !defined(NRN_SOA_BYTE_ALIGN)
+// for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the
+// simd memory bus)
+#define NRN_SOA_BYTE_ALIGN (8 * sizeof(double))
+#endif
+
 /// for gpu builds with unified memory support
 #if (defined(__CUDACC__) || defined(_OPENACC))
 

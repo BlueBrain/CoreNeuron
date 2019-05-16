@@ -11,8 +11,6 @@
 #include "coreneuron/nrniv/cuda_profile.h"
 #include "coreneuron/scopmath_core/newton_struct.h"
 
-//#define _OPENACC
-
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
@@ -46,7 +44,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
     for (i = 0; i < nthreads; i++) {
         NrnThread* nt = threads + i;
         /* this thread will be computed on GPU */
-        (threads + i)->compute_gpu = 1;
+        nt->compute_gpu = 1;
         if (nt->end <= 0) {
             // this is an empty thread and could be only artificial
             // cells. In this case nothing is executed on gpu.
