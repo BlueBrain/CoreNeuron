@@ -11,6 +11,8 @@
 #include "coreneuron/nrniv/cuda_profile.h"
 #include "coreneuron/scopmath_core/newton_struct.h"
 
+//#define _OPENACC
+
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
@@ -63,6 +65,21 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             }
         }
     }
+
+    /*d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+
+    for (i = 0; i < nthreads; i++) {
+        NrnThread *nt = threads + i;      // NrnThread on host
+        NrnThread *d_nt = d_threads + i;  // NrnThread on device
+
+        if (nt->n_presyn) {
+            PreSynHelper* d_presyns_helper =
+                (PreSynHelper*)acc_copyin(nt->presyns_helper, sizeof(PreSynHelper) * nt->n_presyn);
+            acc_memcpy_to_device(&(d_nt->presyns_helper), &d_presyns_helper, sizeof(PreSynHelper*));
+            PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
+            acc_memcpy_to_device(&(d_nt->presyns), &d_presyns, sizeof(PreSyn*));
+        }
+    }*/
 
     return;
 

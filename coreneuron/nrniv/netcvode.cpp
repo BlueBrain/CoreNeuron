@@ -125,7 +125,6 @@ void artcell_net_send(void** v, int weight_index_, Point_process* pnt, double td
 }
 
 void net_event(Point_process* pnt, double time) {
-    return;
     NrnThread* nt = PP2NT(pnt);
     PreSyn* ps = nt->presyns + nt->pnt2presyn_ix[pnttype2presyn[pnt->_type]][pnt->_i_instance];
     if (ps) {

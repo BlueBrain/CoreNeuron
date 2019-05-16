@@ -624,7 +624,6 @@ static void admin2(int ncell,
     // ncore is the number of warps * warpsize
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
-
     ncycles = (int*)ecalloc_align(nwarp, NRN_SOA_BYTE_ALIGN, sizeof(int));
     stridedispl = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));
     rootbegin = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));

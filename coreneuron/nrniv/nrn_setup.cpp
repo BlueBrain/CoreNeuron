@@ -419,24 +419,7 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         }
     }
 
-    //nt.presyns = new PreSyn[nt.n_presyn];
     nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
-/*
-    nt.presyns->nc_index_ = 0;
-    nt.presyns->nc_cnt_ = 0;
-    nt.presyns->flag_ = false;
-    nt.presyns->thvar_index_ = -1;
-    nt.presyns->pntsrc_ = NULL;
-    nt.presyns->threshold_ = 10.;
-    nt.presyns->gid_ = -1;
-#if NRNMPI
-    nt.presyns->localgid_ = 0;
-#endif
-#if NRN_MULTISEND
-    nt.presyns->multisend_index_ = -1;
-#endif
-    nt.presyns->output_index_ = 0;
-*/
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
 
