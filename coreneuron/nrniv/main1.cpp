@@ -373,7 +373,7 @@ const char* nrn_version(int) {
 using namespace coreneuron;
 
 
-extern "C" void mk_mech_init(int argc, char** argv) {
+extern "C" int mk_mech_init(int argc, char** argv) {
     #if NRNMPI
         nrnmpi_init(1, &argc, &argv);
     #endif
