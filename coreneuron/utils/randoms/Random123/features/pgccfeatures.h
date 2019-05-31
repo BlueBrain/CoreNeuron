@@ -96,7 +96,7 @@ so as not to confuse it with the version available from LANL.
 /* There's no point in trying to compile SSE code in Random123
    unless SSE2 is available. */
 #ifdef __SSE2__
-#define R123_USE_SSE 1
+#define R123_USE_SSE 0
 #else
 #define R123_USE_SSE 0
 #endif
