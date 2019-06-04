@@ -120,17 +120,6 @@ struct NullInstrumentor {
 
 }  // namespace detail
 
-namespace Instrumentor {
-    struct phase {
-        phase(const char* name) {
-            detail::Instrumentor::phase_begin(name);
-        }
-        ~phase() {
-            detail::Instrumentor::phase_end();
-        }
-    }
-}
-
 using Instrumentor = detail::Instrumentor<
 #if defined CORENEURON_CALIPER
     detail::Caliper,
@@ -145,5 +134,17 @@ using Instrumentor = detail::Instrumentor<
     detail::Tau,
 #endif
     detail::NullInstrumentor>;
+
+namespace Instrumentor {
+    struct phase {
+        phase(const char* name) {
+            detail::Instrumentor::phase_begin(name);
+        }
+        ~phase() {
+            detail::Instrumentor::phase_end();
+        }
+    };
+}
+
 
 }  // namespace coreneuron
