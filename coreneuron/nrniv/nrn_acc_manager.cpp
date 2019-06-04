@@ -64,6 +64,17 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         }
     }
 
+    d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+
+    for (i = 0; i < nthreads; i++) {
+        NrnThread *nt = threads + i;      // NrnThread on host
+        NrnThread *d_nt = d_threads + i;  // NrnThread on device
+
+        if (nt->n_presyn) {
+           PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
+        }
+    }
+
     /*d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
 
     for (i = 0; i < nthreads; i++) {

@@ -51,7 +51,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrniv/nrn2core_direct.h"
-#include <cuda_runtime.h>
 
 int corenrn_embedded;
 int corenrn_embedded_nthread;
@@ -414,9 +413,14 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         }
     }
 
-    nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
+    //nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
+    nt.presyns = new PreSyn [nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
+
+    for (int i=0; i<nt.n_presyn; i++) {
+        nt.presyns[i].InitPreSyn();
+    }
 
     int* nc_srcgid = netcon_srcgid[nt.id];
     for (int i = 0; i < nt.n_netcon; ++i) {
@@ -1108,7 +1112,8 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->presyns) {
-            free_memory(nt->presyns);
+            delete[] nt->presyns;
+            //free_memory(nt->presyns);
             nt->presyns = NULL;
         }
 
