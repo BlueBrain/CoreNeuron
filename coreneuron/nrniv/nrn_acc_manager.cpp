@@ -64,7 +64,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         }
     }
 
-    d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+    //(NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+    d_threads = threads;
 
     for (i = 0; i < nthreads; i++) {
         NrnThread *nt = threads + i;      // NrnThread on host
@@ -73,9 +74,53 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         if (nt->n_presyn) {
            PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
         }
+
+        if (nt->n_vecplay) {
+        /* copy VecPlayContinuous instances */
+
+            printf("\n Warning: VectorPlay used but NOT implemented on GPU! ");
+
+            /** just empty containers */
+            void** d_vecplay = (void**)acc_copyin(nt->_vecplay, sizeof(void*) * nt->n_vecplay);
+            // note: we are using unified memory for NrnThread. Once VecPlay is copied to gpu,
+            // we dont want to update nt->vecplay because it will also set gpu pointer of vecplay
+            // inside nt on cpu (due to unified memory).
+
+            //acc_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay, sizeof(void**));
+
+            for (int i = 0; i < nt->n_vecplay; i++) {
+                VecPlayContinuous* vecplay_instance = (VecPlayContinuous*)nt->_vecplay[i];
+
+                /** just VecPlayContinuous object */
+                void* d_p = (void*)acc_copyin(vecplay_instance, sizeof(VecPlayContinuous));
+                acc_memcpy_to_device(&(d_vecplay[i]), &d_p, sizeof(void*));
+
+                VecPlayContinuous* d_vecplay_instance = (VecPlayContinuous*)d_p;
+
+                /** copy y_, t_ and discon_indices_ */
+                copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
+                copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
+                copy_ivoc_vect_to_device(vecplay_instance->discon_indices_,
+                                         d_vecplay_instance->discon_indices_);
+
+                /** copy PlayRecordEvent : todo: verify this */
+                PlayRecordEvent* d_e_ =
+                    (PlayRecordEvent*)acc_copyin(vecplay_instance->e_, sizeof(PlayRecordEvent));
+                acc_memcpy_to_device(&(d_e_->plr_), &d_vecplay_instance,
+                                     sizeof(VecPlayContinuous*));
+                acc_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_, sizeof(PlayRecordEvent*));
+
+                /** copy pd_ : note that it's pointer inside ml->data and hence data itself is
+                 * already on GPU */
+                double* d_pd_ = (double*)acc_deviceptr(vecplay_instance->pd_);
+                acc_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_, sizeof(double*));
+            }
+        }
     }
 
-    /*d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+    return;
+
+        /*d_threads = threads; // (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
 
     for (i = 0; i < nthreads; i++) {
         NrnThread *nt = threads + i;      // NrnThread on host
@@ -89,8 +134,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             acc_memcpy_to_device(&(d_nt->presyns), &d_presyns, sizeof(PreSyn*));
         }
     }*/
-
-    return;
 
     /* -- copy NrnThread to device. this needs to be contigious vector because offset is used to
      * find
