@@ -56,7 +56,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/multisend.h"
 #include "coreneuron/utils/file_utils.h"
 #include "coreneuron/nrniv/nrn2core_direct.h"
-#include "coreneuron/nrniv/cn_parameters.h"
+#include "coreneuron/nrniv/corenrn_parameters.h"
 #include <string.h>
 #include <climits>
 
@@ -209,7 +209,7 @@ void nrn_init_and_load_data(int argc,
                 cn_par.seed);
 
     // set global variables for start time, timestep and temperature
-    std::string restore_path = cn_par.reportpath;
+    std::string restore_path = cn_par.reportfilepath;
     t = restore_time(restore_path.c_str());
 
     if (cn_par.dt != -1000.) {  // command line arg highest precedence
@@ -373,7 +373,7 @@ const char* nrn_version(int) {
 using namespace coreneuron;
 
 
-extern "C" int mk_mech_init(int argc, char** argv) {
+extern "C" void mk_mech_init(int argc, char** argv) {
     #if NRNMPI
         nrnmpi_init(1, &argc, &argv);
     #endif
@@ -403,12 +403,12 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     report_mem_usage("After mk_mech");
 
-    if (cn_par.reportpath.size()) {
+    if (cn_par.reportfilepath.size()) {
         if (cn_par.multiple > 1) {
             if (nrnmpi_myid == 0)
                 printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
         } else {
-            configs = create_report_configurations(cn_par.reportpath.c_str(),
+            configs = create_report_configurations(cn_par.reportfilepath.c_str(),
                                                    cn_par.outpath.c_str());
             reports_needs_finalize = configs.size();
         }

@@ -36,7 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/CLI11/CLI.hpp"
 
 /**
- * \class cn_parameters
+ * \class corenrn_parameters
  * \brief Parses and contains Command Line parameters for Core Neuron
  *
  * This structure contains all the parameters that CoreNeuron fetches
@@ -55,7 +55,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef std::string string_t;
 
-struct cn_parameters {
+struct corenrn_parameters {
 
     int spikebuf=100000;           /// internal buffer used on every rank for spikes
     int prcellgid=-1;             /// gid of cell for prcellstate
@@ -69,7 +69,7 @@ struct cn_parameters {
     int report_buff_size=4;
     int seed=0;                   /// Initialization seed for random number generator (int)
 
-    bool mpi_en=0;                /// Enable MPI flag.
+    bool mpi_enable=0;                /// Enable MPI flag.
     bool print_arg=0;             /// Print arguments flag.
     bool skip_mpi_finalize=0;     /// Skip MPI finalization
     bool multisend=0;
@@ -90,21 +90,21 @@ struct cn_parameters {
     string_t datpath=".";          /// directory path where .dat files
     string_t outpath=".";          /// directory where spikes will be written
     string_t filesdat="files.dat"; /// name of file containing list of gids dat files read in
-    string_t rconfigpath;
+    string_t rconfigfilepath;
     string_t restorepath;
-    string_t reportpath;
+    string_t reportfilepath;
     string_t checkpointpath;
 
-    CLI::App app{"CoreNeuron - Your friendly neuron simulator."}; ///CLI app that performs CLI parsing
+    CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."}; ///CLI app that performs CLI parsing
 
-    cn_parameters(); ///Constructor that initializes the CLI11 app.
+    corenrn_parameters(); ///Constructor that initializes the CLI11 app.
 
     int parse (int argc, char** argv); /// Runs the CLI11_PARSE macro.
 
 };
 
-std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par); /// Printing method.
+std::ostream& operator<<(std::ostream& os, const corenrn_parameters& cn_par); /// Printing method.
 
-extern cn_parameters cn_par; /// Declaring global cn_parameters object for this instance of CoreNeuron.
+extern corenrn_parameters cn_par; /// Declaring global corenrn_parameters object for this instance of CoreNeuron.
 
 #endif //CN_PARAMETERS_H

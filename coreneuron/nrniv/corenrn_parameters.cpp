@@ -26,16 +26,16 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/nrniv/cn_parameters.h"
+#include "coreneuron/nrniv/corenrn_parameters.h"
 
-cn_parameters::cn_parameters(){
+corenrn_parameters::corenrn_parameters(){
 
     app.get_formatter()->column_width(50);
     app.set_help_all_flag("-H, --help-all", "Print this help including subcommands and exit.");
 
     app.set_config("--config", "config.ini", "Read parameters from ini file", false)
         ->check(CLI::ExistingFile);
-    app.add_flag("--mpi", this->mpi_en, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
+    app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
     app.add_flag("--gpu", this->gpu, "Activate GPU computation.");
     app.add_option("--dt", this->dt, "Fixed time step. The default value is set by defaults.dat or is 0.025.", true)
         ->check(CLI::Range(-1000.,1e9));
@@ -60,9 +60,9 @@ cn_parameters::cn_parameters(){
         ->check(CLI::Range(0, 100000000));
     sub_input -> add_option("-v, --voltage", this->voltage, "Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...).")
         ->check(CLI::Range(-1e9, 1e9));
-    sub_input -> add_option("--read-config", this->rconfigpath, "Read configuration file filename.")
+    sub_input -> add_option("--read-config", this->rconfigfilepath, "Read configuration file filename.")
         ->check(CLI::ExistingPath);
-    sub_input -> add_option("--report-conf", this->reportpath, "Reports configuration file.")
+    sub_input -> add_option("--report-conf", this->reportfilepath, "Reports configuration file.")
         ->check(CLI::ExistingPath);
     sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.")
         ->check(CLI::ExistingPath);
@@ -109,16 +109,16 @@ cn_parameters::cn_parameters(){
 
 };
 
-int cn_parameters::parse (int argc, char** argv) {
+int corenrn_parameters::parse (int argc, char** argv) {
 
     CLI11_PARSE(this->app, argc, argv);
 
 };
 
-std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par){
+std::ostream& operator<<(std::ostream& os, const corenrn_parameters& cn_par){
 
     os  << "GENERAL PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "MPI" << std::right << std::setw(7) << cn_par.mpi_en << "      "
+        << std::left << std::setw(15) << "MPI" << std::right << std::setw(7) << cn_par.mpi_enable << "      "
         << std::left << std::setw(15) << "dt" << std::right << std::setw(7) << cn_par.dt << "      "
         << std::left << std::setw(15) << "Tstop" << std::right << std::setw(7) << cn_par.tstop << std::endl
         << std::left << std::setw(15) << "Print_arg" << std::right << std::setw(7) << cn_par.print_arg << std::endl
@@ -133,8 +133,8 @@ std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par){
         << std::left << std::setw(15) << "Datpath" << std::right << std::setw(7) << cn_par.datpath << std::endl
         << std::left << std::setw(15) << "Filesdat" << std::right << std::setw(7) << cn_par.filesdat << std::endl
         << std::left << std::setw(15) << "Patternstim" << std::right << std::setw(7) << cn_par.patternstim << std::endl
-        << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << cn_par.reportpath << std::endl
-        << std::left << std::setw(15) << "Rconfigpath" << std::right << std::setw(7) << cn_par.rconfigpath << std::endl
+        << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << cn_par.reportfilepath << std::endl
+        << std::left << std::setw(15) << "Rconfigpath" << std::right << std::setw(7) << cn_par.rconfigfilepath << std::endl
         << std::left << std::setw(15) << "Restorepath" << std::right << std::setw(7) << cn_par.restorepath << std::endl
         << std::endl
         << "PARALLEL COMPUTATION PARAMETERS" << std::endl
@@ -167,5 +167,5 @@ std::ostream& operator<<(std::ostream& os, const cn_parameters& cn_par){
 }
 
 
-cn_parameters cn_par;
+corenrn_parameters cn_par;
 

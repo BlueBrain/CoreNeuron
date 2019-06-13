@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "nrniv/nrnoptarg.h"
 #include <float.h>
 #include <utils/CLI11/CLI.hpp>
-#include "coreneuron/nrniv/cn_parameters.h"
+#include "coreneuron/nrniv/corenrn_parameters.h"
 
 using namespace coreneuron;
 
@@ -120,56 +120,56 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     argc++;
     
-    cn_parameters cn_par_test;
+    corenrn_parameters corenrn_param_test;
 
-    cn_par_test.parse(argc, const_cast<char**>(argv)); //discarding const as CLI11 interface is not const
+    corenrn_param_test.parse(argc, const_cast<char**>(argv)); //discarding const as CLI11 interface is not const
     
-    BOOST_CHECK(cn_par_test.seed == 0);            // testing default value
+    BOOST_CHECK(corenrn_param_test.seed == 0);            // testing default value
 
-    BOOST_CHECK(cn_par_test.spikebuf == 100);
+    BOOST_CHECK(corenrn_param_test.spikebuf == 100);
 
-    BOOST_CHECK(cn_par_test.threading == true);
+    BOOST_CHECK(corenrn_param_test.threading == true);
 
-    BOOST_CHECK(cn_par_test.dt == 0.02);
+    BOOST_CHECK(corenrn_param_test.dt == 0.02);
 
-    BOOST_CHECK(cn_par_test.tstop == 0.1);
+    BOOST_CHECK(corenrn_param_test.tstop == 0.1);
 
-    BOOST_CHECK(cn_par_test.prcellgid == 12);
+    BOOST_CHECK(corenrn_param_test.prcellgid == 12);
 
-    BOOST_CHECK(cn_par_test.gpu == true);
+    BOOST_CHECK(corenrn_param_test.gpu == true);
 
-    BOOST_CHECK(cn_par_test.dt_io == 0.2);
+    BOOST_CHECK(corenrn_param_test.dt_io == 0.2);
 
-    BOOST_CHECK(cn_par_test.forwardskip == 0.02);
+    BOOST_CHECK(corenrn_param_test.forwardskip == 0.02);
 
-    BOOST_CHECK(cn_par_test.celsius == 25.12);
+    BOOST_CHECK(corenrn_param_test.celsius == 25.12);
 
-    BOOST_CHECK(cn_par_test.mpi_en == true);
+    BOOST_CHECK(corenrn_param_test.mpi_enable == true);
 
-    BOOST_CHECK(cn_par_test.cell_interleave_permute == 2);
+    BOOST_CHECK(corenrn_param_test.cell_interleave_permute == 2);
 
-    BOOST_CHECK(cn_par_test.voltage == -32);
+    BOOST_CHECK(corenrn_param_test.voltage == -32);
 
-    BOOST_CHECK(cn_par_test.nwarp == 8);
+    BOOST_CHECK(corenrn_param_test.nwarp == 8);
 
-    BOOST_CHECK(cn_par_test.extracon == 1000);
+    BOOST_CHECK(corenrn_param_test.extracon == 1000);
 
-    BOOST_CHECK(cn_par_test.multiple == 3);
+    BOOST_CHECK(corenrn_param_test.multiple == 3);
 
-    BOOST_CHECK(cn_par_test.multisend == true);
+    BOOST_CHECK(corenrn_param_test.multisend == true);
 
-    BOOST_CHECK(cn_par_test.mindelay == 0.1);
+    BOOST_CHECK(corenrn_param_test.mindelay == 0.1);
 
-    BOOST_CHECK(cn_par_test.ms_phases == 1);
+    BOOST_CHECK(corenrn_param_test.ms_phases == 1);
 
-    BOOST_CHECK(cn_par_test.ms_subint == 2);
+    BOOST_CHECK(corenrn_param_test.ms_subint == 2);
 
-    BOOST_CHECK(cn_par_test.spkcompress == 32);
+    BOOST_CHECK(corenrn_param_test.spkcompress == 32);
 
-    BOOST_CHECK(cn_par_test.multisend == true);
+    BOOST_CHECK(corenrn_param_test.multisend == true);
 
-    cn_par_test.dt = 18.1;
+    corenrn_param_test.dt = 18.1;
     
-    BOOST_CHECK(cn_par_test.dt == 18.1);
+    BOOST_CHECK(corenrn_param_test.dt == 18.1);
 
 }
