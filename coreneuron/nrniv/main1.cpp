@@ -291,7 +291,6 @@ void nrn_init_and_load_data(int argc,
     nrn_set_timeout(200.);
 
     // show all configuration parameters for current run
-    //nrnopt_show();
     if (nrnmpi_myid == 0) {
         std::cout << " Start time (t) = " << t << std::endl << std::endl;
     }
@@ -470,7 +469,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
         // Set the buffer size if is not the default value. Otherwise use report.conf on
         // register_report
-        if (cn_par.report_buff_size!=4) {
+        if (cn_par.report_buff_size!=cn_par.report_buff_size_default) {
             set_report_buffer_size(report_buffer_size);
         }
         setup_report_engine(min_report_dt, delay);

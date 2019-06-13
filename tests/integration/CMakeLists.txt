@@ -34,7 +34,7 @@ set(RING_GAP_COMMON_ARGS "${COMMON_ARGS} input --datpath ${CMAKE_CURRENT_SOURCE_
 set(PERMUTE1_ARGS "gpu --cell-permute 1 --nwarp 8")
 set(PERMUTE2_ARGS "gpu --cell-permute 2 --nwarp 16")
 if(ENABLE_OPENACC)
-  set(GPU_ARGS "gpu --nwarp 8 --gpu")
+  set(GPU_ARGS "--gpu gpu --nwarp 8")
 endif()
 
 # List of tests with arguments

@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/test/unit_test.hpp>
 #include "nrniv/nrnoptarg.h"
 #include <float.h>
-#include <utils/CLI11/CLI.hpp>
+#include "external/CLI11/include/CLI/CLI.hpp"
 #include "coreneuron/nrniv/corenrn_parameters.h"
 
 using namespace coreneuron;

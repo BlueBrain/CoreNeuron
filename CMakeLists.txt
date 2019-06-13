@@ -104,6 +104,7 @@ include(DeclareMod2CSubModule)
 include(FindPkgConfig)
 include(CTest)
 include(Findnmodl)
+include_directories(${PROJECT_SOURCE_DIR}/external/CLI11/include)
 
 # ispc support
 if (ENABLE_ISPC_TARGET)

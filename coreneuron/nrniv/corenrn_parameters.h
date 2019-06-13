@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include "coreneuron/utils/CLI11/CLI.hpp"
+#include "external/CLI11/include/CLI/CLI.hpp"
 
 /**
  * \class corenrn_parameters
@@ -57,8 +57,10 @@ typedef std::string string_t;
 
 struct corenrn_parameters {
 
+    const int report_buff_size_default=4;
+
     int spikebuf=100000;           /// internal buffer used on every rank for spikes
-    int prcellgid=-1;             /// gid of cell for prcellstate
+    int prcellgid=-1;              /// gid of cell for prcellstate
     int ms_phases=2;
     int ms_subint=2;
     int spkcompress=0;
@@ -66,15 +68,15 @@ struct corenrn_parameters {
     int nwarp=0;                   /// number of warps to balance for cell_interleave_permute == 2
     int multiple=1;
     int extracon=0;
-    int report_buff_size=4;
+    int report_buff_size=report_buff_size_default;
     int seed=0;                   /// Initialization seed for random number generator (int)
 
-    bool mpi_enable=0;                /// Enable MPI flag.
+    bool mpi_enable=0;            /// Enable MPI flag.
     bool print_arg=0;             /// Print arguments flag.
     bool skip_mpi_finalize=0;     /// Skip MPI finalization
     bool multisend=0;
     bool threading=0;             /// enable pthread/openmp
-    bool gpu=0;
+    bool gpu=0;                   /// enable GPU computation.
     bool binqueue=0;
 
     double tstop=100;             /// stop time of simulation in msec

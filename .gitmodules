@@ -4,5 +4,4 @@
   branch = master
 [submodule "external/CLI11"]
 	path = external/CLI11
-  url = https://github.com/CLIUtils/CLI11
-  branch = master
+	url = https://github.com/CLIUtils/CLI11.git
