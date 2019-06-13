@@ -725,8 +725,8 @@ void nrn_setup(const char* filesdat,
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
-    std::string datapath = cn_par.datpath;
-    std::string restore_path = cn_par.restorepath;
+    std::string datapath = corenrn_param.datpath;
+    std::string restore_path = corenrn_param.restorepath;
 
     // if not restoring then phase2 files will be read from dataset directory
     if (!restore_path.length()) {
@@ -775,9 +775,9 @@ void nrn_setup(const char* filesdat,
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
-    double mindelay = set_mindelay(cn_par.mindelay);
+    double mindelay = set_mindelay(corenrn_param.mindelay);
 
-    cn_par.mindelay = mindelay;
+    corenrn_param.mindelay = mindelay;
 
     if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
         nrn_setup_cleanup();

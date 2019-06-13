@@ -105,8 +105,8 @@ struct corenrn_parameters {
 
 };
 
-std::ostream& operator<<(std::ostream& os, const corenrn_parameters& cn_par); /// Printing method.
+std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_param); /// Printing method.
 
-extern corenrn_parameters cn_par; /// Declaring global corenrn_parameters object for this instance of CoreNeuron.
+extern corenrn_parameters corenrn_param; /// Declaring global corenrn_parameters object for this instance of CoreNeuron.
 
 #endif //CN_PARAMETERS_H
