@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include "external/CLI11/include/CLI/CLI.hpp"
+#include "CLI/CLI.hpp"
 
 /**
  * \class corenrn_parameters
@@ -59,54 +59,54 @@ struct corenrn_parameters {
 
     const int report_buff_size_default=4;
 
-    int spikebuf=100000;           /// internal buffer used on every rank for spikes
-    int prcellgid=-1;              /// gid of cell for prcellstate
-    int ms_phases=2;
-    int ms_subint=2;
-    int spkcompress=0;
-    int cell_interleave_permute=0; /// cell interleaving permutation
-    int nwarp=0;                   /// number of warps to balance for cell_interleave_permute == 2
-    int multiple=1;
-    int extracon=0;
-    int report_buff_size=report_buff_size_default;
+    int spikebuf=100000;           /// Internal buffer used on every rank for spikes
+    int prcellgid=-1;              /// Gid of cell for prcellstate
+    int ms_phases=2;               /// Number of multisend phases, 1 or 2
+    int ms_subint=2;               /// Number of multisend interval. 1 or 2
+    int spkcompress=0;             /// Spike Compression
+    int cell_interleave_permute=0; /// Cell interleaving permutation
+    int nwarp=0;                   /// Number of warps to balance for cell_interleave_permute == 2
+    int multiple=1;                /// Model duplication factor
+    int extracon=0;                /// Number of extra random connections in each thread to other duplicate models.
+    int report_buff_size=report_buff_size_default;    ///Size in MB of the report buffer.
     int seed=0;                   /// Initialization seed for random number generator (int)
 
     bool mpi_enable=0;            /// Enable MPI flag.
     bool print_arg=0;             /// Print arguments flag.
     bool skip_mpi_finalize=0;     /// Skip MPI finalization
-    bool multisend=0;
-    bool threading=0;             /// enable pthread/openmp
-    bool gpu=0;                   /// enable GPU computation.
-    bool binqueue=0;
+    bool multisend=0;             /// Use Multisend spike exchange instead of Allgather.
+    bool threading=0;             /// Enable pthread/openmp
+    bool gpu=0;                   /// Enable GPU computation.
+    bool binqueue=0;              /// Use bin queue.
 
-    double tstop=100;             /// stop time of simulation in msec
-    double dt=0.025;              /// timestep to use in msec
-    double dt_io=0.1;             /// i/o timestep to use in msec
-    double dt_report;             /// i/o timestep to use in msec for reports
-    double celsius=34.0;
-    double voltage=-65.0;
-    double forwardskip=0.;
-    double mindelay=10.;
+    double tstop=100;             /// Stop time of simulation in msec
+    double dt=0.025;              /// Timestep to use in msec
+    double dt_io=0.1;             /// I/O timestep to use in msec
+    double dt_report;             /// I/O timestep to use in msec for reports
+    double celsius=34.0;          /// Temperature in degC.
+    double voltage=-65.0;         /// Initial voltage used for nrn_finitialize(1, v_init).
+    double forwardskip=0.;        /// Forward skip to TIME.
+    double mindelay=10.;          /// Maximum integration interval (likely reduced by minimum NetCon delay).
 
     string_t patternstim;          /// Apply patternstim using the specified spike file.
-    string_t datpath=".";          /// directory path where .dat files
-    string_t outpath=".";          /// directory where spikes will be written
-    string_t filesdat="files.dat"; /// name of file containing list of gids dat files read in
-    string_t rconfigfilepath;
-    string_t restorepath;
-    string_t reportfilepath;
-    string_t checkpointpath;
+    string_t datpath=".";          /// Directory path where .dat files
+    string_t outpath=".";          /// Directory where spikes will be written
+    string_t filesdat="files.dat"; /// Name of file containing list of gids dat files read in
+    string_t rconfigfilepath;      /// Read configuration file filename.
+    string_t restorepath;          /// Restore simulation from provided checkpoint directory.
+    string_t reportfilepath;       /// Reports configuration file.
+    string_t checkpointpath;       /// Enable checkpoint and specify directory to store related files.
 
-    CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."}; ///CLI app that performs CLI parsing
+    CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."};    ///CLI app that performs CLI parsing
 
-    corenrn_parameters(); ///Constructor that initializes the CLI11 app.
+    corenrn_parameters();    ///Constructor that initializes the CLI11 app.
 
-    int parse (int argc, char** argv); /// Runs the CLI11_PARSE macro.
+    void parse (int argc, char** argv);    /// Runs the CLI11_PARSE macro.
 
 };
 
-std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_param); /// Printing method.
+std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_param);    /// Printing method.
 
-extern corenrn_parameters corenrn_param; /// Declaring global corenrn_parameters object for this instance of CoreNeuron.
+extern corenrn_parameters corenrn_param;    /// Declaring global corenrn_parameters object for this instance of CoreNeuron.
 
 #endif //CN_PARAMETERS_H

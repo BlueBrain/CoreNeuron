@@ -49,9 +49,9 @@ corenrn_parameters::corenrn_parameters(){
     sub_gpu -> add_option("-R, --cell-permute", this->cell_interleave_permute, "Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.", true)
         ->check(CLI::Range(0, 3));
 
-    auto sub_input = app.add_subcommand("input", "Input dataset options.");
+    auto sub_input = app.add_subcommand("input", "Input dataset options.")->required(true);
     sub_input -> add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")
-        ->check(CLI::ExistingPath);
+        ->required(true)->check(CLI::ExistingPath);
     sub_input -> add_option("-f, --filesdat", this->filesdat, "Name for the distribution file.", true)
         ->check(CLI::ExistingFile);
     sub_input -> add_option("-p, --pattern", this->patternstim, "Apply patternstim using the specified spike file.")
@@ -106,13 +106,16 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::ExistingPath);
     sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.")
         ->check(CLI::ExistingDirectory);
-
 };
 
-int corenrn_parameters::parse (int argc, char** argv) {
+void corenrn_parameters::parse (int argc, char** argv) {
 
-    CLI11_PARSE(this->app, argc, argv);
-
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        app.exit(e);
+        throw e;
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_param){

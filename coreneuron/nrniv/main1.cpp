@@ -378,11 +378,13 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     #endif
     // read command line parameters and parameter config files
 
-    corenrn_param.parse(argc, argv);
+    try {corenrn_param.parse(argc, argv);} catch (...) {exit(1);}
 
     if (corenrn_param.print_arg) {
-        std::cout << std::fixed << std::setprecision(2);
-        std::cout << corenrn_param << std::endl;
+        if (nrnmpi_myid == 0) {
+            std::cout << std::fixed << std::setprecision(2);
+            std::cout << corenrn_param << std::endl;
+        }
     }
 
     std::ofstream out("last_config.ini");

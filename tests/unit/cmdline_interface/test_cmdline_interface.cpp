@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/test/unit_test.hpp>
 #include "nrniv/nrnoptarg.h"
 #include <float.h>
-#include "external/CLI11/include/CLI/CLI.hpp"
+#include "CLI/CLI.hpp"
 #include "coreneuron/nrniv/corenrn_parameters.h"
 
 using namespace coreneuron;
@@ -62,6 +62,9 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "8",
 
         "input", //input subcommands
+
+        "-d",
+        "./",
 
         "--voltage",
         "-32",
