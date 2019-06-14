@@ -134,12 +134,12 @@ std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_par
         << std::left << std::setw(15) << "Voltage" << std::right << std::setw(7) << corenrn_param.voltage << "      "
         << std::left << std::setw(15) << "Seed" << std::right << std::setw(7) << corenrn_param.seed << std::endl
         << std::left << std::setw(15) << "Datpath" << std::right << std::setw(7) << corenrn_param.datpath << std::endl
-        << std::left << std::setw(15) << "Filesdat" << std::right << std::setw(7) << corenrn_param.filesdat << std::endl
-        << std::left << std::setw(15) << "Patternstim" << std::right << std::setw(7) << corenrn_param.patternstim << std::endl
-        << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << corenrn_param.reportfilepath << std::endl
-        << std::left << std::setw(15) << "Rconfigpath" << std::right << std::setw(7) << corenrn_param.rconfigfilepath << std::endl
-        << std::left << std::setw(15) << "Restorepath" << std::right << std::setw(7) << corenrn_param.restorepath << std::endl
-        << std::endl
+        << std::left << std::setw(15) << "Filesdat" << std::right << std::setw(7) << corenrn_param.filesdat << std::endl;
+        if (!corenrn_param.patternstim.empty()) os << std::left << std::setw(15) << "Patternstim" << std::right << std::setw(7) << corenrn_param.patternstim << std::endl;
+        if (!corenrn_param.reportfilepath.empty()) os << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << corenrn_param.reportfilepath << std::endl;
+        if (!corenrn_param.rconfigfilepath.empty()) os << std::left << std::setw(15) << "Rconfigpath" << std::right << std::setw(7) << corenrn_param.rconfigfilepath << std::endl;
+        if (!corenrn_param.restorepath.empty()) os << std::left << std::setw(15) << "Restorepath" << std::right << std::setw(7) << corenrn_param.restorepath << std::endl;
+        os << std::endl
         << "PARALLEL COMPUTATION PARAMETERS" << std::endl
         << std::left << std::setw(15) << "Threading" << std::right << std::setw(7) << corenrn_param.threading << "      "
         << std::left << std::setw(15) << "Skip_mpi_fin" << std::right << std::setw(7) << corenrn_param.skip_mpi_finalize << std::endl
@@ -163,8 +163,8 @@ std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_par
         << std::endl
         << "OUTPUT PARAMETERS" << std::endl
         << std::left << std::setw(15) << "dt_io" << std::right << std::setw(7) << corenrn_param.dt_io << std::endl
-        << std::left << std::setw(15) << "Outpath" << std::right << std::setw(7) << corenrn_param.outpath << std::endl
-        << std::left << std::setw(15) << "Checkpointpath" << std::right << std::setw(7) << corenrn_param.checkpointpath<< std::endl;
+        << std::left << std::setw(15) << "Outpath" << std::right << std::setw(7) << corenrn_param.outpath << std::endl;
+        if (!corenrn_param.checkpointpath.empty()) os << std::left << std::setw(15) << "Checkpointpath" << std::right << std::setw(7) << corenrn_param.checkpointpath<< std::endl;
 
     return os;
 }
