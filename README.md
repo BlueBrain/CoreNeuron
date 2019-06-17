@@ -131,13 +131,6 @@ cmake .. -DCMAKE_CXX_FLAGS="-O3 -g" \
 
 ## RUNNING SIMULATION:
 
-:warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly if necessary!** :warning: :warning: :warning:
-
-:warning: :warning: :warning: **Some details on the new interface:** :warning: :warning: :warning:
-
-The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.
-Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).
-
 Note that the CoreNEURON simulator depends on NEURON to build the network model: see [NEURON](https://www.neuron.yale.edu/neuron/) documentation for more information. Once you build the model using NEURON, you can launch CoreNEURON on the same or different machine by:
 
 ```bash
@@ -146,6 +139,21 @@ mpiexec -np 2 build/apps/coreneuron_exec -e 10 --mpi input -d /path/to/model/bui
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
+
+:warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly if necessary!**
+
+:warning: :warning: :warning: **Some details on the new interface:**
+
+**The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.**
+
+**Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).**
+
+**Since commands are now organized in subcommands, to access a certain parameter it might be necessary to include in the command line a certain keyworld first.**
+
+**For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword first:**
+**`coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron`** 
+
+**Multiple options in a certain subcommand section can be specifying the keyword only once: `coreneuron_exec --mpi input -d /path/to/model -f /path/to/filesdat/file.dat`**
 
 In order to see the command line options, you can use:
 
