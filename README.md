@@ -131,11 +131,18 @@ cmake .. -DCMAKE_CXX_FLAGS="-O3 -g" \
 
 ## RUNNING SIMULATION:
 
-Note that the CoreNEURON simulator dependends on NEURON to build the network model: see [NEURON](https://www.neuron.yale.edu/neuron/) documentation for more information. Once you build the model using NEURON, you can launch CoreNEURON on the same or different machine by:
+:warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly if necessary!** :warning: :warning: :warning:
+
+:warning: :warning: :warning: **Some details on the new interface:** :warning: :warning: :warning:
+
+The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.
+Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).
+
+Note that the CoreNEURON simulator depends on NEURON to build the network model: see [NEURON](https://www.neuron.yale.edu/neuron/) documentation for more information. Once you build the model using NEURON, you can launch CoreNEURON on the same or different machine by:
 
 ```bash
 export OMP_NUM_THREADS=2     #set appropriate value
-mpiexec -np 2 build/apps/coreneuron_exec -e 10 -d /path/to/model/built/by/neuron -mpi
+mpiexec -np 2 build/apps/coreneuron_exec -e 10 --mpi input -d /path/to/model/built/by/neuron
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
@@ -143,51 +150,73 @@ mpiexec -np 2 build/apps/coreneuron_exec -e 10 -d /path/to/model/built/by/neuron
 In order to see the command line options, you can use:
 
 ```bash
-/path/to/isntall/directory/coreneuron_exec --help
--b, --spikebuf ARG          Spike buffer size. (100000)
--c, --threading             Parallel threads. The default is serial threads.
--d, --datpath ARG           Path containing CoreNeuron data files. (.)
--dt, --dt ARG               Fixed time step. The default value is set by
-                            defaults.dat or is 0.025.
--e, --tstop ARG             Stop time (ms). (100)
--f, --filesdat ARG          Name for the distribution file. (files.dat)
--g, --prcellgid ARG         Output prcellstate information for the gid NUMBER.
--gpu, --gpu                 Enable use of GPUs. The default implies cpu only
-                            run.
--h, --help                  Print a usage message briefly summarizing these
-                            command-line options, then exit.
--k, --forwardskip ARG       Forwardskip to TIME
--l, --celsius ARG           Temperature in degC. The default value is set in
-                            defaults.dat or else is 34.0.
--mpi                        Enable MPI. In order to initialize MPI environment
-                            this argument must be specified.
--o, --outpath ARG           Path to place output data files. (.)
--p, --pattern ARG           Apply patternstim using the specified spike file.
--R, --cell-permute ARG      Cell permutation, 0 No; 1 optimise node adjacency; 2
-                            optimize parent adjacency. (1)
--s, --seed ARG              Initialization seed for random number generator
-                            (int).
--v, --voltage ARG           Initial voltage used for nrn_finitialize(1, v_init).
-                            If 1000, then nrn_finitialize(0,...). (-65.)
--W, --nwarp ARG             Number of warps to balance. (0)
--x, --extracon ARG          Number of extra random connections in each thread to
-                            other duplicate models (int).
---binqueue                  Use bin queue.
---checkpoint ARG            Enable checkpoint and specify directory to store
-                            related files.
---mindelay ARG              Maximum integration interval (likely reduced by
-                            minimum NetCon delay). (10)
---ms-phases ARG             Number of multisend phases, 1 or 2. (2)
---ms-subintervals ARG       Number of multisend subintervals, 1 or 2. (2)
---multisend                 Use Multisend spike exchange instead of Allgather.
---read-config ARG           Read configuration file filename.
---restore ARG               Restore simulation from provided checkpoint
-                            directory.
---show                      Print args.
---skip-mpi-finalize         Do not call mpi finalize.
---spkcompress ARG           Spike compression. Up to ARG are exchanged during
-                            MPI_Allgather. (0)
---write-config ARG          Write configuration file filename.
+/path/to/isntall/directory/coreneuron_exec -H                                             
+CoreNeuron - Optimised Simulator Engine for NEURON.
+Usage: ./apps/coreneuron_exec [OPTIONS] [SUBCOMMAND]
+
+Options:
+  -h,--help                                       Print this help message and exit
+  -H,--help-all                                   Print this help including subcommands and exit.
+  --config TEXT:FILE=config.ini                   Read parameters from ini file
+  --mpi                                           Enable MPI. In order to initialize MPI environment this argument must be specified.
+  --gpu                                           Activate GPU computation.
+  --dt FLOAT:FLOAT in [-1000 - 1e+09]=0.025       Fixed time step. The default value is set by defaults.dat or is 0.025.
+  -e,--tstop FLOAT:FLOAT in [0 - 1e+09]           Stop Time in ms.
+  --show                                          Print arguments.
+
+Subcommands:
+gpu
+  Commands relative to GPU.
+  Options:
+    -W,--nwarp INT:INT in [0 - 1000000]=0           Number of warps to balance.
+    -R,--cell-permute INT:INT in [0 - 3]=0          Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.
+
+input
+  Input dataset options. REQUIRED 
+  Options:
+    -d,--datpath TEXT:PATH(existing) REQUIRED       Path containing CoreNeuron data files.
+    -f,--filesdat TEXT:FILE=files.dat               Name for the distribution file.
+    -p,--pattern TEXT:FILE                          Apply patternstim using the specified spike file.
+    -s,--seed INT:INT in [0 - 100000000]            Initialization seed for random number generator.
+    -v,--voltage FLOAT:FLOAT in [-1e+09 - 1e+09]    Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...).
+    --read-config TEXT:PATH(existing)               Read configuration file filename.
+    --report-conf TEXT:PATH(existing)               Reports configuration file.
+    --restore TEXT:PATH(existing)                   Restore simulation from provided checkpoint directory.
+
+parallel
+  Parallel processing options.
+  Options:
+    -c,--threading                                  Parallel threads. The default is serial threads.
+    --skip-mpi-finalize                             Do not call mpi finalize.
+
+spike
+  Spike exchange options.
+  Options:
+    --ms-phases INT:INT in [1 - 2]=2                Number of multisend phases, 1 or 2.
+    --ms-subintervals INT:INT in [1 - 2]=2          Number of multisend subintervals, 1 or 2.
+    --multisend                                     Use Multisend spike exchange instead of Allgather.
+    --spkcompress INT:INT in [0 - 100000]=0         Spike compression. Up to ARG are exchanged during MPI_Allgather.
+    --binqueue                                      Use bin queue.
+
+config
+  Config options.
+  Options:
+    -b,--spikebuf INT:INT in [0 - 2000000000]=100000
+                                                    Spike buffer size.
+    -g,--prcellgid INT:INT in [-1 - 2000000000]     Output prcellstate information for the gid NUMBER.
+    -k,--forwardskip FLOAT:FLOAT in [0 - 1e+09]     Forwardskip to TIME
+    -l,--celsius FLOAT:FLOAT in [-1000 - 1000]=34   Temperature in degC. The default value is set in defaults.dat or else is 34.0.
+    -x,--extracon INT:INT in [0 - 10000000]         Number of extra random connections in each thread to other duplicate models.
+    -z,--multiple INT:INT in [1 - 10000000]         Model duplication factor. Model size is normal size * multiple
+    --mindelay FLOAT:FLOAT in [0 - 1e+09]=10        Maximum integration interval (likely reduced by minimum NetCon delay).
+    --report-buffer-size INT:INT in [1 - 128]       Size in MB of the report buffer.
+
+output
+  Output configuration.
+  Options:
+    -i,--dt_io FLOAT:FLOAT in [-1000 - 1e+09]=0.1   Dt of I/O.
+    -o,--outpath TEXT:PATH(existing)=.              Path to place output data files.
+    --checkpoint TEXT:DIR                           Enable checkpoint and specify directory to store related files.
 ```
 
 

@@ -378,7 +378,12 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     #endif
     // read command line parameters and parameter config files
 
-    try {corenrn_param.parse(argc, argv);} catch (...) {exit(1);}
+    try {
+        corenrn_param.parse(argc, argv);
+    }
+    catch (...) {
+        nrn_abort(1);
+    }
 
     if (corenrn_param.print_arg) {
         if (nrnmpi_myid == 0) {
