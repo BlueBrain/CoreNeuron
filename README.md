@@ -140,20 +140,22 @@ mpiexec -np 2 build/apps/coreneuron_exec -e 10 --mpi input -d /path/to/model/bui
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
 
+###Command Line Interface
+
 :warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly if necessary!**
 
-:warning: :warning: :warning: **Some details on the new interface:**
+Some details on the new interface:
 
-**The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.**
+The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.
 
-**Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).**
+Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).
 
-**Since commands are now organized in subcommands, to access a certain parameter it might be necessary to include in the command line a certain keyworld first.**
+Since commands are now organized in subcommands, to access a certain parameter it might be necessary to include in the command line a certain keyworld first.
 
-**For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword first:**
-**`coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron`** 
+For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword first:
+`coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron`
 
-**Multiple options in a certain subcommand section can be specifying the keyword only once: `coreneuron_exec --mpi input -d /path/to/model -f /path/to/filesdat/file.dat`**
+Multiple options in a certain subcommand section can be specifying the keyword only once: `coreneuron_exec --mpi input -d /path/to/model -f /path/to/filesdat/file.dat`
 
 In order to see the command line options, you can use:
 
