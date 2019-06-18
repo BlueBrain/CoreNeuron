@@ -24,8 +24,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 
-
-set(COMMON_ARGS "--mpi --tstop 100. config --celsius 6.3")
+if(ENABLE_OPENACC)
+    set(GPU_COMMON "--gpu")
+endif()
+set(COMMON_ARGS "${GPU_COMMON} --mpi --tstop 100. config --celsius 6.3")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "${COMMON_ARGS} input --datpath ${RING_DATASET_DIR}")
 set(RING_SPIKEBUFFER_ARGS "${COMMON_ARGS} -b 1 input --datpath ${RING_DATASET_DIR}")
@@ -34,7 +36,7 @@ set(RING_GAP_COMMON_ARGS "${COMMON_ARGS} input --datpath ${CMAKE_CURRENT_SOURCE_
 set(PERMUTE1_ARGS "gpu --cell-permute 1 --nwarp 8")
 set(PERMUTE2_ARGS "gpu --cell-permute 2 --nwarp 16")
 if(ENABLE_OPENACC)
-  set(GPU_ARGS "--gpu gpu --nwarp 8")
+  set(GPU_ARGS "gpu --nwarp 8")
 endif()
 
 # List of tests with arguments
