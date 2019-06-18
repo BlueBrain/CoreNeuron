@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 set -e
-set -x
+set +x
 
 TEST_DIR="$1"
 
@@ -11,8 +11,10 @@ module load intel
 neuron_version=$(module av neuron 2>&1 | grep -o -m 1 '^neuron.*/parallel$' | awk -F' ' '{print $1}')
 if [[ $neuron_version ]]; then
     module load $neuron_version
+    module list
 else
     echo "No compatible neuron version found."
+    module list
     exit 1
 fi
 
