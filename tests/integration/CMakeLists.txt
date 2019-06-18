@@ -51,8 +51,8 @@ set(TEST_CASE_ARGS
     "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
     "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue spike --binqueue"
     "ring_gap_multisend!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend spike --multisend"
-    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
-    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
+    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
+    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
 
 set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} --seed 123456 ${GPU_ARGS} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed")
 
