@@ -140,27 +140,28 @@ mpiexec -np 2 build/apps/coreneuron_exec -e 10 --mpi input -d /path/to/model/bui
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
 
-###Command Line Interface
+### Command Line Interface
 
-:warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly if necessary!**
+:warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly!**
 
 Some details on the new interface:
 
-The new command line interface is based on CLI11. All the previous options are still supported but they are organized in subcommands. You can find more details by running `coreneuron_exec --help-all`.
+The new command line interface is based on CLI11. All the previous options are still supported but they are organized differently. You can find more details by running `coreneuron_exec --help-all`.
 
-Also multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options require a double dash now (e.g. `--gpu`).
+Multiple character options with single dash (e.g. `-gpu`) are not supported anymore. All multiple characters options now require a double dash (e.g. `--gpu`), but single characters option still support a single dash (e.g. `-g`).
 
-Since commands are now organized in subcommands, to access a certain parameter it might be necessary to include in the command line a certain keyworld first.
+The structure of a command is the following: `./apps/coreneuron_exec [OPTIONS] [SUBCOMMAND]`. The `OPTIONS` should **always** be written before any of the `SUBCOMMAND`. To know which of the parameter is an `OPTION` or a `SUBCOMMAND` run `coreneuron_exec --help-all`.
 
-For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword first:
+To access a parameter that falls under any of the subcommands category it is necessary to include in the command line a certain keyworld first. For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword first:
 `coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron`
 
-Multiple options in a certain subcommand section can be specifying the keyword only once: `coreneuron_exec --mpi input -d /path/to/model -f /path/to/filesdat/file.dat`
+To define **more than one** option in a certain subcommand it is needed to state the **subcommand keyword** (for example `input`) **directly followed** by the **options** of this subcommand (for example `-d /path/to/model -f /path/to/filesdat/file.dat`). The full command would be:
+`coreneuron_exec --mpi input -d /path/to/model -f /path/to/filesdat/file.dat`.
 
 In order to see the command line options, you can use:
 
 ```bash
-/path/to/isntall/directory/coreneuron_exec -H                                             
+/path/to/install/directory/coreneuron_exec -H                                             
 CoreNeuron - Optimised Simulator Engine for NEURON.
 Usage: ./apps/coreneuron_exec [OPTIONS] [SUBCOMMAND]
 
