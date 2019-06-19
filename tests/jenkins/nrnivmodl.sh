@@ -13,7 +13,7 @@ if [[ $neuron_version ]]; then
     module load $neuron_version
     module list
 else
-    echo "No compatible neuron version found."
+    echo "Error: no compatible neuron version found." >&2
     module list
     exit 1
 fi
