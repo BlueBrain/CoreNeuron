@@ -26,4 +26,7 @@ fi
 
 cat ${TEST}/out.dat > ${TEST}/out_cn_${TEST}.spk
 rm ${TEST}/out.dat
-diff -w -q ${TEST}/out_nrn_${TEST}.spk ${TEST}/out_cn_${TEST}.spk
+cat ${TEST}/out_nrn_${TEST}.spk
+echo "------------------------------- \n"
+cat ${TEST}/out_cn_${TEST}.spk
+diff -w ${TEST}/out_nrn_${TEST}.spk ${TEST}/out_cn_${TEST}.spk
