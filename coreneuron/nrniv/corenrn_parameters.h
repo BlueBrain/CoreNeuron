@@ -69,7 +69,7 @@ struct corenrn_parameters {
     int multiple=1;                /// Model duplication factor
     int extracon=0;                /// Number of extra random connections in each thread to other duplicate models.
     int report_buff_size=report_buff_size_default;    ///Size in MB of the report buffer.
-    int seed=0;                   /// Initialization seed for random number generator (int)
+    int seed=-1;                   /// Initialization seed for random number generator (int)
 
     bool mpi_enable=0;            /// Enable MPI flag.
     bool print_arg=0;             /// Print arguments flag.
@@ -80,10 +80,10 @@ struct corenrn_parameters {
     bool binqueue=0;              /// Use bin queue.
 
     double tstop=100;             /// Stop time of simulation in msec
-    double dt=0.025;              /// Timestep to use in msec
+    double dt=-1000.0;              /// Timestep to use in msec
     double dt_io=0.1;             /// I/O timestep to use in msec
     double dt_report;             /// I/O timestep to use in msec for reports
-    double celsius=34.0;          /// Temperature in degC.
+    double celsius=-1000.0;          /// Temperature in degC.
     double voltage=-65.0;         /// Initial voltage used for nrn_finitialize(1, v_init).
     double forwardskip=0.;        /// Forward skip to TIME.
     double mindelay=10.;          /// Maximum integration interval (likely reduced by minimum NetCon delay).

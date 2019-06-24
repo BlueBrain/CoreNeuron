@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     corenrn_param_test.parse(argc, const_cast<char**>(argv)); //discarding const as CLI11 interface is not const
     
-    BOOST_CHECK(corenrn_param_test.seed == 0);            // testing default value
+    BOOST_CHECK(corenrn_param_test.seed == -1);            // testing default value
 
     BOOST_CHECK(corenrn_param_test.spikebuf == 100);
 
