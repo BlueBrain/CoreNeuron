@@ -40,7 +40,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /// for gpu builds with unified memory support
-#if (defined(__CUDACC__) || defined(UNIFIED_MEMORY))
+#if (defined(__CUDACC__) || (defined(_OPENACC)) and defined(UNIFIED_MEMORY))
 
 #include <cuda_runtime_api.h>
 

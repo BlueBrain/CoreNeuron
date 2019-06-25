@@ -618,17 +618,10 @@ static void admin2(int ncell,
     // ncore is the number of warps * warpsize
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
-#ifdef UNIFIED_MEMORY
     ncycles = (int*)ecalloc_align(nwarp, NRN_SOA_BYTE_ALIGN, sizeof(int));
     stridedispl = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int)); // running sum of ncycles (start at 0)
     rootbegin = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));   // index (+1) of first root in warp.
     nodebegin = (int*)ecalloc_align(nwarp+1, NRN_SOA_BYTE_ALIGN, sizeof(int));   // index (+1) of first node in warp.
-#else
-    ncycles = new int[nwarp];
-    stridedispl = new int[nwarp + 1];  // running sum of ncycles (start at 0)
-    rootbegin = new int[nwarp + 1];    // index (+1) of first root in warp.
-    nodebegin = new int[nwarp + 1];    // index (+1) of first node in warp.
-#endif
 
     // rootbegin and nodebegin are the root index values + 1 of the last of
     // the sequence of constant groupindex
@@ -658,11 +651,7 @@ static void admin2(int ncell,
     }
 
     // strides
-#ifdef UNIFIED_MEMORY
     strides = (int*)ecalloc_align(nstride, NRN_SOA_BYTE_ALIGN, sizeof(int));
-#else
-    strides = new int[nstride];
-#endif
     nstride = 0;
     for (size_t iwarp = 0; iwarp < (size_t)nwarp; ++iwarp) {
         size_t j = size_t(nodebegin[iwarp + 1]);
