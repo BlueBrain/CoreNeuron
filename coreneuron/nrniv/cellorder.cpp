@@ -81,13 +81,24 @@ InterleaveInfo& InterleaveInfo::operator=(const InterleaveInfo& info) {
 
 InterleaveInfo::~InterleaveInfo() {
     if (stride) {
+        #ifdef UNIFIED_MEMORY
         free_memory(stride);
         free_memory(firstnode);
         free_memory(lastnode);
         free_memory(cellsize);
+        #else
+        delete[] stride;
+        delete[] firstnode;
+        delete[] lastnode;
+        delete[] cellsize;
+        #endif
     }
     if (stridedispl) {
+        #ifdef UNIFIED_MEMORY
         free_memory(stridedispl);
+        #else
+        delete[] stridedispl;
+        #endif
     }
     if (idle) {
         delete[] nnode;
