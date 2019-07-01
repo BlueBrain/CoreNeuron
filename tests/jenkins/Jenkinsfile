@@ -57,7 +57,7 @@ pipeline {
                         sh 'sh tests/jenkins/ringtest.sh GPU-non-unified'
                     }
                 }
-                stage('GPU-non-unified'){
+                stage('GPU-unified'){
                     steps{
                         sh 'sh tests/jenkins/ringtest.sh GPU-unified'
                     }
