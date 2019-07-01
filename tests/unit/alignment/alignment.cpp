@@ -38,9 +38,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/mpl/list.hpp>
 
 #include "coreneuron/nrniv/memory.h"
-#ifdef _OPENACC
-#include <cuda_runtime_api.h>
-#endif
 
 template<class T, int n=1>
 struct data{
