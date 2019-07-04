@@ -422,7 +422,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     // initialization and loading functions moved to separate
     Instrumentor::phase_begin("load-model");
-    nrn_init_and_load_data(argc, argv, configs.size() > 0);
+    nrn_init_and_load_data(argc, argv, !configs.empty());
     Instrumentor::phase_end("load-model");
 
     std::string checkpoint_path = corenrn_param.checkpointpath;

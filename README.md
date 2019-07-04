@@ -148,12 +148,12 @@ Some details on the new interface:
 
 The new command line interface is based on CLI11. All the previous options are still supported but they are organized differently. You can find more details by running `coreneuron_exec --help-all` or using the table reported below.
 
-Multiple character options with single dash (e.g. `-gpu`) are **not** supported anymore. All multiple characters options now require a double dash (e.g. `--gpu`), but single characters option still support a single dash (e.g. `-g`).
+Multiple character options with single dash (e.g. `-gpu`) are **not** supported anymore. All multiple characters options now require a double dash (e.g. `--gpu`), but single characters options still support a single dash (e.g. `-g`).
 
-The structure of a command is the following: `./apps/coreneuron_exec [OPTIONS] [SUBCOMMAND]`. More specifically, an `OPTION` is a parameter that doesn't belong to **any** `SUBCOMMANDS`. The `OPTIONS` should **always** be written before any of the `SUBCOMMAND`. To know which of the parameter is an `OPTION` or a `SUBCOMMAND` run `coreneuron_exec --help-all` or refer to the table below.
+The structure of a command is the following: `./apps/coreneuron_exec [GENERIC OPTIONS] [SUBCOMMAND [OPTIONS]]`. More specifically, a `GENERIC OPTION` is a parameter that doesn't belong to **any** `SUBCOMMANDS`. `GENERIC OPTIONS` should **always** be written before any `SUBCOMMAND`. To know the various subcommands and their respective options run `coreneuron_exec --help-all` or refer to the table below.
 
-To access a parameter that falls under any of the subcommands category it is necessary to include in the command line a certain keyword first. For example to use the `-d` option, one must enter in the `input` subcommands first by using the `input` keyword:
-therefore the old command `coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron` in the new implementation. If you want to  define **more than one** parameter in a certain `SUBCOMMAND` it is needed to state the **subcommand keyword** (for example `input`) **directly followed** by the **options** of this subcommand. The `SUBCOMMAND` keyword needs to be stated only once for every set of parameters.
+To access a subcommand-specific parameter it must always follow that subcommand. For example to use the `-d` option, one must first write the `input` subcommand.
+Hence, the old command `coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron` in the new implementation. All subcommand-specific options must be grouped with their respective subcommand.
 
 In order to see the command line options, you can use:
 
