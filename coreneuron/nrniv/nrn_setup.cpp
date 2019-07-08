@@ -413,7 +413,6 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         }
     }
 
-    //nt.presyns = (PreSyn*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSyn));
     nt.presyns = new PreSyn [nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
