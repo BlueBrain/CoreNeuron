@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(memory_alignment_simd_false, T, chunk_default_data
       BOOST_CHECK_EQUAL(b,1);
   }
 
-  free(data);
+  free_memory(data);
 
 }
 
@@ -163,5 +163,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(memory_alignment_simd_true, T, chunk_data_type){
       BOOST_CHECK_EQUAL(b,1);
   }
 
-  free(data);
+  free_memory(data);
 }

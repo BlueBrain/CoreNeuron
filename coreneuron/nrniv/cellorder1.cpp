@@ -532,9 +532,9 @@ static void admin1(int ncell,
     // cellsize is the number of nodes in the cell not counting root.
     // nstride is the maximum cell size (not counting root)
     // stride[i] is the number of cells with an ith node.
-    firstnode = new int[ncell];
-    lastnode = new int[ncell];
-    cellsize = new int[ncell];
+    firstnode = (int*)ecalloc_align(ncell, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    lastnode = (int*)ecalloc_align(ncell, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    cellsize = (int*)ecalloc_align(ncell, NRN_SOA_BYTE_ALIGN, sizeof(int));
 
     nwarp = (ncell % warpsize == 0) ? (ncell / warpsize) : (ncell / warpsize + 1);
 
@@ -558,7 +558,7 @@ static void admin1(int ncell,
         }
     }
 
-    stride = new int[nstride + 1];  // in case back substitution accesses this
+    stride = (int*)ecalloc_align(nstride+1, NRN_SOA_BYTE_ALIGN, sizeof(int));
     for (int i = 0; i <= nstride; ++i) {
         stride[i] = 0;
     }
