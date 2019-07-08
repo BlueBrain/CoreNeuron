@@ -207,7 +207,7 @@ void nonvint(NrnThread* _nt) {
             std::string ss("state-");
             ss += nrn_get_mechname(tml->index);
             {
-                Instrumentor::phase p(ss.c_str())
+                Instrumentor::phase p(ss.c_str());
                 (*s)(_nt, tml->ml, tml->index);
             }
 #ifdef DEBUG
@@ -253,7 +253,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         fixed_play_continuous(nth);
 
         {
-            Instrumentor::phase p("setup_tree_matrix")
+            Instrumentor::phase p("setup_tree_matrix");
             setup_tree_matrix_minimal(nth);
         }
 

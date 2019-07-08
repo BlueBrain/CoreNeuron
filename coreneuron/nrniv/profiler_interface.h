@@ -258,9 +258,8 @@ struct NullInstrumentor {
     inline static void finalize_profile(){};
 };
 
-}  // namespace detail
 
-using Instrumentor = detail::Instrumentor<
+using InstrumentorImpl = detail::Instrumentor<
 #if defined CORENEURON_CALIPER
     detail::Caliper,
 #endif
@@ -277,17 +276,41 @@ using Instrumentor = detail::Instrumentor<
     detail::Likwid,
 #endif
     detail::NullInstrumentor>;
+}  // namespace detail
 
 namespace Instrumentor {
     struct phase {
         phase(const char* name) {
-            detail::Instrumentor::phase_begin(name);
+            detail::InstrumentorImpl::phase_begin(name);
         }
         ~phase() {
-            detail::Instrumentor::phase_end();
+            detail::InstrumentorImpl::phase_end("");
         }
     };
-}
 
+    inline static void start_profile() {
+        detail::InstrumentorImpl::start_profile();
+    }
+
+    inline static void stop_profile() {
+        detail::InstrumentorImpl::stop_profile();
+    }
+
+    inline static void phase_begin(const char* name) {
+        detail::InstrumentorImpl::phase_begin(name);
+    }
+
+    inline static void phase_end(const char* name) {
+        detail::InstrumentorImpl::phase_end(name);
+    }
+
+    inline static void init_profile() {
+        detail::InstrumentorImpl::init_profile();
+    }
+
+    inline static void finalize_profile() {
+        detail::InstrumentorImpl::finalize_profile();
+    }
+}
 
 }  // namespace coreneuron
