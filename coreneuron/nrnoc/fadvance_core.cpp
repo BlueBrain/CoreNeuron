@@ -191,7 +191,6 @@ void update(NrnThread* _nt) {
     }
 }
 
-
 void nonvint(NrnThread* _nt) {
     NrnThreadMembList* tml;
     if (nrn_have_gaps) {
@@ -298,11 +297,11 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
         nrn_ba(nth, BEFORE_STEP);
     }
 
-		{
+    {
         Instrumentor::phase p("deliver_events");
         nrn_deliver_events(nth); /* up to but not past texit */
     }
 
-		return (void*)0;
+    return (void*)0;
 }
 }  // namespace coreneuron

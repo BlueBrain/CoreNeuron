@@ -477,7 +477,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
         // Report global cell statistics
         report_cell_stats();
 
-
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(nrnopt_get_int("--prcellgid"), compute_gpu, 0);
     }
