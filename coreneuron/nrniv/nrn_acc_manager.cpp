@@ -11,9 +11,6 @@
 #include "coreneuron/nrniv/cuda_profile.h"
 #include "coreneuron/scopmath_core/newton_struct.h"
 
-#define _OPENACC
-#define UNIFIED_MEMORY
-
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
