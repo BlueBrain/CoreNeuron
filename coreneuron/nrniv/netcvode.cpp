@@ -393,23 +393,6 @@ PreSyn::PreSyn() {
     output_index_ = 0;
 }
 
-void PreSyn::InitPreSyn() {
-    nc_index_ = 0;
-    nc_cnt_ = 0;
-    flag_ = false;
-    thvar_index_ = -1;
-    pntsrc_ = NULL;
-    threshold_ = 10.;
-    gid_ = -1;
-#if NRNMPI
-    localgid_ = 0;
-#endif
-#if NRN_MULTISEND
-    multisend_index_ = -1;
-#endif
-    output_index_ = 0;
-}
-
 InputPreSyn::InputPreSyn() {
     nc_index_ = -1;
     nc_cnt_ = 0;

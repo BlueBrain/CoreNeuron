@@ -413,13 +413,9 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         }
     }
 
-    nt.presyns = new PreSyn [nt.n_presyn];
+    nt.presyns = new PreSyn[nt.n_presyn];
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
-    nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, NRN_SOA_BYTE_ALIGN, sizeof(PreSynHelper));
-
-    for (int i=0; i<nt.n_presyn; i++) {
-        nt.presyns[i].InitPreSyn();
-    }
+    nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));
 
     int* nc_srcgid = netcon_srcgid[nt.id];
     for (int i = 0; i < nt.n_netcon; ++i) {
@@ -835,7 +831,7 @@ void setup_ThreadData(NrnThread& nt) {
         Memb_func& mf = memb_func[tml->index];
         Memb_list* ml = tml->ml;
         if (mf.thread_size_) {
-            ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, NRN_SOA_BYTE_ALIGN, sizeof(ThreadDatum));
+            ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
             if (mf.thread_mem_init_) {
                 MUTLOCK (*mf.thread_mem_init_)(ml->_thread);
                 MUTUNLOCK
@@ -1075,7 +1071,6 @@ void nrn_cleanup(bool clean_ion_global_map) {
             next_tml = tml->next;
             free_memory(tml->ml);
             free_memory(tml);
-
         }
 
         nt->_actual_rhs = NULL;
@@ -1112,7 +1107,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
         if (nt->presyns) {
             delete[] nt->presyns;
-            //free_memory(nt->presyns);
+            // free_memory(nt->presyns);
             nt->presyns = NULL;
         }
 
@@ -1131,7 +1126,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->weights) {
-            //delete[] nt->weights;
+            // delete[] nt->weights;
             free_memory(nt->weights);
             nt->weights = NULL;
         }
@@ -1263,7 +1258,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
     // printf("nart=%d\n", nart);
     NrnThreadMembList* tml_last = NULL;
-    nt._ml_list = (Memb_list**)ecalloc_align(n_memb_func, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list*));
+    nt._ml_list = (Memb_list**)ecalloc_align(n_memb_func, sizeof(Memb_list*));
 
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[n_memb_func];
@@ -1288,8 +1283,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
 
     for (int i = 0; i < nmech; ++i) {
-        tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList), NRN_SOA_BYTE_ALIGN);
-        tml->ml = (Memb_list*)ecalloc_align(1, NRN_SOA_BYTE_ALIGN, sizeof(Memb_list));
+        tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
+        tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
         tml->ml->_net_receive_buffer = NULL;
         tml->ml->_net_send_buffer = NULL;
         tml->ml->_permute = NULL;
@@ -1330,10 +1325,10 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     delete[] ml_nodecount;
 
     if (shadow_rhs_cnt) {
-        nt._shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
-                                                NRN_SOA_BYTE_ALIGN, sizeof(double));
-        nt._shadow_d = (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0),
-                                              NRN_SOA_BYTE_ALIGN, sizeof(double));
+        nt._shadow_rhs =
+            (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0), sizeof(double));
+        nt._shadow_d =
+            (double*)ecalloc_align(nrn_soa_padded_size(shadow_rhs_cnt, 0), sizeof(double));
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
 
@@ -1347,7 +1342,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // see patternstim.cpp
     int extra_nv = (&nt == nrn_threads) ? nrn_extra_thread0_vdata : 0;
     if (nt._nvdata + extra_nv)
-        nt._vdata = (void**)ecalloc_align(nt._nvdata + extra_nv, NRN_SOA_BYTE_ALIGN, sizeof(void*));
+        nt._vdata = (void**)ecalloc_align(nt._nvdata + extra_nv, sizeof(void*));
     else
         nt._vdata = NULL;
     // printf("_nidata=%d _nvdata=%d\n", nt._nidata, nt._nvdata);
@@ -1380,14 +1375,15 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             npnt += n;
         }
     }
-    nt.pntprocs = (Point_process*)ecalloc_align(npnt, NRN_SOA_BYTE_ALIGN, sizeof(Point_process)); // includes acell with and without gid
+    nt.pntprocs = (Point_process*)ecalloc_align(
+        npnt, sizeof(Point_process));  // includes acell with and without gid
     nt.n_pntproc = npnt;
     // printf("offset=%ld\n", offset);
     nt._ndata = offset;
 
     // now that we know the effect of padding, we can allocate data space,
     // fill matrix, and adjust Memb_list data pointers
-    nt._data = (double*)ecalloc_align(nt._ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt._data = (double*)ecalloc_align(nt._ndata, sizeof(double));
     nt._actual_rhs = nt._data + 0 * ne;
     nt._actual_d = nt._data + 1 * ne;
     nt._actual_a = nt._data + 2 * ne;
@@ -1401,7 +1397,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     }
 
     // matrix info
-    nt._v_parent_index = (int*)ecalloc_align(nt.end, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
     if (direct) {
         (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
                                 nt._actual_area, nt._actual_v, nt._actual_diam);
@@ -1440,13 +1436,12 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         int layout = nrn_mech_data_layout_[type];
 
         if (!is_art && !direct) {
-            ml->nodeindices = (int*)ecalloc_align(ml->nodecount, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
         } else {
             ml->nodeindices = NULL;
         }
         if (szdp) {
-            ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp,
-                                            NRN_SOA_BYTE_ALIGN, sizeof(int));
+            ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp, sizeof(int));
         }
 
         if (direct) {
@@ -1466,8 +1461,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             mech_layout<int>(F, ml->pdata, n, szdp, layout);
 #if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
-            mlc->pdata_not_permuted =
-                (int*)coreneuron::ecalloc_align(n * szdp, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            mlc->pdata_not_permuted = (int*)coreneuron::ecalloc_align(n * szdp, sizeof(int));
             if (layout == 1) {  // AoS just copy
                 for (int i = 0; i < n; ++i) {
                     for (int j = 0; j < szdp; ++j) {
@@ -1835,7 +1829,7 @@ for (int i=0; i < nt.end; ++i) {
     // nt._net_send_buffer_size = nt.ncell/100 + 1;
     // but, to avoid reallocation complexity on GPU ...
     nt._net_send_buffer_size = nt.ncell;
-    nt._net_send_buffer = (int*)ecalloc_align(nt._net_send_buffer_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
+    nt._net_send_buffer = (int*)ecalloc_align(nt._net_send_buffer_size, sizeof(int));
 
     // do extracon later as the target and weight info
     // is not directly in the file
@@ -1910,7 +1904,7 @@ for (int i=0; i < nt.end; ++i) {
     // weights in netcons order in groups defined by Point_process target type.
     nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
     if (!direct) {
-        nt.weights = (double*)ecalloc_align(nt.n_weight, NRN_SOA_BYTE_ALIGN, sizeof(double));
+        nt.weights = (double*)ecalloc_align(nt.n_weight, sizeof(double));
         F.read_array<double>(nt.weights, nweight);
     }
 
@@ -2104,7 +2098,8 @@ for (int i=0; i < nt.end; ++i) {
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
         if (ml) {  // needs a NetReceiveBuffer
-            NetReceiveBuffer_t* nrb = (NetReceiveBuffer_t*)ecalloc_align(1, NRN_SOA_BYTE_ALIGN, sizeof(NetReceiveBuffer_t));
+            NetReceiveBuffer_t* nrb =
+                (NetReceiveBuffer_t*)ecalloc_align(1, sizeof(NetReceiveBuffer_t));
             ml->_net_receive_buffer = nrb;
             nrb->_pnt_offset = pnt_offset[type];
 
@@ -2119,12 +2114,12 @@ for (int i=0; i < nt.end; ++i) {
                 nrb->_size = ml->nodecount;
             }
 
-            nrb->_pnt_index = (int*)ecalloc_align(nrb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nrb->_displ = (int*)ecalloc_align(nrb->_size + 1, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nrb->_nrb_index = (int*)ecalloc_align(nrb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nrb->_weight_index = (int*)ecalloc_align(nrb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nrb->_nrb_t = (double*)ecalloc_align(nrb->_size, NRN_SOA_BYTE_ALIGN, sizeof(double));
-            nrb->_nrb_flag = (double*)ecalloc_align(nrb->_size, NRN_SOA_BYTE_ALIGN, sizeof(double));
+            nrb->_pnt_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_displ = (int*)ecalloc_align(nrb->_size + 1, sizeof(int));
+            nrb->_nrb_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_weight_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_nrb_t = (double*)ecalloc_align(nrb->_size, sizeof(double));
+            nrb->_nrb_flag = (double*)ecalloc_align(nrb->_size, sizeof(double));
         }
     }
 
@@ -2134,7 +2129,7 @@ for (int i=0; i < nt.end; ++i) {
         // Does this thread have this type.
         Memb_list* ml = nt._ml_list[type];
         if (ml) {  // needs a NetSendBuffer
-            NetSendBuffer_t* nsb = (NetSendBuffer_t*)ecalloc_align(1, NRN_SOA_BYTE_ALIGN, sizeof(NetSendBuffer_t));
+            NetSendBuffer_t* nsb = (NetSendBuffer_t*)ecalloc_align(1, sizeof(NetSendBuffer_t));
             ml->_net_send_buffer = nsb;
 
             // begin with a size equal to twice number of instances
@@ -2142,15 +2137,15 @@ for (int i=0; i < nt.end; ++i) {
             nsb->_size = ml->nodecount * 2;
             nsb->_cnt = 0;
 
-            nsb->_sendtype = (int*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nsb->_vdata_index = (int*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nsb->_pnt_index = (int*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
-            nsb->_weight_index = (int*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            nsb->_sendtype = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_vdata_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_pnt_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_weight_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
             // when == 1, NetReceiveBuffer_t is newly allocated (i.e. we need to free previous copy
             // and recopy new data
             nsb->reallocated = 1;
-            nsb->_nsb_t = (double*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(double));
-            nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, NRN_SOA_BYTE_ALIGN, sizeof(double));
+            nsb->_nsb_t = (double*)ecalloc_align(nsb->_size, sizeof(double));
+            nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, sizeof(double));
         }
     }
 

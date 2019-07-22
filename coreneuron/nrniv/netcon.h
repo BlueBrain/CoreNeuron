@@ -137,7 +137,6 @@ class PreSyn : public ConditionEvent {
     Point_process* pntsrc_;
 
     PreSyn();
-    void InitPreSyn();
     virtual ~PreSyn();
     virtual void send(double sendtime, NetCvode*, NrnThread*);
     virtual void deliver(double, NetCvode*, NrnThread*);

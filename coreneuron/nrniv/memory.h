@@ -40,7 +40,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /// for gpu builds with unified memory support
-#if (defined(__CUDACC__) || (defined(_OPENACC)) && defined(UNIFIED_MEMORY))
+#if (defined(__CUDACC__) || defined(UNIFIED_MEMORY))
 
 #include <cuda_runtime_api.h>
 
@@ -78,7 +78,6 @@ inline void free_memory(void* pointer) {
 
 #endif
 
-
 namespace coreneuron {
 
 /** Independent function to compute the needed chunkding,
@@ -104,7 +103,7 @@ inline bool is_aligned(void* pointer, size_t alignment) {
 
 /** Allocate the aligned memory.
  */
-inline void* emalloc_align(size_t size, size_t alignment) {
+inline void* emalloc_align(size_t size, size_t alignment = NRN_SOA_BYTE_ALIGN) {
     void* memptr;
     alloc_memory(memptr, size, alignment);
     nrn_assert(is_aligned(memptr, alignment));
@@ -113,12 +112,12 @@ inline void* emalloc_align(size_t size, size_t alignment) {
 
 /** Allocate the aligned memory and set it to 1.
  */
-inline void* ecalloc_align(size_t n, size_t alignment, size_t size) {
+inline void* ecalloc_align(size_t n, size_t size, size_t alignment = NRN_SOA_BYTE_ALIGN) {
     void* p;
     if (n == 0) {
         return (void*)0;
     }
-    calloc_memory(p, n*size, alignment);
+    calloc_memory(p, n * size, alignment);
     nrn_assert(is_aligned(p, alignment));
     return p;
 }

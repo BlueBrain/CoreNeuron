@@ -473,7 +473,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     bool compute_gpu = nrnopt_get_flag("-gpu");
     bool skip_mpi_finalize = nrnopt_get_flag("--skip-mpi-finalize");
 
-    // clang-format off
+// clang-format off
     #pragma acc data copyin(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
