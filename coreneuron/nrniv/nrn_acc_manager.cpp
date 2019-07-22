@@ -328,7 +328,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             void** d_vecplay = (void**)acc_copyin(nt->_vecplay, sizeof(void*) * nt->n_vecplay);
             acc_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay, sizeof(void**));
 
-            void nrn_VecPlay_copyto_device(nt, d_vecplay);
+            nrn_VecPlay_copyto_device(nt, d_vecplay);
         }
 
         if (nt->_permute) {
