@@ -129,26 +129,18 @@ int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
                                        double*& tvec);
 
 void (*nrn2core_get_trajectory_requests_)(int tid,
-                                                int& bsize,
-                                                int& n_pr,
-                                                void**& vpr,
-                                                int& n_trajec,
-                                                int*& types,
-                                                int*& indices,
-                                                double**& pvars,
-                                                double**& varrays);
+                                          int& bsize,
+                                          int& n_pr,
+                                          void**& vpr,
+                                          int& n_trajec,
+                                          int*& types,
+                                          int*& indices,
+                                          double**& pvars,
+                                          double**& varrays);
 
-void (*nrn2core_trajectory_values_)(int tid,
-                                          int n_pr,
-                                          void** vpr,
-                                          double t);
+void (*nrn2core_trajectory_values_)(int tid, int n_pr, void** vpr, double t);
 
-void (*nrn2core_trajectory_return_)(int tid,
-                                          int n_pr,
-                                          int vecsz,
-                                          void** vpr,
-                                          double t);
-
+void (*nrn2core_trajectory_return_)(int tid, int n_pr, int vecsz, void** vpr, double t);
 
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
@@ -814,10 +806,10 @@ void nrn_setup(const char* filesdat,
     delete[] file_reader;
 
     model_size();
-    delete [] gidgroups;
-    delete [] imult;
+    delete[] gidgroups;
+    delete[] imult;
     if (nrnthread_chkpnt) {
-        delete [] nrnthread_chkpnt;
+        delete[] nrnthread_chkpnt;
         nrnthread_chkpnt = NULL;
     }
 
@@ -927,15 +919,15 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 // take into account alignment, layout, permutation
 // only voltage or mechanism data index allowed. (mtype 0 means time)
 double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
-    if (mtype == -5) { // voltage
+    if (mtype == -5) {  // voltage
         int v0 = nt._actual_v - nt._data;
         int ix = index;  // relative to _actual_v
         nrn_assert((ix >= 0) && (ix < nt.end));
         if (nt._permute) {
-             node_permute(&ix, 1, nt._permute);
+            node_permute(&ix, 1, nt._permute);
         }
-        return nt._data + (v0 + ix);  // relative to nt._data
-    }else if (mtype  > 0 && mtype < n_memb_func) { // 
+        return nt._data + (v0 + ix);                // relative to nt._data
+    } else if (mtype > 0 && mtype < n_memb_func) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
         int ix = nrn_param_layout(index, mtype, ml);
@@ -943,9 +935,9 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
             ix = nrn_index_permute(ix, mtype, ml);
         }
         return ml->data + ix;
-    }else if (mtype == 0) { // time
+    } else if (mtype == 0) {  // time
         return &nt._t;
-    }else{
+    } else {
         printf("stdindex2ptr does not handle mtype=%d\n", mtype);
         nrn_assert(0);
     }
@@ -1000,7 +992,7 @@ inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
  * things up first. */
 
 void nrn_cleanup(bool clean_ion_global_map) {
-    clear_event_queue(); // delete left-over TQItem
+    clear_event_queue();  // delete left-over TQItem
     gid2in.clear();
     gid2out.clear();
 
@@ -1020,7 +1012,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
     for (int it = 0; it < nrn_nthread; ++it) {
         NrnThread* nt = nrn_threads + it;
         NrnThreadMembList* next_tml = NULL;
-	delete_trajectory_requests(*nt);
+        delete_trajectory_requests(*nt);
         for (NrnThreadMembList* tml = nt->tml; tml; tml = next_tml) {
             Memb_list* ml = tml->ml;
 
@@ -1175,17 +1167,21 @@ void nrn_cleanup(bool clean_ion_global_map) {
 }
 
 void delete_trajectory_requests(NrnThread& nt) {
-  if (nt.trajec_requests) {
-    TrajectoryRequests* tr = nt.trajec_requests;
-    if (tr->n_trajec) {
-      delete [] tr->vpr;
-      if (tr->scatter) {delete [] tr->scatter;}
-      if (tr->varrays) {delete [] tr->varrays;}
-      delete [] tr->gather;
+    if (nt.trajec_requests) {
+        TrajectoryRequests* tr = nt.trajec_requests;
+        if (tr->n_trajec) {
+            delete[] tr->vpr;
+            if (tr->scatter) {
+                delete[] tr->scatter;
+            }
+            if (tr->varrays) {
+                delete[] tr->varrays;
+            }
+            delete[] tr->gather;
+        }
+        delete nt.trajec_requests;
+        nt.trajec_requests = NULL;
     }
-    delete nt.trajec_requests;
-    nt.trajec_requests = NULL;
-  }
 }
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {

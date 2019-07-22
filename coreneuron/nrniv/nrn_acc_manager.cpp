@@ -57,7 +57,11 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             nrn_VecPlay_copyto_device(nt, d_vecplay);
         }
+
+        if (!nt->_permute)
+            printf("\n WARNING: NrnThread %d not permuted, error for linear algebra?", i);
     }
+}
 
 #else
     int i;
