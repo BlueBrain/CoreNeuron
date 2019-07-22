@@ -1,4 +1,5 @@
 from neuron import h, gui
+import sys
 
 h('''create soma''')
 h.soma.L=5.6419
@@ -23,5 +24,12 @@ h.cvode.cache_efficient(1)
 h.stdinit()
 pc.nrncore_run("-e %g"%h.tstop, 0)
 
-print ("Voltage times same: " + str(bool(tv.eq(tvstd))))
-print ("Voltage difference less than 1e-10: " + str(v.cl().sub(vstd).abs().max() < 1e-10))
+if not bool(tv.eq(tvstd)):
+    print("Voltage times are different")
+    sys.exit(-1)
+if v.cl().sub(vstd).abs().max() >= 1e-10:
+    print("Voltage difference greater than or equal to 1e-10")
+    sys.exit(-1)
+
+print("Voltage times are same and difference is less than 1e-10")
+h.quit()

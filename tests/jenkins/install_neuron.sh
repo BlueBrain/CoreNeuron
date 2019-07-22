@@ -1,13 +1,14 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
+set -x
 set -e
 
 export SPACK_INSTALL_PREFIX="${SPACK_INSTALL_PREFIX:-${WORKSPACE}/INSTALL_HOME}"
-BUILD_HOME="${WORKSPACE}/BUILD_HOME"
-export SPACK_ROOT="${BUILD_HOME}/spack"
-export PATH=$SPACK_ROOT/bin:/usr/bin:\$PATH
+source $WORKSPACE/BUILD_HOME/spack/share/spack/setup-env.sh
 source /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
-export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/linux-rhel7-x86_64:$MODULEPATH
+export PATH=$WORKSPACE/BUILD_HOME/spack/bin:/usr/bin:$PATH
+export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch):$MODULEPATH
+
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 
 spack install neuron@develop
