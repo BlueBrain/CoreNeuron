@@ -824,9 +824,8 @@ void finalize_data_on_device() {
     acc_shutdown(acc_device_default);
 #endif
 }
-
-void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 #ifdef _OPENACC
+void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
@@ -864,11 +863,9 @@ void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
         pd = d_jacdat + i * n;
         acc_memcpy_to_device(&(ppd[i]), &pd, sizeof(double*));
     }
-#endif
 }
 
 void nrn_sparseobj_copyto_device(SparseObj* so) {
-#ifdef _OPENACC
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
@@ -952,11 +949,9 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
         pd = (double*)acc_deviceptr(so->coef_list[i]);
         acc_memcpy_to_device(&(d_coef_list[i]), &pd, sizeof(double*));
     }
-#endif
 }
 
 void nrn_ion_global_map_copyto_device() {
-#ifdef _OPENACC
     if (nrn_ion_global_map_size) {
         double** d_data =
             (double**)acc_copyin(nrn_ion_global_map, sizeof(double*) * nrn_ion_global_map_size);
@@ -968,7 +963,6 @@ void nrn_ion_global_map_copyto_device() {
             }
         }
     }
-#endif
 }
 
 void init_gpu(int nthreads, NrnThread* threads) {
@@ -1022,5 +1016,5 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
         acc_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_, sizeof(double*));
     }
 }
-
+#endif
 }  // namespace coreneuron
