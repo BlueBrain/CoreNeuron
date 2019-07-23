@@ -57,8 +57,9 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             nrn_VecPlay_copyto_device(nt, d_vecplay);
         }
 
-        if (!nt->_permute)
+        if (!nt->_permute && nt->end > 0) {
             printf("\n WARNING: NrnThread %d not permuted, error for linear algebra?", i);
+        }
     }
 
 #else
@@ -79,7 +80,9 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
     for (i = 0; i < nthreads; i++) {
         NrnThread* nt = threads + i;      // NrnThread on host
         NrnThread* d_nt = d_threads + i;  // NrnThread on device
-
+        if (!nt->compute_gpu) {
+            continue;
+        }
         double* d__data;  // nrn_threads->_data on device
 
         /* -- copy _data to device -- */
@@ -984,14 +987,11 @@ void init_gpu(int nthreads, NrnThread* threads) {
         printf("\n WARNING: Enabled GPU execution but couldn't find NVIDIA GPU! \n");
     }
 
-    /* @todo: why dt is not setup at this moment? */
     for (int i = 0; i < nthreads; i++) {
-#ifndef UNIFIED_MEMORY
-        (threads + i)->_dt = dt;
-#endif
         // empty thread or only artificial cells should be on cpu
         NrnThread* nt = threads + i;
         nt->compute_gpu = (nt->end > 0) ? 1 : 0;
+        nt->_dt = dt;
     }
 }
 
