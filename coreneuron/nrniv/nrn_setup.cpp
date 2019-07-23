@@ -1118,7 +1118,6 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->weights) {
-            // delete[] nt->weights;
             free_memory(nt->weights);
             nt->weights = NULL;
         }

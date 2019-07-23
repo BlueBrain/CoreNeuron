@@ -38,7 +38,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
     for (i = 0; i < nthreads; i++) {
         NrnThread* nt = threads + i;  // NrnThread on host
-        NrnThread* d_nt = nt;         // NrnThread on device same as cpu in case of unified memory
 
         if (nt->n_presyn) {
             PreSyn* d_presyns = (PreSyn*)acc_copyin(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
@@ -62,16 +61,14 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             printf("\n WARNING: NrnThread %d not permuted, error for linear algebra?", i);
     }
 
-
 #else
     int i;
-    NrnThread* d_threads;
 
     /* -- copy NrnThread to device. this needs to be contigious vector because offset is used to
      * find
      * corresponding NrnThread using Point_process in NET_RECEIVE block
      */
-    d_threads = (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
+    NrnThread* d_threads = (NrnThread*)acc_copyin(threads, sizeof(NrnThread) * nthreads);
 
     if (interleave_info == NULL) {
         printf("\n Warning: No permutation data? Required for linear algebra!");
