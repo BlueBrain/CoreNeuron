@@ -110,7 +110,7 @@ inline void* emalloc_align(size_t size, size_t alignment = NRN_SOA_BYTE_ALIGN) {
     return memptr;
 }
 
-/** Allocate the aligned memory and set it to 1.
+/** Allocate the aligned memory and set it to 0.
  */
 inline void* ecalloc_align(size_t n, size_t size, size_t alignment = NRN_SOA_BYTE_ALIGN) {
     void* p;

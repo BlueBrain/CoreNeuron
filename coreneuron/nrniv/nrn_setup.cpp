@@ -1099,7 +1099,6 @@ void nrn_cleanup(bool clean_ion_global_map) {
 
         if (nt->presyns) {
             delete[] nt->presyns;
-            // free_memory(nt->presyns);
             nt->presyns = NULL;
         }
 
