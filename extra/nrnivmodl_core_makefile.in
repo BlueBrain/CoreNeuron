@@ -96,7 +96,7 @@ $(OBJS_DIR)/%.o: $(MODC_DIR)/%.cpp $(kinderiv_h) | $(OBJS_DIR)
 $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
-	  @mod2c_bin@ $< -o $(MODC_DIR)/ @nmodl_arguments@
+	  @mod2c_install_bin@ $< -o $(MODC_DIR)/ @nmodl_arguments@
 
 # If .mod doesnt exist attempt from previously built opt mods in shared/
 $(MODC_DIR)/%.cpp: $(datadir_mod2c)/%.cpp | $(MODC_DIR)
