@@ -117,7 +117,7 @@ macro(mod2c_target)
         add_custom_command(OUTPUT "${mod2c_output_}" "${mod2c_wrapper_output_}"
                 DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
                 COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-                COMMAND ${MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}" host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS}
+                COMMAND ${MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}" host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS_LIST}
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     else()
         add_custom_command(OUTPUT "${mod2c_output_}"
@@ -443,7 +443,7 @@ install(FILES ${MOD2C_UNITS}
 if(ENABLE_HEADER_INSTALL)
     install(DIRECTORY .
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
-            FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp")
+            FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp" PATTERN "*.ispc")
 
     install(FILES ${KINDERIV_PY} ${MOD_FUNC_C_PL} ${DIMPLIC_C} ${ENGINEMECH_C}
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)

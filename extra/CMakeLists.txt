@@ -43,6 +43,12 @@ set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message("CXX Compile Flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
+if(ENABLE_ISPC_TARGET)
+    set(nmodl_modearg "--ispc")
+else ()
+    set(nmodl_modearg "--c")
+endif ()
+
 if(ENABLE_NMODL)
    set(nmodl_arguments "host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS}")
    set(mod2c_install_bin "${nmodl_BINARY}")
