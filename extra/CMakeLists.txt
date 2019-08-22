@@ -28,6 +28,11 @@ endforeach()
 
 # Additional mods
 string(REPLACE ";" " " CORENRN_OPTMODS "${CORENRN_OPTMECH_MODS}")
+foreach(MOD ${CORENRN_OPTMECH_OUTPUTS})
+    get_filename_component(OPTMECH_NAME ${MOD} NAME)
+    list(APPEND CORENRN_OPTMECH_NAMES ${OPTMECH_NAME})
+endforeach()
+string(REPLACE ";" " " CORENRN_OPTMODS_OUTPUTS "${CORENRN_OPTMECH_NAMES}")
 
 # PGI add --c++11;-A option for c++11 flag
 string(REPLACE ";" " " CXX11_STANDARD_COMPILE_OPTION "${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")

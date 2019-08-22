@@ -9,6 +9,7 @@ MECH_VERSION = 0.0
 MODS_PATH = .
 OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@
 OPTMODS = @CORENRN_OPTMODS@
+OPTMODS_OUTPUTS = @CORENRN_OPTMODS_OUTPUTS@
 DESTDIR =
 
 # Coreneuron dirs
@@ -49,10 +50,46 @@ ISPC_COMPILE = $(ISPC) $(ISPC_FLAGS) -I$(incdir) -I@nmodl_INCLUDE@
 MODC_DIR = $(OUTPUT)/core/mod2c
 OBJS_DIR = $(OUTPUT)/core/build
 mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
+mod_path_files = $(sort $(wildcard $(MODS_PATH)/*.mod))
 mod_names = $(mod_files:.mod=) $(OPTMODS:.mod=)
 modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
-mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(mod_names)))
-mod_ispc_objs = $(addprefix $(OBJS_DIR)/,$(addsuffix .obj,$(mod_names)))
+mod_objs   = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(basename $(mod_c_sources_list))))
+mod_optmods_objs = $(mod_objs) $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(basename $(filter %.cpp, $(OPTMODS_OUTPUTS)))))
+mod_ispc_objs = $(addprefix $(OBJS_DIR)/,$(addsuffix .obj,$(basename $(mod_ispc_sources_list)))) $(addprefix $(OBJS_DIR)/,$(addsuffix .obj,$(basename $(filter %.ispc, $(OPTMODS_OUTPUTS)))))
+
+# Variables used in the "ARTIFICIAL_CELL" detection
+mod_c_sources =
+mod_ispc_sources =
+mod_c_sources_list =
+mod_ispc_sources_list =
+define check_file
+	ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
+    	mod_c_sources += $(MODC_DIR)/$(notdir $(1))
+    	mod_c_sources_list += $(notdir $(1))
+    else
+    	mod_ispc_sources += $(MODC_DIR)/$(notdir $(1))
+    	mod_ispc_sources_list += $(notdir $(1))
+	endif
+endef
+
+$(foreach ittxtfile, $(mod_path_files), $(eval $(call check_file, $(ittxtfile), ARTIFICIAL_CELL)))
+
+mod_c_objects = $(patsubst %.mod,%.cpp,$(mod_c_sources))
+mod_ispc_objects = $(patsubst %.mod,%.ispc,$(mod_ispc_sources))
+mod_ispc_c_objects = $(patsubst %.mod,%.cpp,$(mod_ispc_sources))
+
+# Print files for debug
+#print_files:
+	#echo "OPTMODS: $(OPTMODS)"
+	#echo "OUTPUTMODS: $(OPTMODS_OUTPUTS)"
+	#echo "Mod C Objects: $(mod_c_objects)"
+	#echo "Mod OPTMODS OBJ: $(mod_optmods_objs)"
+#	echo "Mod ISPC Objects: $(mod_ispc_objects)"
+#	echo "Mod C files: $(modc_files)"
+#	echo "Mod C Sources List: $(mod_c_sources_list)"
+#	echo "Mod Obj: $(mod_objs)"
+#	echo "Mod ISPC Sources List: $(mod_ispc_sources_list)"
+#	echo "Mod ISPC Obj: $(mod_ispc_objs)"
 
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
@@ -85,10 +122,10 @@ $(special): $(coremech_lib)
 	  -L $(OUTPUT) -l$(coremech_libname) $(CORENRNLIB_FLAGS) -Wl,-rpath,'$(DESTDIR_RPATH)' -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
-$(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_objs) $(mod_ispc_objs) build_always
+$(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_optmods_objs) $(mod_ispc_objs) build_always
 	@printf " => $(C_GREEN)LINKING$(C_RESET) library $(coremech_lib) Mod files: $(mod_files) (+ $(OPTMODS))\n"
 	$(CXX_LINK_SHARED) -I $(incdir) -DADDITIONAL_MECHS $(datadir)/enginemech.cpp -o ${coremech_lib} ${_SONAME} \
-	  $(mod_func_o) $(dimplic_o) $(mod_objs) $(mod_ispc_objs) $(datadir)/libscopmath.a $(CORENRNLIB_FLAGS) -Wl,-rpath,$(libdir) $(LDFLAGS)
+	  $(mod_func_o) $(dimplic_o) $(mod_optmods_objs) $(mod_ispc_objs) $(datadir)/libscopmath.a $(CORENRNLIB_FLAGS) -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
 # Generic build cpp->.o Need PIC for shared lib
@@ -101,20 +138,16 @@ $(OBJS_DIR)/%.obj: $(MODC_DIR)/%.ispc | $(OBJS_DIR)
 	@printf " -> $(C_GREEN)Compiling with ISPC$(C_RESET) $<\n"
 	$(ISPC_COMPILE) @CMAKE_ISPC_COMPILE_OPTIONS_PIC@ $< -o $@
 
-# Build cpp files with mod2c/nmodl
-$(MODC_DIR)/%.cpp $(MODC_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MODC_DIR)
+# Build cpp and ispc files with mod2c/nmodl
+$(mod_ispc_objects): $(MODC_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  @mod2c_install_bin@ $< -o $(MODC_DIR)/ @nmodl_arguments@
 
-# Build cpp files with mod2c/nmodl
-$(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
-	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
-	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
-	  @mod2c_install_bin@ $< -o $(MODC_DIR)/ @nmodl_arguments@
+$(mod_ispc_c_objects): $(MODC_DIR)/%.cpp: $(MODC_DIR)/%.ispc
 
 # Build cpp files with mod2c/nmodl
-$(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
+$(mod_c_objects): $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  @mod2c_install_bin@ $< -o $(MODC_DIR)/ @nmodl_arguments@

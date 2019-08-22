@@ -211,8 +211,10 @@ macro(mod2c_from_file name modlist searchpath)
         message(WARNING "Note: halfgap.mod is found in specified mechanism search directory!")
     else()
         set(GAPMOD "${PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
-            mod2c_target(KEY ${name} MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
+        MESSAGE("BEFORE INSIDE: ${MOD2C_OPTMECH_MODS}")
+        mod2c_target(KEY ${name} MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
         list(APPEND MOD_PATHS ${GAPMOD})
+        MESSAGE("AFTER INSIDE: ${MOD2C_OPTMECH_MODS}")
         message(STATUS "Adding halfgap.mod mod file for tests!")
     endif()
 
@@ -255,9 +257,9 @@ if(EXISTS ${ADDITIONAL_MECHS})
         list(APPEND MECH_FILE_LISTS "${ADDITIONAL_MECHS}")
     endif()
 endif()
-
+MESSAGE("BEFORE: ${MOD2C_OPTMECH_MODS}")
 mod2c_from_file(OPTMECH "${ADDITIONAL_MECHS}" "${ADDITIONAL_MECHPATH}")
-
+MESSAGE("AFTER: ${MOD2C_OPTMECH_MODS}")
 # For 'non-standard' mod files, need to generate registering function in mod_func.c
 
 set(MOD_FUNC_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func.cpp")
@@ -402,7 +404,7 @@ set(CORENRN_LINK_LIBS "${CORENRN_LINK_LIBS}" PARENT_SCOPE)
 
 # Share built-in OPTIONAL MODS also with rest of project
 set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
-
+set(CORENRN_OPTMECH_OUTPUTS "${MOD2C_OPTMECH_OUTPUTS}" PARENT_SCOPE)
 
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
