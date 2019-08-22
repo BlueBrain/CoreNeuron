@@ -113,7 +113,7 @@ macro(mod2c_target)
         unset(mod2c_wrapper_outname_)
     endif()
     list(APPEND MOD2C_${mod2c_KEY}_MODS "${mod2c_modname_}")
-    if(${NMODL_FOUND})
+    if(${NMODL_FOUND} AND ${ENABLE_NMODL})
         add_custom_command(OUTPUT "${mod2c_output_}" "${mod2c_wrapper_output_}"
                 DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
                 COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
