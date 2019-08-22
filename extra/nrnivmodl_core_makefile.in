@@ -63,13 +63,18 @@ mod_ispc_sources =
 mod_c_sources_list =
 mod_ispc_sources_list =
 define check_file
-	ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
-    	mod_c_sources += $(MODC_DIR)/$(notdir $(1))
-    	mod_c_sources_list += $(notdir $(1))
-    else
-    	mod_ispc_sources += $(MODC_DIR)/$(notdir $(1))
-    	mod_ispc_sources_list += $(notdir $(1))
-	endif
+	ifeq (@ENABLE_ISPC_TARGET@, ON)
+		ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
+    		mod_c_sources += $(MODC_DIR)/$(notdir $(1))
+    		mod_c_sources_list += $(notdir $(1))
+    	else
+    		mod_ispc_sources += $(MODC_DIR)/$(notdir $(1))
+    		mod_ispc_sources_list += $(notdir $(1))
+		endif
+	else
+		mod_c_sources += $(MODC_DIR)/$(notdir $(1))
+        mod_c_sources_list += $(notdir $(1))
+    endif
 endef
 
 $(foreach ittxtfile, $(mod_path_files), $(eval $(call check_file, $(ittxtfile), ARTIFICIAL_CELL)))
@@ -80,16 +85,16 @@ mod_ispc_c_objects = $(patsubst %.mod,%.cpp,$(mod_ispc_sources))
 
 # Print files for debug
 #print_files:
-	#echo "OPTMODS: $(OPTMODS)"
-	#echo "OUTPUTMODS: $(OPTMODS_OUTPUTS)"
-	#echo "Mod C Objects: $(mod_c_objects)"
-	#echo "Mod OPTMODS OBJ: $(mod_optmods_objs)"
-#	echo "Mod ISPC Objects: $(mod_ispc_objects)"
-#	echo "Mod C files: $(modc_files)"
-#	echo "Mod C Sources List: $(mod_c_sources_list)"
-#	echo "Mod Obj: $(mod_objs)"
-#	echo "Mod ISPC Sources List: $(mod_ispc_sources_list)"
-#	echo "Mod ISPC Obj: $(mod_ispc_objs)"
+#	@echo "OPTMODS: $(OPTMODS)"
+#	@echo "OUTPUTMODS: $(OPTMODS_OUTPUTS)"
+#	@echo "Mod C Objects: $(mod_c_objects)"
+#	@echo "Mod OPTMODS OBJ: $(mod_optmods_objs)"
+#	@echo "Mod ISPC Objects: $(mod_ispc_objects)"
+#	@echo "Mod C files: $(modc_files)"
+#	@echo "Mod C Sources List: $(mod_c_sources_list)"
+#	@echo "Mod Obj: $(mod_objs)"
+#	@echo "Mod ISPC Sources List: $(mod_ispc_sources_list)"
+#	@echo "Mod ISPC Obj: $(mod_ispc_objs)"
 
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
