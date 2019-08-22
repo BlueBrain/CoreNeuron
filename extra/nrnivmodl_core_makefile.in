@@ -83,19 +83,6 @@ mod_c_objects = $(patsubst %.mod,%.cpp,$(mod_c_sources))
 mod_ispc_objects = $(patsubst %.mod,%.ispc,$(mod_ispc_sources))
 mod_ispc_c_objects = $(patsubst %.mod,%.cpp,$(mod_ispc_sources))
 
-# Print files for debug
-#print_files:
-#	@echo "OPTMODS: $(OPTMODS)"
-#	@echo "OUTPUTMODS: $(OPTMODS_OUTPUTS)"
-#	@echo "Mod C Objects: $(mod_c_objects)"
-#	@echo "Mod OPTMODS OBJ: $(mod_optmods_objs)"
-#	@echo "Mod ISPC Objects: $(mod_ispc_objects)"
-#	@echo "Mod C files: $(modc_files)"
-#	@echo "Mod C Sources List: $(mod_c_sources_list)"
-#	@echo "Mod Obj: $(mod_objs)"
-#	@echo "Mod ISPC Sources List: $(mod_ispc_sources_list)"
-#	@echo "Mod ISPC Obj: $(mod_ispc_objs)"
-
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
 mod_func_c = $(MODC_DIR)/_mod_func.cpp
