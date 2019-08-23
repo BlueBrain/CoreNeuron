@@ -1,7 +1,5 @@
 set(nmodl_makefile "nrnivmodl_core_makefile")
 set(nmodl_compile_scipt "nrnivmodl-core")
-set(nmodl_arguments "")
-set(mod2c_install_bin "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/mod2c_core")
 
 get_directory_property(CORENRN_COMPILE_FLAGS COMPILE_DEFINITIONS)
 
@@ -28,11 +26,7 @@ endforeach()
 
 # Additional mods
 string(REPLACE ";" " " CORENRN_OPTMODS "${CORENRN_OPTMECH_MODS}")
-foreach(MOD ${CORENRN_OPTMECH_OUTPUTS})
-    get_filename_component(OPTMECH_NAME ${MOD} NAME)
-    list(APPEND CORENRN_OPTMECH_NAMES ${OPTMECH_NAME})
-endforeach()
-string(REPLACE ";" " " CORENRN_OPTMODS_OUTPUTS "${CORENRN_OPTMECH_NAMES}")
+string(REPLACE ";" " " CORENRN_OPTMODS_OUTPUTS "${CORENRN_OPTMECH_OUTPUTS}")
 
 # PGI add --c++11;-A option for c++11 flag
 string(REPLACE ";" " " CXX11_STANDARD_COMPILE_OPTION "${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
@@ -48,15 +42,14 @@ set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message("CXX Compile Flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
-if(ENABLE_ISPC_TARGET)
-    set(nmodl_modearg "--ispc")
-else ()
-    set(nmodl_modearg "--c")
-endif ()
-
 if(ENABLE_NMODL)
-   set(nmodl_arguments "host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS}")
-   set(mod2c_install_bin "${nmodl_BINARY}")
+    set(nmodl_arguments_c "host --c ${NMODL_EXTRA_FLAGS}")
+    set(nmodl_arguments_ispc "host --ispc ${NMODL_EXTRA_FLAGS}")
+    set(mod2c_install_bin "${nmodl_BINARY}")
+else ()
+    set(nmodl_arguments_c "")
+    set(nmodl_arguments_ispc "")
+    set(mod2c_install_bin "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/mod2c_core")
 endif ()
 
 configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
