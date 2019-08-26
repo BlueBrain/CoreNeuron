@@ -57,14 +57,14 @@ mod_ispc_srcs_names =
 define check_file
 	ifeq (@ENABLE_ISPC_TARGET@, ON)
 		ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
-			mod_c_srcs_path+= $(MODC_DIR)/$(notdir $(1))
+			mod_c_srcs_path += $(MODC_DIR)/$(notdir $(1))
 			mod_c_srcs_names += $(notdir $(1))
 		else
-			mod_ispc_srcs_path+= $(MODC_DIR)/$(notdir $(1))
+			mod_ispc_srcs_path += $(MODC_DIR)/$(notdir $(1))
 			mod_ispc_srcs_names += $(notdir $(1))
 		endif
 	else
-		mod_c_srcs_path+= $(MODC_DIR)/$(notdir $(1))
+		mod_c_srcs_path += $(MODC_DIR)/$(notdir $(1))
 		mod_c_srcs_names += $(notdir $(1))
 	endif
 endef
@@ -75,15 +75,15 @@ OBJS_DIR = $(OUTPUT)/core/build
 mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
 mod_paths = $(sort $(wildcard $(MODS_PATH)/*.mod))
 mod_names = $(mod_files:.mod=) $(OPTMODS:.mod=)
-modc_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
+mod_all_cpp_files = $(addprefix $(MODC_DIR)/,$(addsuffix .cpp,$(mod_names)))
 mod_c_objs = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(basename $(mod_c_srcs_names)))) $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(basename $(filter %.cpp, $(OPTMODS_OUTPUTS)))))
 mod_ispc_objs = $(addprefix $(OBJS_DIR)/,$(addsuffix .obj,$(basename $(mod_ispc_srcs_names)))) $(addprefix $(OBJS_DIR)/,$(addsuffix .obj,$(basename $(filter %.ispc, $(OPTMODS_OUTPUTS)))))
 
 $(foreach ittxtfile, $(mod_paths), $(eval $(call check_file, $(ittxtfile), ARTIFICIAL_CELL)))
 
-mod_c_objects = $(patsubst %.mod,%.cpp,$(mod_c_srcs_path))
-mod_ispc_objects = $(patsubst %.mod,%.ispc,$(mod_ispc_srcs_path))
-mod_ispc_c_objects = $(patsubst %.mod,%.cpp,$(mod_ispc_srcs_path))
+mod_c_files = $(patsubst %.mod,%.cpp,$(mod_c_srcs_path))
+mod_ispc_files = $(patsubst %.mod,%.ispc,$(mod_ispc_srcs_path))
+mod_ispc_c_files = $(patsubst %.mod,%.cpp,$(mod_ispc_srcs_path))
 
 kinderiv_h = $(MODC_DIR)/_kinderiv.h
 mod_func_o = $(OBJS_DIR)/_mod_func.o
@@ -133,16 +133,16 @@ $(OBJS_DIR)/%.obj: $(MODC_DIR)/%.ispc | $(OBJS_DIR)
 	$(ISPC_COMPILE) @CMAKE_ISPC_COMPILE_OPTIONS_PIC@ $< -o $@
 
 # Build ispc files with mod2c/nmodl
-$(mod_ispc_objects): $(MODC_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MODC_DIR)
+$(mod_ispc_files): $(MODC_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  $(mod2c_install_bin) $< -o $(MODC_DIR)/ @nmodl_arguments_ispc@
 
-# Here magic happens. Don't remove.
-$(mod_ispc_c_objects): $(MODC_DIR)/%.cpp: $(MODC_DIR)/%.ispc
+# Static pattern to set up the dependencies for the previous recipe.
+$(mod_ispc_c_files): $(MODC_DIR)/%.cpp: $(MODC_DIR)/%.ispc
 
 # Build cpp files with mod2c/nmodl
-$(mod_c_objects): $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
+$(mod_c_files): $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
 	  $(mod2c_install_bin) $< -o $(MODC_DIR)/ @nmodl_arguments_c@
@@ -163,10 +163,10 @@ $(mod_func_c): build_always | $(MODC_DIR)
 
 # Header to avoid function callbacks using function pointers
 # Move all mods to temp and bring back only those required
-$(kinderiv_h): $(modc_files) build_always | $(MODC_DIR)
+$(kinderiv_h): $(mod_all_cpp_files) build_always | $(MODC_DIR)
 	@printf " -> $(C_GREEN)Generating$(C_RESET) $(kinderiv_h)\n"
 	cd $(MODC_DIR) && mkdir -p _tmp &&	mv [^_]*.cpp _tmp/ && \
-	  mv $(addprefix _tmp/,$(notdir $(modc_files))) ./ || true
+	  mv $(addprefix _tmp/,$(notdir $(mod_all_cpp_files))) ./ || true
 	rm -rf $(MODC_DIR)/_tmp
 	cd $(MODC_DIR) && python $(datadir)/kinderiv.py
 
