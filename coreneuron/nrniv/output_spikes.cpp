@@ -26,7 +26,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string.h>
 #include <stdexcept>  // std::lenght_error
@@ -144,6 +147,12 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
     local_spikevec_sort(svt_buf, svg_buf, spikevec_time, spikevec_gid);
 }
 
+unsigned join(char* spike_entry, char* spike_data, unsigned spike_data_ptr) {
+    memcpy(spike_data + spike_data_ptr, spike_entry, strlen(spike_entry));
+    spike_data_ptr += strlen(spike_entry);
+    return spike_data_ptr;
+}
+
 /** Write generated spikes to out.dat using mpi parallel i/o.
  *  \todo : MPI related code should be factored into nrnmpi.c
  *          Check spike record length which is set to 64 chars
@@ -157,6 +166,17 @@ void output_spikes_parallel(const char* outpath) {
     if (nrnmpi_myid == 0) {
         remove(fname.c_str());
     }
+
+    std::stringstream my_spikes_name, my_time_name;
+    my_spikes_name << "spikes_" << nrnmpi_myid << ".bin";
+    my_time_name << "time_" << nrnmpi_myid << ".bin";
+    FILE *time_bin, *spike_bin;
+    time_bin = fopen(my_time_name.str().c_str(), "w");
+    spike_bin = fopen(my_spikes_name.str().c_str(), "w");
+    fwrite(spikevec_time.data(), sizeof(double), spikevec_gid.size(), time_bin);
+    fwrite(spikevec_gid.data(), sizeof(int), spikevec_gid.size(), spike_bin);
+    fclose(time_bin);
+    fclose(spike_bin);
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 
@@ -176,9 +196,13 @@ void output_spikes_parallel(const char* outpath) {
 
     // populate buffer with all spike entries
     char spike_entry[SPIKE_RECORD_LEN];
+    //unsigned spike_data_ptr = 0;
+    //spike_data[spike_data_ptr] = '\0';
+
     for (unsigned i = 0; i < num_spikes; i++) {
         snprintf(spike_entry, 64, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
         strcat(spike_data, spike_entry);
+        //spike_data_ptr = join(spike_entry, spike_data, spike_data_ptr);
     }
 
     // calculate offset into global file. note that we don't write
@@ -248,6 +272,17 @@ void output_spikes(const char* outpath) {
 #else
     output_spikes_serial(outpath);
 #endif
+}
+
+void clear_spike_vectors() {
+    spikevec_lock();
+    auto spikevec_time_capacity = spikevec_time.capacity();
+    auto spikevec_gid_capacity = spikevec_gid.capacity();
+    spikevec_time.clear();
+    spikevec_gid.clear();
+    spikevec_time.reserve(spikevec_time_capacity);
+    spikevec_gid.reserve(spikevec_gid_capacity);
+    spikevec_unlock();
 }
 
 void validation(std::vector<std::pair<double, int> >& res) {

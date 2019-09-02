@@ -355,6 +355,8 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
     dt = savedt;
     t = savet;
     dt2thread(-1.);
+
+    clear_spike_vectors();
 }
 
 const char* nrn_version(int) {

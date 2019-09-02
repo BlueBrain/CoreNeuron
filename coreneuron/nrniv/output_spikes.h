@@ -38,6 +38,7 @@ void mk_spikevec_buffer(int);
 extern std::vector<double> spikevec_time;
 extern std::vector<int> spikevec_gid;
 
+void clear_spike_vectors();
 void validation(std::vector<std::pair<double, int> >& res);
 
 void spikevec_lock();
