@@ -356,6 +356,7 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
     t = savet;
     dt2thread(-1.);
 
+    // clear spikes generated during forward skip (with negative time) 
     clear_spike_vectors();
 }
 
