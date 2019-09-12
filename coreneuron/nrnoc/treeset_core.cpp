@@ -67,6 +67,13 @@ static void nrn_rhs(NrnThread* _nt) {
         vec_d[i] = 0.;
     }
 
+    if (_nt->_nrn_fast_imem) {
+        for (i = i1; i < i3; ++i) {
+            _nt->_nrn_fast_imem->_nrn_sav_rhs[i] = 0.;
+            _nt->_nrn_fast_imem->_nrn_sav_d[i] = 0.;
+        }
+    }
+
     nrn_ba(_nt, BEFORE_BREAKPOINT);
     /* note that CAP has no current */
     for (tml = _nt->tml; tml; tml = tml->next)
@@ -82,7 +89,15 @@ static void nrn_rhs(NrnThread* _nt) {
             }
 #endif
         }
-
+    if (_nt->_nrn_fast_imem) {
+        /* _nrn_save_rhs has only the contribution of electrode current
+           so here we transform so it only has membrane current contribution
+        */
+        double* p = _nt->_nrn_fast_imem->_nrn_sav_rhs;
+        for (i = i1; i < i3; ++i) {
+            p[i] -= vec_rhs[i];
+        }
+    }
 /* now the internal axial currents.
 The extracellular mechanism contribution is already done.
         rhs += ai_j*(vi_j - vi)
@@ -150,6 +165,17 @@ static void nrn_lhs(NrnThread* _nt) {
     double* vec_a = &(VEC_A(0));
     double* vec_b = &(VEC_B(0));
     int* parent_index = _nt->_v_parent_index;
+
+
+    if (_nt->_nrn_fast_imem) {
+        /* _nrn_save_d has only the contribution of electrode current
+           so here we transform so it only has membrane current contribution
+        */
+        double* p = _nt->_nrn_fast_imem->_nrn_sav_d;
+        for (i = i1; i < i3; ++i) {
+            p[i] += vec_d[i];
+        }
+    }
 
 /* now add the axial currents */
 // clang-format off

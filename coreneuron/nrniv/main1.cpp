@@ -416,6 +416,13 @@ static void trajectory_return() {
     }
 }
 
+bool nrn_use_fast_imem;
+extern void nrn_fast_imem_alloc();
+static void use_fast_imem() {
+    nrn_use_fast_imem = true;
+    nrn_fast_imem_alloc();
+}
+
 }  // namespace coreneuron
 
 /// The following high-level functions are marked as "extern C"
@@ -499,6 +506,10 @@ extern "C" int run_solve_core(int argc, char** argv) {
             // specify that returns will be on a per time step basis.
             get_nrn_trajectory_requests(int(tstop / dt) + 2);
             (*nrn2core_part2_clean_)();
+        }
+
+        if (nrnopt_get_flag("--fast_imem")) {
+            use_fast_imem();
         }
 
         // TODO : if some ranks are empty then restore will go in deadlock

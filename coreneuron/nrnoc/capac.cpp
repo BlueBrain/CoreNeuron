@@ -206,6 +206,13 @@ void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int type) {
         VEC_RHS(ni[_iml]) /= 1.e-3 * cm;
         // fprintf(stderr, "== nrn_div_cap: RHS[%d]=%.12f\n", ni[_iml], VEC_RHS(ni[_iml])) ;
     }
+    /*if (_nt->_nrn_fast_imem) {
+        Node **vnode = ml->nodelist;
+        double* p = _nt->_nrn_fast_imem->_nrn_sav_rhs;
+        for (int i=0; i <_cntml_actual; ++i) {
+            p[vnode[i]->v_node_index] += i_cap;
+        }
+    }*/
 }
 
 void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int type) {

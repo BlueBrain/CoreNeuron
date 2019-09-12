@@ -98,6 +98,7 @@ static param_flag param_flag_args[] = {
     {"--multisend", "Use Multisend spike exchange instead of Allgather."},
     {"--binqueue", "Use bin queue."},
     {"--skip-mpi-finalize", "Do not call mpi finalize."},
+    {"--fast_imem", "Use fast_i_membrane."},
     {NULL, NULL}};
 
 static param_str param_str_args[] = {
