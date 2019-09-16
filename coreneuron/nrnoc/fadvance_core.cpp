@@ -30,6 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
+#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrn_acc_manager.h"
 #include "coreneuron/utils/reports/nrnreport.h"
@@ -155,31 +156,7 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth) {
     return (void*)0;
 }
 
-void nrn_calc_fast_imem(NrnThread* _nt) {
-    int i;
-    int i1 = 0;
-    int i3 = _nt->end;
 
-    double* vec_rhs = &(VEC_RHS(0));
-    double* vec_area = &(VEC_AREA(0));
-
-    double* pd = _nt->_nrn_fast_imem->_nrn_sav_d;
-    double* prhs = _nt->_nrn_fast_imem->_nrn_sav_rhs;
-    FILE *fp_rhs, *fp_d;
-    fp_rhs = fopen("rhs.CORENEURON", "a");
-    fp_d = fopen("d.CORENEURON", "a");
-    fprintf(fp_rhs, "%.8e time\n", _nt->_t);
-    fprintf(fp_rhs, "%.8e time\n", _nt->_t);
-    for (i = i1; i < i3 ; ++i) {
-        prhs[i] = (pd[i]*vec_rhs[i] + prhs[i])*vec_area[i]*0.01;
-        fprintf(fp_rhs, "%.8e, ", prhs[i]);
-    }
-    fprintf(fp_rhs, "\n");
-    for (i = i1; i < i3 ; ++i) {
-        fprintf(fp_d, "%.8e, ", pd[i]);
-    }
-    fprintf(fp_d, "\n");
-}
 
 void update(NrnThread* _nt) {
     int i, i1, i2;

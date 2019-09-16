@@ -59,11 +59,6 @@ struct NrnThreadBAList {
     NrnThreadBAList* next;
 };
 
-typedef struct _nrn_Fast_Imem {
-    double* _nrn_sav_rhs;
-    double* _nrn_sav_d;
-} _nrn_Fast_Imem;
-
 struct TrajectoryRequests {
     void** vpr;       /* PlayRecord Objects known by NEURON */
     double** scatter; /* if bsize == 0, each time step */
@@ -122,7 +117,9 @@ struct NrnThread {
     double* _shadow_d;    /* Not pointer into _data. Avoid race for multiple POINT_PROCESS in same
                              compartment */
 
-    _nrn_Fast_Imem* _nrn_fast_imem;
+    /* Fast membrane current calculation arrays */
+    double* _nrn_fast_imem_sav_rhs; /* Save equation right hand side array */
+    double* _nrn_fast_imem_sav_d;   /* Save diagonal array */
 
     int* _v_parent_index;
     int* _permute;

@@ -37,6 +37,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
@@ -416,12 +417,6 @@ static void trajectory_return() {
     }
 }
 
-bool nrn_use_fast_imem;
-extern void nrn_fast_imem_alloc();
-static void use_fast_imem() {
-    nrn_use_fast_imem = true;
-    nrn_fast_imem_alloc();
-}
 
 }  // namespace coreneuron
 
@@ -509,6 +504,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
 
         if (nrnopt_get_flag("--fast_imem")) {
+            std::cout << "USING FAST I MEM" << std::endl;
             use_fast_imem();
         }
 

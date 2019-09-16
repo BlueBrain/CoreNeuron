@@ -27,6 +27,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/profiler_interface.h"
@@ -34,7 +35,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 
 extern bool nrn_use_fast_imem;
-extern void nrn_calc_fast_imem(NrnThread* _nt);
 
 void nrn_finitialize(int setv, double v) {
     int i;
