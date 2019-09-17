@@ -503,11 +503,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
             (*nrn2core_part2_clean_)();
         }
 
-        if (nrnopt_get_flag("--fast_imem")) {
-            std::cout << "USING FAST I MEM" << std::endl;
-            use_fast_imem();
-        }
-
         // TODO : if some ranks are empty then restore will go in deadlock
         // phase (as some ranks won't have restored anything and hence return
         // false in checkpoint_initialize

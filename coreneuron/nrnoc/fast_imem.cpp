@@ -26,7 +26,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/nrniv/memory.h"
+#include "coreneuron/nrnmpi/nrnmpi.h"
 
 namespace coreneuron {
 
@@ -35,30 +38,25 @@ extern NrnThread *nrn_threads;
 bool nrn_use_fast_imem;
 static int fast_imem_nthread_ = 0;
 static int *fast_imem_size_ = nullptr;
-static double **_nrn_Fast_Imem_rhs = nullptr;
-static double **_nrn_Fast_Imem_d = nullptr;
+static NrnFastImem* fast_imem_;
 
 static void fast_imem_free() {
     int i;
     for (i = 0; i < nrn_nthread; ++i) {
-        nrn_threads[i]._nrn_fast_imem_sav_rhs = nullptr;
-        nrn_threads[i]._nrn_fast_imem_sav_d = nullptr;
+        nrn_threads[i].nrn_fast_imem = NULL;
     }
-
     for (i = 0; i < fast_imem_nthread_; ++i) {
         if (fast_imem_size_[i] > 0) {
-            free(_nrn_Fast_Imem_rhs[i]);
-            free(_nrn_Fast_Imem_d[i]);
+            free(fast_imem_[i].nrn_sav_rhs);
+            free(fast_imem_[i].nrn_sav_d);
         }
     }
     if (fast_imem_nthread_) {
         free(fast_imem_size_);
-        free(_nrn_Fast_Imem_rhs);
-        free(_nrn_Fast_Imem_d);
+        free(fast_imem_);
         fast_imem_nthread_ = 0;
         fast_imem_size_ = nullptr;
-        _nrn_Fast_Imem_rhs = nullptr;
-        _nrn_Fast_Imem_rhs = nullptr;
+        fast_imem_ = nullptr;
     }
 }
 
@@ -72,23 +70,21 @@ static void fast_imem_alloc() {
     if (fast_imem_nthread_ != nrn_nthread) {
         fast_imem_free();
         fast_imem_nthread_ = nrn_nthread;
-        fast_imem_size_ = (int *) ecalloc(nrn_nthread, sizeof(int));
-        _nrn_Fast_Imem_rhs = (double **) ecalloc(nrn_nthread, sizeof(double));
-        _nrn_Fast_Imem_d = (double **) ecalloc(nrn_nthread, sizeof(double *));
+        fast_imem_size_ = (int*)ecalloc(nrn_nthread, sizeof(int));
+        fast_imem_ = (NrnFastImem*)ecalloc(nrn_nthread, sizeof(NrnFastImem));
     }
-    double **fi_rhs = &_nrn_Fast_Imem_rhs[i];
-    double **fi_d = &_nrn_Fast_Imem_d[i];
-    for (i = 0; i < nrn_nthread; ++i) {
-        NrnThread *nt = nrn_threads + i;
+    for (i=0; i < nrn_nthread; ++i) {
+        NrnThread* nt = nrn_threads + i;
         int n = nt->end;
+        NrnFastImem* fi = fast_imem_ + i;
         if (n != fast_imem_size_[i]) {
             if (fast_imem_size_[i] > 0) {
-                free(*fi_rhs);
-                free(*fi_d);
+                free(fi->nrn_sav_rhs);
+                free(fi->nrn_sav_d);
             }
             if (n > 0) {
-                *fi_rhs = (double *) emalloc_align(n * sizeof(double));
-                *fi_d = (double *) emalloc_align(n * sizeof(double));
+                fi->nrn_sav_rhs = (double*)emalloc_align(n * sizeof(double));
+                fi->nrn_sav_d = (double*)emalloc_align(n * sizeof(double));
             }
             fast_imem_size_[i] = n;
         }
@@ -99,11 +95,10 @@ void nrn_fast_imem_alloc() {
     if (nrn_use_fast_imem) {
         int i;
         fast_imem_alloc();
-        for (i = 0; i < nrn_nthread; ++i) {
-            nrn_threads[i]._nrn_fast_imem_sav_rhs = _nrn_Fast_Imem_rhs[i];
-            nrn_threads[i]._nrn_fast_imem_sav_d = _nrn_Fast_Imem_d[i];
+        for (i=0; i < nrn_nthread; ++i) {
+            nrn_threads[i].nrn_fast_imem = fast_imem_ + i;
         }
-    } else {
+    }else{
         fast_imem_free();
     }
 }
@@ -121,8 +116,8 @@ void nrn_calc_fast_imem(NrnThread* _nt) {
     double* vec_rhs = &(VEC_RHS(0));
     double* vec_area = &(VEC_AREA(0));
 
-    double* pd = _nt->_nrn_fast_imem_sav_d;
-    double* prhs = _nt->_nrn_fast_imem_sav_rhs;
+    double* pd = _nt->nrn_fast_imem->nrn_sav_d;
+    double* prhs = _nt->nrn_fast_imem->nrn_sav_rhs;
     FILE *fp_rhs, *fp_d;
     char rhs_filename[20], d_filename[20];
     sprintf(rhs_filename,"rhs.CORENEURON.%d",nrnmpi_myid);

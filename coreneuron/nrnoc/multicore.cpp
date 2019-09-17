@@ -138,8 +138,7 @@ void nrn_threads_create(int n) {
                 nt->mapping = NULL;
                 nt->trajec_requests = NULL;
 
-                nt->_nrn_fast_imem_sav_rhs = nullptr;
-                nt->_nrn_fast_imem_sav_d = nullptr;
+                nt->nrn_fast_imem = nullptr;
             }
         }
         v_structure_change = 1;

@@ -28,6 +28,7 @@
 
 #include "coreneuron/nrniv/nrn_assert.h"
 #include "coreneuron/utils/reports/nrnreport.h"
+#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/mech_mapping.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,6 +100,10 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
         } else {
             std::cerr << "Report error: unsupported type " << report.type_str << "\n";
             abort();
+        }
+
+        if (strcmp(report_on, "i_membrane_")) {
+            use_fast_imem();
         }
 
         if (report.type == SynapseReport)
