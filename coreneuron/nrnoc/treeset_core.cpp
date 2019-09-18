@@ -89,6 +89,7 @@ static void nrn_rhs(NrnThread* _nt) {
             }
 #endif
         }
+    
     if (_nt->nrn_fast_imem) {
         /* _nrn_save_rhs has only the contribution of electrode current
            so here we transform so it only has membrane current contribution
@@ -98,6 +99,7 @@ static void nrn_rhs(NrnThread* _nt) {
             p[i] -= vec_rhs[i];
         }
     }
+
 /* now the internal axial currents.
 The extracellular mechanism contribution is already done.
         rhs += ai_j*(vi_j - vi)
@@ -165,7 +167,6 @@ static void nrn_lhs(NrnThread* _nt) {
     double* vec_a = &(VEC_A(0));
     double* vec_b = &(VEC_B(0));
     int* parent_index = _nt->_v_parent_index;
-
 
     if (_nt->nrn_fast_imem) {
         /* _nrn_save_d has only the contribution of electrode current

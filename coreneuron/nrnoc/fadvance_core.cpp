@@ -156,8 +156,6 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth) {
     return (void*)0;
 }
 
-
-
 void update(NrnThread* _nt) {
     int i, i1, i2;
     i1 = 0;
@@ -195,7 +193,9 @@ void update(NrnThread* _nt) {
         assert(_nt->tml->index == CAP);
         nrn_cur_capacitance(_nt, _nt->tml->ml, _nt->tml->index);
     }
-    if (nrn_use_fast_imem) { nrn_calc_fast_imem(_nt); }
+    if (nrn_use_fast_imem) { 
+        nrn_calc_fast_imem(_nt);
+    }
 }
 
 void nonvint(NrnThread* _nt) {

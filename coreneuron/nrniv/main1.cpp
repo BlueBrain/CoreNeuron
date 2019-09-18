@@ -37,7 +37,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrnmpi/nrnmpi.h"
@@ -416,7 +415,6 @@ static void trajectory_return() {
         }
     }
 }
-
 
 }  // namespace coreneuron
 
