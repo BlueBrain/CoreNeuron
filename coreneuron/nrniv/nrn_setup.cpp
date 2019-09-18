@@ -34,6 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/vrecitem.h"
 #include "coreneuron/nrniv/multisend.h"
@@ -794,6 +795,9 @@ void nrn_setup(const char* filesdat,
 #if INTERLEAVE_DEBUG
     mk_cell_indices();
 #endif
+
+    /// Allocate memory for fast_imem calculation
+    nrn_fast_imem_alloc();
 
     /// Generally, tables depend on a few parameters. And if those parameters change,
     /// then the table needs to be recomputed. This is obviously important in NEURON
