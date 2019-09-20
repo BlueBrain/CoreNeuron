@@ -40,72 +40,27 @@ static int fast_imem_nthread_ = 0;
 static int *fast_imem_size_ = nullptr;
 static NrnFastImem* fast_imem_;
 
-static void fast_imem_free() {
-    int i;
-    for (i = 0; i < nrn_nthread; ++i) {
-        nrn_threads[i].nrn_fast_imem = NULL;
-    }
-    for (i = 0; i < fast_imem_nthread_; ++i) {
-        if (fast_imem_size_[i] > 0) {
-            free(fast_imem_[i].nrn_sav_rhs);
-            free(fast_imem_[i].nrn_sav_d);
-        }
-    }
-    if (fast_imem_nthread_) {
-        free(fast_imem_size_);
-        free(fast_imem_);
-        fast_imem_nthread_ = 0;
-        fast_imem_size_ = nullptr;
-        fast_imem_ = nullptr;
-    }
-}
-
-/*
-Avoid invalidating pointers to i_membrane_ unless the number of compartments
-in a thread has changed.
-*/
-
-static void fast_imem_alloc() {
-    int i;
-    if (fast_imem_nthread_ != nrn_nthread) {
-        fast_imem_free();
-        fast_imem_nthread_ = nrn_nthread;
-        fast_imem_size_ = (int*)ecalloc(nrn_nthread, sizeof(int));
-        fast_imem_ = (NrnFastImem*)ecalloc(nrn_nthread, sizeof(NrnFastImem));
-    }
-    for (i=0; i < nrn_nthread; ++i) {
-        NrnThread* nt = nrn_threads + i;
-        int n = nt->end;
-        NrnFastImem* fi = fast_imem_ + i;
-        if (n != fast_imem_size_[i]) {
-            if (fast_imem_size_[i] > 0) {
-                free(fi->nrn_sav_rhs);
-                free(fi->nrn_sav_d);
-            }
-            if (n > 0) {
-                fi->nrn_sav_rhs = (double*)emalloc_align(n * sizeof(double));
-                fi->nrn_sav_d = (double*)emalloc_align(n * sizeof(double));
-            }
-            fast_imem_size_[i] = n;
+void fast_imem_free() {
+    for (int i = 0; i < nrn_nthread; ++i) {
+        if (nrn_threads[i].nrn_fast_imem) {
+            free(nrn_threads[i].nrn_fast_imem->nrn_sav_rhs);
+            free(nrn_threads[i].nrn_fast_imem->nrn_sav_d);
+            free(nrn_threads[i].nrn_fast_imem);
+            nrn_threads[i].nrn_fast_imem = nullptr;
         }
     }
 }
 
 void nrn_fast_imem_alloc() {
     if (nrn_use_fast_imem) {
-        int i;
-        fast_imem_alloc();
-        for (i=0; i < nrn_nthread; ++i) {
-            nrn_threads[i].nrn_fast_imem = fast_imem_ + i;
-        }
-    }else{
         fast_imem_free();
+        for (int i=0; i < nrn_nthread; ++i) {
+            int n = nrn_threads[i].end;
+            nrn_threads[i].nrn_fast_imem = (NrnFastImem*)ecalloc(1, sizeof(NrnFastImem));
+            nrn_threads[i].nrn_fast_imem->nrn_sav_rhs = (double*)emalloc_align(n * sizeof(double));
+            nrn_threads[i].nrn_fast_imem->nrn_sav_d = (double*)emalloc_align(n * sizeof(double));
+        }
     }
-}
-
-void use_fast_imem() {
-    nrn_use_fast_imem = true;
-    nrn_fast_imem_alloc();
 }
 
 void nrn_calc_fast_imem(NrnThread* _nt) {

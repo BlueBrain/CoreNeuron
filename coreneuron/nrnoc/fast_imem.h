@@ -33,16 +33,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace coreneuron {
 
-/* Enables fast membrane curent culculation and allocates required
- * memory.
- * Found in src/nrncvode/cvodeobj.cpp in NEURON.
+/* Bool global variable to define if the fast_imem
+ * calculations should be enabled.
  */
-void use_fast_imem();
+extern bool nrn_use_fast_imem;
 
 /* Free memory allocated for the fast current membrane calculation.
  * Found in src/nrnoc/multicore.c in NEURON.
  */
-static void fast_imem_free();
+void fast_imem_free();
 
 /* Allocate memory for the rhs and d arrays needed for the fast
  * current membrane calculation.

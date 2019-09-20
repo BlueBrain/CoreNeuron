@@ -40,8 +40,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace coreneuron {
 
-extern bool nrn_use_fast_imem;
-
 static void* nrn_fixed_step_thread(NrnThread*);
 static void* nrn_fixed_step_group_thread(NrnThread*);
 

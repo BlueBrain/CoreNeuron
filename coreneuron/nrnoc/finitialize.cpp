@@ -34,8 +34,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace coreneuron {
 
-extern bool nrn_use_fast_imem;
-
 void nrn_finitialize(int setv, double v) {
     int i;
     NrnThread* _nt;
