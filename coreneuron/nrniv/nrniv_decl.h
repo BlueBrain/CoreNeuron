@@ -37,7 +37,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 
 /// Mechanism type to be used from stdindex2ptr and nrn_dblpntr2nrncore (in Neuron)
-enum mech_type {voltage = -1, i_membrane = -2};
+enum mech_type {voltage = -1, i_membrane_ = -2};
 
 extern int cvode_active_;
 /// Vector of maps for negative presyns
