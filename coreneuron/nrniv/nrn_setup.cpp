@@ -918,6 +918,9 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
     return 0;
 }
 
+// This function is related to nrn_dblpntr2nrncore in Neuron to determine which values should
+// be transferred from CoreNeuron. Types correspond to the value to be transferred based on
+// mech_type enum or non-artificial cell mechanisms.
 // take into account alignment, layout, permutation
 // only voltage, i_membrane_ or mechanism data index allowed. (mtype 0 means time)
 double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
@@ -929,9 +932,9 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
             node_permute(&ix, 1, nt._permute);
         }
         return nt._data + (v0 + ix);                // relative to nt._data
-    } else if (mtype == i_membrane_) {  // membrane current from fast_imem calculation
+    } else if (mtype == i_membrane_) {              // membrane current from fast_imem calculation
             int i_mem = nt.nrn_fast_imem->nrn_sav_rhs - nt._data;
-            int ix = index;  // relative to _actual_v
+            int ix = index;  // relative to nrn_fast_imem->nrn_sav_rhs
             nrn_assert((ix >= 0) && (ix < nt.end));
             if (nt._permute) {
                 node_permute(&ix, 1, nt._permute);
