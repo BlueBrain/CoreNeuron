@@ -88,7 +88,6 @@ class ReportEvent : public DiscreteEvent {
 #pragma omp critical
         {
             // each thread needs to know its own step
-            printf("Real time: %lf\n",t);
             records_nrec(step, gids_to_report.size(), &gids_to_report[0], report_path);
             send(t + dt, nc, nt);
             step++;

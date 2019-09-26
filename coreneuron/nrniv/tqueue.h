@@ -60,7 +60,7 @@ namespace coreneuron {
 #define STRCMP(a, b) (a - b)
 
 class TQItem;
-#define SPBLK SPC
+#define SPBLK TQItem
 #define leftlink left_
 #define rightlink right_
 #define uplink parent_

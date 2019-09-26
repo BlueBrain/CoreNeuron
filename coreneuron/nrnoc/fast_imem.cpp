@@ -73,25 +73,9 @@ void nrn_calc_fast_imem(NrnThread* _nt) {
 
     double* pd = _nt->nrn_fast_imem->nrn_sav_d;
     double* prhs = _nt->nrn_fast_imem->nrn_sav_rhs;
-    FILE *fp_rhs, *fp_d;
-    char rhs_filename[20], d_filename[20];
-    sprintf(rhs_filename,"rhs.CORENEURON.%d",nrnmpi_myid);
-    sprintf(d_filename,"d.CORENEURON.%d",nrnmpi_myid);
-    fp_rhs = fopen(rhs_filename, "a");
-    fp_d = fopen(d_filename, "a");
-    fprintf(fp_rhs, "\n%.8e time\n", _nt->_t);
-    fprintf(fp_d, "\n%.8e time\n", _nt->_t);
     for (i = i1; i < i3 ; ++i) {
         prhs[i] = (pd[i]*vec_rhs[i] + prhs[i])*vec_area[i]*0.01;
-        fprintf(fp_rhs, "%.8e, ", prhs[i]);
     }
-    fprintf(fp_rhs, "\n");
-    for (i = i1; i < i3 ; ++i) {
-        fprintf(fp_d, "%.8e, ", pd[i]);
-    }
-    fprintf(fp_d, "\n");
-    fclose(fp_rhs);
-    fclose(fp_d);
 }
 
 }
