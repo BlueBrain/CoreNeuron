@@ -37,6 +37,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 
 /// Mechanism type to be used from stdindex2ptr and nrn_dblpntr2nrncore (in Neuron)
+/// Values of the mechanism types should be negative numbers to avoid any conflict with
+/// mechanism types of Memb_list(>0) or time(0) passed from Neuron
 enum mech_type {voltage = -1, i_membrane_ = -2};
 
 extern int cvode_active_;
