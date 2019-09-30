@@ -59,10 +59,10 @@ struct NrnThreadBAList {
     NrnThreadBAList* next;
 };
 
-typedef struct NrnFastImem {
+struct NrnFastImem {
     double* nrn_sav_rhs;
     double* nrn_sav_d;
-} NrnFastImem;
+};
 
 struct TrajectoryRequests {
     void** vpr;       /* PlayRecord Objects known by NEURON */
