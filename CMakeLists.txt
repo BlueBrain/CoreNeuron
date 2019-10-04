@@ -45,6 +45,16 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "1")
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
+# =============================================================================
+# To be able to use project as submodule, avoid using PROJECT_SOURCE_DIR
+# =============================================================================
+set(CORENEURON_PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+# For future target customization
+set(CORENEURON_AS_SUBPROJECT OFF)
+if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(CORENEURON_AS_SUBPROJECT ON)
+endif()
+
 ## global options
 option(CORENEURON_MAIN "Build the CORE NEURON main" ON)
 option(CORENEURON_OPENMP "Build the CORE NEURON with OpenMP implementation" ON)
@@ -88,10 +98,10 @@ option(FUNCTIONAL_TESTS "Enable functional tests compilation and execution" ON)
 # todo: need to refactor to install only necessary header files
 option(ENABLE_HEADER_INSTALL "Install hedaers files for standalone compilation" ON)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
-      ${PROJECT_SOURCE_DIR}/CMake/portability
-      ${PROJECT_SOURCE_DIR}/CMake/packages
-      ${PROJECT_SOURCE_DIR}/CMake/config)
+list(APPEND CMAKE_MODULE_PATH ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
+      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/portability
+      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
+      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
 
 set(Boost_NO_BOOST_CMAKE TRUE)
 
@@ -228,25 +238,25 @@ else()
 endif()
 
 if(CLANG_FORMAT_FOUND)
-    file(COPY ${PROJECT_SOURCE_DIR}/.clang-format DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/.clang-format DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
     #to indent files using clang-format
     file(GLOB_RECURSE SRC_FILES_FOR_CLANG_FORMAT
-        ${PROJECT_SOURCE_DIR}/coreneuron/*.c
-        ${PROJECT_SOURCE_DIR}/coreneuron/*.cpp
-        ${PROJECT_SOURCE_DIR}/coreneuron/*.h*
-        ${PROJECT_SOURCE_DIR}/coreneuron/*.ipp*)
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/*.c
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/*.cpp
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/*.h*
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/*.ipp*)
 
     # exclude ezoption header file
     list(REMOVE_ITEM SRC_FILES_FOR_CLANG_FORMAT
-        ${PROJECT_SOURCE_DIR}/coreneuron/utils/ezoption/ezOptionParser.hpp
-        ${PROJECT_SOURCE_DIR}/coreneuron/utils/endianness.h
-        ${PROJECT_SOURCE_DIR}/coreneuron/utils/swap_endian.h)
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/utils/ezoption/ezOptionParser.hpp
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/utils/endianness.h
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/utils/swap_endian.h)
 
     # exclude random123 files
     file (GLOB_RECURSE RANDOM123_FILES
-        ${PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.cpp
-        ${PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.h)
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.cpp
+        ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/utils/randoms/Random123/*.h)
     foreach (R123_PATH ${RANDOM123_FILES})
         list (REMOVE_ITEM SRC_FILES_FOR_CLANG_FORMAT ${R123_PATH})
     endforeach(R123_PATH)
@@ -254,7 +264,7 @@ if(CLANG_FORMAT_FOUND)
     add_custom_target(formatsource COMMAND ${CMAKE_COMMAND}
         -DSOURCE_FILES:STRING="${SRC_FILES_FOR_CLANG_FORMAT}"
         -DCLANG_FORMAT_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}
-        -P "${PROJECT_SOURCE_DIR}/CMake/ClangFormatUtils.cmake"
+        -P "${CORENEURON_PROJECT_SOURCE_DIR}/CMake/ClangFormatUtils.cmake"
         )
 endif()
 

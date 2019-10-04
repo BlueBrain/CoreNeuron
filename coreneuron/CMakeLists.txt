@@ -26,7 +26,7 @@
 
 
 include_directories(utils/randoms)
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CORENEURON_PROJECT_SOURCE_DIR})
 include_directories(${MPI_INCLUDE_PATH})
 
 file(GLOB_RECURSE coreneuron_all_headers "*.h*")
@@ -211,7 +211,7 @@ macro(mod2c_from_file name modlist searchpath)
     if(${if_exist})
         message(WARNING "Note: halfgap.mod is found in specified mechanism search directory!")
     else()
-        set(GAPMOD "${PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
+        set(GAPMOD "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
         mod2c_target(KEY ${name} MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
         list(APPEND MOD_PATHS ${GAPMOD})
         message(STATUS "Adding halfgap.mod mod file for tests!")
@@ -345,7 +345,7 @@ if(CLANG_FORMAT_FOUND)
         COMMAND ${CMAKE_COMMAND}
             -DSOURCE_FILES:STRING="${GENERATED_MECH_C_FILES}"
             -DCLANG_FORMAT_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}
-            -P "${PROJECT_SOURCE_DIR}/CMake/ClangFormatUtils.cmake"
+            -P "${CORENEURON_PROJECT_SOURCE_DIR}/CMake/ClangFormatUtils.cmake"
         DEPENDS ${GENERATED_MECH_C_FILES}
         )
 endif()

@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-#include "nrnomp/nrnomp.h"
+#include "coreneuron/nrnomp/nrnomp.h"
 
 #define NUMTHREAD 4
 

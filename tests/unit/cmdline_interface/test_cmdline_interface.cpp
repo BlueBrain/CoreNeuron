@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define BOOST_TEST_MAIN
 
 #include <boost/test/unit_test.hpp>
-#include "nrniv/nrnoptarg.h"
+#include "coreneuron/nrniv/nrnoptarg.h"
 #include <float.h>
 using namespace coreneuron;
 BOOST_AUTO_TEST_CASE(cmdline_interface) {

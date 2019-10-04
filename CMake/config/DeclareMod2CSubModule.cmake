@@ -26,7 +26,7 @@
 include (ExternalProject)
 include(FindPkgConfig)
 
-find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${PROJECT_SOURCE_DIR}/external/mod2c")
+find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c")
 find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
 
 if (NOT MOD2C_FOUND)
@@ -43,7 +43,7 @@ set(ExternalProjectCMakeArgs
 
 ExternalProject_Add(mod2c
   BUILD_ALWAYS 1
-  SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/mod2c
+  SOURCE_DIR ${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c
   GIT_SUBMODULES
   CMAKE_ARGS ${ExternalProjectCMakeArgs}
 )
