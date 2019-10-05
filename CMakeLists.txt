@@ -56,7 +56,6 @@ if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 ## global options
-option(CORENEURON_MAIN "Build the CORE NEURON main" ON)
 option(CORENEURON_OPENMP "Build the CORE NEURON with OpenMP implementation" ON)
 option(DISABLE_NRN_TIMEOUT "Disable nrn_timeout implementation" OFF)
 option(ENABLE_REPORTINGLIB "Enable use of ReportingLib for soma reports" OFF)
@@ -64,11 +63,8 @@ option(EXPORT_MECHS_FUNCTIONS "Enable exporting of mod init, jacob, state, cur a
 option(ENABLE_MPI "Enable MPI-based execution" ON)
 option(ENABLE_SOA "Enable SoA Memory Layout" ON)
 option(DISABLE_HOC_EXP "Disable wrapping exp with hoc_exp()" ON)
-option(ENABLE_OPENACC_INFO "Enable OpenACC compiler information messages" OFF)
 option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
-option(ENABLE_CUDA_MODULES "Enable modules like Random123 written in CUDA" ON)
 option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
-option(ENABLE_OMP_RUNTIME_SCHEDULE "Use runtime schedule for OpenMP" OFF)
 option(ENABLE_ISPC_TARGET "Enable ispc interoperability structs and data" OFF)
 option(ENABLE_NMODL "Enable external nmodl source-to-source compiler" OFF)
 option(ENABLE_CALIPER "Enable Caliper instrumentation" OFF)
@@ -152,11 +148,6 @@ if (ENABLE_SOA)
     add_definitions("-DLAYOUT=0")
 else()
     add_definitions("-DLAYOUT=1")
-endif()
-
-#OpenMP runtime schedule
-if (ENABLE_OMP_RUNTIME_SCHEDULE)
-    add_definitions("-DENABLE_OMP_RUNTIME_SCHEDULE")
 endif()
 
 #Disable hoc_exp wrapper for exp
@@ -281,9 +272,6 @@ if(ENABLE_OPENACC)
     if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
         add_definitions( -DPG_ACC_BUGS)
         set(ACC_FLAGS "-acc -Minline=size:200,levels:10")
-        if (ENABLE_OPENACC_INFO)
-            set(ACC_FLAGS "${ACC_FLAGS} -Minfo=acc")
-        endif()
         set(CMAKE_C_FLAGS "${ACC_FLAGS} ${CMAKE_C_FLAGS}")
         set(CMAKE_CXX_FLAGS "${ACC_FLAGS} ${CMAKE_CXX_FLAGS}")
     else()
@@ -323,13 +311,9 @@ if(EXPORT_MECHS_FUNCTIONS)
     add_definitions("-DEXPORT_MECHS_FUNCTIONS")
 endif()
 
-# Core library
+# Core library and main exe
 add_subdirectory(coreneuron)
-
-# Main
-if(CORENEURON_MAIN)
-    add_subdirectory(apps)
-endif(CORENEURON_MAIN)
+add_subdirectory(apps)
 
 # Tests
 if(Boost_FOUND)

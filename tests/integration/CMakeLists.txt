@@ -97,7 +97,7 @@ endforeach()
 # library. Runs when the corresponding condition is utilized plus the
 # executable is built.
 # Set of 10Cells tests
-if(ADDITIONAL_MECHS AND CORENEURON_MAIN)
+if(ADDITIONAL_MECHS)
 
   function(exec_test TEST_NAME SUBTEST_NAME)
 if(MPI_FOUND)

@@ -32,7 +32,7 @@ FILE(GLOB alignment_test_src "*.cpp")
 add_executable(alignment_test_bin ${alignment_test_src})
 target_link_libraries(alignment_test_bin ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-if(ENABLE_OPENACC AND ENABLE_CUDA_MODULES)
+if(ENABLE_OPENACC)
     target_link_libraries(alignment_test_bin ${link_cudacoreneuron} ${CUDA_LIBRARIES})
 endif()
 
