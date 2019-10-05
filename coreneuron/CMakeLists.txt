@@ -434,8 +434,10 @@ target_link_libraries(corenrnmech scopmath coreneuron)
 #########################################################
 
 install(TARGETS coreneuron corenrnmech ${link_cudacoreneuron}
+        EXPORT coreneuron
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION $<INSTALL_INTERFACE:include>)
 
 install(FILES "engine.h" "enginemech.h"
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron)
@@ -446,7 +448,6 @@ install(PROGRAMS ${MOD2C_BINARY}
 install(FILES ${MOD2C_UNITS}
         DESTINATION ${CMAKE_INSTALL_DATADIR}/mod2c)
 
-
 if(ENABLE_HEADER_INSTALL)
     install(DIRECTORY .
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
@@ -456,6 +457,7 @@ if(ENABLE_HEADER_INSTALL)
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
 
     install(TARGETS scopmath
+            EXPORT coreneuron
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
 
     install(FILES ${MOD2C_OPTMECH_OUTPUTS}

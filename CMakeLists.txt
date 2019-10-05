@@ -338,8 +338,10 @@ else()
     message(STATUS "Boost not found, disabling tests")
 endif(Boost_FOUND)
 
-
 add_subdirectory(extra)
+
+install(FILES CMake/coreneuron-config.cmake DESTINATION share/cmake)
+install(EXPORT coreneuron DESTINATION share/cmake)
 
 # Documentation
 #include(DoxygenRule)

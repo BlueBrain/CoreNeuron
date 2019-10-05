@@ -70,7 +70,7 @@ done
 ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
 (
     set -x
-    make -j$PARALLELISM -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+    make -j$PARALLELISM -f "${ROOTDIR}/bin/nrnivmodl_core_makefile" "${make_params[@]}"
 )
 
 # Create a little script to call make install (relinks w right RPATH)
@@ -78,7 +78,7 @@ echo "#!/bin/bash
 set -e
 [ \$# -eq 1 ] || { echo 'Required install destination. Syntax: ' \$(basename \$0) '<directory>'; false; }
 set -x
-make -f '${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile' " $(printf "'%s' " "${make_params[@]}") "DESTDIR=\$1 install
+make -f '${ROOTDIR}/bin/nrnivmodl_core_makefile' " $(printf "'%s' " "${make_params[@]}") "DESTDIR=\$1 install
 " > nrnivmech_install.sh
 chmod 755 nrnivmech_install.sh
 
