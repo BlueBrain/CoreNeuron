@@ -195,7 +195,6 @@ macro(mod2c_from_file name modlist searchpath)
                 list(APPEND added_mod_files "${modpath_}")
                 list(APPEND mod_filenames "${filename}")
                 mod2c_target(KEY ${name} MODFILE "${modpath_}" TARGET ${M2C_TARGET})
-                list(APPEND MOD_PATHS ${modpath_})
             endif()
 
         else()
@@ -213,7 +212,6 @@ macro(mod2c_from_file name modlist searchpath)
     else()
         set(GAPMOD "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
         mod2c_target(KEY ${name} MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
-        list(APPEND MOD_PATHS ${GAPMOD})
         message(STATUS "Adding halfgap.mod mod file for tests!")
     endif()
 
@@ -225,12 +223,6 @@ endmacro()
 set(STDMODLIBPATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
 set(MECH_STDMODS expsyn.mod exp2syn.mod  hh.mod  netstim.mod  passive.mod  pattern.mod stim.mod)
 
-if (EXPORT_MECHS_FUNCTIONS)
-  # Add 6 standard mechanisms to MOD_PATHS
-  foreach(MOD ${MECH_STDMODS})
-      list(APPEND MOD_PATHS "${STDMODLIBPATH}/${MOD}")
-  endforeach()
-endif()
 if(${ENABLE_ISPC_TARGET})
     set(M2C_TARGET ispc)
 else()
@@ -289,18 +281,6 @@ add_custom_command(OUTPUT "${KINDERIV_H}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 add_custom_target(kinderiv DEPENDS "${KINDERIV_H}")
 
-if (EXPORT_MECHS_FUNCTIONS)
-  # Create C file with all "get function pointers" methods
-  set(MOD_FUNC_PTRS_C    "${CMAKE_CURRENT_BINARY_DIR}/mod_func_ptrs.cpp")
-  set(MOD_FUNC_PTRS_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func_ptrs.c.pl")
-
-  # ... pass as argument to the perl script the list of mods full paths;
-  add_custom_command(OUTPUT "${MOD_FUNC_PTRS_C}"
-      DEPENDS ${MECH_FILE_LISTS} "${MOD_FUNC_PTRS_C_PL}"
-      COMMAND perl "${MOD_FUNC_PTRS_C_PL}" ${MOD_PATHS} > "${MOD_FUNC_PTRS_C}"
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-endif()
-
 
 set_source_files_properties(${MOD2C_STDMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${MOD2C_OPTMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
@@ -319,7 +299,7 @@ endif()
 
 
 # Add generated sources from MOD files
-set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${MOD_FUNC_PTRS_C} ${DIMPLIC_C} ${MOD2C_OPTMECH_OUTPUTS})
+set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${DIMPLIC_C} ${MOD2C_OPTMECH_OUTPUTS})
 set(GENERATED_MECH_C_FILES ${ADDITIONAL_MECH_C_FILES}  ${MOD2C_STDMECH_OUTPUTS})
 
 # artificial cells must be on cpu, defaul nrnran123.c is for cpu, nrn_setup.cpp uses nrnran123 for only memory calculation purpose which should use cpu version of nrnran123
