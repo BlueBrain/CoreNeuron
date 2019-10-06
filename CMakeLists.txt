@@ -24,18 +24,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 
-
-# Ecole Polytechnique Federale de Lausanne
-# Brain Mind Institute,
-# Blue Brain Project
-# (c) 2006-2016. All rights reserved.
-#
-# Author: Aleksandr Ovcharenko
-# Core Neuron
-
-
-# Initial Setup
-
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 PROJECT(coreneuron)
 set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
@@ -278,24 +266,15 @@ if(ENABLE_OPENACC)
         message(WARNING "Add required compiler flags to enabled OpenACC")
     endif()
 
-    if(ENABLE_CUDA_MODULES)
-        find_package(CUDA 5.0)
-        SET(CUDA_SEPARABLE_COMPILATION ON)
-        if(CUDA_FOUND)
-            if(ENABLE_SELECTIVE_GPU_PROFILING)
-                add_definitions( -DCUDA_PROFILING)
-            endif(ENABLE_SELECTIVE_GPU_PROFILING)
-        else(CUDA_FOUND)
-            message( FATAL_ERROR "Error : Can't file CUDA, load module or set path!" )
-        endif(CUDA_FOUND)
-    else(ENABLE_CUDA_MODULES)
-        message(INFO "Support for CUDA modules (e.g. Random123) is disabled!")
-        add_definitions(-DCUDA_MODULES_DISABLED)
-    endif(ENABLE_CUDA_MODULES)
-
+    find_package(CUDA 5.0 REQUIRED)
+    SET(CUDA_SEPARABLE_COMPILATION ON)
+    if(CUDA_FOUND)
+        if(ENABLE_SELECTIVE_GPU_PROFILING)
+            add_definitions( -DCUDA_PROFILING)
+        endif(ENABLE_SELECTIVE_GPU_PROFILING)
+    endif(CUDA_FOUND)
 ELSE(ENABLE_OPENACC)
     SET (ENABLE_SELECTIVE_GPU_PROFILING OFF)
-    SET (ENABLE_CUDA_MODULES OFF)
     #OpenACC pragmas are not guarded, disable all unknown pragm warnings
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
@@ -325,6 +304,3 @@ add_subdirectory(extra)
 
 install(FILES CMake/coreneuron-config.cmake DESTINATION share/cmake)
 install(EXPORT coreneuron DESTINATION share/cmake)
-
-# Documentation
-#include(DoxygenRule)
