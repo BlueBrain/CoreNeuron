@@ -270,6 +270,15 @@ configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
 configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
 configure_file("nrniv/profiler_interface.h" ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
 
+add_custom_command(TARGET coreneuron
+    COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
+    -i -I${CORENEURON_PROJECT_SOURCE_DIR}
+    ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
+    DEPENDS coreneuron
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
+    COMMENT "Running nrnivmodl-core with halfgap.mod")
+
 #########################################################
 # INSTALL
 #########################################################

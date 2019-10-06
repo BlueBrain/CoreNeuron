@@ -51,12 +51,3 @@ if(FUNCTIONAL_TESTS)
 else()
     message(STATUS "Functional tests disabled")
 endif()
-
-add_custom_target(special-core ALL
-    COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
-       -i -I${CORENEURON_PROJECT_SOURCE_DIR}
-       ${CMAKE_CURRENT_SOURCE_DIR}/integration/ring_gap/mod
-    DEPENDS coreneuron
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
-    COMMENT "Running nrnivmodl-core with halfgap.mod")

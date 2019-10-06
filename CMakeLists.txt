@@ -79,7 +79,6 @@ option(FUNCTIONAL_TESTS "Enable functional tests compilation and execution" ON)
 option(ENABLE_HEADER_INSTALL "Install hedaers files for standalone compilation" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
-      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/portability
       ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
       ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
 
@@ -89,7 +88,7 @@ include(CheckIncludeFiles)
 include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
-include(DeclareMod2CSubModule)
+include(AddMod2cSubmodule)
 include(FindPkgConfig)
 include(CTest)
 include(Findnmodl)
