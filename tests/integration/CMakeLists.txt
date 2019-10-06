@@ -36,7 +36,7 @@ if(ENABLE_OPENACC)
 endif()
 
 # List of tests with arguments
-set(TEST_CASE_ARGS
+set(TEST_CASES_WITH_ARGS
     "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
@@ -50,7 +50,7 @@ set(TEST_CASE_ARGS
     "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}")
 
-set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
+set(NEGATIVE_TEST_CASES_WITH_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
@@ -64,7 +64,7 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref" DESTINATION "${CMAKE_CU
 file (GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
 
 #Configure test scripts
-foreach (args_line ${TEST_CASE_ARGS})
+foreach (args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
     string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
@@ -78,7 +78,7 @@ foreach (args_line ${TEST_CASE_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-foreach (args_line ${NEGATIVE_TEST_CASE_ARGS})
+foreach (args_line ${NEGATIVE_TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
     string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
