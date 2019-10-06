@@ -1,5 +1,5 @@
-set(nmodl_makefile "nrnivmodl_core_makefile")
-set(nmodl_compile_scipt "nrnivmodl-core")
+set(nrnivmodl_core_makefile "nrnivmodl_core_makefile")
+set(nrnivmodl_core "nrnivmodl-core")
 
 get_directory_property(CORENRN_COMPILE_FLAGS COMPILE_DEFINITIONS)
 
@@ -24,10 +24,6 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
 endforeach()
 #message("CORENRN_LINK_LIBS: ${CORENRN_LINK_LIBS}, CORENRN_LINK_DEFS: ${CORENRN_LINK_DEFS}")
 
-# Additional mods
-string(REPLACE ";" " " CORENRN_OPTMODS "${CORENRN_OPTIONAL_MOD_MODS}")
-string(REPLACE ";" " " CORENRN_OPTMODS_OUTPUTS "${CORENRN_OPTIONAL_MOD_OUTPUTS}")
-
 # PGI add --c++11;-A option for c++11 flag
 string(REPLACE ";" " " CXX11_STANDARD_COMPILE_OPTION "${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 
@@ -40,24 +36,25 @@ endif()
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
 set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
-message(STATUS "CXX Compile Flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
+message(STATUS "CXX Compile flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
 if(ENABLE_NMODL)
     set(nmodl_arguments_c "host --c ${NMODL_EXTRA_FLAGS}")
     set(nmodl_arguments_ispc "host --ispc ${NMODL_EXTRA_FLAGS}")
-    set(mod2c_install_bin "${nmodl_BINARY}")
+    get_filename_component(barename ${nmodl_BINARY} NAME)
+    set(mod2c_bin_name ${barename})
 else ()
     set(nmodl_arguments_c "")
     set(nmodl_arguments_ispc "")
-    set(mod2c_install_bin "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/mod2c_core")
+    set(mod2c_bin_name "mod2c_core")
 endif ()
 
-configure_file(${nmodl_makefile}.in ${nmodl_makefile} @ONLY)
+# copy into build directory
+configure_file(${nrnivmodl_core_makefile}.in ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core_makefile} @ONLY)
+configure_file(${nrnivmodl_core} ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core} @ONLY)
 
-# Makefile
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${nmodl_makefile}
+# install
+install(FILES ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core_makefile}
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-# Launcher
-install(PROGRAMS ${nmodl_compile_scipt}
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core}
         DESTINATION ${CMAKE_INSTALL_BINDIR})
