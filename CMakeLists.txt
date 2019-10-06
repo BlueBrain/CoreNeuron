@@ -65,9 +65,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
 set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
-## mech / mod options
-set(ADDITIONAL_MECHPATH "" CACHE PATH "Search path for optional additional mechanism MOD files")
-set(ADDITIONAL_MECHS "" CACHE FILEPATH "File containing list of additional mechanism MOD files")
 
 set(NMODL_ROOT "" CACHE PATH "Path nmodl source-to-source compiler root")
 
@@ -91,13 +88,12 @@ set(Boost_NO_BOOST_CMAKE TRUE)
 include(CheckIncludeFiles)
 include(ReleaseDebugAutoFlags)
 include(CrayPortability)
-include(BlueGenePortability)
-include(DefineInstallationPaths)
 include(SetRpath)
 include(DeclareMod2CSubModule)
 include(FindPkgConfig)
 include(CTest)
 include(Findnmodl)
+include(GNUInstallDirs)
 
 # ispc support
 if (ENABLE_ISPC_TARGET)
@@ -208,11 +204,8 @@ option (ENABLE_OPENACC "Enable use of OpenACC" OFF)
 set(CLANG_FORMAT_MIN_VERSION "4.0")
 set(CLANG_FORMAT_MAX_VERSION "4.9")
 find_package(ClangFormat)
-
 if(CLANG_FORMAT_FOUND)
     message("clang-format : ${CLANG_FORMAT_EXECUTABLE} : ${CLANG_FORMAT_VERSION}")
-else()
-  message("clang-format executable with appropriate version (min: ${CLANG_FORMAT_MIN_VERSION}, max: ${CLANG_FORMAT_MAX_VERSION}) not found")
 endif()
 
 if(CLANG_FORMAT_FOUND)

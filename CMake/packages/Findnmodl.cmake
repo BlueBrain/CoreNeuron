@@ -51,7 +51,7 @@
 
 # UNIX paths are standard, no need to write.
 find_program(nmodl_BINARY NAMES nmodl
-        HINTS "${NMODL_ROOT}/bin")
+        HINTS "${NMODL_ROOT}/bin" QUIET)
 
 find_path(nmodl_INCLUDE "nmodl/fast_math.ispc" HINTS "${NMODL_ROOT}/include")
 find_path(nmodl_PYTHONPATH "nmodl/__init__.py" HINTS "${NMODL_ROOT}/lib/python")

@@ -34,12 +34,9 @@ file(GLOB_RECURSE coreneuron_all_templates "*.ipp")
 file(GLOB_RECURSE coreneuron_cuda_files "*.cu")
 file(GLOB_RECURSE coreneuron_all_c_files "nrniv/*.c*" "nrnmpi/*.c*" "nrnoc/*.c*"
                                          "nrnomp/*.c*" "utils/*.c*")
-
-set(DIMPLIC_C "mech/dimplic.cpp")
 file(GLOB_RECURSE scopmath_c_files "scopmath_core/*.c*")
+set(dimplic_c_files "mech/dimplic.cpp")
 
-
-# Compile and include MOD files
 
 # set mod2c binary and files from built in
 if(NOT EXISTS ${MOD2C})
@@ -53,8 +50,6 @@ set (MOD2C_BINARY ${MOD2C})
 get_filename_component(mod2c_install_prefix ${MOD2C} DIRECTORY)
 set (MOD2C_UNITS "${PROJECT_BINARY_DIR}/external/mod2c/share/nrnunits.lib")
 set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" "PYTHONPATH=$ENV{PYTHONPATH}" ${MOD2C})
-
-message(STATUS "USING MOD2C ${MOD2C}")
 
 # Macro sets up build rule for .c files from .mod files.
 # Parameters:
@@ -145,83 +140,9 @@ function(file_in_filepath_list filepath_list filename if_exist)
     endforeach()
 endfunction()
 
-# Macro mod2c_from_file attempts to add modules specified in a file.
-# Parameters:
-#     name        Key for mod2c_target
-#     modlist     Path to the file containing the list of mod files.
-#     searchpath  List of directories to search for mod files.
-#
-# This has to be a macro in order to properly accumulate the MOD2C_xxx_OUTPUTS
-# variables. Go CMake! You rock!
-
-macro(mod2c_from_file name modlist searchpath)
-    unset(tmp_path_ CACHE)
-    if(NOT EXISTS "${modlist}")
-        string(REGEX REPLACE ":" ";" spath "${searchpath}")
-        foreach(path_ ${spath})
-            file(GLOB_RECURSE mod_files "${path_}/*.mod")
-            list(APPEND mods_ "${mod_files};")
-        endforeach()
-    else()
-        file(READ "${modlist}" mods_)
-    endif()
-    string(REGEX REPLACE "[ \t\n]+" ";" mods_ "${mods_}")
-    list(REMOVE_ITEM mods_ "")
-    list(APPEND added_mod_files "")
-    list(APPEND mod_filenames "")
-
-    foreach(mod_ ${mods_})
-        unset(modpath_)
-        if(NOT IS_ABSOLUTE "${mod_}")
-            find_path(tmp_path_ "${mod_}" PATH ${searchpath} NO_DEFAULT_PATH)
-            if(tmp_path_)
-                set(modpath_ "${tmp_path_}/${mod_}")
-            endif()
-            unset(tmp_path_ CACHE)
-        else()
-            set(modpath_ "${mod_}")
-        endif()
-        if((NOT EXISTS "${modpath_}") OR (IS_DIRECTORY "${modpath_}"))
-            unset(modpath_)
-        endif()
-
-        if(modpath_)
-            get_filename_component(filename "${modpath_}" NAME)
-            set(if_exist FALSE)
-            file_in_filepath_list("${added_mod_files}" ${filename} if_exist)
-            if(${if_exist})
-                message(FATAL_ERROR "Multiple ${filename} exist in the search path, list of mod files found : ${modpath_} ${added_mod_files}")
-            else()
-                list(APPEND added_mod_files "${modpath_}")
-                list(APPEND mod_filenames "${filename}")
-                mod2c_target(KEY ${name} MODFILE "${modpath_}" TARGET ${M2C_TARGET})
-            endif()
-
-        else()
-            message(WARNING "Unable to locate MOD file: ${mod_}")
-        endif()
-
-    endforeach()
-    # mod file for gap junction test. this mod file needs to be
-    # added only if not found in external directories.
-    set(if_exist FALSE)
-    file_in_filepath_list("${mods_}" "halfgap.mod" if_exist)
-
-    if(${if_exist})
-        message(WARNING "Note: halfgap.mod is found in specified mechanism search directory!")
-    else()
-        set(GAPMOD "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
-        mod2c_target(KEY ${name} MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
-        message(STATUS "Adding halfgap.mod mod file for tests!")
-    endif()
-
-    message(STATUS "MOD files used : ${mod_filenames}")
-endmacro()
-
 # Standard MOD files are always built
-
-set(STDMODLIBPATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
-set(MECH_STDMODS expsyn.mod exp2syn.mod  hh.mod  netstim.mod  passive.mod  pattern.mod stim.mod)
+set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
+set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod  hh.mod  netstim.mod  passive.mod  pattern.mod stim.mod)
 
 if(${ENABLE_ISPC_TARGET})
     set(M2C_TARGET ispc)
@@ -229,27 +150,14 @@ else()
     set(M2C_TARGET serial)
 endif()
 
-foreach(MOD ${MECH_STDMODS})
-    mod2c_target(KEY STDMECH MODFILE "${STDMODLIBPATH}/${MOD}" TARGET ${M2C_TARGET})
+foreach(MOD ${INBUILT_MOD_FILES})
+    mod2c_target(KEY INBUILT_MOD MODFILE "${INBUILT_MOD_PATH}/${MOD}" TARGET ${M2C_TARGET})
 endforeach()
 
-set(MECH_FILE_LISTS)
-
-# Additional optional mechanisms specified in ADDITIONAL_MECHS
-# and ADDITIONAL_MECHPATH (set as a PATH cache variable, but
-# can in fact be a list of paths.)
-# If ADDITIONAL_MECHS is not provided, the entire ADDITIONAL_MECHPATH
-# will be checked for the mod files.
-
-if(EXISTS ${ADDITIONAL_MECHS})
-    if(IS_DIRECTORY "${modlist}")
-        message(WARNING "Unable to read MOD list file: ${modlist}")
-    else()
-        list(APPEND MECH_FILE_LISTS "${ADDITIONAL_MECHS}")
-    endif()
-endif()
-
-mod2c_from_file(OPTMECH "${ADDITIONAL_MECHS}" "${ADDITIONAL_MECHPATH}")
+# Add gap junction mod file
+set(GAPMOD "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod/halfgap.mod")
+mod2c_target(KEY OPTIONAL_MOD MODFILE "${GAPMOD}" TARGET ${M2C_TARGET})
+message(STATUS "Adding halfgap.mod mod file for tests")
 
 # For 'non-standard' mod files, need to generate registering function in mod_func.c
 
@@ -258,15 +166,9 @@ set(MOD_FUNC_C_PL "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 
 # ... pass as argument to the perl script the list of mod file names;
 add_custom_command(OUTPUT "${MOD_FUNC_C}"
-    DEPENDS ${MECH_FILE_LISTS} "${MOD_FUNC_C_PL}"
-    COMMAND perl "${MOD_FUNC_C_PL}" ${MOD2C_OPTMECH_MODS} > "${MOD_FUNC_C}"
+    DEPENDS "${MOD_FUNC_C_PL}"
+    COMMAND perl "${MOD_FUNC_C_PL}" ${MOD2C_OPTIONAL_MOD_MODS} > "${MOD_FUNC_C}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-
-# ... and add a reconfigure dependency on the files that listed them
-
-foreach(depfile ${MECH_FILE_LISTS})
-    configure_file("${depfile}" "${CMAKE_CURRENT_BINARY_DIR}/dummy_reconfigure_dep")
-endforeach()
 
 # to work around no acc ability to pass function pointers as arguments,
 # some translated c files depend on a _kinderiv.h file that is constructed
@@ -276,31 +178,31 @@ set(KINDERIV_PY "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_H "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 add_custom_command(OUTPUT "${KINDERIV_H}"
-    DEPENDS ${MOD2C_OPTMECH_OUTPUTS} ${MOD2C_STDMECH_OUTPUTS} "${KINDERIV_PY}"
+    DEPENDS ${MOD2C_OPTIONAL_MOD_OUTPUTS} ${MOD2C_INBUILT_MOD_OUTPUTS} "${KINDERIV_PY}"
     COMMAND python "${KINDERIV_PY}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 add_custom_target(kinderiv DEPENDS "${KINDERIV_H}")
 
 
-set_source_files_properties(${MOD2C_STDMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
-set_source_files_properties(${MOD2C_OPTMECH_OUTPUTS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${MOD2C_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${MOD2C_OPTIONAL_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
 
 
 if(ENABLE_ISPC_TARGET)
-    set(MOD2C_ISPC_STDMECH_OUTPUTS ${MOD2C_STDMECH_OUTPUTS})
-    list(FILTER MOD2C_ISPC_STDMECH_OUTPUTS INCLUDE REGEX ".*\.ispc$")
-    set(MOD2C_ISPC_OPTMECH_OUTPUTS ${MOD2C_OPTMECH_OUTPUTS})
-    list(FILTER MOD2C_ISPC_OPTMECH_OUTPUTS INCLUDE REGEX ".*\.ispc$")
-    set_source_files_properties(${MOD2C_ISPC_STDMECH_OUTPUTS} PROPERTIES LANGUAGE ISPC)
-    set_source_files_properties(${MOD2C_ISPC_STDMECH_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
-    set_source_files_properties(${MOD2C_ISPC_OPTMECH_OUTPUTS} PROPERTIES LANGUAGE ISPC)
-    set_source_files_properties(${MOD2C_ISPC_OPTMECH_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
+    set(MOD2C_ISPC_INBUILT_MOD_OUTPUTS ${MOD2C_INBUILT_MOD_OUTPUTS})
+    list(FILTER MOD2C_ISPC_INBUILT_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
+    set(MOD2C_ISPC_OPTIONAL_MOD_OUTPUTS ${MOD2C_OPTIONAL_MOD_OUTPUTS})
+    list(FILTER MOD2C_ISPC_OPTIONAL_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
+    set_source_files_properties(${MOD2C_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
+    set_source_files_properties(${MOD2C_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
+    set_source_files_properties(${MOD2C_ISPC_OPTIONAL_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
+    set_source_files_properties(${MOD2C_ISPC_OPTIONAL_MOD_OUTPUTS} PROPERTIES COMPILE_FLAGS "-I${nmodl_INCLUDE}")
 endif()
 
 
 # Add generated sources from MOD files
-set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${DIMPLIC_C} ${MOD2C_OPTMECH_OUTPUTS})
-set(GENERATED_MECH_C_FILES ${ADDITIONAL_MECH_C_FILES}  ${MOD2C_STDMECH_OUTPUTS})
+set(ADDITIONAL_MECH_C_FILES ${MOD_FUNC_C} ${dimplic_c_files} ${MOD2C_OPTIONAL_MOD_OUTPUTS})
+set(GENERATED_MECH_C_FILES ${ADDITIONAL_MECH_C_FILES}  ${MOD2C_INBUILT_MOD_OUTPUTS})
 
 # artificial cells must be on cpu, defaul nrnran123.c is for cpu, nrn_setup.cpp uses nrnran123 for only memory calculation purpose which should use cpu version of nrnran123
 set(NOACC_MECH_C_FILES
@@ -349,7 +251,7 @@ endif()
 # The coreneuron lib (only internal mechanisms)
 #
 add_library(coreneuron ${COMPILE_LIBRARY_TYPE} ${coreneuron_all_headers} ${coreneuron_all_templates}
-                       ${coreneuron_all_c_files} ${cudacorenrn_objs} ${MOD2C_STDMECH_OUTPUTS})
+                       ${coreneuron_all_c_files} ${cudacorenrn_objs} ${MOD2C_INBUILT_MOD_OUTPUTS})
 add_dependencies(coreneuron kinderiv)
 
 target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES}
@@ -370,14 +272,14 @@ endif()
 set(CORENRN_LINK_LIBS "${CORENRN_LINK_LIBS}" PARENT_SCOPE)
 
 # Share built-in OPTIONAL MODS also with rest of project
-set(CORENRN_OPTMECH_MODS "${MOD2C_OPTMECH_MODS}" PARENT_SCOPE)
+set(CORENRN_OPTIONAL_MOD_MODS "${MOD2C_OPTIONAL_MOD_MODS}" PARENT_SCOPE)
 
-foreach(MOD ${MOD2C_OPTMECH_OUTPUTS})
-    get_filename_component(OPTMECH_NAME ${MOD} NAME)
-    list(APPEND OPTMECH_OUTPUTS_LIST ${OPTMECH_NAME})
+foreach(MOD ${MOD2C_OPTIONAL_MOD_OUTPUTS})
+    get_filename_component(OPTIONAL_MOD_NAME ${MOD} NAME)
+    list(APPEND OPTIONAL_MOD_OUTPUTS_LIST ${OPTIONAL_MOD_NAME})
 endforeach()
 
-set(CORENRN_OPTMECH_OUTPUTS "${OPTMECH_OUTPUTS_LIST}" PARENT_SCOPE)
+set(CORENRN_OPTIONAL_MOD_OUTPUTS "${OPTIONAL_MOD_OUTPUTS_LIST}" PARENT_SCOPE)
 
 # The scopmath lib - should not contain dimplic
 add_library(scopmath STATIC ${coreneuron_all_headers} ${scopmath_c_files})
@@ -421,13 +323,13 @@ if(ENABLE_HEADER_INSTALL)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
             FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp" PATTERN "*.ispc")
 
-    install(FILES ${KINDERIV_PY} ${MOD_FUNC_C_PL} ${DIMPLIC_C} ${ENGINEMECH_C}
+    install(FILES ${KINDERIV_PY} ${MOD_FUNC_C_PL} ${dimplic_c_files} ${ENGINEMECH_C}
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
 
     install(TARGETS scopmath
             EXPORT coreneuron
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
 
-    install(FILES ${MOD2C_OPTMECH_OUTPUTS}
+    install(FILES ${MOD2C_OPTIONAL_MOD_OUTPUTS}
             DESTINATION ${CMAKE_INSTALL_DATADIR}/mod2c)
 endif()

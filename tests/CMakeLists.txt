@@ -25,7 +25,7 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 
 
-include(FindSLURM)
+include(FindSLURM QUIET)
 include(TestHelpers)
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})

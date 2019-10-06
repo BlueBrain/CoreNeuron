@@ -34,18 +34,18 @@ if (NOT MOD2C_FOUND)
   if(NOT ${GIT_FOUND})
     message(FATAL_ERROR "git not found, clone repository with --recursive")
   endif()
-  message (STATUS "Sub-project : mod2c is missing : running git submodule update --init --recursive")
+  message (STATUS "Sub-module mod2c missing : running git submodule update --init --recursive")
   execute_process(COMMAND
     ${GIT_EXECUTABLE} submodule update --init --recursive -- ${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c
     WORKING_DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR})
 else()
-  message(STATUS "Sub-project : using mod2c from from ${MOD2C_PROJ}")
+  message(STATUS "Using mod2c submodule from from ${MOD2C_PROJ}")
 endif()
 
 set(ExternalProjectCMakeArgs
-     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-     -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
-     -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
+  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/mod2c
+  -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
 )
 
 ExternalProject_Add(mod2c

@@ -69,4 +69,3 @@ find_package_handle_standard_args(reportinglib
   FOUND_VAR reportinglib_FOUND
   REQUIRED_VARS reportinglib_INCLUDE_DIR reportinglib_LIBRARY reportinglib_LIB_DIR)
 
-# reporting_BIN_DIR is required only for running tests 

@@ -45,17 +45,15 @@ if(AUTO_TEST_WITH_SLURM)
     if(NOT DEFINED SLURM_SRUN_COMMAND)
         find_program(SLURM_SRUN_COMMAND
                        NAMES "srun"
-                       HINTS "${SLURM_ROOT}/bin")
+                       HINTS "${SLURM_ROOT}/bin"
+                       QUIET)
     endif()
     
     if(SLURM_SRUN_COMMAND)
         set(TEST_EXEC_PREFIX_DEFAULT "${SLURM_SRUN_COMMAND}")
         set(TEST_MPI_EXEC_PREFIX_DEFAULT "${SLURM_SRUN_COMMAND}")
         set(TEST_MPI_EXEC_BIN_DEFAULT "${SLURM_SRUN_COMMAND}")
-	set(TEST_WITH_SLURM ON)
-        message(STATUS " - AUTO_TEST_WITH_SLURM with slurm cmd ${TEST_EXEC_PREFIX_DEFAULT} ")
-        message(STATUS "  -- set test execution prefix to ${TEST_EXEC_PREFIX_DEFAULT} ")
-        message(STATUS "  -- set MPI test execution prefix to ${TEST_MPI_EXEC_PREFIX_DEFAULT} ")
+	    set(TEST_WITH_SLURM ON)
     endif()
 
 endif()
@@ -64,23 +62,17 @@ endif()
 ## Basic MPIExec support, will just forward mpiexec as prefix
 ## 
 if(AUTO_TEST_WITH_MPIEXEC AND NOT TEST_WITH_SLURM)
-
    if(NOT DEFINED MPIEXEC)
         find_program(MPIEXEC
                      NAMES "mpiexec"
                      HINTS "${MPI_ROOT}/bin")
    endif()
 
-
    if(MPIEXEC)
         set(TEST_MPI_EXEC_PREFIX_DEFAULT "${MPIEXEC}")
         set(TEST_MPI_EXEC_BIN_DEFAULT "${MPIEXEC}")
-	set(TEST_WITH_MPIEXEC ON)
-        message(STATUS " - AUTO_TEST_WITH_MPIEXEC cmd ${MPIEXEC} ")
-        message(STATUS "  -- set MPI test execution prefix to ${TEST_MPI_EXEC_PREFIX_DEFAULT} ")
-
+	    set(TEST_WITH_MPIEXEC ON)
    endif()
-
 endif()
 
 
@@ -114,10 +106,4 @@ set(TEST_EXEC_PREFIX "${TEST_EXEC_PREFIX_DEFAULT}" CACHE STRING "prefix command 
 ## default: srun or mpiexec if found
 ##
 set(TEST_MPI_EXEC_PREFIX "${TEST_MPI_EXEC_PREFIX_DEFAULT}" CACHE STRING "prefix command for the MPI test executions")
-
-
-
-
-
-
 
