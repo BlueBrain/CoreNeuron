@@ -38,7 +38,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
  *  @todo: check if stl queue works with move_event functions.
  */
 
-#ifdef ENABLE_SPLAYTREE_QUEUING
+#ifdef CORENRN_ENABLE_SPLAYTREE_QUEU
 #define QTYPE spltree
 #else
 #define QTYPE pq_que

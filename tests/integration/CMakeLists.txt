@@ -93,7 +93,7 @@ foreach (args_line ${NEGATIVE_TEST_CASES_WITH_ARGS})
 endforeach()
 
 
-if (ENABLE_REPORTINGLIB)
+if (CORENRN_ENABLE_REPORTINGLIB)
     foreach(TEST_NAME "1")
         set (SIM_NAME "reporting_${TEST_NAME}")
         set (CONFIG_ARG "${TEST_NAME}")

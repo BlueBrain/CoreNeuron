@@ -38,7 +38,7 @@ set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message(STATUS "CXX Compile flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
-if(ENABLE_NMODL)
+if(CORENRN_ENABLE_NMODL)
     set(nmodl_arguments_c "host --c ${NMODL_EXTRA_FLAGS}")
     set(nmodl_arguments_ispc "host --ispc ${NMODL_EXTRA_FLAGS}")
     get_filename_component(barename ${nmodl_BINARY} NAME)

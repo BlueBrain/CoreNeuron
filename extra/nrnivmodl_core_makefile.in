@@ -17,7 +17,7 @@ incdir := $(ROOT)/@CMAKE_INSTALL_INCLUDEDIR@
 datadir:= $(ROOT)/@CMAKE_INSTALL_DATADIR@/coreneuron
 datadir_mod2c := $(ROOT)/@CMAKE_INSTALL_DATADIR@/mod2c
 
-# Binary of MOD2C/NMODL depending on what was activated
+# Binary of CORENRN_MOD2C/NMODL depending on what was activated
 mod2c_install_bin := $(bindir)/@mod2c_bin_name@
 
 # Additional variables set in CMAKE usable here
@@ -53,7 +53,7 @@ mod_ispc_srcs_path =
 mod_c_srcs_names =
 mod_ispc_srcs_names =
 define check_file
-	ifeq (@ENABLE_ISPC_TARGET@, ON)
+	ifeq (@CORENRN_ENABLE_ISPC@, ON)
 		ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
 			mod_c_srcs_path += $(MODC_DIR)/$(notdir $(1))
 			mod_c_srcs_names += $(notdir $(1))

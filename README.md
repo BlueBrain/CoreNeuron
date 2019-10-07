@@ -13,7 +13,7 @@ CoreNEURON can transparently handle all spiking network simulations including ga
 
 ## Dependencies
 * [CMake 3.0.12+](https://cmake.org)
-* [MOD2C](http://github.com/BlueBrain/mod2c)
+* [CORENRN_MOD2C](http://github.com/BlueBrain/mod2c)
 * [MPI 2.0+](http://mpich.org) [Optional]
 * [PGI OpenACC Compiler >=18.0](https://www.pgroup.com/resources/accel.htm) [Optional, for GPU systems]
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
@@ -42,12 +42,12 @@ cmake ..
 make -j
 ```
 
-If you don't have MPI, you can disable MPI dependency using the CMake option `-DENABLE_MPI=OFF`:
+If you don't have MPI, you can disable MPI dependency using the CMake option `-DCORENRN_ENABLE_MPI=OFF`:
 
 ```bash
 export CC=gcc
 export CXX=g++
-cmake .. -DENABLE_MPI=OFF
+cmake .. -DCORENRN_ENABLE_MPI=OFF
 make -j
 ```
 
@@ -125,8 +125,8 @@ cmake .. -DCMAKE_CXX_FLAGS="-O3 -g" \
          -DCMAKE_BUILD_TYPE=CUSTOM
 ```
 
-* By default OpenMP threading is enabled. You can disable it with `-DCORENEURON_OPENMP=OFF`
-* By default CoreNEURON uses the SoA (Structure of Array) memory layout for all data structures. You can switch to AoS using `-DENABLE_SOA=OFF`.
+* By default OpenMP threading is enabled. You can disable it with `-DCORENRN_ENABLE_OPENMP=OFF`
+* By default CoreNEURON uses the SoA (Structure of Array) memory layout for all data structures. You can switch to AoS using `-DCORENRN_ENABLE_SOA=OFF`.
 
 
 ## RUNNING SIMULATION:

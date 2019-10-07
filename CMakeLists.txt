@@ -1,109 +1,81 @@
-# Copyright (c) 2016, Blue Brain Project
-# All rights reserved.
+# =============================================================================
+# Copyright (C) 2016-2019 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
 
-# Redistribution and use in source and binary forms, with or without modification,
-# are permitted provided that the following conditions are met:
-# 1. Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-# 3. Neither the name of the copyright holder nor the names of its contributors
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-# THE POSSIBILITY OF SUCH DAMAGE.
-
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7 FATAL_ERROR)
 PROJECT(coreneuron)
-set(CORENEURON_DESCRIPTION "BBP CoreNeuron simulator")
-
-set(VERSION_MAJOR "1")
-set(VERSION_MINOR "0")
-set(VERSION_PATCH "1")
-set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # =============================================================================
-# To be able to use project as submodule, avoid using PROJECT_SOURCE_DIR
+# CMake common project settings
+# =============================================================================
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "16")
+set(VERSION_PATCH "0")
+set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# =============================================================================
+# Settings to enable project as submodule
 # =============================================================================
 set(CORENEURON_PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-# For future target customization
 set(CORENEURON_AS_SUBPROJECT OFF)
 if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(CORENEURON_AS_SUBPROJECT ON)
 endif()
 
-## global options
-option(CORENEURON_OPENMP "Build the CORE NEURON with OpenMP implementation" ON)
-option(DISABLE_NRN_TIMEOUT "Disable nrn_timeout implementation" OFF)
-option(ENABLE_REPORTINGLIB "Enable use of ReportingLib for soma reports" OFF)
-option(ENABLE_MPI "Enable MPI-based execution" ON)
-option(ENABLE_SOA "Enable SoA Memory Layout" ON)
-option(DISABLE_HOC_EXP "Disable wrapping exp with hoc_exp()" ON)
-option(ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
-option(ENABLE_NET_RECEIVE_BUFFERING "Enable event buffering in net_receive function" ON)
-option(ENABLE_ISPC_TARGET "Enable ispc interoperability structs and data" OFF)
-option(ENABLE_NMODL "Enable external nmodl source-to-source compiler" OFF)
-option(ENABLE_CALIPER "Enable Caliper instrumentation" OFF)
-option(CORENEURON_ENABLE_LIKWID "Enable LIKWID instrumentation" OFF)
-option(ENABLE_UNIFIED "Enable Unified Memory implementation of GPU" OFF)
-
-## set C++11 standard to be default
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
-set(FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
-
-set(NMODL_ROOT "" CACHE PATH "Path nmodl source-to-source compiler root")
-
-# mod2c path (if external) - will be overwriten if nmodl is requested and found
-set(MOD2C "" CACHE FILEPATH "Path of MOD2C binary")
-
-# test compilations
-option(UNIT_TESTS "Enable unit tests compilation and execution" ON)
-option(FUNCTIONAL_TESTS "Enable functional tests compilation and execution" ON)
-
-# todo: need to refactor to install only necessary header files
-option(ENABLE_HEADER_INSTALL "Install hedaers files for standalone compilation" ON)
-
+# =============================================================================
+# Include cmake modules
+# =============================================================================
 list(APPEND CMAKE_MODULE_PATH ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
-      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
-      ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
-
-set(Boost_NO_BOOST_CMAKE TRUE)
+    ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
+    ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
 
 include(CheckIncludeFiles)
 include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
-include(AddMod2cSubmodule)
-include(FindPkgConfig)
 include(CTest)
-include(Findnmodl)
 include(GNUInstallDirs)
 
+
+## global options
+option(CORENRN_ENABLE_OPENMP "Build the CORE NEURON with OpenMP implementation" ON)
+option(CORENRN_ENABLE_TIMEOUT "Disable nrn_timeout implementation" ON)
+option(CORENRN_ENABLE_REPORTINGLIB "Enable use of ReportingLib for soma reports" OFF)
+option(CORENRN_ENABLE_MPI "Enable MPI-based execution" ON)
+option(CORENRN_ENABLE_SOA "Enable SoA Memory Layout" ON)
+option(CORENRN_ENABLE_HOC_EXP "Disable wrapping exp with hoc_exp()" OFF)
+option(CORENRN_ENABLE_SPLAYTREE_QUEU "Enable use of Splay tree for spike queuing" ON)
+option(CORENRN_ENABLE_NET_RECEIVE_BUFFER "Enable event buffering in net_receive function" ON)
+option(CORENRN_ENABLE_ISPC "Enable ispc interoperability structs and data" OFF)
+option(CORENRN_ENABLE_NMODL "Enable external nmodl source-to-source compiler" OFF)
+option(CORENRN_ENABLE_CALIPER_PROFILING "Enable Caliper instrumentation" OFF)
+option(CORENRN_ENABLE_LIKWID_PROFILING "Enable LIKWID instrumentation" OFF)
+option(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY "Enable Unified Memory implementation of GPU" OFF)
+option(CORENRN_ENABLE_UNIT_TESTS "Enable unit tests compilation and execution" ON)
+option(CORENRN_ENABLE_FUNCTIONAL_TESTS "Enable functional tests compilation and execution" ON)
+
+set(CORENRN_FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend executable]")
+set(CORENRN_FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend executable]")
+
+set(CORENRN_NMODL_ROOT "" CACHE PATH "Path nmodl source-to-source compiler root")
+set(CORENRN_MOD2C "" CACHE FILEPATH "Path of CORENRN_MOD2C binary")
+
 # ispc support
-if (ENABLE_ISPC_TARGET)
+if (CORENRN_ENABLE_ISPC)
     enable_language(ISPC)
     add_definitions("-DISPC_INTEROP=1")
-    set(ENABLE_NMODL ON)
+    set(CORENRN_ENABLE_NMODL ON)
 endif()
 
-if (ENABLE_NMODL)
+if (CORENRN_ENABLE_NMODL)
     find_package(nmodl REQUIRED)
-    set(MOD2C "${nmodl_BINARY}")
+    set(CORENRN_MOD2C "${nmodl_BINARY}")
+    configure_file(${nmodl_BINARY} ${CMAKE_BINARY_DIR}/bin/nmodl COPYONLY)
     set(NMODL_EXTRA_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
     separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${NMODL_EXTRA_FLAGS}")
     include_directories(${nmodl_INCLUDE})
@@ -112,11 +84,13 @@ if (ENABLE_NMODL)
     else()
         set(ENV{PYTHONPATH} "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
     endif ()
+else()
+    include(AddMod2cSubmodule)
 endif ()
 
 
 #Find all dependencies
-if (ENABLE_MPI)
+if (CORENRN_ENABLE_MPI)
     find_package(MPI REQUIRED)
     add_definitions("-DNRNMPI=1")
 else()
@@ -126,40 +100,41 @@ else()
 endif()
 
 #Memory layout transformation: 0 for SoA and 1 for AoS
-if (ENABLE_SOA)
+if (CORENRN_ENABLE_SOA)
     add_definitions("-DLAYOUT=0")
 else()
     add_definitions("-DLAYOUT=1")
 endif()
 
 #Disable hoc_exp wrapper for exp
-if (DISABLE_HOC_EXP)
+if (NOT CORENRN_ENABLE_HOC_EXP)
     add_definitions("-DDISABLE_HOC_EXP")
 endif()
 
 #Enable use of splay tree for queuing (for models using net_move)
-if (ENABLE_SPLAYTREE_QUEUING)
+if (CORENRN_ENABLE_SPLAYTREE_QUEU)
     add_definitions("-DENABLE_SPLAYTREE_QUEUING")
 endif()
 
 #Turn off event buffering if asked
-if (NOT ENABLE_NET_RECEIVE_BUFFERING)
+if (NOT CORENRN_ENABLE_NET_RECEIVE_BUFFER)
     add_definitions("-DNET_RECEIVE_BUFFERING=0")
 endif()
 
+set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 # Threading
-if(CORENEURON_OPENMP)
+if(CORENRN_ENABLE_OPENMP)
     find_package(OpenMP)
     if(OPENMP_FOUND)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} ${ADDITIONAL_THREADSAFE_FLAGS}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} ${ADDITIONAL_THREADSAFE_FLAGS}")
     endif(OPENMP_FOUND)
-endif(CORENEURON_OPENMP)
+endif(CORENRN_ENABLE_OPENMP)
 
 # ReportingLib
-if(ENABLE_REPORTINGLIB)
+if(CORENRN_ENABLE_REPORTINGLIB)
     find_package(reportinglib REQUIRED)
     if(reportinglib_FOUND)
         include_directories(${reportinglib_INCLUDE_DIR})
@@ -167,26 +142,26 @@ if(ENABLE_REPORTINGLIB)
     else(reportinglib_FOUND)
         message(FATAL_ERROR "Enabled use of ReportingLib but ReportingLib installion not found!")
     endif(reportinglib_FOUND)
-endif(ENABLE_REPORTINGLIB)
+endif(CORENRN_ENABLE_REPORTINGLIB)
 
 # Code instrumentation
-if(ENABLE_CALIPER)
+if(CORENRN_ENABLE_CALIPER_PROFILING)
     find_package(caliper REQUIRED)
     include_directories(${caliper_INCLUDE_DIR})
     add_definitions("-DCORENEURON_CALIPER")
     set(CALIPER_LIB "caliper")
-    if(ENABLE_MPI)
+    if(CORENRN_ENABLE_MPI)
         set(CALIPER_MPI_LIB "caliper-mpi")
     endif()
-endif(ENABLE_CALIPER)
+endif(CORENRN_ENABLE_CALIPER_PROFILING)
 
 # Code instrumentation
 set(LIKWID_ROOT "" CACHE PATH "Path likwid performance monitoring and benchmarking suite")
-if(CORENEURON_ENABLE_LIKWID)
+if(CORENRN_ENABLE_LIKWID_PROFILING)
     find_package(likwid REQUIRED)
     include_directories(${likwid_INCLUDE_DIRS})
     add_definitions("-DLIKWID_PERFMON")
-endif(CORENEURON_ENABLE_LIKWID)
+endif(CORENRN_ENABLE_LIKWID_PROFILING)
 
 CHECK_INCLUDE_FILES (malloc.h have_malloc_h)
 if(have_malloc_h)
@@ -245,7 +220,7 @@ endif()
 
 if(ENABLE_OPENACC)
     set(COMPILE_LIBRARY_TYPE "STATIC")
-    if (ENABLE_UNIFIED)
+    if (CORENRN_ENABLE_CUDA_UNIFIED_MEMORY)
         add_definitions( -DUNIFIED_MEMORY)
     endif()
     if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
@@ -273,25 +248,14 @@ ELSE(ENABLE_OPENACC)
 endif(ENABLE_OPENACC)
 
 
-if(DISABLE_NRN_TIMEOUT)
+if(NOT CORENRN_ENABLE_TIMEOUT)
     add_definitions("-DDISABLE_TIMEOUT")
-endif()
-
-if(EXPORT_MECHS_FUNCTIONS)
-    add_definitions("-DEXPORT_MECHS_FUNCTIONS")
 endif()
 
 # Core library and main exe
 add_subdirectory(coreneuron)
 add_subdirectory(apps)
-
-# Tests
-if(Boost_FOUND)
-    add_subdirectory(tests)
-else()
-    message(STATUS "Boost not found, disabling tests")
-endif(Boost_FOUND)
-
+add_subdirectory(tests)
 add_subdirectory(extra)
 
 install(FILES CMake/coreneuron-config.cmake DESTINATION share/cmake)

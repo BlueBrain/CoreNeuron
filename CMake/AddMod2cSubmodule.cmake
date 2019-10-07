@@ -27,7 +27,7 @@ include (ExternalProject)
 include(FindPkgConfig)
 
 find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c")
-find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
+find_package_handle_standard_args(CORENRN_MOD2C REQUIRED_VARS MOD2C_PROJ)
 
 if (NOT MOD2C_FOUND)
   find_package(Git 1.8.3 QUIET)
@@ -45,7 +45,7 @@ endif()
 set(ExternalProjectCMakeArgs
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}
-  -DCMAKE_C_COMPILER=${FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${FRONTEND_CXX_COMPILER}
+  -DCMAKE_C_COMPILER=${CORENRN_FRONTEND_C_COMPILER} -DCMAKE_CXX_COMPILER=${CORENRN_FRONTEND_CXX_COMPILER}
 )
 
 ExternalProject_Add(mod2c

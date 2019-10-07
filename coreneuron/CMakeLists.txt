@@ -39,17 +39,17 @@ set(dimplic_c_file "mech/dimplic.cpp")
 
 
 # set mod2c binary and files from built in
-if(NOT EXISTS ${MOD2C})
-    if(${ENABLE_ISPC_TARGET})
-        message(FATAL_ERROR "ispc targets can only be generated with the external nmodl compiler")
-    endif()
-    set (MOD2C ${PROJECT_BINARY_DIR}/bin/mod2c_core)
+if(NOT EXISTS ${CORENRN_MOD2C})
+if(${CORENRN_ENABLE_ISPC})
+    message(FATAL_ERROR "ispc targets can only be generated with the external nmodl compiler")
 endif()
+set (CORENRN_MOD2C ${PROJECT_BINARY_DIR}/bin/mod2c_core)
+endif()
+set (MOD2C_BINARY ${CORENRN_MOD2C})
 
-set (MOD2C_BINARY ${MOD2C})
-get_filename_component(mod2c_install_prefix ${MOD2C} DIRECTORY)
+get_filename_component(mod2c_install_prefix ${CORENRN_MOD2C} DIRECTORY)
 set (MOD2C_UNITS "${PROJECT_BINARY_DIR}/share/nrnunits.lib")
-set(MOD2C env "MODLUNIT=${MOD2C_UNITS}" "PYTHONPATH=$ENV{PYTHONPATH}" ${MOD2C})
+set(CORENRN_MOD2C env "MODLUNIT=${MOD2C_UNITS}" "PYTHONPATH=$ENV{PYTHONPATH}" ${CORENRN_MOD2C})
 
 # Macro sets up build rule for .c files from .mod files.
 # Parameters:
@@ -108,18 +108,18 @@ macro(mod2c_target)
         unset(mod2c_wrapper_outname_)
     endif()
     list(APPEND MOD2C_${mod2c_KEY}_MODS "${mod2c_modname_}")
-    if(ENABLE_NMODL AND NMODL_FOUND)
+    if(CORENRN_ENABLE_NMODL AND NMODL_FOUND)
         add_custom_command(OUTPUT "${mod2c_output_}" "${mod2c_wrapper_output_}"
                 DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
                 COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-                COMMAND ${MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}" host ${nmodl_modearg}
+                COMMAND ${CORENRN_MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}" host ${nmodl_modearg}
                     ${NMODL_EXTRA_FLAGS_LIST}
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     else()
         add_custom_command(OUTPUT "${mod2c_output_}"
                 DEPENDS ${mod2c_MODFILE} mod2c ${MOD2C_BINARY}
                 COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}" "${CMAKE_CURRENT_BINARY_DIR}"
-                COMMAND ${MOD2C} "${mod2c_modname_}"
+                COMMAND ${CORENRN_MOD2C} "${mod2c_modname_}"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     endif()
 endmacro()
@@ -144,7 +144,7 @@ endfunction()
 set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
 set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod  hh.mod  netstim.mod  passive.mod  pattern.mod stim.mod)
 
-if(${ENABLE_ISPC_TARGET})
+if(${CORENRN_ENABLE_ISPC})
     set(M2C_TARGET ispc)
 else()
     set(M2C_TARGET serial)
@@ -166,7 +166,7 @@ set(KINDERIV_PY "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set_source_files_properties(${MOD2C_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
 
 
-if(ENABLE_ISPC_TARGET)
+if(CORENRN_ENABLE_ISPC)
     set(MOD2C_ISPC_INBUILT_MOD_OUTPUTS ${MOD2C_INBUILT_MOD_OUTPUTS})
     list(FILTER MOD2C_ISPC_INBUILT_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
     set_source_files_properties(${MOD2C_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
@@ -211,7 +211,7 @@ if(ENABLE_OPENACC)
     set(link_cudacoreneuron cudacoreneuron)
 endif()
 
-if(ENABLE_REPORTINGLIB)
+if(CORENRN_ENABLE_REPORTINGLIB)
     set(link_reportinglib ${reportinglib_LIBRARY})
 endif()
 
@@ -298,7 +298,6 @@ install(PROGRAMS ${MOD2C_BINARY}
 install(FILES ${MOD2C_UNITS}
         DESTINATION ${CMAKE_INSTALL_DATADIR}/mod2c)
 
-if(ENABLE_HEADER_INSTALL)
     install(DIRECTORY .
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
             FILES_MATCHING PATTERN "*.h*" PATTERN "*.ipp" PATTERN "*.ispc")
@@ -309,4 +308,3 @@ if(ENABLE_HEADER_INSTALL)
     install(TARGETS scopmath
             EXPORT coreneuron
             DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
-endif()
