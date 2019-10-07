@@ -8,7 +8,7 @@ include (ExternalProject)
 include(FindPkgConfig)
 
 find_path(MOD2C_PROJ NAMES CMakeLists.txt PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c")
-find_package_handle_standard_args(CORENRN_MOD2C REQUIRED_VARS MOD2C_PROJ)
+find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
 
 if (NOT MOD2C_FOUND)
   find_package(Git 1.8.3 QUIET)

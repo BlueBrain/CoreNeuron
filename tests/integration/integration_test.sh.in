@@ -1,10 +1,8 @@
 #! /bin/sh
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:@CMAKE_BINARY_DIR@/lib
 export OMP_NUM_THREADS=1
 
 # Run the executable
-#SRUN_EXTRA="--propagate=CORE"
 SRUN_EXTRA=
 if [ -n "$VALGRIND" -a -n "$VALGRIND_PRELOAD" ]; then
     echo "Running with valgrind"

@@ -4,11 +4,12 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
-set(nrnivmodl_core_makefile "nrnivmodl_core_makefile")
-set(nrnivmodl_core "nrnivmodl-core")
+# =============================================================================
+# Prepare nrnivmodl-core script with correct compiler flags
+# =============================================================================
 
+# extract the COMPILE_DEFINITIONS property from the directory.
 get_directory_property(CORENRN_COMPILE_FLAGS COMPILE_DEFINITIONS)
-
 if(CORENRN_COMPILE_FLAGS)
   set(CORENRN_COMPILE_DEFS "-D${CORENRN_COMPILE_FLAGS}")
   string(REPLACE ";"
@@ -17,12 +18,12 @@ if(CORENRN_COMPILE_FLAGS)
                  "${CORENRN_COMPILE_DEFS}")
 endif()
 
-# Link libraries CMake does some magic to transform sys libs to -l<libname>. We replicate it
+# replicate CMake magic to transform system libs to -l<libname>
 foreach(link_lib ${CORENRN_LINK_LIBS})
-  get_filename_component(pth ${link_lib} DIRECTORY)
-  if(NOT pth)
+  get_filename_component(path ${link_lib} DIRECTORY)
+  if(NOT path)
     string(APPEND CORENRN_LINK_DEFS " -l${link_lib}")
-  elseif("${pth}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
+  elseif("${path}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
     get_filename_component(libname ${link_lib} NAME_WE)
     string(REGEX
            REPLACE "^lib"
@@ -35,7 +36,7 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
   endif()
 endforeach()
 
-# PGI add --c++11;-A option for c++11 flag
+# PGI compiler add --c++11;-A option for c++11 flag
 string(REPLACE ";"
                " "
                CXX11_STANDARD_COMPILE_OPTION
@@ -49,12 +50,13 @@ if(MPI_C_INCLUDE_PATH)
                  "${MPI_C_INCLUDE_PATH}")
 endif()
 
-# Compiler flags depending on BUILD_TYPE shared as BUILD_TYPE_<LANG>_FLAGS
+# compiler flags depending on BUILD_TYPE (configured as BUILD_TYPE_<LANG>_FLAGS)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
 set(BUILD_TYPE_C_FLAGS "${CMAKE_C_FLAGS_${_BUILD_TYPE}}")
 set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message(STATUS "CXX Compile flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
+# nmodl options
 if(CORENRN_ENABLE_NMODL)
   set(nmodl_arguments_c "host --c ${CORENRN_NMODL_FLAGS}")
   set(nmodl_arguments_ispc "host --ispc ${CORENRN_NMODL_FLAGS}")
@@ -66,12 +68,13 @@ else()
   set(mod2c_bin_name "mod2c_core")
 endif()
 
-# copy into build directory
-configure_file(${nrnivmodl_core_makefile}.in ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core_makefile}
-               @ONLY)
-configure_file(${nrnivmodl_core} ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core} @ONLY)
+# =============================================================================
+# Install first into build and then to install prefix
+# =============================================================================
 
-# install
-install(FILES ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core_makefile}
+configure_file(nrnivmodl_core_makefile.in ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile @ONLY)
+configure_file(nrnivmodl-core ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core COPYONLY)
+
+install(FILES ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${nrnivmodl_core} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core DESTINATION ${CMAKE_INSTALL_BINDIR})
