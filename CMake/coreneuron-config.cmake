@@ -1,3 +1,9 @@
+# =============================================================================
+# Copyright (C) 2016-2019 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+
 # coreneuron-config.cmake - package configuration file
 
 get_filename_component(CONFIG_PATH "${CMAKE_CURRENT_LIST_FILE}" PATH)

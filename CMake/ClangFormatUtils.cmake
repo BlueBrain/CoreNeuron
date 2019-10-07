@@ -1,3 +1,9 @@
+# =============================================================================
+# Copyright (C) 2016-2019 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+
 string(REPLACE " " ";" FILES_TO_FORMAT ${SOURCE_FILES})
 
 FOREACH(SRC_FILE ${FILES_TO_FORMAT})

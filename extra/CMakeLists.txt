@@ -1,3 +1,9 @@
+# =============================================================================
+# Copyright (C) 2016-2019 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+
 set(nrnivmodl_core_makefile "nrnivmodl_core_makefile")
 set(nrnivmodl_core "nrnivmodl-core")
 
