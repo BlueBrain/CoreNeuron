@@ -190,7 +190,7 @@ set(NOACC_MECH_C_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/nrn_setup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/global_vars.cpp)
 
-if(ENABLE_OPENACC)
+if(CORENRN_ENABLE_GPU)
   set_source_files_properties(${GENERATED_MECH_C_FILES} PROPERTIES COMPILE_FLAGS "")
   set_source_files_properties(${NOACC_MECH_C_FILES} PROPERTIES COMPILE_FLAGS "-DDISABLE_OPENACC")
   if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
@@ -205,7 +205,7 @@ set(link_cudacoreneuron)
 set(link_reportinglib)
 
 # @TODO: CMake should have option for arch
-if(ENABLE_OPENACC)
+if(CORENRN_ENABLE_GPU)
   cuda_add_library("cudacoreneuron"
                    ${coreneuron_cuda_files}
                    OPTIONS

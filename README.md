@@ -13,7 +13,7 @@ CoreNEURON can transparently handle all spiking network simulations including ga
 
 ## Dependencies
 * [CMake 3.0.12+](https://cmake.org)
-* [CORENRN_MOD2C](http://github.com/BlueBrain/mod2c)
+* [MOD2C](http://github.com/BlueBrain/mod2c)
 * [MPI 2.0+](http://mpich.org) [Optional]
 * [PGI OpenACC Compiler >=18.0](https://www.pgroup.com/resources/accel.htm) [Optional, for GPU systems]
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU systems]
@@ -98,7 +98,7 @@ Note that the CUDA Toolkit version should be compatible with PGI compiler instal
 You have to run GPU executable with the `--gpu` or `-gpu`. Make sure to enable cell re-ordering mechanism to improve GPU performance using `--cell_permute` option (permutation types : 2 or 1):
 
 ```bash
-mpirun -n 1 ./bin/coreneuron_exec -d ../tests/integration/ring -mpi -e 100 --gpu --cell_permute 2
+mpirun -n 1 ./bin/nrniv-core -d ../tests/integration/ring -mpi -e 100 --gpu --cell_permute 2
 ```
 
 Note that if your model is using Random123 random number generator, you can't use same executable for CPU and GPU runs. We suggest to build separate executable for CPU and GPU simulations. This will be fixed in future releases.
@@ -135,7 +135,7 @@ Note that the CoreNEURON simulator dependends on NEURON to build the network mod
 
 ```bash
 export OMP_NUM_THREADS=2     #set appropriate value
-mpiexec -np 2 build/apps/coreneuron_exec -e 10 -d /path/to/model/built/by/neuron -mpi
+mpiexec -np 2 build/apps/nrniv-core -e 10 -d /path/to/model/built/by/neuron -mpi
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
@@ -143,7 +143,7 @@ mpiexec -np 2 build/apps/coreneuron_exec -e 10 -d /path/to/model/built/by/neuron
 In order to see the command line options, you can use:
 
 ```bash
-/path/to/isntall/directory/coreneuron_exec --help
+/path/to/isntall/directory/nrniv-core --help
 -b, --spikebuf ARG          Spike buffer size. (100000)
 -c, --threading             Parallel threads. The default is serial threads.
 -d, --datpath ARG           Path containing CoreNeuron data files. (.)

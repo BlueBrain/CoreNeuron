@@ -34,7 +34,6 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
     string(APPEND CORENRN_LINK_DEFS " ${link_lib}")
   endif()
 endforeach()
-# message("CORENRN_LINK_LIBS: ${CORENRN_LINK_LIBS}, CORENRN_LINK_DEFS: ${CORENRN_LINK_DEFS}")
 
 # PGI add --c++11;-A option for c++11 flag
 string(REPLACE ";"
@@ -57,10 +56,10 @@ set(BUILD_TYPE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${_BUILD_TYPE}}")
 message(STATUS "CXX Compile flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 
 if(CORENRN_ENABLE_NMODL)
-  set(nmodl_arguments_c "host --c ${NMODL_EXTRA_FLAGS}")
-  set(nmodl_arguments_ispc "host --ispc ${NMODL_EXTRA_FLAGS}")
-  get_filename_component(barename ${nmodl_BINARY} NAME)
-  set(mod2c_bin_name ${barename})
+  set(nmodl_arguments_c "host --c ${CORENRN_NMODL_FLAGS}")
+  set(nmodl_arguments_ispc "host --ispc ${CORENRN_NMODL_FLAGS}")
+  get_filename_component(nmodl_name ${nmodl_BINARY} NAME)
+  set(mod2c_bin_name ${nmodl_name})
 else()
   set(nmodl_arguments_c "")
   set(nmodl_arguments_ispc "")

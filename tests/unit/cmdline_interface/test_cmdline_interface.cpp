@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     const char* argv[] = {
 
-        "coreneuron_exec",
+        "nrniv-core",
 
         "--spikebuf",
         "100",
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     BOOST_CHECK(nrnopt_get_dbl("--dt") == 18.1);
 
     // check if default flags are false
-    const char* argv_empty[] = {"coreneuron_exec"};
+    const char* argv_empty[] = {"nrniv-core"};
     argc = 1;
 
     nrnopt_parse(argc, argv_empty);
