@@ -33,6 +33,7 @@ set(MODFUNC_PERL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 # as openacc limits passing function pointers as arguments, mod2c translated files depend on a
 # _kinderiv.h file that is constructed by kinderiv.py
 set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
+set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(MOD2C_UNITS "${PROJECT_BINARY_DIR}/share/nrnunits.lib")
 set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
@@ -129,6 +130,16 @@ else()
 endif()
 
 # =============================================================================
+# run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
+# =============================================================================
+add_custom_command(OUTPUT "${KINDERIV_HEADER_FILE}"
+    DEPENDS ${MOD2C_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
+    COMMAND python ${KINDERIV_PYTHON_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating kinderiv.h by inspecting MOD files")
+add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
+
+# =============================================================================
 # create libraries
 # =============================================================================
 
@@ -140,6 +151,9 @@ add_library(coreneuron
             ${CORENEURON_CODE_FILES}
             ${cudacorenrn_objs}
             ${MOD2C_INBUILT_MOD_OUTPUTS})
+
+# need to have _kinderiv.h for mod2c generated files
+add_dependencies(coreneuron kin_deriv_header)
 
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
