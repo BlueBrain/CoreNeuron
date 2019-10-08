@@ -69,7 +69,7 @@ else()
 endif()
 
 # =============================================================================
-# Install first into build and then to install prefix
+# Install first into build directory and then to install prefix
 # =============================================================================
 
 configure_file(nrnivmodl_core_makefile.in ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile @ONLY)
