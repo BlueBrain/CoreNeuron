@@ -68,10 +68,8 @@ set(CORENRN_NMODL_ROOT "" CACHE PATH "Path nmodl source-to-source compiler root"
 set(CORENRN_MOD2C "" CACHE FILEPATH "Path of CORENRN_MOD2C binary")
 set(LIKWID_ROOT "" CACHE PATH "Path to likwid performance analysis suite")
 
-set(CORENRN_FRONTEND_C_COMPILER gcc
-    CACHE FILEPATH "C compiler for building mod2c [frontend]")
-set(CORENRN_FRONTEND_CXX_COMPILER g++
-    CACHE FILEPATH "C++ compiler for building mod2c [frontend]")
+set(CORENRN_FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend]")
+set(CORENRN_FRONTEND_CXX_COMPILER g++ CACHE FILEPATH "C++ compiler for building mod2c [frontend]")
 
 # =============================================================================
 # Include cmake modules after cmake options
@@ -203,3 +201,55 @@ add_subdirectory(extra)
 # =============================================================================
 install(FILES CMake/coreneuron-config.cmake DESTINATION share/cmake)
 install(EXPORT coreneuron DESTINATION share/cmake)
+
+# =============================================================================
+# Build status
+# =============================================================================
+message(STATUS "")
+message(STATUS "Configured CoreNEURON ${PROJECT_VERSION}")
+message(STATUS "")
+string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
+if(cmake_generator_tolower MATCHES "makefile")
+  message(STATUS "Some things you can do now:")
+  message(STATUS "--------------------+--------------------------------------------------------")
+  message(STATUS "Command             |   Description")
+  message(STATUS "--------------------+--------------------------------------------------------")
+  message(STATUS "make install        | Will install CoreNEURON to: ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "                    | Change the install location of NEURON using:")
+  message(STATUS "                    |     cmake <src_path> -DCMAKE_INSTALL_PREFIX=<install_path>")
+  message(STATUS "make uninstall      | Removes files installed by make install")
+  message(STATUS "--------------------+--------------------------------------------------------")
+  message(STATUS " Build option       | Status")
+  message(STATUS "--------------------+--------------------------------------------------------")
+
+  message(STATUS "MPI                 | ${CORENRN_ENABLE_MPI}")
+  if(CORENRN_ENABLE_MPI)
+    message(STATUS "  INC               | ${MPI_C_INCLUDE_PATH}")
+  endif()
+  message(STATUS "OpenMP              | ${CORENRN_ENABLE_OPENMP}")
+  message(STATUS "NMODL               | ${CORENRN_ENABLE_NMODL}")
+  if(CORENRN_ENABLE_NMODL)
+    message(STATUS "  PATH              | ${nmodl_BINARY}")
+    message(STATUS "  ISPC              | ${CORENRN_ENABLE_ISPC}")
+  else()
+    message(STATUS "MOD2C               | ${MOD2C_PROJ}")
+  endif()
+  message(STATUS "GPU Support         | ${CORENRN_ENABLE_GPU}")
+  message(STATUS "CUDA Unified Memory | ${CORENRN_ENABLE_CUDA_UNIFIED_MEMORY}")
+  message(STATUS "Auto Timeout        | ${CORENRN_ENABLE_TIMEOUT}")
+  message(STATUS "Wrap exp()          | ${CORENRN_ENABLE_HOC_EXP}")
+  message(STATUS "SplayTree Queue     | ${CORENRN_ENABLE_SPLAYTREE_QUEUING}")
+  message(STATUS "NetReceive Buffer   | ${CORENRN_ENABLE_NET_RECEIVE_BUFFER}")
+  message(STATUS "Caliper             | ${CORENRN_ENABLE_CALIPER_PROFILING}")
+  message(STATUS "Likwid              | ${CORENRN_ENABLE_LIKWID_PROFILING}")
+  message(STATUS "Unit Tests          | ${CORENRN_ENABLE_UNIT_TESTS}")
+  message(STATUS "ReportingLib        | ${CORENRN_ENABLE_REPORTINGLIB}")
+  if(CORENRN_ENABLE_REPORTINGLIB)
+    message(STATUS "  INC               | ${reportinglib_INCLUDE_DIR}")
+  endif()
+
+  message(STATUS "--------------+--------------------------------------------------------------")
+  message(STATUS " See documentation : https://github.com/BlueBrain/CoreNeuron/")
+  message(STATUS "--------------+--------------------------------------------------------------")
+endif()
+message(STATUS "")
