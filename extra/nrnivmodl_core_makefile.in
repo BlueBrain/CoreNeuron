@@ -11,11 +11,11 @@ OUTPUT = @CMAKE_HOST_SYSTEM_PROCESSOR@
 DESTDIR =
 
 # Coreneuron dirs
-bindir := $(ROOT)/@CMAKE_INSTALL_BINDIR@
-libdir := $(ROOT)/@CMAKE_INSTALL_LIBDIR@
-incdir := $(ROOT)/@CMAKE_INSTALL_INCLUDEDIR@
-datadir:= $(ROOT)/@CMAKE_INSTALL_DATADIR@/coreneuron
-datadir_mod2c := $(ROOT)/@CMAKE_INSTALL_DATADIR@/mod2c
+bindir := $(ROOT)/bin
+libdir := $(ROOT)/lib
+incdir := $(ROOT)/include
+datadir:= $(ROOT)/share/coreneuron
+datadir_mod2c := $(ROOT)/share/mod2c
 
 # Binary of CORENRN_MOD2C/NMODL depending on what was activated
 mod2c_install_bin := $(bindir)/@mod2c_bin_name@

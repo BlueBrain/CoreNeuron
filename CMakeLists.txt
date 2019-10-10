@@ -43,7 +43,6 @@ include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
 include(CTest)
-include(GNUInstallDirs)
 
 # =============================================================================
 # Build options
@@ -215,8 +214,6 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "Command             |   Description")
   message(STATUS "--------------------+--------------------------------------------------------")
   message(STATUS "make install        | Will install CoreNEURON to: ${CMAKE_INSTALL_PREFIX}")
-  message(STATUS "                    | Change the install location of NEURON using:")
-  message(STATUS "                    |     cmake <src_path> -DCMAKE_INSTALL_PREFIX=<install_path>")
   message(STATUS "make uninstall      | Removes files installed by make install")
   message(STATUS "--------------------+--------------------------------------------------------")
   message(STATUS " Build option       | Status")

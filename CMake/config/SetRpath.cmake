@@ -14,7 +14,7 @@ IF( NOT CRAY_SYSTEM)
     # which point to directories outside the build tree to the install RPATH
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-    set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+    set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
     # the RPATH to be used when installing, but only if it's not a system directory
     LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${LIB_INSTALL_DIR}" isSystemDir)

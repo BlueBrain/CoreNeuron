@@ -225,17 +225,17 @@ configure_file("nrniv/profiler_interface.h"
 # coreneuron main libraries
 install(TARGETS coreneuron corenrnmech ${link_cudacoreneuron}
         EXPORT coreneuron
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
         INCLUDES
         DESTINATION $<INSTALL_INTERFACE:include>)
 
 # scopemath into share for nrnivmodl-core
-install(TARGETS scopmath EXPORT coreneuron DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
+install(TARGETS scopmath EXPORT coreneuron DESTINATION lib)
 
 # headers and some standalone code files for nrnivmodl-core
 install(DIRECTORY .
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/coreneuron
+        DESTINATION include/coreneuron
         FILES_MATCHING
         PATTERN "*.h*"
         PATTERN "*.ipp"
@@ -244,8 +244,8 @@ install(FILES ${KINDERIV_PYTHON_SCRIPT}
               ${MODFUNC_PERL_SCRIPT}
               ${DIMPLIC_CODE_FILE}
               ${ENGINEMECH_CODE_FILE}
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
+        DESTINATION share/coreneuron)
 
 # copy mod2c/nmodl for nrnivmodl-core
-install(PROGRAMS ${MOD2C_BINARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES ${MOD2C_UNITS} DESTINATION ${CMAKE_INSTALL_DATADIR}/mod2c)
+install(PROGRAMS ${MOD2C_BINARY} DESTINATION bin)
+install(FILES ${MOD2C_UNITS} DESTINATION share/mod2c)

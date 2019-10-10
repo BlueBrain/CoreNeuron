@@ -18,5 +18,5 @@ set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BIN
 configure_file(coreneuron.cpp ${CMAKE_BINARY_DIR}/share/coreneuron/coreneuron.cpp COPYONLY)
 
 # install targes
-install(TARGETS nrniv-core DESTINATION "${CMAKE_INSTALL_BINDIR}")
-install(FILES coreneuron.cpp DESTINATION ${CMAKE_INSTALL_DATADIR}/coreneuron)
+install(TARGETS nrniv-core DESTINATION bin)
+install(FILES coreneuron.cpp DESTINATION share/coreneuron)

@@ -76,5 +76,5 @@ configure_file(nrnivmodl_core_makefile.in ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core
 configure_file(nrnivmodl-core ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core COPYONLY)
 
 install(FILES ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core DESTINATION ${CMAKE_INSTALL_BINDIR})
+        DESTINATION bin)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core DESTINATION bin)
