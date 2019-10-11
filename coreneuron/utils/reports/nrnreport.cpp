@@ -397,7 +397,7 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
     if (report.start < t) {
         report.start = t;
     }
-    report.stop = tstop;
+    report.stop = std::min(report.stop, tstop);
 
     records_set_atomic_step(dt);
     report.mech_id = nrn_get_mechtype(report.mech_name);
