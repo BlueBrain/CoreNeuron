@@ -89,7 +89,7 @@ macro(mod2c_target)
 
   list(APPEND MOD2C_${mod2c_KEY}_MODS "${mod2c_modname_}")
   if(CORENRN_ENABLE_NMODL AND NMODL_FOUND)
-    add_custom_command(OUTPUT "${mod2c_output_}" "${mod2c_wrapper_output_}"
+    add_custom_command(OUTPUT ${mod2c_output_} ${mod2c_wrapper_output_}
                        DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
                        COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}"
                                "${CMAKE_CURRENT_BINARY_DIR}"
@@ -97,7 +97,7 @@ macro(mod2c_target)
                                host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS_LIST}
                        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
   else()
-    add_custom_command(OUTPUT "${mod2c_output_}"
+    add_custom_command(OUTPUT ${mod2c_output_}
                        DEPENDS ${mod2c_MODFILE} mod2c ${MOD2C_BINARY}
                        COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}"
                                "${CMAKE_CURRENT_BINARY_DIR}"
