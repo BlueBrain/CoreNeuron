@@ -20,7 +20,7 @@ if (NOT MOD2C_FOUND)
     ${GIT_EXECUTABLE} submodule update --init --recursive -- ${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c
     WORKING_DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR})
 else()
-  message(STATUS "Using mod2c submodule from from ${MOD2C_PROJ}")
+  message(STATUS "Using mod2c submodule from ${MOD2C_PROJ}")
 endif()
 
 set(ExternalProjectCMakeArgs

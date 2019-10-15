@@ -1,7 +1,7 @@
 # enable @rpath in the install name for any shared library being built
 set(CMAKE_MACOSX_RPATH 1)
 
-# On platforms like bgq, xlc didn' like rpath with static build
+# On platforms like bgq, xlc didn't like rpath with static build
 # Similar issue was seen on Cray
 IF( NOT CRAY_SYSTEM)
     # use, i.e. don't skip the full RPATH for the build tree
