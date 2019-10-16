@@ -220,6 +220,10 @@ configure_file("nrniv/profiler_interface.h"
 configure_file("nrnoc/nrnoc_ml.ispc"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
 
+# TODO : this doesn't get re-copied if source changes
+file(COPY "utils/randoms" DESTINATION
+               ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
+
 # =============================================================================
 # Install main targets
 # =============================================================================
