@@ -84,8 +84,8 @@ set_source_files_properties(${MOD2C_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TR
 # coreneuron GPU library
 # =============================================================================
 if(CORENRN_ENABLE_GPU)
-  # artificial cells and some other cpp files (using Random123) should
-  # be compiled without OpenACC to avoid use of GPU Random123 streams
+  # artificial cells and some other cpp files (using Random123) should be compiled without OpenACC
+  # to avoid use of GPU Random123 streams
   set(OPENACC_EXCLUDED_FILES
       ${CMAKE_CURRENT_BINARY_DIR}/netstim.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
@@ -133,10 +133,10 @@ endif()
 # run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
 # =============================================================================
 add_custom_command(OUTPUT "${KINDERIV_HEADER_FILE}"
-    DEPENDS ${MOD2C_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
-    COMMAND python ${KINDERIV_PYTHON_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating kinderiv.h by inspecting MOD files")
+                   DEPENDS ${MOD2C_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
+                   COMMAND python ${KINDERIV_PYTHON_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                   COMMENT "Generating kinderiv.h by inspecting MOD files")
 add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # =============================================================================
@@ -217,12 +217,10 @@ configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
 configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
 configure_file("nrniv/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("nrnoc/nrnoc_ml.ispc"
-               ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
+configure_file("nrnoc/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
 
 # TODO : this doesn't get re-copied if source changes
-file(COPY "utils/randoms" DESTINATION
-               ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
+file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
 
 # =============================================================================
 # Install main targets
