@@ -254,4 +254,7 @@ install(FILES ${KINDERIV_PYTHON_SCRIPT}
 
 # copy mod2c/nmodl for nrnivmodl-core
 install(PROGRAMS ${MOD2C_BINARY} DESTINATION bin)
-install(FILES ${MOD2C_UNITS} DESTINATION share/mod2c)
+
+if(NOT CORENRN_ENABLE_NMODL)
+  install(FILES ${MOD2C_UNITS} DESTINATION share/mod2c)
+endif()
