@@ -38,7 +38,7 @@ if(CLANG_FORMAT_FOUND)
     list(REMOVE_ITEM SRC_FILES_FOR_CLANG_FORMAT ${R123_PATH})
   endforeach(R123_PATH)
 
-  add_custom_target(formatsource
+  add_custom_target(clang-format
                     COMMAND ${CMAKE_COMMAND} -DSOURCE_FILES:STRING="${SRC_FILES_FOR_CLANG_FORMAT}"
                             -DCLANG_FORMAT_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE} -P
                             "${CORENEURON_PROJECT_SOURCE_DIR}/CMake/ClangFormatUtils.cmake")
