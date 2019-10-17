@@ -376,7 +376,7 @@ void setup_report_engine(double dt_report, double mindelay) {
 #ifdef ENABLE_REPORTING
     /** reportinglib setup */
     int min_steps_to_record = static_cast<int>(mindelay / dt_report + 0.5);
-    records_set_min_steps_to_record(min_steps_to_write);
+    records_set_min_steps_to_record(min_steps_to_record);
     records_setup_communicator();
     records_finish_and_share();
 #endif  // ENABLE_REPORTING
