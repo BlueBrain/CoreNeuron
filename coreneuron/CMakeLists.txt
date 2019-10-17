@@ -35,7 +35,7 @@ set(MODFUNC_PERL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
-set(MOD2C_UNITS "${PROJECT_BINARY_DIR}/share/nrnunits.lib")
+set(MOD2C_UNITS "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
 set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
 set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod hh.mod netstim.mod passive.mod pattern.mod stim.mod)
 
@@ -50,7 +50,7 @@ if(NOT EXISTS ${CORENRN_MOD2C})
   if(${CORENRN_ENABLE_ISPC})
     message(FATAL_ERROR "ispc targets can only be generated with the external nmodl compiler")
   endif()
-  set(CORENRN_MOD2C ${PROJECT_BINARY_DIR}/bin/mod2c_core)
+  set(CORENRN_MOD2C ${CMAKE_BINARY_DIR}/bin/mod2c_core)
 endif()
 
 set(MOD2C_BINARY ${CORENRN_MOD2C})
