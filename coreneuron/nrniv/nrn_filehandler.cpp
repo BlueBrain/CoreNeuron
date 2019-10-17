@@ -50,7 +50,7 @@ void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
     F.open(filename, mode | std::ios::binary);
     if (!F.is_open() && !str_ends_with(filename, "_gap.dat"))
         fprintf(stderr, "cannot open file %s\n", filename);
-    nrn_assert(F.is_open() && !str_ends_with(filename, "_gap.dat"));
+    nrn_assert(F.is_open() || str_ends_with(filename, "_gap.dat"));
     current_mode = mode;
     char version[256];
     if (current_mode & std::ios::in) {
