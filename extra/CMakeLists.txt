@@ -72,8 +72,8 @@ endif()
 # Install first into build directory and then to install prefix
 # =============================================================================
 
-configure_file(nrnivmodl_core_makefile.in ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile @ONLY)
+configure_file(nrnivmodl_core_makefile.in ${CMAKE_BINARY_DIR}/share/coreneuron/nrnivmodl_core_makefile @ONLY)
 configure_file(nrnivmodl-core ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core COPYONLY)
 
-install(FILES ${CMAKE_BINARY_DIR}/bin/nrnivmodl_core_makefile DESTINATION bin)
+install(FILES ${CMAKE_BINARY_DIR}/share/coreneuron/nrnivmodl_core_makefile DESTINATION share/coreneuron)
 install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core DESTINATION bin)

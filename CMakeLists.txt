@@ -48,11 +48,11 @@ include(CTest)
 # Build options
 # =============================================================================
 option(CORENRN_ENABLE_OPENMP "Build the CORE NEURON with OpenMP implementation" ON)
-option(CORENRN_ENABLE_TIMEOUT "Disable nrn_timeout implementation" ON)
+option(CORENRN_ENABLE_TIMEOUT "Enable nrn_timeout implementation" ON)
 option(CORENRN_ENABLE_REPORTINGLIB "Enable use of ReportingLib for soma reports" OFF)
 option(CORENRN_ENABLE_MPI "Enable MPI-based execution" ON)
 option(CORENRN_ENABLE_SOA "Enable SoA Memory Layout" ON)
-option(CORENRN_ENABLE_HOC_EXP "Disable wrapping exp with hoc_exp()" OFF)
+option(CORENRN_ENABLE_HOC_EXP "Enable wrapping exp with hoc_exp()" OFF)
 option(CORENRN_ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
 option(CORENRN_ENABLE_NET_RECEIVE_BUFFER "Enable event buffering in net_receive function" ON)
 option(CORENRN_ENABLE_ISPC "Enable ispc interoperability structs and data" OFF)
@@ -114,7 +114,7 @@ if(CORENRN_ENABLE_OPENMP)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} ${ADDITIONAL_THREADSAFE_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} ${ADDITIONAL_THREADSAFE_FLAGS}")
   endif()
-endif(CORENRN_ENABLE_OPENMP)
+endif()
 
 if(CORENRN_ENABLE_SOA)
   add_definitions("-DLAYOUT=0")
@@ -141,11 +141,9 @@ endif()
 
 if(CORENRN_ENABLE_REPORTINGLIB)
   find_package(reportinglib REQUIRED)
-  if(reportinglib_FOUND)
-    include_directories(${reportinglib_INCLUDE_DIR})
-    add_definitions("-DENABLE_REPORTING")
-  endif()
-endif(CORENRN_ENABLE_REPORTINGLIB)
+  include_directories(${reportinglib_INCLUDE_DIR})
+  add_definitions("-DENABLE_REPORTING")
+endif()
 
 # =============================================================================
 # NMODL specific options
@@ -179,13 +177,13 @@ if(CORENRN_ENABLE_CALIPER_PROFILING)
   if(CORENRN_ENABLE_MPI)
     set(CALIPER_MPI_LIB "caliper-mpi")
   endif()
-endif(CORENRN_ENABLE_CALIPER_PROFILING)
+endif()
 
 if(CORENRN_ENABLE_LIKWID_PROFILING)
   find_package(likwid REQUIRED)
   include_directories(${likwid_INCLUDE_DIRS})
   add_definitions("-DLIKWID_PERFMON")
-endif(CORENRN_ENABLE_LIKWID_PROFILING)
+endif()
 
 # =============================================================================
 # Add main directories

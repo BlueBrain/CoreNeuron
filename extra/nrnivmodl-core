@@ -63,7 +63,7 @@ done
 
 # warn if no mod files provided
 ls "${params_MODS_PATH:-.}"/*.mod || echo "Warning: No mods found!"
-make -j$PARALLELISM -f "${ROOTDIR}/bin/nrnivmodl_core_makefile" "${make_params[@]}"
+make -j$PARALLELISM -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
 
 # Create a little script to call make install (relinks w right RPATH)
 echo "#!/bin/bash
