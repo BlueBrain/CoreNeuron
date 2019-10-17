@@ -11,11 +11,10 @@
 # extract the COMPILE_DEFINITIONS property from the directory.
 get_directory_property(CORENRN_COMPILE_FLAGS COMPILE_DEFINITIONS)
 if(CORENRN_COMPILE_FLAGS)
-  set(CORENRN_COMPILE_DEFS "-D${CORENRN_COMPILE_FLAGS}")
-  string(REPLACE ";"
-                 " -D"
-                 CORENRN_COMPILE_DEFS
-                 "${CORENRN_COMPILE_DEFS}")
+  set(CORENRN_COMPILE_DEFS "")
+  foreach( flag ${CORENRN_COMPILE_FLAGS} )
+    set(CORENRN_COMPILE_DEFS "${CORENRN_COMPILE_DEFS} -D${flag}")
+  endforeach()
 endif()
 
 # replicate CMake magic to transform system libs to -l<libname>
@@ -41,14 +40,6 @@ string(REPLACE ";"
                " "
                CXX11_STANDARD_COMPILE_OPTION
                "${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-
-# MPI path might be multiple directories
-if(MPI_C_INCLUDE_PATH)
-  string(REPLACE ";"
-                 " -I"
-                 CORENRN_MPI_INCLUDES
-                 "${MPI_C_INCLUDE_PATH}")
-endif()
 
 # compiler flags depending on BUILD_TYPE (configured as BUILD_TYPE_<LANG>_FLAGS)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)

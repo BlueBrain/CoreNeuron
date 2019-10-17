@@ -4,7 +4,6 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
-include(FindSLURM QUIET)
 include(TestHelpers)
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})
