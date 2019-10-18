@@ -35,39 +35,30 @@ set(MODFUNC_PERL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
 set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
-set(MOD2C_UNITS "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
+set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
 set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
 set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod hh.mod netstim.mod passive.mod pattern.mod stim.mod)
 
 # Has helper macro for generating cpp file from mod2c
-include(Mod2cHelper)
+include(NmodlHelper)
 
 # =============================================================================
-# Configure mod2c for MOD to CPP conversion
+# Command for MOD to CPP conversion
 # =============================================================================
-# use internal mod2c if nmodl is not set
-if(NOT EXISTS ${CORENRN_MOD2C})
-  if(${CORENRN_ENABLE_ISPC})
-    message(FATAL_ERROR "ispc targets can only be generated with the external nmodl compiler")
-  endif()
-  set(CORENRN_MOD2C ${CMAKE_BINARY_DIR}/bin/mod2c_core)
-endif()
-
-set(MOD2C_BINARY ${CORENRN_MOD2C})
-set(CORENRN_MOD2C env "MODLUNIT=${MOD2C_UNITS}" "PYTHONPATH=$ENV{PYTHONPATH}" ${CORENRN_MOD2C})
+set(CORENRN_NMODL_COMMAND env "MODLUNIT=${NMODL_UNITS_FILE}" "PYTHONPATH=$ENV{PYTHONPATH}" ${CORENRN_NMODL_BINARY})
 
 if(${CORENRN_ENABLE_ISPC})
-  set(MOD2C_TARGET ispc)
+  set(NMODL_CODEGEN_TARGET ispc)
 else()
-  set(MOD2C_TARGET serial)
+  set(NMODL_CODEGEN_TARGET serial)
 endif()
 
 # for ispc generated files, we need add extra compilation flags
 if(CORENRN_ENABLE_ISPC)
-  set(MOD2C_ISPC_INBUILT_MOD_OUTPUTS ${MOD2C_INBUILT_MOD_OUTPUTS})
-  list(FILTER MOD2C_ISPC_INBUILT_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
-  set_source_files_properties(${MOD2C_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
-  set_source_files_properties(${MOD2C_ISPC_INBUILT_MOD_OUTPUTS}
+  set(NMODL_ISPC_INBUILT_MOD_OUTPUTS ${NMODL_INBUILT_MOD_OUTPUTS})
+  list(FILTER NMODL_ISPC_INBUILT_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
+  set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
+  set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS}
                               PROPERTIES
                               COMPILE_FLAGS
                               "-I${nmodl_INCLUDE}")
@@ -75,10 +66,10 @@ endif()
 
 # configure every mod file to configure with mod2c/nmodl
 foreach(MOD ${INBUILT_MOD_FILES})
-  mod2c_target(KEY INBUILT_MOD MODFILE "${INBUILT_MOD_PATH}/${MOD}" TARGET ${MOD2C_TARGET})
+  nmodl_to_cpp_target(KEY INBUILT_MOD MODFILE "${INBUILT_MOD_PATH}/${MOD}" TARGET ${NMODL_CODEGEN_TARGET})
 endforeach()
 
-set_source_files_properties(${MOD2C_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${NMODL_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
 
 # =============================================================================
 # coreneuron GPU library
@@ -95,7 +86,7 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/global_vars.cpp)
 
   set_source_files_properties(${DIMPLIC_CODE_FILE}
-                              ${MOD2C_INBUILT_MOD_OUTPUTS}
+                              ${NMODL_INBUILT_MOD_OUTPUTS}
                               PROPERTIES
                               COMPILE_FLAGS
                               "")
@@ -133,7 +124,7 @@ endif()
 # run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
 # =============================================================================
 add_custom_command(OUTPUT "${KINDERIV_HEADER_FILE}"
-                   DEPENDS ${MOD2C_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
+                   DEPENDS ${NMODL_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
                    COMMAND python ${KINDERIV_PYTHON_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                    COMMENT "Generating kinderiv.h by inspecting MOD files")
@@ -150,7 +141,7 @@ add_library(coreneuron
             ${CORENEURON_TEMPLATE_FILES}
             ${CORENEURON_CODE_FILES}
             ${cudacorenrn_objs}
-            ${MOD2C_INBUILT_MOD_OUTPUTS})
+            ${NMODL_INBUILT_MOD_OUTPUTS})
 
 # need to have _kinderiv.h for mod2c generated files
 add_dependencies(coreneuron kin_deriv_header)
@@ -251,8 +242,8 @@ install(FILES ${KINDERIV_PYTHON_SCRIPT}
         DESTINATION share/coreneuron)
 
 # copy mod2c/nmodl for nrnivmodl-core
-install(PROGRAMS ${MOD2C_BINARY} DESTINATION bin)
+install(PROGRAMS ${CORENRN_NMODL_BINARY} DESTINATION bin)
 
 if(NOT CORENRN_ENABLE_NMODL)
-  install(FILES ${MOD2C_UNITS} DESTINATION share/mod2c)
+  install(FILES ${NMODL_UNITS_FILE} DESTINATION share/mod2c)
 endif()

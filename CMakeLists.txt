@@ -64,7 +64,6 @@ option(CORENRN_ENABLE_UNIT_TESTS "Enable unit tests execution" ON)
 option(CORENRN_ENABLE_GPU "Enable GPU support using OpenACC" OFF)
 
 set(CORENRN_NMODL_ROOT "" CACHE PATH "Path nmodl source-to-source compiler root")
-set(CORENRN_MOD2C "" CACHE FILEPATH "Path of CORENRN_MOD2C binary")
 set(LIKWID_ROOT "" CACHE PATH "Path to likwid performance analysis suite")
 
 set(CORENRN_FRONTEND_C_COMPILER gcc CACHE FILEPATH "C compiler for building mod2c [frontend]")
@@ -151,10 +150,10 @@ endif()
 if(CORENRN_ENABLE_NMODL)
   find_package(nmodl REQUIRED)
   include_directories(${nmodl_INCLUDE})
-  set(CORENRN_MOD2C "${nmodl_BINARY}")
 
   # copy to make nrnivmodl-core work from build as well instal directory
   configure_file(${nmodl_BINARY} ${CMAKE_BINARY_DIR}/bin/nmodl COPYONLY)
+  set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl)
 
   # path to python interface
   set(ENV{PYTHONPATH} "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
@@ -164,7 +163,9 @@ if(CORENRN_ENABLE_NMODL)
 else()
   # use mod2c if nmodl not enabled
   include(AddMod2cSubmodule)
+  set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core)
 endif()
+
 
 # =============================================================================
 # Profiler/Instrumentation Options

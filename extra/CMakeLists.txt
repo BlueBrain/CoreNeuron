@@ -50,14 +50,15 @@ message(STATUS "CXX Compile flags from BUILD_TYPE: ${BUILD_TYPE_CXX_FLAGS}")
 # nmodl options
 if(CORENRN_ENABLE_NMODL)
   set(nmodl_arguments_c "host --c ${CORENRN_NMODL_FLAGS}")
-  set(nmodl_arguments_ispc "host --ispc ${CORENRN_NMODL_FLAGS}")
-  get_filename_component(nmodl_name ${nmodl_BINARY} NAME)
-  set(mod2c_bin_name ${nmodl_name})
+  set(nmodl_arguments_ispc "host --ispc passes --inline ${CORENRN_NMODL_FLAGS}")
 else()
   set(nmodl_arguments_c "")
   set(nmodl_arguments_ispc "")
-  set(mod2c_bin_name "mod2c_core")
 endif()
+
+# name of nmodl/mod2c binary
+get_filename_component(nmodl_name ${CORENRN_NMODL_BINARY} NAME)
+set(nmodl_binary_name ${nmodl_name})
 
 # =============================================================================
 # Install first into build directory and then to install prefix

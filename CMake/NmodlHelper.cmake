@@ -9,13 +9,13 @@
 # MODFILE input          : The path to the mod file
 # OUTTYPE <SERIAL|ISPC>  : The output type (optional, defaults to serial)
 #
-# Because mod2c_core wants to write the .cpp file in the same directory as the mod file, we copy the
+# Because nmodl/mod2c_core wants to write the .cpp file in the same directory as the mod file, we copy the
 # mod file to the binary directory first
 #
-# The macro appends the names of the output files to MOD2C_${name}_OUTPUTS and the names of the mod
-# files (without directories) to MOD2C_${name}_MODS
+# The macro appends the names of the output files to NMODL_${name}_OUTPUTS and the names of the mod
+# files (without directories) to NMODL_${name}_MODS
 
-macro(mod2c_target)
+macro(nmodl_to_cpp_target)
 
   # first parse the arguments
   set(options)
@@ -79,29 +79,29 @@ macro(mod2c_target)
   endif()
 
   set(mod2c_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_outname_}")
-  list(APPEND MOD2C_${mod2c_KEY}_OUTPUTS "${mod2c_output_}")
+  list(APPEND NMODL_${mod2c_KEY}_OUTPUTS "${mod2c_output_}")
 
   if(DEFINED mod2c_wrapper_outname_)
     set(mod2c_wrapper_output_ "${CMAKE_CURRENT_BINARY_DIR}/${mod2c_wrapper_outname_}")
-    list(APPEND MOD2C_${mod2c_KEY}_OUTPUTS "${mod2c_wrapper_output_}")
+    list(APPEND NMODL_${mod2c_KEY}_OUTPUTS "${mod2c_wrapper_output_}")
     unset(mod2c_wrapper_outname_)
   endif()
 
-  list(APPEND MOD2C_${mod2c_KEY}_MODS "${mod2c_modname_}")
+  list(APPEND NMODL_${mod2c_KEY}_MODS "${mod2c_modname_}")
   if(CORENRN_ENABLE_NMODL AND NMODL_FOUND)
     add_custom_command(OUTPUT ${mod2c_output_} ${mod2c_wrapper_output_}
-                       DEPENDS ${mod2c_MODFILE} ${MOD2C_BINARY}
+                       DEPENDS ${mod2c_MODFILE} ${CORENRN_NMODL_BINARY}
                        COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}"
                                "${CMAKE_CURRENT_BINARY_DIR}"
-                       COMMAND ${CORENRN_MOD2C} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}"
-                               host ${nmodl_modearg} ${NMODL_EXTRA_FLAGS_LIST}
+                       COMMAND ${CORENRN_NMODL_COMMAND} "${mod2c_modname_}" -o "${CMAKE_CURRENT_BINARY_DIR}"
+                               host ${nmodl_modearg} passes --inline ${NMODL_EXTRA_FLAGS_LIST}
                        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
   else()
     add_custom_command(OUTPUT ${mod2c_output_}
-                       DEPENDS ${mod2c_MODFILE} mod2c ${MOD2C_BINARY}
+                       DEPENDS ${mod2c_MODFILE} mod2c ${CORENRN_NMODL_BINARY}
                        COMMAND ${CMAKE_COMMAND} -E copy "${mod2c_source_}"
                                "${CMAKE_CURRENT_BINARY_DIR}"
-                       COMMAND ${CORENRN_MOD2C} "${mod2c_modname_}"
+                       COMMAND ${CORENRN_NMODL_COMMAND} "${mod2c_modname_}"
                        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
   endif()
 endmacro()

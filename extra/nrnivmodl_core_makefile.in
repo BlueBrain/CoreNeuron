@@ -17,8 +17,8 @@ incdir := $(ROOT)/include
 datadir:= $(ROOT)/share/coreneuron
 datadir_mod2c := $(ROOT)/share/mod2c
 
-# Binary of CORENRN_MOD2C/NMODL depending on what was activated
-mod2c_install_bin := $(bindir)/@mod2c_bin_name@
+# Binary of MOD2C/NMODL depending on what was activated
+nmodl_binary_path := $(bindir)/@nmodl_binary_name@
 
 # Additional variables set in CMAKE usable here
 # - @CORENRN_COMPILE_DEFS
@@ -135,7 +135,7 @@ $(OBJS_DIR)/%.obj: $(MODC_DIR)/%.ispc | $(OBJS_DIR)
 $(mod_ispc_files): $(MODC_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
-	  $(mod2c_install_bin) $< -o $(MODC_DIR)/ @nmodl_arguments_ispc@
+	  $(nmodl_binary_path) $< -o $(MODC_DIR)/ @nmodl_arguments_ispc@
 
 # Static pattern to set up the dependencies for the previous recipe.
 $(mod_ispc_c_files): $(MODC_DIR)/%.cpp: $(MODC_DIR)/%.ispc
@@ -144,7 +144,7 @@ $(mod_ispc_c_files): $(MODC_DIR)/%.cpp: $(MODC_DIR)/%.ispc
 $(mod_c_files): $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	MODLUNIT=$(datadir_mod2c)/nrnunits.lib \
-	  $(mod2c_install_bin) $< -o $(MODC_DIR)/ @nmodl_arguments_c@
+	  $(nmodl_binary_path) $< -o $(MODC_DIR)/ @nmodl_arguments_c@
 
 # If .mod doesnt exist attempt from previously built opt mods in shared/
 $(MODC_DIR)/%.cpp: $(datadir_mod2c)/%.cpp | $(MODC_DIR)
