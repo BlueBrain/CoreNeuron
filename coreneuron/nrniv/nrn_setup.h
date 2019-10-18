@@ -115,6 +115,7 @@ template <phase P>
 inline void* phase_wrapper_w(NrnThread* nt) {
     bool no_open = do_not_open;
     int i = nt->id;
+    bool ret = true;
     char fnamebuf[1000];
     char check_fnamebuf[1000] = "";
     if (i < ngroup_w) {
@@ -132,9 +133,11 @@ inline void* phase_wrapper_w(NrnThread* nt) {
                                     data_dir, gidgroups_w[i]);
 
             // if no file failed to open or not opened at all
-            file_reader_w[i].open(fname, byte_swap_w);
+            ret = file_reader_w[i].open(fname, byte_swap_w);
         }
-        read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
+        if (P == gap && ret) {
+            read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
+        }
         if (!no_open) {
             file_reader_w[i].close();
         }
