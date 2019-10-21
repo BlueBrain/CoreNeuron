@@ -9,7 +9,6 @@ if(IS_DIRECTORY "/opt/cray")
 endif()
 
 if(CRAY_SYSTEM)
-
     # default build type is static for cray
     if(NOT DEFINED COMPILE_LIBRARY_TYPE)
         set(COMPILE_LIBRARY_TYPE "STATIC")
@@ -35,5 +34,9 @@ if(CRAY_SYSTEM)
     else()
         set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
     endif()
-
+else()
+    # default is shared library
+    if(NOT DEFINED COMPILE_LIBRARY_TYPE)
+        set(COMPILE_LIBRARY_TYPE "SHARED")
+    endif()
 endif()
