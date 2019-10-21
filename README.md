@@ -59,10 +59,10 @@ make test
 
 ### About MOD files
 
-The workflow for building CoreNEURON is different from that of NEURON, especially considering the use of **nrnivmodl**. Currently we do not provide **nrnivmodl-core** for CoreNEURON. If you have MOD files from a NEURON model, you have to explicitly specify those MOD file directory paths during CoreNEURON build using the `-DADDITIONAL_MECHPATH` option:
+With the latest master branch, the workflow of building CoreNEURON is same as that of NEURON, especially considering the use of **nrnivmodl**. We provide **nrnivmodl-core** for CoreNEURON and you can build **special-core** as:
 
 ```bash
-cmake .. -DADDITIONAL_MECHPATH="path/of/mod/files/directory/"
+/install-path/bin/nrnivmodl-core mod-dir
 ```
 
 
@@ -83,7 +83,6 @@ cmake ..  -DCMAKE_C_FLAGS:STRING="-O2" \
           -DCOMPILE_LIBRARY_TYPE=STATIC \
           -DCUDA_HOST_COMPILER=`which gcc` \
           -DCUDA_PROPAGATE_HOST_FLAGS=OFF \
-          -DENABLE_SELECTIVE_GPU_PROFILING=ON \
           -DENABLE_OPENACC=ON
 ```
 
@@ -135,7 +134,7 @@ Note that the CoreNEURON simulator dependends on NEURON to build the network mod
 
 ```bash
 export OMP_NUM_THREADS=2     #set appropriate value
-mpiexec -np 2 build/apps/nrniv-core -e 10 -d /path/to/model/built/by/neuron -mpi
+mpiexec -np 2 build/bin/nrniv-core -e 10 -d /path/to/model/built/by/neuron -mpi
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
@@ -215,7 +214,7 @@ cmake .. -DTEST_MPI_EXEC_BIN="mpirun" \
 You can disable tests using with options:
 
 ```
-cmake .. -DUNIT_TESTS=OFF -DFUNCTIONAL_TESTS=OFF
+cmake .. -CORENRN_ENABLE_UNIT_TESTS=OFF
 ```
 
 ## License
