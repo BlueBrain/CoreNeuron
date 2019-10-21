@@ -17,4 +17,4 @@ export CORENEURONLIB=$WORKSPACE/install_${CORENRN_TYPE}/lib/libcoreneuron.so
 
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 
-nrniv -python $WORKSPACE/tests/jenkins/neuron_direct.py
+python $WORKSPACE/tests/jenkins/neuron_direct.py
