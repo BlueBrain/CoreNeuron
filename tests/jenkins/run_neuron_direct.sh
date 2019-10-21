@@ -13,7 +13,7 @@ export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch):$MODULEPATH
 
 module load hpe-mpi neuron
 
-export CORENEURONLIB=$WORKSPACE/install_${CORENRN_TYPE}/lib64/libcoreneuron.so
+export CORENEURONLIB=$WORKSPACE/install_${CORENRN_TYPE}/lib/libcoreneuron.so
 
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 
