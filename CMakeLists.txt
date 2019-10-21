@@ -144,6 +144,7 @@ if(CORENRN_ENABLE_REPORTINGLIB)
   add_definitions("-DENABLE_REPORTING")
 endif()
 
+
 # =============================================================================
 # NMODL specific options
 # =============================================================================
@@ -157,6 +158,7 @@ if(CORENRN_ENABLE_NMODL)
 
   # path to python interface
   set(ENV{PYTHONPATH} "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
+  set(CORENRN_NMODL_PYTHONPATH $ENV{PYTHONPATH})
 
   set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
