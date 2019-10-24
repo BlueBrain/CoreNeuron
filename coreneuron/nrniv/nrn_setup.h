@@ -135,9 +135,7 @@ inline void* phase_wrapper_w(NrnThread* nt) {
             // if no file failed to open or not opened at all
             ret = file_reader_w[i].open(fname, byte_swap_w);
         }
-        if (P == gap && ret) {
-            read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
-        }
+        read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
         if (!no_open) {
             file_reader_w[i].close();
         }

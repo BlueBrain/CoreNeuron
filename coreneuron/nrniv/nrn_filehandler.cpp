@@ -51,7 +51,7 @@ bool FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
     if (!F.is_open() && !str_ends_with(filename, "_gap.dat"))
         fprintf(stderr, "cannot open file %s\n", filename);
     nrn_assert(F.is_open() || str_ends_with(filename, "_gap.dat"));
-    if (!F.is_open() && !str_ends_with(filename, "_gap.dat")) {
+    if (!F.is_open() && str_ends_with(filename, "_gap.dat")) {
         return false;
     }
     current_mode = mode;

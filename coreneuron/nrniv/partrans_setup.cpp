@@ -60,7 +60,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
 
     // This can happen until bug is fixed. ie. if one process has more than
     // one thread then all processes must have more than one thread
-    if (ngroup < nrn_nthread) {
+    if (ngroup < nrn_nthread || si.ntar != 0 ) {
         transfer_thread_data_[ngroup].nsrc = 0;
         transfer_thread_data_[ngroup].halfgap_ml = NULL;
     }
@@ -231,9 +231,11 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     // cleanup
     for (int tid = 0; tid < ngroup; ++tid) {
         SetupInfo& si = setup_info_[tid];
-        delete[] si.sid_src;
-        delete[] si.v_indices;
-        delete[] si.sid_target;
+        if (si.ntar) {
+            delete[] si.sid_src;
+            delete[] si.v_indices;
+            delete[] si.sid_target;
+        }
     }
     delete[] send_to_want;
     delete[] recv_from_have;
