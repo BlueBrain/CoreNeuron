@@ -45,7 +45,12 @@ CXX_LINK_SHARED = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CM
 
 ISPC = @CMAKE_ISPC_COMPILER@
 ISPC_FLAGS = @CMAKE_ISPC_FLAGS@
-ISPC_COMPILE = $(ISPC) $(ISPC_FLAGS) -I$(incdir) -I@nmodl_INCLUDE@
+# Note that CORENRN_NMODL_INCLUDE will point to build directory (if nmodl is build as submodule)
+# and this is ok/required for build stage.
+ifneq ($(wildcard @CORENRN_NMODL_INCLUDE@),)
+nmodl_inc = -I@CORENRN_NMODL_INCLUDE@
+endif
+ISPC_COMPILE = $(ISPC) $(ISPC_FLAGS) -I$(incdir) $(nmodl_inc)
 
 # Variables used in the "ARTIFICIAL_CELL" detection
 mod_c_srcs_path =
