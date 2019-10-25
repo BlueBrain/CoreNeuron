@@ -45,7 +45,7 @@ CXX_LINK_SHARED = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CM
 
 ISPC = @CMAKE_ISPC_COMPILER@
 ISPC_FLAGS = @CMAKE_ISPC_FLAGS@
-# Note that CORENRN_NMODL_INCLUDE will point to build directory (if nmodl is build as submodule)
+# Note that CORENRN_NMODL_INCLUDE will point to build directory (if nmodl is built as submodule)
 # and this is ok/required for build stage.
 ifneq ($(wildcard @CORENRN_NMODL_INCLUDE@),)
 nmodl_inc = -I@CORENRN_NMODL_INCLUDE@
