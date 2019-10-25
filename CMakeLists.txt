@@ -150,13 +150,9 @@ endif()
 # =============================================================================
 if(CORENRN_ENABLE_NMODL)
   find_package(nmodl)
-
   if (nmodl_FOUND)
-    # copy to make nrnivmodl-core work from build as well install directory
-    configure_file(${nmodl_BINARY} ${CMAKE_BINARY_DIR}/bin/nmodl COPYONLY)
-    set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl)
+    set(CORENRN_NMODL_BINARY ${nmodl_BINARY})
     set(CORENRN_NMODL_INCLUDE ${nmodl_INCLUDE})
-
     # path to python interface
     set(ENV{PYTHONPATH} "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
     set(CORENRN_NMODL_PYTHONPATH $ENV{PYTHONPATH})
@@ -165,14 +161,13 @@ if(CORENRN_ENABLE_NMODL)
     set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl)
     set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
   endif()
-
   include_directories(${CORENRN_NMODL_INCLUDE})
   set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
-  # use mod2c if nmodl not enabled
   include(AddMod2cSubmodule)
   set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core)
+  set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
 endif()
 
 
