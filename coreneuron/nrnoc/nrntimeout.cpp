@@ -40,7 +40,7 @@ setitimer will conflict with profiler. In that case,
 user can disable setitimer which is just safety for
 deadlock situations */
 namespace coreneuron {
-#ifdef DISABLE_TIMEOUT
+#if ( defined(DISABLE_TIMEOUT) || defined(_WIN32) || defined(__WIN32__))
 
 void nrn_timeout(int seconds) {
 }
