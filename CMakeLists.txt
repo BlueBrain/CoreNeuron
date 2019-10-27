@@ -144,6 +144,9 @@ if(CORENRN_ENABLE_REPORTINGLIB)
   add_definitions("-DENABLE_REPORTING")
 endif()
 
+if(MINGW)
+  add_definitions("-DMINGW")
+endif()
 
 # =============================================================================
 # NMODL specific options

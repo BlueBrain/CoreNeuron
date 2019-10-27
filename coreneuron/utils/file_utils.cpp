@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/stat.h>
 #include <errno.h>
 
-#if (defined(_WIN32) || defined(__WIN32__))
+#if defined(MINGW)
     #define mkdir(dir_name, permission) mkdir(dir_name)
 #endif
 

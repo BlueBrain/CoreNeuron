@@ -64,7 +64,7 @@ inline void free_memory(void* pointer) {
 #include <stdlib.h>
 
 inline void alloc_memory(void*& pointer, size_t num_bytes, size_t alignment) {
-#if (defined(_WIN32) || defined(__WIN32__))
+#if defined(MINGW)
     nrn_assert( (pointer = _aligned_malloc(num_bytes, alignment)) != nullptr);
 #else
     nrn_assert(posix_memalign(&pointer, alignment, num_bytes) == 0);
