@@ -13,10 +13,10 @@ project(coreneuron)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "16")
 set(VERSION_PATCH "0")
-set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # =============================================================================
 # Settings to enable project as submodule
@@ -144,6 +144,9 @@ if(CORENRN_ENABLE_REPORTINGLIB)
   add_definitions("-DENABLE_REPORTING")
 endif()
 
+if(MINGW)
+  add_definitions("-DMINGW")
+endif()
 
 # =============================================================================
 # NMODL specific options
@@ -158,7 +161,7 @@ if(CORENRN_ENABLE_NMODL)
     set(CORENRN_NMODL_PYTHONPATH $ENV{PYTHONPATH})
   else()
     include(AddNmodlSubmodule)
-    set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl)
+    set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl${CMAKE_EXECUTABLE_SUFFIX})
     set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
@@ -166,7 +169,7 @@ if(CORENRN_ENABLE_NMODL)
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
   include(AddMod2cSubmodule)
-  set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core)
+  set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/mod2c_core${CMAKE_EXECUTABLE_SUFFIX})
   set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
 endif()
 

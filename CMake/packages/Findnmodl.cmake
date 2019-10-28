@@ -29,7 +29,7 @@
 
 
 # UNIX paths are standard, no need to write.
-find_program(nmodl_BINARY NAMES nmodl
+find_program(nmodl_BINARY NAMES nmodl${CMAKE_EXECUTABLE_SUFFIX}
         HINTS "${CORENRN_NMODL_DIR}/bin" QUIET)
 
 find_path(nmodl_INCLUDE "nmodl/fast_math.ispc" HINTS "${CORENRN_NMODL_DIR}/include")
