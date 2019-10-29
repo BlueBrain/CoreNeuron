@@ -16,10 +16,10 @@ typedef int sgid_t;
 #endif
 
 struct HalfGap_Info {
-    int layout;
-    int type;
-    int ix_vpre; /* AoS index for vpre from beginning of a HalfGap instance */
-    int sz;      /* size of a HalfGap instance */
+    int layout = 0;
+    int type = 0;
+    int ix_vpre = 0; /* AoS index for vpre from beginning of a HalfGap instance */
+    int sz = 0;      /* size of a HalfGap instance */
 };
 extern HalfGap_Info* halfgap_info;
 
@@ -27,24 +27,24 @@ class TransferThreadData {
   public:
     TransferThreadData();
     ~TransferThreadData();
-    Memb_list* halfgap_ml;
-    int nsrc;             // number of places in outsrc_buf_ voltages get copied to.
-    int ntar;             // insrc_indices size (halfgap_ml->nodecount);
-    int* insrc_indices;   // halfgap_ml->nodecount indices into insrc_buf_
-    int* v_indices;       // indices into NrnThread._actual_v (may have duplications).
-    int* outbuf_indices;  // indices into outsrc_buf_
-    double* v_gather;     // _actual_v[v_indices]
+    Memb_list* halfgap_ml = nullptr;
+    int nsrc = 0;             // number of places in outsrc_buf_ voltages get copied to.
+    int ntar = 0;             // insrc_indices size (halfgap_ml->nodecount);
+    int* insrc_indices = nullptr;   // halfgap_ml->nodecount indices into insrc_buf_
+    int* v_indices = nullptr;       // indices into NrnThread._actual_v (may have duplications).
+    int* outbuf_indices = nullptr;  // indices into outsrc_buf_
+    double* v_gather = nullptr;     // _actual_v[v_indices]
 };
 extern TransferThreadData* transfer_thread_data_; /* array for threads */
 
 struct SetupInfo {
-    int nsrc;  // number of sources in this thread
-    int ntar;  // equal to memb_list nodecount
-    int type;
-    int ix_vpre;
-    sgid_t* sid_src;
-    int* v_indices;      // increasing order
-    sgid_t* sid_target;  // aleady in memb_list order
+    int nsrc = 0;  // number of sources in this thread
+    int ntar = 0;  // equal to memb_list nodecount
+    int type = 0;
+    int ix_vpre = 0;
+    sgid_t* sid_src = nullptr;
+    int* v_indices = nullptr;      // increasing order
+    sgid_t* sid_target = nullptr;  // aleady in memb_list order
 };
 extern SetupInfo* setup_info_; /* array for threads exists only during setup*/
 

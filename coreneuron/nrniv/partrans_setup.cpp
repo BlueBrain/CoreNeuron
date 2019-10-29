@@ -60,7 +60,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
 
     // This can happen until bug is fixed. ie. if one process has more than
     // one thread then all processes must have more than one thread
-    if (ngroup < nrn_nthread || si.ntar != 0 ) {
+    if (ngroup < nrn_nthread) {
         transfer_thread_data_[ngroup].nsrc = 0;
         transfer_thread_data_[ngroup].halfgap_ml = NULL;
     }
@@ -246,7 +246,11 @@ void nrn_partrans::gap_thread_setup(NrnThread& nt) {
     // printf("%d gap_thread_setup tid=%d\n", nrnmpi_myid, nt.id);
     nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[nt.id];
 
-    ttd.halfgap_ml = nt._ml_list[halfgap_info->type];
+    if (transfer_thread_data_[nt.id].ntar) {
+        ttd.halfgap_ml = nt._ml_list[halfgap_info->type];
+    } else {
+        ttd.halfgap_ml = nullptr;
+    }
 #if 0
   int ntar = ttd.halfgap_ml->nodecount;
   assert(ntar == ttd.ntar);
