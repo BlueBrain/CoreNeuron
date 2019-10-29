@@ -64,8 +64,9 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - bison
-            - g++-9
             - flex
+            - g++-9
+            - libboost-all-dev
             - libopenmpi-dev
             - openmpi-bin
       env:
@@ -81,6 +82,7 @@ addons:
     packages:
       - bison
       - flex
+      - libboost-all-dev
       - libopenmpi-dev
       - openmpi-bin
 
@@ -90,6 +92,7 @@ addons:
       - bison
       - flex
       - openmpi
+      - boost
 
 #=============================================================================
 # Set up environments
@@ -97,19 +100,19 @@ addons:
 before_install:
   # brew installed flex and bison is not in $PATH
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH;
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH;
     fi
   # when python 3.6.7 is required, ex. NMODL in linux
   - if [ -n "$PYTHON_VERSION" ]; then
-    pyenv global $PYTHON_VERSION;
+        pyenv global $PYTHON_VERSION;
     fi
   # install NMODL dependencies
   - if [[ "$USE_NMODL" == "ON" ]]; then
-    pip3 install jinja2 pyyaml pytest sympy;
+        pip3 install jinja2 pyyaml pytest sympy;
     fi
   - if [ -n "$GCC_VERSION" ]; then
-    export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}";
-    $CXX --version;
+        export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}";
+        $CXX --version;
     fi
 
 #=============================================================================
