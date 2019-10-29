@@ -43,7 +43,7 @@ int str_ends_with(const char *s, const char *suffix) {
     return suffix_len <= slen && !strcmp(s + slen - suffix_len, suffix);
 }
 
-bool FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
+void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
     nrn_assert((mode & (std::ios::in | std::ios::out)));
     reorder_bytes = reorder;
     close();
@@ -52,7 +52,7 @@ bool FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
         fprintf(stderr, "cannot open file %s\n", filename);
     nrn_assert(F.is_open() || str_ends_with(filename, "_gap.dat"));
     if (!F.is_open() && str_ends_with(filename, "_gap.dat")) {
-        return false;
+        return;
     }
     current_mode = mode;
     char version[256];
@@ -64,7 +64,6 @@ bool FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
     if (current_mode & std::ios::out) {
         F << bbcore_write_version << "\n";
     }
-    return true;
 }
 
 bool FileHandler::eof() {

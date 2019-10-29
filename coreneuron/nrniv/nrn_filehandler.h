@@ -78,7 +78,7 @@ class FileHandler {
     explicit FileHandler(const char* filename, bool reorder = false);
 
     /** Preserving chkpnt state, move to a new file. */
-    bool open(const char* filename, bool reorder, std::ios::openmode mode = std::ios::in);
+    void open(const char* filename, bool reorder, std::ios::openmode mode = std::ios::in);
 
     /** Is the file not open */
     bool fail() const {

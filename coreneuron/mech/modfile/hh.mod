@@ -24,7 +24,7 @@ NEURON {
         SUFFIX hh
         USEION na READ ena WRITE ina
         USEION k READ ek WRITE ik
-        ELECTRODE_CURRENT il
+        NONSPECIFIC_CURRENT il
         RANGE gnabar, gkbar, gl, el, gna, gk
         :GLOBAL minf, hinf, ninf, mtau, htau, ntau
         RANGE minf, hinf, ninf, mtau, htau, ntau
