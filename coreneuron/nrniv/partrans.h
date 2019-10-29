@@ -27,13 +27,13 @@ class TransferThreadData {
   public:
     TransferThreadData();
     ~TransferThreadData();
-    Memb_list* halfgap_ml = nullptr;
-    int nsrc = 0;             // number of places in outsrc_buf_ voltages get copied to.
-    int ntar = 0;             // insrc_indices size (halfgap_ml->nodecount);
-    int* insrc_indices = nullptr;   // halfgap_ml->nodecount indices into insrc_buf_
-    int* v_indices = nullptr;       // indices into NrnThread._actual_v (may have duplications).
-    int* outbuf_indices = nullptr;  // indices into outsrc_buf_
-    double* v_gather = nullptr;     // _actual_v[v_indices]
+    Memb_list* halfgap_ml;
+    int nsrc;             // number of places in outsrc_buf_ voltages get copied to.
+    int ntar;             // insrc_indices size (halfgap_ml->nodecount);
+    int* insrc_indices;   // halfgap_ml->nodecount indices into insrc_buf_
+    int* v_indices;       // indices into NrnThread._actual_v (may have duplications).
+    int* outbuf_indices;  // indices into outsrc_buf_
+    double* v_gather;     // _actual_v[v_indices]
 };
 extern TransferThreadData* transfer_thread_data_; /* array for threads */
 
