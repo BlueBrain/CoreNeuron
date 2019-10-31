@@ -36,11 +36,9 @@ FileHandler::FileHandler(const char* filename, bool reorder) {
     stored_chkpnt = 0;
 }
 
-int str_ends_with(const char *s, const char *suffix) {
-    size_t slen = strlen(s);
-    size_t suffix_len = strlen(suffix);
-
-    return suffix_len <= slen && !strcmp(s + slen - suffix_len, suffix);
+bool FileHandler::file_exist(const char* filename) const {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0);
 }
 
 void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
@@ -48,12 +46,9 @@ void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mo
     reorder_bytes = reorder;
     close();
     F.open(filename, mode | std::ios::binary);
-    if (!F.is_open() && !str_ends_with(filename, "_gap.dat"))
+    if (!F.is_open())
         fprintf(stderr, "cannot open file %s\n", filename);
-    nrn_assert(F.is_open() || str_ends_with(filename, "_gap.dat"));
-    if (!F.is_open() && str_ends_with(filename, "_gap.dat")) {
-        return;
-    }
+    nrn_assert(F.is_open());
     current_mode = mode;
     char version[256];
     if (current_mode & std::ios::in) {

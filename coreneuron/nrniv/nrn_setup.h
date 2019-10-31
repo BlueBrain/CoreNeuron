@@ -131,8 +131,15 @@ inline void* phase_wrapper_w(NrnThread* nt) {
                                     std::string("%s/%d_" + getPhaseName<P>() + ".dat").c_str(),
                                     data_dir, gidgroups_w[i]);
 
-            // if no file failed to open or not opened at all
-            file_reader_w[i].open(fname, byte_swap_w);
+            // Avoid trying to open the gid_gap.dat file if it doesn't exist when there are no
+            // gap junctions in this gid
+            if (P == gap && !file_reader_w[i].file_exist(fname)) {
+                std::cout << fname.get() << " doesn't exist. " << gidgroups_w[i]
+                          << " hasn't got any gap junctions.\n";
+            } else {
+                // if no file failed to open or not opened at all
+                file_reader_w[i].open(fname, byte_swap_w);
+            }
         }
         read_phase_aux<P>(file_reader_w[i], imult_w[i], *nt);
         if (!no_open) {
