@@ -120,16 +120,16 @@ before_install:
         export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}";
         $CXX --version;
     fi
-  # install ISPC compiler
-  - if [[ "$USE_ISPC" == "ON" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-        wget https://sourceforge.net/projects/ispcmirror/files/v1.12.0/ispc-v1.12.0-linux.tar.gz;
-        mkdir ispc-v1.12.0;
-        tar xfvz ispc-v1.12.0-linux.tar.gz -C ispc-v1.12.0 --strip 1;
-    fi
-  - if [[ "$USE_ISPC" == "ON" && "$TRAVIS_OS_NAME" == "osx" ]]; then
-        wget https://sourceforge.net/projects/ispcmirror/files/v1.12.0/ispc-v1.12.0-macOS.tar.gz;
-        mkdir ispc-v1.12.0;
-        tar xfvz ispc-v1.12.0-macOS.tar.gz -C ispc-v1.12.0 --strip 1;
+  # install ISPC compiler (only for mac or linux build for now)
+  - if [[ "$USE_ISPC" == "ON" ]]; then
+        if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+            url_os="linux";
+        else
+            url_os="macOS";
+        fi;
+        url="https://sourceforge.net/projects/ispcmirror/files/v1.12.0/ispc-v1.12.0-${url_os}.tar.gz";
+        wget -O ispc.tar.gz $url;
+        mkdir ispc && tar -xvzf ispc.tar.gz -C ispc --strip 1;
     fi
 #=============================================================================
 # Build, test and install
@@ -138,7 +138,7 @@ script:
   - echo "------- Build, Test and Install -------"
   - mkdir build && cd build
   - if [[ "$USE_ISPC" == "ON" ]]; then
-        cmake -DCORENRN_ENABLE_ISPC=ON -DCMAKE_ISPC_COMPILER=../ispc-v1.12.0/bin/ispc
+        cmake -DCORENRN_ENABLE_ISPC=ON -DCMAKE_ISPC_COMPILER=../ispc/bin/ispc
               -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron ..;
     else
         cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron ..;
