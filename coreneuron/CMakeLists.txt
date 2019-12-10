@@ -205,19 +205,19 @@ set(CORENRN_LINK_LIBS "${CORENRN_LINK_LIBS}" PARENT_SCOPE)
 # =============================================================================
 # Copy files for nrnivmodl-core workflow during build time
 # =============================================================================
-configure_file(${MODFUNC_PERL_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl @ONLY)
-configure_file(${KINDERIV_PYTHON_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/kinderiv.py)
-configure_file(${DIMPLIC_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp)
-configure_file(${ENGINEMECH_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp)
+configure_file(${MODFUNC_PERL_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl COPYONLY)
+configure_file(${KINDERIV_PYTHON_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/kinderiv.py COPYONLY)
+configure_file(${DIMPLIC_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp COPYONLY)
+configure_file(${ENGINEMECH_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp COPYONLY)
 
-configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
-configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
-configure_file("nrniv/profiler_interface.h"
-               ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("nrnoc/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
+# NOTE: this doesn't get re-copied if source changes
+file(COPY "./"
+     DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/
+     FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.ispc")
 
-# TODO : this doesn't get re-copied if source changes
-file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
+file(COPY "${CMAKE_SOURCE_DIR}/external/mod2c/share/nrnunits.lib"
+     DESTINATION "${CMAKE_BINARY_DIR}/share/mod2c/")
+
 
 # =============================================================================
 # Install main targets
