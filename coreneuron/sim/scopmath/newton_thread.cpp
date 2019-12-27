@@ -1,5 +1,3 @@
-#include "coreneuron/mech/cfile/scoplib.h"
-#include "coreneuron/sim/scopmath/newton_struct.h"
 /******************************************************************************
  *
  * File: newton.c
@@ -55,8 +53,11 @@ static char RCSid[] = "newton.c,v 1.3 1999/01/04 12:46:48 hines Exp";
 
 #include <math.h>
 #include <stdlib.h>
+
 #include "coreneuron/mech/mod2c_core_thread.h"
 #include "coreneuron/sim/scopmath/errcodes.h"
+#include "coreneuron/mech/cfile/scoplib.h"
+#include "coreneuron/sim/scopmath/newton_struct.h"
 
 namespace coreneuron {
 #define ix(arg) ((arg)*_STRIDE)

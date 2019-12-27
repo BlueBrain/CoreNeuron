@@ -55,6 +55,7 @@ namespace coreneuron {
 #define ix(arg) ((arg)*_STRIDE)
 
 /* having a differnt permutation per instance may not be a good idea */
+#pragma acc routine seq
 int nrn_crout_thread(NewtonSpace* ns, int n, double** a, int* perm, _threadargsproto_) {
     int i, j, k, r, pivot, irow, save_i = 0, krow;
     double sum, *rowmax, equil_1, equil_2;
@@ -167,6 +168,7 @@ int nrn_crout_thread(NewtonSpace* ns, int n, double** a, int* perm, _threadargsp
 /*            p[y[i]] contains the solution vector                    */
 /*                                                              */
 /*--------------------------------------------------------------*/
+#pragma acc routine seq
 void nrn_scopmath_solve_thread(int n,
                                double** a,
                                double* b,
