@@ -124,7 +124,7 @@ void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
     if (nrnmpi_myid == 0) {
 #if defined(_OPENMP)
         printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs_world,
-               omp_get_numthreads());
+               omp_get_num_threads());
 #else
         printf(" num_mpi=%d\n\n", nrnmpi_numprocs_world);
 #endif
