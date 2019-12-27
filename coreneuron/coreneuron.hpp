@@ -42,15 +42,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
-#include "coreneuron/scopmath_core/newton_struct.h"  //Newton Struct
-#include "coreneuron/nrnoc/membdef.h"                //static definitions
-#include "coreneuron/nrnoc/nrnoc_ml.h"               //Memb_list and mechs info
+#include "coreneuron/sim/scopmath/newton_struct.h"  //Newton Struct
+#include "membrane_definitions.h"                //static definitions
+#include "coreneuron/mech/mechanism.h"               //Memb_list and mechs info
 
-#include "coreneuron/nrniv/memory.h"  //Memory alignments and padding
+#include "coreneuron/utils/memory.h"  //Memory alignments and padding
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/multicore.h"
+#include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/nrnoc/mech_mapping.hpp"
+#include "coreneuron/mech/mech_mapping.hpp"
 
 namespace coreneuron {
 

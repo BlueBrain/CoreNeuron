@@ -29,11 +29,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _H_NRNCONF_
 #define _H_NRNCONF_
 
-#include <stdio.h>
-#include <math.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cmath>
+#include <cassert>
+#include <cerrno>
+#include <cstdint>
 
 namespace coreneuron {
 

@@ -19,13 +19,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
 file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
 file(GLOB_RECURSE CORENEURON_CODE_FILES
+                  "apps/main1.cpp"
+                  "gpu/*.c*"
+                  "io/*.c*"
+                  "mech/*.c*"
+                  "mpi/*.c*"
+                  "network/*.c*"
                   "nrniv/*.c*"
-                  "nrnmpi/*.c*"
                   "nrnoc/*.c*"
-                  "nrnomp/*.c*"
+                  "permute/*.c*"
+                  "sim/*.c*"
                   "utils/*.c*")
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
-file(GLOB_RECURSE SCOPMATH_CODE_FILES "scopmath_core/*.c*")
+file(GLOB_RECURSE SCOPMATH_CODE_FILES "sim/scopmath/*.c*")
 
 set(DIMPLIC_CODE_FILE "mech/dimplic.cpp")
 set(ENGINEMECH_CODE_FILE "mech/enginemech.cpp")
@@ -85,8 +91,8 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/pattern.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/nrn_setup.cpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/global_vars.cpp)
+          io/nrn_setup.cpp
+          io/global_vars.cpp)
 
   set_source_files_properties(${DIMPLIC_CODE_FILE}
                               ${NMODL_INBUILT_MOD_OUTPUTS}
@@ -194,6 +200,20 @@ add_custom_command(TARGET coreneuron
 add_dependencies(coreneuron scopmath)
 
 # =============================================================================
+# create nrnivmodl-core
+# =============================================================================
+# coreneuron executable
+include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
+add_executable(nrniv-core "apps/coreneuron.cpp")
+target_link_libraries(nrniv-core
+        corenrnmech
+        ${MPI_C_LIBRARIES}
+        ${MPI_CXX_LIBRARIES}
+        ${reportinglib_LIBRARY}
+        ${sonatareport_LIBRARY})
+set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
 # =============================================================================
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
@@ -212,12 +232,17 @@ configure_file(${ENGINEMECH_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/engi
 
 configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
 configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
-configure_file("nrniv/profiler_interface.h"
+configure_file("utils/profile/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("nrnoc/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
+configure_file("mech/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
 
 # TODO : this doesn't get re-copied if source changes
 file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
+
+# main program required for building special-core
+configure_file(apps/coreneuron.cpp ${CMAKE_BINARY_DIR}/share/coreneuron/coreneuron.cpp COPYONLY)
+
+
 
 # =============================================================================
 # Install main targets
@@ -253,3 +278,7 @@ install(PROGRAMS ${CORENRN_NMODL_BINARY} DESTINATION bin)
 if(NOT CORENRN_ENABLE_NMODL)
   install(FILES ${NMODL_UNITS_FILE} DESTINATION share/mod2c)
 endif()
+
+# install nrniv-core app
+install(TARGETS nrniv-core DESTINATION bin)
+install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)

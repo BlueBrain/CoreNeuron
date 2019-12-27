@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef fast_imem_h
 #define fast_imem_h
 
-#include "coreneuron/nrnoc/multicore.h"
+#include "coreneuron/sim/multicore.h"
 
 namespace coreneuron {
 
