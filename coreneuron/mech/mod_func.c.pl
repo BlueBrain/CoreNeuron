@@ -35,7 +35,7 @@ namespace coreneuron {
 }
 
 print << "__eof";
-#include <stdio.h>
+#include <cstdio>
 namespace coreneuron {
 extern int nrnmpi_myid;
 extern int nrn_nobanner_;

@@ -28,8 +28,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrnoc/fast_imem.h"
-#include "coreneuron/nrniv/memory.h"
-#include "coreneuron/nrnmpi/nrnmpi.h"
+#include "coreneuron/utils/memory.h"
+#include "coreneuron/mpi/nrnmpi.h"
 
 namespace coreneuron {
 

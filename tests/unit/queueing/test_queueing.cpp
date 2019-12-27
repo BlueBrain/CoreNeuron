@@ -62,8 +62,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <iostream>
 //#include "test/unit/queueing/test_header.hpp"
-#include "coreneuron/nrniv/netcvode.h"
-#include "coreneuron/nrniv/tqueue.h"
+#include "coreneuron/network/netcvode.h"
+#include "coreneuron/network/tqueue.h"
 
 namespace bfs = ::boost::filesystem;
 using namespace coreneuron;
