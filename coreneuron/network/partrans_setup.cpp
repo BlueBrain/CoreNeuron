@@ -1,11 +1,13 @@
+#include <map>
+#include <vector>
+
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/network/partrans.h"
-#include <map>
-#include <vector>
+
 namespace coreneuron {
 using namespace coreneuron::nrn_partrans;
 

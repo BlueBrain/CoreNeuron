@@ -26,8 +26,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <string.h>
+#include <cstring>
 #include <sys/time.h>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/mpispike.h"

@@ -62,17 +62,16 @@ so pdata_m(k, isz) = inew + data_t
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <vector>
+#include <utility>
+#include <algorithm>
+
 #include "coreneuron/sim/multicore.h"
-#include "node_permute.h"
+#include "coreneuron/permute/node_permute.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/coreneuron.hpp"
-#include <vector>
-#include <utility>
-#include <algorithm>
 namespace coreneuron {
 template <typename T>
 void permute(T* data, int cnt, int sz, int layout, int* p) {

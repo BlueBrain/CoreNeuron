@@ -25,11 +25,15 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <iostream>
+#include <sstream>
+#include <cassert>
+
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "nrn_filehandler.h"
-#include "nrn_checkpoint.h"
+#include "coreneuron/io/nrn_filehandler.h"
+#include "coreneuron/io/nrn_checkpoint.h"
 #include "coreneuron/network/netcvode.h"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/mech/mod2c_core_thread.h"
@@ -37,11 +41,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/coreneuron.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cassert>
-#include <stdio.h>
 namespace coreneuron {
 bool nrn_checkpoint_arg_exists;
 int _nrn_skip_initmodel;

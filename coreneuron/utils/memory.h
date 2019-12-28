@@ -29,9 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _H_MEMORY_
 #define _H_MEMORY_
 
-#include <string.h>
+#include <cstring>
 
-#include "nrn_assert.h"
+#include "coreneuron/utils/nrn_assert.h"
 
 #if !defined(NRN_SOA_BYTE_ALIGN)
 // for layout 0, every range variable array must be aligned by at least 16 bytes (the size of the

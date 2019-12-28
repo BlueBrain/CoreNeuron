@@ -29,8 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef ivoc_vector_h
 #define ivoc_vector_h
 
-#include <stdio.h>
-#include "nrnmutdec.h"
+#include <cstdio>
+#include "coreneuron/utils/nrnmutdec.h"
+
 namespace coreneuron {
 template <typename T>
 class fixed_vector {

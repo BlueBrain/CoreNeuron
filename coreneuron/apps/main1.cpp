@@ -32,8 +32,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
  * @brief File containing main driver routine for CoreNeuron
  */
 
+#include <cstring>
+#include <climits>
 #include <vector>
-#include <string.h>
+
 #include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
@@ -42,12 +44,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/io/output_spikes.h"
 #include "coreneuron/io/nrn_checkpoint.h"
-#include "coreneuron/utils/endianness.h"
 #include "coreneuron/utils/memory_utils.h"
 #include "coreneuron/io/nrnoptarg.h"
+#include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/utils/nrn_stats.h"
 #include "coreneuron/io/nrnreport.h"
@@ -57,8 +58,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/network/multisend.h"
 #include "coreneuron/io/file_utils.h"
 #include "coreneuron/io/nrn2core_direct.h"
-#include <string.h>
-#include <climits>
 
 extern "C" {
 const char* corenrn_version() {

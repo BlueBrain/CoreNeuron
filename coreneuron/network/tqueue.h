@@ -47,8 +47,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // For the bin part, only insert_fifo, and remove make sense,
 // The bin part assumes a fixed step method.
 
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <queue>
 #include <vector>
 #include <map>

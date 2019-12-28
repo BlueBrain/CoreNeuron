@@ -29,9 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _H_NRN_ASSERT
 #define _H_NRN_ASSERT
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 
 /* Preserving original behaviour requires that we abort() on
  * parse failures.

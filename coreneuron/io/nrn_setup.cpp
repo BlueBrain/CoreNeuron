@@ -25,34 +25,33 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "coreneuron/utils/randoms/nrnran123.h"
+
 #include <algorithm>
-#include <iostream>
 #include <vector>
 #include <map>
 #include <cstring>
+
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/network/multisend.h"
-#include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/memory.h"
-#include "nrn_setup.h"
+#include "coreneuron/io/nrn_setup.h"
 #include "coreneuron/network/partrans.h"
-#include "nrnoptarg.h"
+#include "coreneuron/io/nrnoptarg.h"
 #include "coreneuron/io/nrn_checkpoint.h"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/permute/cellorder.h"
-#include "nrnsection_mapping.h"
+#include "coreneuron/io/nrnsection_mapping.h"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/nrnoc/fast_imem.h"
-#include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
 

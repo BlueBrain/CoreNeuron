@@ -1,16 +1,17 @@
-#include <stdio.h>
+#include <cstdio>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <cstring>
+
 #include "coreneuron/utils/nrn_assert.h"
-#include "cellorder.h"
+#include "coreneuron/permute/cellorder.h"
 #include "coreneuron/network/tnode.h"
 
 // just for use_interleave_permute
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/memory.h"
 
-#include <map>
-#include <set>
-#include <algorithm>
-#include <string.h>
 
 namespace coreneuron {
 static size_t groupsize = 32;

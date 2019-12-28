@@ -30,8 +30,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include "coreneuron/mpi/nrnmpi.h"
-#include "nrnoptarg.h"
+#include "coreneuron/io/nrnoptarg.h"
 #include "coreneuron/utils/ezoption/ezOptionParser.hpp"
+
 namespace coreneuron {
 struct param_int {
     const char* names; /* space separated (includes - or --) */

@@ -8,11 +8,12 @@
 
 // competing objectives are to keep identical cells together and also
 // balance warps.
+#include <algorithm>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/network/tnode.h"
 #include "coreneuron/utils/lpt.h"
-#include <algorithm>
+
 namespace coreneuron {
 int cellorder_nwarp = 0;  // 0 means do not balance
 

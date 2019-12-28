@@ -27,8 +27,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
-#include "nrn_filehandler.h"
+#include "coreneuron/io/nrn_filehandler.h"
 #include "coreneuron/nrnconf.h"
+
 namespace coreneuron {
 FileHandler::FileHandler(const char* filename, bool reorder) {
     this->open(filename, reorder);

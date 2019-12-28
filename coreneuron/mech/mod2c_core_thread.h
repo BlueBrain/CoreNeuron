@@ -2,7 +2,7 @@
 #define mod2c_core_thread_h
 
 #include "coreneuron/sim/multicore.h"
-#include "mechanism.h"
+#include "coreneuron/mech/mechanism.h"
 
 namespace coreneuron {
 

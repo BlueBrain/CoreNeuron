@@ -1,9 +1,10 @@
-#include "coreneuron/nrnconf.h"  // for size_t
-#include "lpt.h"
-#include "nrn_assert.h"
 #include <functional>
 #include <algorithm>
 #include <queue>
+
+#include "coreneuron/nrnconf.h"  // for size_t
+#include "coreneuron/utils/lpt.h"
+#include "coreneuron/utils/nrn_assert.h"
 
 typedef std::pair<size_t, size_t> P;
 

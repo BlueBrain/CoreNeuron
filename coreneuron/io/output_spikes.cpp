@@ -28,14 +28,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
 #include <sstream>
-#include <string.h>
+#include <cstring>
 #include <stdexcept>  // std::lenght_error
 #include <vector>
 #include <algorithm>
 #include <numeric>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "output_spikes.h"
+#include "coreneuron/io/output_spikes.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/mpi/nrnmpi_impl.h"

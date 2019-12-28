@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #if NRNMPI
 
-#include <signal.h>
+#include <csignal>
 #include <sys/time.h>
 
 /* if you are using any sampling based profiling tool,

@@ -1,14 +1,15 @@
+
+#include <set>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "cellorder.h"
 #include "coreneuron/network/tnode.h"
 #include "coreneuron/utils/lpt.h"
 #include "coreneuron/utils/memory.h"
 
-#include "node_permute.h"  // for print_quality
-#include <set>
+#include "coreneuron/permute/node_permute.h"  // for print_quality
 
 #ifdef _OPENACC
 #include <openacc.h>

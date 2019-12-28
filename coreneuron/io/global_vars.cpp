@@ -1,15 +1,14 @@
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <map>
 #include <string>
 #include <algorithm>
 
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/mech/membfunc.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "nrn2core_direct.h"
+#include "coreneuron/io/nrn2core_direct.h"
 
 void* (*nrn2core_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
 int (*nrn2core_get_global_int_item_)(const char* name);

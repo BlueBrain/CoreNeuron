@@ -31,7 +31,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.h"
 // solver CVode stub to allow cvode as dll for mswindows version.
 
-#include "netcvode.h"
+#include "coreneuron/network/netcvode.h"
 #include "coreneuron/utils/vrecitem.h"
 
 #include "coreneuron/gpu/nrn_acc_manager.h"
