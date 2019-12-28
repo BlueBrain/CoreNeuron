@@ -48,7 +48,7 @@ void nrn_fatal_error(const char* msg);
 double nrn_wtime();
 }  // namespace coreneuron
 
-#if NRNMPI
+#if defined(NRNMPI)
 
 namespace coreneuron {
 typedef struct {

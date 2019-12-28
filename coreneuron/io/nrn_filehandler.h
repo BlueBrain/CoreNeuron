@@ -33,9 +33,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <vector>
 #include <sys/stat.h>
+
 #include "coreneuron/utils/endianness.h"
 #include "coreneuron/utils/swap_endian.h"
 #include "coreneuron/utils/nrn_assert.h"
+
 namespace coreneuron {
 /** Encapsulate low-level reading of coreneuron input data files.
  *

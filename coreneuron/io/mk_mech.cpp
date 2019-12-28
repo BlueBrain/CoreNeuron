@@ -26,12 +26,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <string.h>
+#include <cstring>
 #include <map>
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/membrane_definitions.h"

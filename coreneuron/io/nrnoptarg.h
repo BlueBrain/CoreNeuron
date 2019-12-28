@@ -40,6 +40,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define nrnoptarg_h
 
 #include <string>
+
 namespace coreneuron {
 // before nrnopt_parse()
 void nrnopt_add_flag(const char* names, const char* usage);

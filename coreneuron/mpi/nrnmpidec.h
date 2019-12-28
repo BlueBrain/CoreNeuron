@@ -34,7 +34,6 @@ the prototypes be of the form "type foo(type arg, ...)"
 #ifndef nrnmpidec_h
 #define nrnmpidec_h
 
-#include "coreneuron/mpi/nrnmpi.h"
 
 #if NRNMPI
 #include <stdlib.h>

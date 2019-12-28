@@ -29,12 +29,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef tqueue_ipp_
 #define tqueue_ipp_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdarg>
+
 #include "coreneuron/sim/multicore.h"
-#include "tqueue.h"
+#include "coreneuron/network/tqueue.h"
 
 #if COLLECT_TQueue_STATISTICS
 #define STAT(arg) ++arg;

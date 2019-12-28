@@ -28,6 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <map>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mech/membfunc.hpp"
 #include "coreneuron/sim/multicore.h"

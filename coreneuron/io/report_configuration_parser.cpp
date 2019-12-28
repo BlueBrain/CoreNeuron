@@ -25,17 +25,17 @@
    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
    THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#include "coreneuron/utils/nrn_assert.h"
-#include "nrnreport.h"
-#include "coreneuron/nrnoc/fast_imem.h"
-#include "coreneuron/mech/mech_mapping.hpp"
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <string.h>
+
+#include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/io/nrnreport.h"
+#include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/mech/mech_mapping.hpp"
 
 namespace coreneuron {
 

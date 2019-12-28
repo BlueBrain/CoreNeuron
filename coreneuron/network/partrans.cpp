@@ -2,7 +2,7 @@
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "partrans.h"
+#include "coreneuron/network/partrans.h"
 
 // This is the computational code for gap junction simulation.
 // The setup code is in partrans_setup.cpp

@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
+
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "multisend.h"
+#include "coreneuron/network/multisend.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/utils/memory_utils.h"
 /*

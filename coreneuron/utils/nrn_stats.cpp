@@ -33,10 +33,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <climits>
 #include <vector>
-#include "nrn_stats.h"
+#include "coreneuron/utils/nrn_stats.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/network/netcvode.h"

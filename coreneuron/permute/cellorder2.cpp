@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include "coreneuron/utils/nrn_assert.h"
-#include "cellorder.h"
-#include "coreneuron/network/tnode.h"
-#include "coreneuron/nrniv/nrniv_decl.h"
-
+#include <cstdio>
 #include <map>
 #include <set>
 #include <algorithm>
-#include <string.h>
+#include <cstring>
+
+#include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/permute/cellorder.h"
+#include "coreneuron/network/tnode.h"
+#include "coreneuron/nrniv/nrniv_decl.h"
 
 using namespace std;
 

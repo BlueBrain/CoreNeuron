@@ -26,8 +26,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <string.h>
-#include <vector>
+#include <cstring>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"

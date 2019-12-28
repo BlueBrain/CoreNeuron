@@ -26,11 +26,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 #include "coreneuron/nrnconf.h"
-#include "multicore.h"
+#include "coreneuron/sim/multicore.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/utils/memory.h"

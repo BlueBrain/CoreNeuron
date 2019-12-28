@@ -3,7 +3,6 @@
 
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/network/netcon.h"
-#include "nrn_acc_manager.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/utils/profile/profiler_interface.h"

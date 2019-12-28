@@ -33,8 +33,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iterator>
 #include <cstring>
 #include <cstddef>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdlib>
 
 #ifdef SWAP_ENDIAN_ASSERT
 #include <cassert>

@@ -1,7 +1,7 @@
 #include "coreneuron/coreneuron.hpp"
-#include "data_layout.hpp"
+#include "coreneuron/permute/data_layout.hpp"
 #include "coreneuron/mech/mechanism.h"
-#include "node_permute.h"
+#include "coreneuron/permute/node_permute.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mech/membfunc.hpp"
 

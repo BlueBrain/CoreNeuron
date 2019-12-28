@@ -26,13 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/nrnconf.h"
+#include <cstdio>
 
-#include <stdio.h>
+#include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/utils/ivocvect.h"
 #include "coreneuron/network/netcvode.h"
-#include "vrecitem.h"
+#include "coreneuron/utils/vrecitem.h"
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 

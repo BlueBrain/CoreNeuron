@@ -1,10 +1,11 @@
-#include "mech_mapping.hpp"
-#include "coreneuron/permute/data_layout.hpp"
-#include "mechanism.h"
-#include <iostream>
 #include <cstring>
+#include <cstdlib>
+#include <iostream>
 #include <map>
-#include <stdlib.h>
+
+#include "coreneuron/mech/mech_mapping.hpp"
+#include "coreneuron/mech/mechanism.h"
+#include "coreneuron/permute/data_layout.hpp"
 
 namespace coreneuron {
 typedef size_t Offset;

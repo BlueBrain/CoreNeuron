@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef netcvode_h
 #define netcvode_h
 
-#include "tqueue.h"
+#include "coreneuron/network/tqueue.h"
 
 #define PRINT_EVENT 0
 

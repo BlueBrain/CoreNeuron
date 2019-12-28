@@ -33,6 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/io/nrn_filehandler.h"
 #include "coreneuron/utils/sdprintf.h"
+
 namespace coreneuron {
 static bool do_not_open;
 static int ngroup_w;

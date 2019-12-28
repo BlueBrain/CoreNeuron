@@ -25,13 +25,19 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <cmath>
 
 #include "coreneuron/network/netcon.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/network/netcvode.h"
 #include "coreneuron/sim/multicore.h"
-#include "nrnreport.h"
-#include "nrnsection_mapping.h"
+#include "coreneuron/io/nrnreport.h"
+#include "coreneuron/io/nrnsection_mapping.h"
 #include "coreneuron/mech/mech_mapping.hpp"
 #include "coreneuron/mech/membfunc.hpp"
 #ifdef ENABLE_REPORTING
@@ -41,12 +47,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "reportinglib/Records.h"
 #endif
 #endif
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <set>
-#include <cmath>
 
 namespace coreneuron {
 

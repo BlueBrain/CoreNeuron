@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef endianness_h
 #define endianness_h
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace endian {
 
