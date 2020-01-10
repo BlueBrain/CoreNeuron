@@ -3,8 +3,8 @@
 #include <iostream>
 #include <map>
 
-#include "coreneuron/mech/mech_mapping.hpp"
-#include "coreneuron/mech/mechanism.h"
+#include "coreneuron/mechanism/mech_mapping.hpp"
+#include "coreneuron/mechanism/mechanism.h"
 #include "coreneuron/permute/data_layout.hpp"
 
 namespace coreneuron {

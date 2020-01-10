@@ -6,7 +6,7 @@
 
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/io/nrn2core_direct.h"
 

@@ -32,7 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #if !defined(LAYOUT)
 /* 1 means AoS, >1 means AoSoA, <= 0 means SOA */
 #define LAYOUT 1

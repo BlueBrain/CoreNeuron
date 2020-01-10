@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // in coreneuron to allow debugging and trajectory verification on
 // desktop single process tests.  Since pattern.mod provides most of what
 // we need even in the coreneuron context, we placed a minimally modified
-// version of that in coreneuron/mech/modfile/pattern.mod and this file
+// version of that in coreneuron/mechanism/mech/modfile/pattern.mod and this file
 // provides an interface that creates an instance of the
 // PatternStim ARTIFICIAL_CELL in thread 0 and attaches the spike raster
 // data to it.
