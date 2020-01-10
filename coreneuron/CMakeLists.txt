@@ -235,7 +235,7 @@ configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
 configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
 configure_file("utils/profile/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
+configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/mechanism/nrnoc_ml.ispc)
 
 # TODO : this doesn't get re-copied if source changes
 file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
