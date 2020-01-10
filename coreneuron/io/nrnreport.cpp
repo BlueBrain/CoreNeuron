@@ -38,8 +38,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/io/nrnreport.h"
 #include "coreneuron/io/nrnsection_mapping.h"
-#include "coreneuron/mech/mech_mapping.hpp"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #ifdef ENABLE_REPORTING
 #ifdef ENABLE_SONATA_REPORTS
 #include "reportinglib/records.h"

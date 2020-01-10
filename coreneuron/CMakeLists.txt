@@ -18,26 +18,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # =============================================================================
 file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
 file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
-file(GLOB_RECURSE CORENEURON_CODE_FILES
+file(GLOB CORENEURON_CODE_FILES
                   "apps/main1.cpp"
                   "gpu/*.c*"
                   "io/*.c*"
-                  "mech/*.c*"
+                  "mechanism/*.c*"
                   "mpi/*.c*"
                   "network/*.c*"
                   "nrniv/*.c*"
                   "nrnoc/*.c*"
                   "permute/*.c*"
-                  "sim/*.c*"
-                  "utils/*.c*")
+                  "sim/*.c*")
+file(GLOB_RECURSE CORENEURON_UTILS_FILES "utils/*.c*")
+list(APPEND CORENEURON_CODE_FILES ${CORENEURON_UTILS_FILES})
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
-file(GLOB_RECURSE SCOPMATH_CODE_FILES "sim/scopmath/*.c*")
+file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.c*")
 
-set(DIMPLIC_CODE_FILE "mech/dimplic.cpp")
-set(ENGINEMECH_CODE_FILE "mech/enginemech.cpp")
+set(DIMPLIC_CODE_FILE "mechanism/mech/dimplic.cpp")
+set(ENGINEMECH_CODE_FILE "mechanism/mech/enginemech.cpp")
 
 # for external mod files we need to generate modl_ref function in mod_func.c
-set(MODFUNC_PERL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
+set(MODFUNC_PERL_SCRIPT "mechanism/mech/mod_func.c.pl")
 
 # as openacc limits passing function pointers as arguments, mod2c translated files depend on a
 # _kinderiv.h file that is constructed by kinderiv.py
@@ -45,7 +46,7 @@ set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
-set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
+set(INBUILT_MOD_PATH "mechanism/mech/modfile")
 set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod hh.mod netstim.mod passive.mod pattern.mod stim.mod)
 
 # Has helper macro for generating cpp file from mod2c
@@ -234,7 +235,7 @@ configure_file("engine.h" ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h)
 configure_file("enginemech.h" ${CMAKE_BINARY_DIR}/include/coreneuron/enginemech.h)
 configure_file("utils/profile/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("mech/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
+configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/nrnoc/nrnoc_ml.ispc)
 
 # TODO : this doesn't get re-copied if source changes
 file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)

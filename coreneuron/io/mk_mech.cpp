@@ -39,7 +39,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/sdprintf.h"
-#include "coreneuron/mech/cfile/cabvars.h"
+#include "coreneuron/mechanism/mech/cfile/cabvars.h"
 #include "nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
 

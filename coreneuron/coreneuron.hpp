@@ -44,13 +44,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
 #include "coreneuron/sim/scopmath/newton_struct.h"  //Newton Struct
 #include "membrane_definitions.h"                //static definitions
-#include "coreneuron/mech/mechanism.h"               //Memb_list and mechs info
+#include "coreneuron/mechanism/mechanism.h"               //Memb_list and mechs info
 
 #include "coreneuron/utils/memory.h"  //Memory alignments and padding
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/mech/mech_mapping.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
 
 namespace coreneuron {
 

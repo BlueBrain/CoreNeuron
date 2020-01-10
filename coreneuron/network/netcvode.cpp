@@ -41,7 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/gpu/nrn_acc_manager.h"
 #include "coreneuron/network/multisend.h"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/coreneuron.hpp"
 #include "netcon.h"
 #ifdef _OPENACC

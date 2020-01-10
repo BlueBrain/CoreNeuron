@@ -36,7 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/nrn_checkpoint.h"
 #include "coreneuron/network/netcvode.h"
 #include "coreneuron/utils/vrecitem.h"
-#include "coreneuron/mech/mod2c_core_thread.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
 #include "coreneuron/io/file_utils.h"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/coreneuron.hpp"

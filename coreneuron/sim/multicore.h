@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/utils/memory.h"
 
 namespace coreneuron {

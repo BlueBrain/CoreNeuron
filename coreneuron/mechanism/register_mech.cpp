@@ -32,8 +32,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.h"
 #include "coreneuron/membrane_definitions.h"
 #include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/mech/mech_mapping.hpp"
-#include "coreneuron/mech/membfunc.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
+#include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/coreneuron.hpp"
 
 namespace coreneuron {
