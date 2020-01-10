@@ -135,7 +135,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(memory_alignment_simd_false, T, chunk_default_data
   int total_size_chunk = coreneuron::soa_padded_size<c>(247, 0);
   int ne = 6*total_size_chunk;
 
-  typename T::value_type* data = (typename T::value_type*)coreneuron::ecalloc_align(ne, sizeof(typename T::value_type), 16);
+  // TODO: add aligment value to 16
+  typename T::value_type* data = new typename T::value_type[ne];
 
   for(int i=1; i < 6; i+=2){
       bool b = coreneuron::is_aligned((data+i*total_size_chunk),16);
@@ -147,7 +148,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(memory_alignment_simd_false, T, chunk_default_data
       BOOST_CHECK_EQUAL(b,1);
   }
 
-  free_memory(data);
+  delete[] data;
 
 }
 
@@ -156,12 +157,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(memory_alignment_simd_true, T, chunk_data_type){
   int total_size_chunk = coreneuron::soa_padded_size<c>(247, 0);
   int ne = 6*total_size_chunk;
 
-  typename T::value_type* data = (typename T::value_type*)coreneuron::ecalloc_align(ne, sizeof(typename T::value_type), 16);
+  // TODO: add aligment value to 16
+  typename T::value_type* data = new typename T::value_type[ne];
 
   for(int i=0; i < 6; ++i){
       bool b = coreneuron::is_aligned((data+i*total_size_chunk),16);
       BOOST_CHECK_EQUAL(b,1);
   }
 
-  free_memory(data);
+  delete[] data;
 }
