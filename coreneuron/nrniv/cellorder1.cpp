@@ -530,9 +530,9 @@ static void admin1(int ncell,
     // cellsize is the number of nodes in the cell not counting root.
     // nstride is the maximum cell size (not counting root)
     // stride[i] is the number of cells with an ith node.
-    firstnode = (int*)ecalloc_align(ncell, sizeof(int));
-    lastnode = (int*)ecalloc_align(ncell, sizeof(int));
-    cellsize = (int*)ecalloc_align(ncell, sizeof(int));
+    firstnode = new int[ncell];
+    lastnode = new int[ncell];
+    cellsize = new int[ncell];
 
     nwarp = (ncell % warpsize == 0) ? (ncell / warpsize) : (ncell / warpsize + 1);
 
@@ -556,7 +556,7 @@ static void admin1(int ncell,
         }
     }
 
-    stride = (int*)ecalloc_align(nstride + 1, sizeof(int));
+    stride = new int[nstride + 1];
     for (int i = 0; i <= nstride; ++i) {
         stride[i] = 0;
     }
@@ -616,11 +616,10 @@ static void admin2(int ncell,
     // ncore is the number of warps * warpsize
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
-    ncycles = (int*)ecalloc_align(nwarp, sizeof(int));
-    stridedispl =
-        (int*)ecalloc_align(nwarp + 1, sizeof(int));          // running sum of ncycles (start at 0)
-    rootbegin = (int*)ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first root in warp.
-    nodebegin = (int*)ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first node in warp.
+    ncycles = new int[nwarp];
+    stridedispl = new int[nwarp + 1]; // running sum of ncycles (start at 0)
+    rootbegin = new int[nwarp +1];    // index (+1) of first root in warp.
+    nodebegin = new int[nwarp + 1];   // index (+1) of first node in warp.
 
     // rootbegin and nodebegin are the root index values + 1 of the last of
     // the sequence of constant groupindex
@@ -650,7 +649,7 @@ static void admin2(int ncell,
     }
 
     // strides
-    strides = (int*)ecalloc_align(nstride, sizeof(int));
+    strides = new int[nstride];
     nstride = 0;
     for (size_t iwarp = 0; iwarp < (size_t)nwarp; ++iwarp) {
         size_t j = size_t(nodebegin[iwarp + 1]);

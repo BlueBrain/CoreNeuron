@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019, Blue Brain Project
+Copyright (c) 2016, Blue Brain Project
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -26,53 +26,66 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/nrniv/memory.h"
-#include "coreneuron/nrnmpi/nrnmpi.h"
 
-namespace coreneuron {
-
-extern int nrn_nthread;
-extern NrnThread *nrn_threads;
-bool nrn_use_fast_imem;
-
-void fast_imem_free() {
-    for (NrnThread* nt = nrn_threads; nt < nrn_threads + nrn_nthread; ++nt) {
-        if (nt->nrn_fast_imem) {
-            free(nt->nrn_fast_imem->nrn_sav_rhs);
-            free(nt->nrn_fast_imem->nrn_sav_d);
-            free(nt->nrn_fast_imem);
-            nt->nrn_fast_imem = nullptr;
-        }
-    }
+/// for gpu builds with unified memory support
+#if (defined(__CUDACC__) || defined(UNIFIED_MEMORY))
+void *operator new(size_t len) {
+  void *ptr;
+  cudaMallocManaged(&ptr, len);
+  cudaDeviceSynchronize();
+  return ptr;
 }
 
-void nrn_fast_imem_alloc() {
-    if (nrn_use_fast_imem) {
-        fast_imem_free();
-        for (NrnThread* nt = nrn_threads; nt < nrn_threads + nrn_nthread; ++nt) {
-            int n = nt->end;
-            nt->nrn_fast_imem = (NrnFastImem*)ecalloc(1, sizeof(NrnFastImem));
-            nt->nrn_fast_imem->nrn_sav_rhs = new double[n];
-            nt->nrn_fast_imem->nrn_sav_d = new double[n];
-        }
-    }
+void *operator new[](size_t len) {
+  void *ptr;
+  cudaMallocManaged(&ptr, len);
+  cudaDeviceSynchronize();
+  return ptr;
 }
 
-void nrn_calc_fast_imem(NrnThread* nt) {
-    int i1 = 0;
-    int i3 = nt->end;
-
-    double* vec_rhs = nt->_actual_rhs;
-    double* vec_area = nt->_actual_area;
-
-    double* fast_imem_d = nt->nrn_fast_imem->nrn_sav_d;
-    double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
-    for (int i = i1; i < i3 ; ++i) {
-        fast_imem_rhs[i] = (fast_imem_d[i]*vec_rhs[i] + fast_imem_rhs[i])*vec_area[i]*0.01;
-    }
+void operator delete(void *ptr) {
+  cudaDeviceSynchronize();
+  cudaFree(ptr);
 }
 
+void operator delete[](void *ptr) {
+  cudaDeviceSynchronize();
+  cudaFree(ptr);
 }
 
+
+#else
+
+#include <stdlib.h>
+
+void *operator new(size_t len) {
+  void *ptr;
+#if defined(MINGW)
+  nrn_assert( (ptr = _aligned_malloc(len, NRN_SOA_BYTE_ALIGN)) != nullptr);
+#else
+  nrn_assert(posix_memalign(&ptr, NRN_SOA_BYTE_ALIGN, len) == 0);
+#endif
+  return ptr;
+}
+
+void *operator new[](size_t len) {
+  void *ptr;
+#if defined(MINGW)
+  nrn_assert( (ptr = _aligned_malloc(len, NRN_SOA_BYTE_ALIGN)) != nullptr);
+#else
+  nrn_assert(posix_memalign(&ptr, NRN_SOA_BYTE_ALIGN, len) == 0);
+#endif
+  memset(ptr, 0, len);
+  return ptr;
+}
+
+void operator delete(void *ptr) {
+  free(ptr);
+}
+
+void operator delete[](void *ptr) {
+  free(ptr);
+}
+
+#endif
