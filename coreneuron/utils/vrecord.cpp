@@ -29,9 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/utils/ivocvect.h"
-#include "coreneuron/network/netcvode.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/utils/ivocvect.hpp"
+#include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/utils/vrecitem.h"
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;

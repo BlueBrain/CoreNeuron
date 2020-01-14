@@ -30,14 +30,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/mechanism/membfunc.hpp"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/network/netcon.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/nrn_setup.hpp"
+#include "coreneuron/network/netcon.hpp"
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 #define precision 15
 namespace coreneuron {

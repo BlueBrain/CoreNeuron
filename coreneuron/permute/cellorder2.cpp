@@ -5,8 +5,8 @@
 #include <cstring>
 
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/permute/cellorder.h"
-#include "coreneuron/network/tnode.h"
+#include "coreneuron/permute/cellorder.hpp"
+#include "coreneuron/network/tnode.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 
 using namespace std;

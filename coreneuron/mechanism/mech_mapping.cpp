@@ -4,7 +4,7 @@
 #include <map>
 
 #include "coreneuron/mechanism/mech_mapping.hpp"
-#include "coreneuron/mechanism/mechanism.h"
+#include "coreneuron/mechanism/mechanism.hpp"
 #include "coreneuron/permute/data_layout.hpp"
 
 namespace coreneuron {

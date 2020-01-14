@@ -1,7 +1,13 @@
-#ifndef partrans_h
-#define partrans_h
+#pragma once
+
+#include "coreneuron/sim/multicore.hpp"
+
 namespace coreneuron {
 struct Memb_list;
+
+    extern int nrn_have_gaps;
+    extern void nrnmpi_v_transfer();
+    extern void nrnthread_v_transfer(NrnThread*);
 
 namespace nrn_partrans {
 
@@ -58,4 +64,3 @@ extern double* outsrc_buf_;  // Send buffer for gap voltages
 extern int *insrccnt_, *insrcdspl_, *outsrccnt_, *outsrcdspl_;
 }
 }  // namespace coreneuron
-#endif /*partrans_h*/

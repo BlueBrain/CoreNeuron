@@ -29,9 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/gpu/nrn_acc_manager.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/coreneuron.hpp"
 

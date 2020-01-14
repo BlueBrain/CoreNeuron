@@ -32,8 +32,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/mpi/nrnmpi_impl.h"
-#include "coreneuron/mpi/mpispike.h"
+#include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 #if NRNMPI
 #include <mpi.h>

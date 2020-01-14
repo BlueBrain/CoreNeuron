@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019, Blue Brain Project
+Copyright (c) 2016, Blue Brain Project
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -26,38 +26,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef fast_imem_h
-#define fast_imem_h
-
-#include "coreneuron/sim/multicore.h"
+#pragma once
 
 namespace coreneuron {
 
-/* Bool global variable to define if the fast_imem
- * calculations should be enabled.
- */
-extern bool nrn_use_fast_imem;
+extern int nrn_is_ion(int);
+extern void ion_reg(const char*, double);
 
-/* Free memory allocated for the fast current membrane calculation.
- * Found in src/nrnoc/multicore.c in NEURON.
- */
-void fast_imem_free();
-
-/* Allocate memory for the rhs and d arrays needed for the fast
- * current membrane calculation.
- * Found in src/nrnoc/multicore.c in NEURON.
- */
-static void fast_imem_alloc();
-
-/* fast_imem_alloc() wrapper.
- * Found in src/nrnoc/multicore.c in NEURON.
- */
-void nrn_fast_imem_alloc();
-
-/* Calculate the new values of rhs array at every timestep.
- * Found in src/nrnoc/fadvance.c in NEURON.
- */
-void nrn_calc_fast_imem(NrnThread* _nt);
-
-}  // namespace coreneuron
-#endif //fast_imem_h
+} // namespace coreneuron

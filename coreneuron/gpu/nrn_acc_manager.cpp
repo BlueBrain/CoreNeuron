@@ -1,15 +1,16 @@
 #include <queue>
 #include <utility>
 
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/network/netcon.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/netcon.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/utils/profile/profiler_interface.h"
-#include "coreneuron/permute/cellorder.h"
+#include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/utils/profile/cuda_profile.h"
 #include "coreneuron/sim/scopmath/newton_struct.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 #ifdef _OPENACC
 #include <openacc.h>

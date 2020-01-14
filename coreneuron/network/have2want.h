@@ -10,6 +10,8 @@ Need to define HAVEWANT_t, HAVEWANT_alltoallv, and HAVEWANT2Int
 
 #define have2want_h
 
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 /*
 
 A rank owns a set of HAVEWANT_t keys and wants information associated with

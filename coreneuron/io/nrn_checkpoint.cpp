@@ -29,17 +29,19 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <cassert>
 
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/io/nrn_filehandler.h"
-#include "coreneuron/io/nrn_checkpoint.h"
-#include "coreneuron/network/netcvode.h"
+#include "coreneuron/io/nrn_filehandler.hpp"
+#include "coreneuron/io/nrn_checkpoint.hpp"
+#include "coreneuron/io/nrn_setup.hpp"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/netpar.hpp"
 #include "coreneuron/utils/vrecitem.h"
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
-#include "coreneuron/io/file_utils.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
+#include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
 bool nrn_checkpoint_arg_exists;

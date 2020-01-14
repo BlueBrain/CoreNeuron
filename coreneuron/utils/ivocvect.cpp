@@ -26,7 +26,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "coreneuron/utils/ivocvect.h"
+#include "coreneuron/utils/ivocvect.hpp"
 
 namespace coreneuron {
 IvocVect* vector_new(int n) {

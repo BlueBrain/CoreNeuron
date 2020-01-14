@@ -27,7 +27,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
-#include "coreneuron/io/nrn_filehandler.h"
+#include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/nrnconf.h"
 
 namespace coreneuron {

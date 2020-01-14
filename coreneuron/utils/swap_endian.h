@@ -45,7 +45,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /* required for correct choice of PPC assembly */
-#include "coreneuron/utils/endianness.h"
+#include "coreneuron/utils/endianness.hpp"
 
 #if !defined(SWAP_ENDIAN_MAX_UNROLL)
 #define SWAP_ENDIAN_MAX_UNROLL 8

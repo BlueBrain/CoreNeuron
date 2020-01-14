@@ -32,6 +32,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/randoms/Random123/philox.h"
 #include "coreneuron/utils/nrnmutdec.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 namespace coreneuron {
 static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 

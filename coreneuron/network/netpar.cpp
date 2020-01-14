@@ -32,19 +32,20 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 
-#include "coreneuron/network/netcon.h"
-#include "coreneuron/network/netcvode.h"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/utils/ivocvect.h"
-#include "coreneuron/network/multisend.h"
+#include "coreneuron/utils/ivocvect.hpp"
+#include "coreneuron/network/multisend.hpp"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 #if NRNMPI
-#include "coreneuron/mpi/mpispike.h"
+#include "coreneuron/mpi/mpispike.hpp"
 #endif
 
 namespace coreneuron {

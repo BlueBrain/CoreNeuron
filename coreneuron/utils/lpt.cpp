@@ -3,7 +3,7 @@
 #include <queue>
 
 #include "coreneuron/nrnconf.h"  // for size_t
-#include "coreneuron/utils/lpt.h"
+#include "coreneuron/utils/lpt.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 
 typedef std::pair<size_t, size_t> P;

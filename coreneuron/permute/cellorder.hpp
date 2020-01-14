@@ -7,6 +7,7 @@ int* interleave_order(int ith, int ncell, int nnode, int* parent);
 
 void create_interleave_info();
 void destroy_interleave_info();
+extern void solve_interleaved(int ith);
 
 class InterleaveInfo {
   public:

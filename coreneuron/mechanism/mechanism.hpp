@@ -28,6 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "coreneuron/nrnconf.h"
+
 namespace coreneuron {
 #if PG_ACC_BUGS
 struct ThreadDatum {
@@ -43,6 +44,13 @@ union ThreadDatum {
     void* _pvoid;
 };
 #endif
+
+    /* will go away at some point */
+    typedef struct Point_process {
+        int _i_instance;
+        short _type;
+        short _tid; /* NrnThread id */
+    } Point_process;
 
 struct NetReceiveBuffer_t {
     int* _displ;     /* _displ_cnt + 1 of these */

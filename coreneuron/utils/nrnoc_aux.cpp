@@ -29,10 +29,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>
 #include <cstring>
 
-#include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
 int stoprun;

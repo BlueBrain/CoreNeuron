@@ -26,8 +26,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef nrnoc_decl_h
-#define nrnoc_decl_h
+#pragma once
+
+#include <cstddef>
+#include "coreneuron/mechanism/mechanism.hpp"
 
 namespace coreneuron {
 
@@ -35,47 +37,22 @@ extern int v_structure_change;
 extern int diam_changed;
 extern int structure_change_cnt;
 
-extern const char* nrn_version(int);
+extern char* pnt_name(Point_process* pnt);
+
 extern void nrn_exit(int);
-extern void deliver_net_events(NrnThread*);
-extern void nrn_deliver_events(NrnThread*);
-extern void init_net_events(void);
-extern void nrn_play_init(void);
-extern void fixed_play_continuous(NrnThread*);
-extern int use_solve_interleave;
-extern int* nrn_index_sort(int* values, int n);
-extern void solve_interleaved(int ith);
-extern void nrn_solve_minimal(NrnThread*);
-extern void nonvint(NrnThread* _nt);
-extern void nrn_ba(NrnThread*, int);
-extern void dt2thread(double);
-extern void clear_event_queue(void);
-extern void nrn_spike_exchange_init(void);
-extern void nrn_spike_exchange(NrnThread*);
-extern void modl_reg(void);
-extern int nrn_is_ion(int);
-extern void nrn_finitialize(int setv, double v);
-extern void nrn_fixed_step_group_minimal(int n);
-extern void nrn_fixed_step_minimal(void);
-extern void* nrn_fixed_step_lastpart(NrnThread*);
-extern void nrncore2nrn_send_init();
-extern void nrncore2nrn_send_values(NrnThread*);
-extern void update(NrnThread*);
-extern void* setup_tree_matrix_minimal(NrnThread*);
-extern void alloc_mech(int);
-extern void ion_reg(const char*, double);
-extern void nrn_mk_table_check(void);
-extern void initnrn(void);
-extern int prcellstate(int gid, const char* suffix);
-extern int nrn_i_layout(int i, int cnt, int j, int size, int layout);
 
-extern int nrn_have_gaps;
-extern void nrnthread_v_transfer(NrnThread*);
-extern void nrnmpi_v_transfer();
+extern void* emalloc(size_t size);
+extern void* ecalloc(size_t n, size_t size);
+extern void* erealloc(void* ptr, size_t size);
 
-extern void nrn_fatal_error(const char* msg);
-extern void nrn_abort(int errcode);
-extern double nrn_wtime(void);
+extern double* makevector(size_t size); /* size in bytes */
+extern double** makematrix(size_t nrow, size_t ncol);
+void freevector(double*);
+void freematrix(double**);
+
+extern void hoc_execerror(const char*, const char*); /* print and abort */
+extern void hoc_warning(const char*, const char*);
+
+extern double hoc_Exp(double x);
 
 }  // namespace coreneuron
-#endif

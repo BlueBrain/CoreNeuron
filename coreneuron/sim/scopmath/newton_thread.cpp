@@ -54,10 +54,10 @@ static char RCSid[] = "newton.c,v 1.3 1999/01/04 12:46:48 hines Exp";
 #include <math.h>
 #include <stdlib.h>
 
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
-#include "coreneuron/mechanism/mech/cfile/scoplib.h"
 #include "coreneuron/sim/scopmath/newton_struct.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
 #define ix(arg) ((arg)*_STRIDE)

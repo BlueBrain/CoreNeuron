@@ -1,4 +1,3 @@
-#include "coreneuron/nrnconf.h"
 /******************************************************************************
  *
  * File: abort.c
@@ -7,6 +6,7 @@
  *   Duke University
  *
  ******************************************************************************/
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 #ifndef LINT
 static char RCSid[] = "abort.c,v 1.2 1997/08/30 14:32:00 hines Exp";

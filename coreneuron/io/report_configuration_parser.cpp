@@ -33,7 +33,7 @@
 #include <vector>
 
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/io/nrnreport.h"
+#include "coreneuron/io/nrnreport.hpp"
 #include "coreneuron/nrnoc/fast_imem.h"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 

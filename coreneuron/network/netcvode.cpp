@@ -27,23 +27,22 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <float.h>
-#include <vector>
 #include <map>
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "netcon.h"
-#include "netcvode.h"
-#include "coreneuron/utils/ivocvect.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/netpar.hpp"
+#include "coreneuron/utils/ivocvect.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/io/output_spikes.h"
+#include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/gpu/nrn_acc_manager.h"
-#include "coreneuron/network/multisend.h"
+#include "coreneuron/gpu/nrn_acc_manager.hpp"
+#include "coreneuron/network/multisend.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/coreneuron.hpp"
-#include "netcon.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 #ifdef _OPENACC
 #include <openacc.h>
 #endif

@@ -1,5 +1,5 @@
 #include "coreneuron/mechanism/mech/cfile/scoplib.h"
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
 namespace coreneuron {
 #define s_(arg) _p[s[arg] * _STRIDE]
