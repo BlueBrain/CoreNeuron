@@ -38,10 +38,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include "coreneuron/utils/nrn_stats.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/network/netcvode.h"
-#include "coreneuron/network/partrans.h"
-#include "coreneuron/io/output_spikes.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/network/partrans.hpp"
+#include "coreneuron/io/output_spikes.hpp"
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 

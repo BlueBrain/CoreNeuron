@@ -3,7 +3,7 @@
 
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/network/multisend.h"
+#include "coreneuron/network/multisend.hpp"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/utils/memory_utils.h"
 /*

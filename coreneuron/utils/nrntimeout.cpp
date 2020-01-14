@@ -27,7 +27,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 
 #if NRNMPI

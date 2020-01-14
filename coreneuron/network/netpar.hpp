@@ -26,40 +26,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef nrnmpi_h
-#define nrnmpi_h
-#include "coreneuron/mpi/nrnmpiuse.h"
+#pragma once
+
+#include "coreneuron/network/partrans.hpp"
+#include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {
-/* by default nrnmpi_numprocs_world = nrnmpi_numprocs = nrnmpi_numsubworlds and
-   nrnmpi_myid_world = nrnmpi_myid and the bulletin board and network communication do
-   not easily coexist. ParallelContext.subworlds(nsmall) divides the world into
-   nrnmpi_numprocs_world/small subworlds of size nsmall.
-*/
-extern int nrnmpi_numprocs_world; /* size of entire world. total size of all subworlds */
-extern int nrnmpi_myid_world;     /* rank in entire world */
-extern int nrnmpi_numprocs;       /* size of subworld */
-extern int nrnmpi_myid;           /* rank in subworld */
-extern int nrnmpi_numprocs_bbs;   /* number of subworlds */
-extern int nrnmpi_myid_bbs;       /* rank in nrn_bbs_comm of rank 0 of a subworld */
 
-extern void nrn_abort(int errcode);
-extern void nrn_fatal_error(const char* msg);
-extern double nrn_wtime(void);
-}  // namespace coreneuron
-
-#if defined(NRNMPI)
-
-namespace coreneuron {
-typedef struct {
-    int gid;
-    double spiketime;
-} NRNMPI_Spike;
-
-extern int nrnmpi_use; /* NEURON does MPI init and terminate?*/
-
-}  // namespace coreneuron
-#include "coreneuron/mpi/nrnmpidec.h"
-
-#endif /*NRNMPI*/
-#endif /*nrnmpi_h*/
+    extern void nrn_spike_exchange_init(void);
+    extern void nrn_spike_exchange(NrnThread* nt);
+}

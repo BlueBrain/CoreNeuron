@@ -151,7 +151,7 @@ add_library(coreneuron
             ${CORENEURON_TEMPLATE_FILES}
             ${CORENEURON_CODE_FILES}
             ${cudacorenrn_objs}
-            ${NMODL_INBUILT_MOD_OUTPUTS})
+            ${NMODL_INBUILT_MOD_OUTPUTS} network/netpar.hpp)
 
 # need to have _kinderiv.h for mod2c generated files
 add_dependencies(coreneuron kin_deriv_header)

@@ -33,20 +33,24 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/membrane_definitions.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/mechanism/register_mech.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/sdprintf.h"
 #include "coreneuron/mechanism/mech/cfile/cabvars.h"
 #include "nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/mechanism//eion.hpp"
 
 static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2019";
 
 namespace coreneuron {
 int nrn_nobanner_;
+
+// NB: this should go away
+extern const char* nrn_version(int);
 
 int nrn_need_byteswap;
 // following copied (except for nrn_need_byteswap line) from NEURON ivocvect.cpp

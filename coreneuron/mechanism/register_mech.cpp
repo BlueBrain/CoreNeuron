@@ -29,12 +29,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/membrane_definitions.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/mechanism/eion.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
 int secondorder = 0;

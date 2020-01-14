@@ -36,7 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/io/output_spikes.h"
+#include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/mpi/nrnmpi_impl.h"

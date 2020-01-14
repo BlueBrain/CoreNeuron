@@ -36,6 +36,8 @@ namespace coreneuron {
 class NetCon;
 class PreSyn;
 
+extern int use_solve_interleave;
+
 /*
    Point_process._presyn, used only if its NET_RECEIVE sends a net_event, is
    eliminated. Needed only by net_event function. Replaced by
@@ -158,5 +160,22 @@ extern void nrn_thread_table_check(void);
 extern void nrn_threads_free(void);
 
 extern int _nrn_skip_initmodel;
+
+
+extern void dt2thread(double);
+extern void clear_event_queue(void);
+extern void nrn_ba(NrnThread*, int);
+extern void* nrn_fixed_step_lastpart(NrnThread*);
+extern void nrn_solve_minimal(NrnThread*);
+extern void nrncore2nrn_send_init();
+extern void* setup_tree_matrix_minimal(NrnThread*);
+extern void nrncore2nrn_send_values(NrnThread*);
+extern void nrn_fixed_step_group_minimal(int n);
+extern void nrn_fixed_step_minimal(void);
+extern void nrn_finitialize(int setv, double v);
+extern void nrn_mk_table_check(void);
+extern void nonvint(NrnThread* _nt);
+extern void update(NrnThread*);
+
 
 }  // namespace coreneuron

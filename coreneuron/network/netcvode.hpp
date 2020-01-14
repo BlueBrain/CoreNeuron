@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef netcvode_h
 #define netcvode_h
 
-#include "coreneuron/network/tqueue.h"
+#include "coreneuron/network/tqueue.hpp"
 
 #define PRINT_EVENT 0
 
@@ -44,6 +44,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define QTYPE pq_que
 #endif
 namespace coreneuron {
+
+    // defined in coreneuron/network/cvodestb.cpp
+    extern void init_net_events(void);
+    extern void nrn_play_init(void);
+    extern void deliver_net_events(NrnThread*);
+    extern void nrn_deliver_events(NrnThread*);
+    extern void fixed_play_continuous(NrnThread*);
+
 class DiscreteEvent;
 class NetCvode;
 

@@ -11,8 +11,8 @@
 #include <algorithm>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/network/tnode.h"
-#include "coreneuron/utils/lpt.h"
+#include "coreneuron/network/tnode.hpp"
+#include "coreneuron/utils/lpt.hpp"
 
 namespace coreneuron {
 int cellorder_nwarp = 0;  // 0 means do not balance

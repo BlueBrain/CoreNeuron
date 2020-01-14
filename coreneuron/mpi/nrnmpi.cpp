@@ -31,7 +31,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/mpispike.h"
+#include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi_def_cinc.h"
 #include "coreneuron/utils/nrn_assert.h"
 #if _OPENMP

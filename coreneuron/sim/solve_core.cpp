@@ -27,8 +27,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/permute/cellorder.hpp"
+#include "coreneuron/sim/multicore.hpp"
 namespace coreneuron {
 int use_solve_interleave;
 

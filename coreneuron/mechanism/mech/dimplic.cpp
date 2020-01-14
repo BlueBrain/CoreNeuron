@@ -13,7 +13,7 @@
  */
 
 #include "coreneuron/mechanism/mech/cfile/scoplib.h"
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "_kinderiv.h"
 namespace coreneuron {
 int derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_) {

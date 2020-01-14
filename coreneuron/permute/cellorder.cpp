@@ -2,11 +2,11 @@
 #include <set>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "cellorder.h"
-#include "coreneuron/network/tnode.h"
-#include "coreneuron/utils/lpt.h"
+#include "cellorder.hpp"
+#include "coreneuron/network/tnode.hpp"
+#include "coreneuron/utils/lpt.hpp"
 #include "coreneuron/utils/memory.h"
 
 #include "coreneuron/permute/node_permute.h"  // for print_quality

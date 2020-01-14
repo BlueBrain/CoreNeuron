@@ -31,9 +31,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <map>
-#include "coreneuron/network/netcon.h"
-#include "coreneuron/utils/endianness.h"
-#include "coreneuron/io/nrnoptarg.h"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/utils/endianness.hpp"
+#include "coreneuron/io/nrnoptarg.hpp"
 namespace coreneuron {
 
 /// Mechanism type to be used from stdindex2ptr and nrn_dblpntr2nrncore (in Neuron)

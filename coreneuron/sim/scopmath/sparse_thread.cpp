@@ -14,11 +14,11 @@ static char RCSid[] = "sparse.c,v 1.7 1998/03/12 13:17:17 hines Exp";
 #if defined(__PGI) && defined(_OPENACC)
 #include "accelmath.h"
 #endif
-#include "coreneuron/mechanism/mech/cfile/scoplib.h"
-#include "coreneuron/utils/nrn_assert.h"
 #include <stdlib.h>
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h" /* _threadargs, _STRIDE, etc. */
+#include "coreneuron/mechanism/mech/cfile/scoplib.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp" /* _threadargs, _STRIDE, etc. */
 #include "coreneuron/sim/scopmath/errcodes.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 /* Aug 2016 coreneuron : very different prototype and memory organization */
 /* Jan 2008 thread safe */

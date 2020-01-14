@@ -1,8 +1,8 @@
 #ifndef mod2c_core_thread_h
 #define mod2c_core_thread_h
 
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/mechanism/mechanism.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/mechanism/mechanism.hpp"
 
 namespace coreneuron {
 

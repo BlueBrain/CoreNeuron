@@ -5,7 +5,7 @@
 #include <openacc.h>
 #endif
 
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {
 void setup_nrnthreads_on_device(NrnThread* threads, int nthreads);

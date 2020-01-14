@@ -30,11 +30,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 /*
 Now that threads have taken over the actual_v, v_node, etc, it might
 be a good time to regularize the method of freeing, allocating, and

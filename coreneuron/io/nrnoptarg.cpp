@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/io/nrnoptarg.h"
+#include "coreneuron/io/nrnoptarg.hpp"
 #include "coreneuron/utils/ezoption/ezOptionParser.hpp"
 
 namespace coreneuron {

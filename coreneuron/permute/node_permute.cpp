@@ -66,9 +66,8 @@ so pdata_m(k, isz) = inew + data_t
 #include <utility>
 #include <algorithm>
 
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/permute/node_permute.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/coreneuron.hpp"

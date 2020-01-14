@@ -29,8 +29,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef vrecitem_h
 #define vrecitem_h
 
-#include "coreneuron/network/netcon.h"
-#include "coreneuron/utils/ivocvect.h"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/utils/ivocvect.hpp"
 namespace coreneuron {
 class PlayRecord;
 

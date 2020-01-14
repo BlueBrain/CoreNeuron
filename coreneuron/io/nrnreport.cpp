@@ -32,11 +32,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <cmath>
 
-#include "coreneuron/network/netcon.h"
+#include "coreneuron/network/netcon.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/network/netcvode.h"
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/io/nrnreport.h"
+#include "coreneuron/network/netcvode.hpp"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/nrnreport.hpp"
 #include "coreneuron/io/nrnsection_mapping.h"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 #include "coreneuron/mechanism/membfunc.hpp"

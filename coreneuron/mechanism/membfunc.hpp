@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 
-#include "coreneuron/mechanism/mechanism.h"
+#include "coreneuron/mechanism/mechanism.hpp"
 namespace coreneuron {
 
 typedef Datum* (*Pfrpdat)(void);

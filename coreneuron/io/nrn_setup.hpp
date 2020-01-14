@@ -30,8 +30,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define _H_NRNSETUP_
 
 #include <string>
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/io/nrn_filehandler.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/utils/sdprintf.h"
 
 namespace coreneuron {
@@ -57,6 +57,8 @@ extern void nrn_init_and_load_data(int argc,
                                    bool nrnmpi_under_nrncontrol = true,
                                    bool run_setup_cleanup = true);
 extern void nrn_setup_cleanup();
+
+extern int nrn_i_layout(int i, int cnt, int j, int size, int layout);
 
 namespace coreneuron {
 

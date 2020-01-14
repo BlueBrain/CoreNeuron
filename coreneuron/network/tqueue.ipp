@@ -34,8 +34,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <cstdarg>
 
-#include "coreneuron/sim/multicore.h"
-#include "coreneuron/network/tqueue.h"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/network/tqueue.hpp"
 
 #if COLLECT_TQueue_STATISTICS
 #define STAT(arg) ++arg;

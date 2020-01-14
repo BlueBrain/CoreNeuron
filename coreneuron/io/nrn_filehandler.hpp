@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <sys/stat.h>
 
-#include "coreneuron/utils/endianness.h"
+#include "coreneuron/utils/endianness.hpp"
 #include "coreneuron/utils/swap_endian.h"
 #include "coreneuron/utils/nrn_assert.h"
 

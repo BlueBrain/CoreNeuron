@@ -38,11 +38,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/io/output_spikes.h"
+#include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/coreneuron.hpp"
 
 namespace coreneuron {

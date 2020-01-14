@@ -1,7 +1,7 @@
 #ifndef newton_struct_h
 #define newton_struct_h
 
-#include "coreneuron/mechanism/mech/mod2c_core_thread.h"
+#include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 
 namespace coreneuron {
 

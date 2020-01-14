@@ -28,13 +28,13 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/sim/multicore.h"
+#include "coreneuron/sim/multicore.hpp"
 // solver CVode stub to allow cvode as dll for mswindows version.
 
-#include "coreneuron/network/netcvode.h"
+#include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/utils/vrecitem.h"
 
-#include "coreneuron/gpu/nrn_acc_manager.h"
+#include "coreneuron/gpu/nrn_acc_manager.hpp"
 
 namespace coreneuron {
 
