@@ -30,7 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "fast_imem.hpp"
 #include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/io/nrnreport.hpp"
 #include "coreneuron/network/netcvode.hpp"

@@ -35,7 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/utils/nrn_assert.h"
@@ -51,7 +51,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
 
