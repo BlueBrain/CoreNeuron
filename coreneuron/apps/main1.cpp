@@ -39,7 +39,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/nrniv/nrniv_decl.h"

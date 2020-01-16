@@ -34,7 +34,7 @@
 
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/io/nrnreport.hpp"
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/mechanism/mech_mapping.hpp"
 
 namespace coreneuron {

@@ -27,7 +27,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/fast_imem.h"
+#include "fast_imem.hpp"
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
