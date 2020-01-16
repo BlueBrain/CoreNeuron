@@ -1723,7 +1723,7 @@ for (int i=0; i < nt.end; ++i) {
         for (int ii = 0; ii < memb_func.size(); ++ii) {
             bamap[ii] = nullptr;
         }
-        for (BAMech* bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
+        for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
             bamap[bam->type] = bam;
         }
         /* unnecessary but keep in order anyway */
