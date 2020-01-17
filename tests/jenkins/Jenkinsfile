@@ -314,6 +314,14 @@ pipeline {
                         }
                     }
                 }
+                stage("Simulation Stack") {
+                    steps {
+                        build job: "hpc.SimulationStack", parameters: [
+                            string(name: "TEST_VERSION", value: "ncx_plasticity")
+                            string(name: "CORENEURON_BRANCH", value: "${sha1}")
+                        ]
+                    }
+                }
             }
         }
     }
