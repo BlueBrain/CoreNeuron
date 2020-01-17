@@ -48,8 +48,7 @@ void nrn_solve_minimal(NrnThread* _nt) {
 
 /* triangularization of the matrix equations */
 static void triang(NrnThread* _nt) {
-    double p;
-    int i, i2, i3;
+    int i2, i3;
     i2 = _nt->ncell;
     i3 = _nt->end;
 
@@ -69,8 +68,8 @@ static void triang(NrnThread* _nt) {
         vec_rhs[0:i3], parent_index[0:i3])      \
         async(stream_id) if (_nt->compute_gpu)
     // clang-format on
-    for (i = i3 - 1; i >= i2; --i) {
-        p = vec_a[i] / vec_d[i];
+    for (int i = i3 - 1; i >= i2; --i) {
+        double p = vec_a[i] / vec_d[i];
         vec_d[parent_index[i]] -= p * vec_b[i];
         vec_rhs[parent_index[i]] -= p * vec_rhs[i];
     }
@@ -78,7 +77,7 @@ static void triang(NrnThread* _nt) {
 
 /* back substitution to finish solving the matrix equations */
 static void bksub(NrnThread* _nt) {
-    int i, i1, i2, i3;
+    int i1, i2, i3;
     i1 = 0;
     i2 = i1 + _nt->ncell;
     i3 = _nt->end;
@@ -97,7 +96,7 @@ static void bksub(NrnThread* _nt) {
         vec_d[0:i2], vec_rhs[0:i2])             \
         async(stream_id) if (_nt->compute_gpu)
     // clang-format on
-    for (i = i1; i < i2; ++i) {
+    for (int i = i1; i < i2; ++i) {
         vec_rhs[i] /= vec_d[i];
     }
 
@@ -107,7 +106,7 @@ static void bksub(NrnThread* _nt) {
         vec_b[0:i3], vec_d[0:i3], vec_rhs[0:i3],    \
         parent_index[0:i3]) async(stream_id)        \
         if (_nt->compute_gpu)
-    for (i = i2; i < i3; ++i) {
+    for (int i = i2; i < i3; ++i) {
         vec_rhs[i] -= vec_b[i] * vec_rhs[parent_index[i]];
         vec_rhs[i] /= vec_d[i];
     }

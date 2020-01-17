@@ -47,8 +47,7 @@ static void* nrn_fixed_step_group_thread(NrnThread*);
 
 void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
     if (adt != nrn_threads[0]._dt) {
-        int i;
-        for (i = 0; i < nrn_nthread; ++i) {
+        for (int i = 0; i < nrn_nthread; ++i) {
             NrnThread* nt = nrn_threads + i;
             nt->_t = t;
             nt->_dt = dt;
@@ -139,9 +138,8 @@ void nrn_fixed_step_group_minimal(int n) {
 }
 
 static void* nrn_fixed_step_group_thread(NrnThread* nth) {
-    int i;
     nth->_stop_stepping = 0;
-    for (i = step_group_begin; i < step_group_n; ++i) {
+    for (int i = step_group_begin; i < step_group_n; ++i) {
         nrn_fixed_step_thread(nth);
         if (nth->_stop_stepping) {
             if (nth->id == 0) {
@@ -174,7 +172,7 @@ void update(NrnThread* _nt) {
             vec_v[0:i2], vec_rhs[0:i2])             \
             if (_nt->compute_gpu) async(stream_id)
         // clang-format on
-        for (i = i1; i < i2; ++i) {
+        for (int i = 0; i < _nt->end; ++i) {
             vec_v[i] += 2. * vec_rhs[i];
         }
     } else {
@@ -183,7 +181,7 @@ void update(NrnThread* _nt) {
                 vec_v[0:i2], vec_rhs[0:i2])             \
                 if (_nt->compute_gpu) async(stream_id)
         // clang-format on
-        for (i = i1; i < i2; ++i) {
+        for (int i = 0; i < _nt->end; ++i) {
             vec_v[i] += vec_rhs[i];
         }
     }
@@ -200,7 +198,6 @@ void update(NrnThread* _nt) {
 }
 
 void nonvint(NrnThread* _nt) {
-    NrnThreadMembList* tml;
     if (nrn_have_gaps) {
         Instrumentor::phase p("gap-v-transfer");
         nrnthread_v_transfer(_nt);
@@ -208,7 +205,7 @@ void nonvint(NrnThread* _nt) {
     errno = 0;
 
     Instrumentor::phase_begin("state-update");
-    for (tml = _nt->tml; tml; tml = tml->next)
+    for (auto tml = _nt->tml; tml; tml = tml->next)
         if (corenrn.get_memb_func(tml->index).state) {
             mod_f_t s = corenrn.get_memb_func(tml->index).state;
             std::string ss("state-");
@@ -227,8 +224,7 @@ void nonvint(NrnThread* _nt) {
 }
 
 void nrn_ba(NrnThread* nt, int bat) {
-    NrnThreadBAList* tbl;
-    for (tbl = nt->tbl[bat]; tbl; tbl = tbl->next) {
+    for (auto tbl = nt->tbl[bat]; tbl; tbl = tbl->next) {
         mod_f_t f = tbl->bam->f;
         int type = tbl->bam->type;
         Memb_list* ml = tbl->ml;
@@ -325,7 +321,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         nrn_fixed_step_lastpart(nth);
     }
     Instrumentor::phase_end("timestep");
-    return (void*)0;
+    return nullptr;
 }
 
 void* nrn_fixed_step_lastpart(NrnThread* nth) {

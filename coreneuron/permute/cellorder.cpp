@@ -349,10 +349,8 @@ static int** cell_indices_debug(NrnThread& nt, InterleaveInfo& ii) {
     for (int i = 0; i < ncell; ++i) {
         nrn_assert(parents[i] == -1);
     }
-    int* sz;
-    int* cell;
-    sz = new int[ncell];
-    cell = new int[nnode];
+    int* sz = new int[ncell];
+    int* cell = new int[nnode];
     for (int i = 0; i < ncell; ++i) {
         sz[i] = 0;
         cell[i] = i;
@@ -441,14 +439,12 @@ static void triang_interleaved(NrnThread* nt,
 }
 
 // back substitution?
-static void bksub_interleaved(NrnThread* nt,
+static void bksub_interleaved(NrnThread* /* nt */,
                               int icell,
                               int icellsize,
-                              int nstride,
+                              int /* nstride */,
                               int* stride,
                               int* firstnode) {
-    if (nstride) {
-    }  // otherwise unused
     int i = firstnode[icell];
     GPU_RHS(icell) /= GPU_D(icell);  // the root
     for (int istride = 0; istride < icellsize; ++istride) {
@@ -463,7 +459,7 @@ static void bksub_interleaved(NrnThread* nt,
 }
 
 // icore ranges [0:warpsize) ; stride[ncycle]
-static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* stride, int lastnode) {
+static void triang_interleaved2(NrnThread* /* nt */, int icore, int ncycle, int* stride, int lastnode) {
     int icycle = ncycle - 1;
     int istride = stride[icycle];
     int i = lastnode - istride + icore;
@@ -504,7 +500,7 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
 }
 
 // icore ranges [0:warpsize) ; stride[ncycle]
-static void bksub_interleaved2(NrnThread* nt,
+static void bksub_interleaved2(NrnThread* /* nt */,
                                int root,
                                int lastroot,
                                int icore,
