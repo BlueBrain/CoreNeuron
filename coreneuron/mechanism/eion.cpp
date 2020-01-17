@@ -99,9 +99,7 @@ double nrn_ion_charge(int type) {
 }
 
 void ion_reg(const char* name, double valence) {
-    int i, mechtype;
     char buf[7][50];
-    double val;
 #define VAL_SENTINAL -10000.
 
     sprintf(buf[0], "%s_ion", name);
@@ -110,11 +108,11 @@ void ion_reg(const char* name, double valence) {
     sprintf(buf[3], "%so", name);
     sprintf(buf[5], "i%s", name);
     sprintf(buf[6], "di%s_dv_", name);
-    for (i = 0; i < 7; i++) {
+    for (int i = 0; i < 7; i++) {
         mechanism[i + 1] = buf[i];
     }
-    mechanism[5] = (char*)0; /* buf[4] not used above */
-    mechtype = nrn_get_mechtype(buf[0]);
+    mechanism[5] = nullptr; /* buf[4] not used above */
+    int mechtype = nrn_get_mechtype(buf[0]);
     if (mechtype >= nrn_ion_global_map_size ||
         nrn_ion_global_map[mechtype] == nullptr) {  // if hasn't yet been allocated
 
@@ -123,7 +121,7 @@ void ion_reg(const char* name, double valence) {
             int size = mechtype + 1;
             nrn_ion_global_map = (double**)erealloc(nrn_ion_global_map, sizeof(double*) * size);
 
-            for (i = nrn_ion_global_map_size; i < mechtype; i++) {
+            for (int i = nrn_ion_global_map_size; i < mechtype; i++) {
                 nrn_ion_global_map[i] = nullptr;
             }
             nrn_ion_global_map_size = mechtype + 1;
@@ -161,7 +159,7 @@ void ion_reg(const char* name, double valence) {
             global_charge(mechtype) = VAL_SENTINAL;
         }
     }
-    val = global_charge(mechtype);
+    double val = global_charge(mechtype);
     if (valence != VAL_SENTINAL && val != VAL_SENTINAL && valence != val) {
         fprintf(stderr,
                 "%s ion valence defined differently in\n\
@@ -234,10 +232,9 @@ static double efun(double x) {
 }
 
 double nrn_ghk(double v, double ci, double co, double z) {
-    double eco, eci, temp;
-    temp = z * v / ktf;
-    eco = co * efun(temp);
-    eci = ci * efun(-temp);
+    double temp = z * v / ktf;
+    double eco = co * efun(temp);
+    double eci = ci * efun(-temp);
     return (.001) * z * FARADAY * (eci - eco);
 }
 
@@ -280,13 +277,12 @@ ion_style("name_ion", [c_style, e_style, einit, eadvance, cinit])
 
 double nrn_nernst_coef(int type) {
     /* for computing jacobian element dconc'/dconc */
-    return ktf / charge;
+    return ktf / global_charge(type);
 }
 
 /* Must be called prior to any channels which update the currents */
 void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
     int _cntml_actual = ml->nodecount;
-    int _iml;
     double* pd;
     Datum* ppd;
     (void)nt; /* unused */
@@ -295,7 +291,7 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
 #endif
 /*printf("ion_cur %s\n", memb_func[type].sym->name);*/
 #if LAYOUT == 1 /*AoS*/
-    for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+    for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
         pd = ml->data + _iml * nparm;
         ppd = ml->pdata + _iml * 1;
 #elif LAYOUT == 0         /*SoA*/
@@ -303,7 +299,7 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
     pd = ml->data;
     ppd = ml->pdata;
     _PRAGMA_FOR_CUR_ACC_LOOP_
-    for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+    for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
 #else /* if LAYOUT > 1 */ /*AoSoA*/
 #error AoSoA not implemented.
 #endif
@@ -320,7 +316,6 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
 */
 void nrn_init_ion(NrnThread* nt, Memb_list* ml, int type) {
     int _cntml_actual = ml->nodecount;
-    int _iml;
     double* pd;
     Datum* ppd;
     (void)nt; /* unused */
@@ -332,7 +327,7 @@ void nrn_init_ion(NrnThread* nt, Memb_list* ml, int type) {
 
 /*printf("ion_init %s\n", memb_func[type].sym->name);*/
 #if LAYOUT == 1 /*AoS*/
-    for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+    for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
         pd = ml->data + _iml * nparm;
         ppd = ml->pdata + _iml * 1;
 #elif LAYOUT == 0         /*SoA*/
@@ -340,7 +335,7 @@ void nrn_init_ion(NrnThread* nt, Memb_list* ml, int type) {
     pd = ml->data;
     ppd = ml->pdata;
     _PRAGMA_FOR_INIT_ACC_LOOP_
-    for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+    for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
 #else /* if LAYOUT > 1 */ /*AoSoA*/
 #error AoSoA not implemented.
 #endif
@@ -359,13 +354,10 @@ void nrn_alloc_ion(double* p, Datum* ppvar, int _type) {
 }
 
 void second_order_cur(NrnThread* _nt, int secondorder) {
-    NrnThreadMembList* tml;
-    Memb_list* ml;
-    int _iml, _cntml_actual;
+    int _cntml_actual;
 #if LAYOUT == 0
     int _cntml_padded;
 #endif
-    int* ni;
     double* pd;
     (void)_nt; /* unused */
 #if defined(_OPENACC)
@@ -374,19 +366,19 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
     double* _vec_rhs = _nt->_actual_rhs;
 
     if (secondorder == 2) {
-        for (tml = _nt->tml; tml; tml = tml->next)
+        for (auto tml = _nt->tml; tml; tml = tml->next)
             if (nrn_is_ion(tml->index)) {
-                ml = tml->ml;
+                auto ml = tml->ml;
                 _cntml_actual = ml->nodecount;
-                ni = ml->nodeindices;
+                int* ni = ml->nodeindices;
 #if LAYOUT == 1 /*AoS*/
-                for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+                for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
                     pd = ml->data + _iml * nparm;
 #elif LAYOUT == 0         /*SoA*/
                 _cntml_padded = ml->_nodecount_padded;
                 pd = ml->data;
                 _PRAGMA_FOR_SEC_ORDER_CUR_ACC_LOOP_
-                for (_iml = 0; _iml < _cntml_actual; ++_iml) {
+                for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
 #else /* if LAYOUT > 1 */ /*AoSoA*/
 #error AoSoA not implemented.
 #endif
