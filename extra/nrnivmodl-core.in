@@ -67,12 +67,13 @@ if [ $# -eq 1 ]; then
     # Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
     params_MODS_PATH=$1
 fi
-
-# Fail if no mod files provided
-ls $params_MODS_PATH/*.mod || {
-    echo "FATAL: No mods found!"
+if [ -d $params_MODS_PATH ]; then
+    # warn if no mod files provided
+    ls $params_MODS_PATH/*.mod || echo "WARNING: No mods found!"
+else
+    echo "FATAL: Invalid mods directory: '$params_MODS_PATH'"
     exit 1
-}
+fi
 
 # Output options & populate make_params
 mkdir -p "$(dirname "$SAVE_FILE")"
