@@ -53,13 +53,6 @@ int rev_dt;
 typedef void (*Pfrv)();
 
 
-
-
-
-
-static void ion_write_depend(int type, int etype);
-
-
 void hoc_reg_bbcore_read(int type, bbcore_read_t f) {
     if (type == -1) {
         return;
@@ -153,7 +146,6 @@ int register_mech(const char** m,
                   mod_f_t initialize,
                   int nrnpointerindex,
                   int vectorized) {
-    auto& memb_func = corenrn.get_memb_funcs();
     int type;              /* 0 unused, 1 for cable section */
     (void)nrnpointerindex; /*unused*/
 
@@ -167,28 +159,9 @@ int register_mech(const char** m,
 #ifdef DEBUG
     printf("register_mech %s %d\n", m[1], type);
 #endif
-    if (memb_func[type].sym) {
-        assert(strcmp(memb_func[type].sym, m[1]) == 0);
-    } else {
-        memb_func[type].sym = (char*)emalloc(strlen(m[1]) + 1);
-        strcpy(memb_func[type].sym, m[1]);
-    }
-    memb_func[type].current = cur;
-    memb_func[type].jacob = jacob;
-    memb_func[type].alloc = alloc;
-    memb_func[type].state = stat;
-    memb_func[type].initialize = initialize;
-    memb_func[type].destructor = (Pfri)0;
-#if VECTORIZE
-    memb_func[type].vectorized = vectorized ? 1 : 0;
-    memb_func[type].thread_size_ = vectorized ? (vectorized - 1) : 0;
-    memb_func[type].thread_mem_init_ = nullptr;
-    memb_func[type].thread_cleanup_ = nullptr;
-    memb_func[type].thread_table_check_ = nullptr;
-    memb_func[type].is_point = 0;
-    memb_func[type].setdata_ = nullptr;
-    memb_func[type].dparam_semantics = (int*)0;
-#endif
+
+    corenrn.get_memb_func(type).register_mech(m[1], alloc, cur, jacob, stat, initialize, vectorized);
+
     register_all_variables_offsets(type, &m[2]);
     return type;
 }
@@ -248,60 +221,7 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
        -4, -5, -6, -7, -8, -9,
        type, and type+1000 respectively
     */
-    auto& memb_func = corenrn.get_memb_funcs();
-    if (strcmp(name, "area") == 0) {
-        memb_func[type].dparam_semantics[ix] = -1;
-    } else if (strcmp(name, "iontype") == 0) {
-        memb_func[type].dparam_semantics[ix] = -2;
-    } else if (strcmp(name, "cvodeieq") == 0) {
-        memb_func[type].dparam_semantics[ix] = -3;
-    } else if (strcmp(name, "netsend") == 0) {
-        memb_func[type].dparam_semantics[ix] = -4;
-    } else if (strcmp(name, "pointer") == 0) {
-        memb_func[type].dparam_semantics[ix] = -5;
-    } else if (strcmp(name, "pntproc") == 0) {
-        memb_func[type].dparam_semantics[ix] = -6;
-    } else if (strcmp(name, "bbcorepointer") == 0) {
-        memb_func[type].dparam_semantics[ix] = -7;
-    } else if (strcmp(name, "watch") == 0) {
-        memb_func[type].dparam_semantics[ix] = -8;
-    } else if (strcmp(name, "diam") == 0) {
-        memb_func[type].dparam_semantics[ix] = -9;
-    } else {
-        int etype;
-        int i = 0;
-        if (name[0] == '#') {
-            i = 1;
-        }
-        etype = nrn_get_mechtype(name + i);
-        memb_func[type].dparam_semantics[ix] = etype + i * 1000;
-        /* note that if style is needed (i==1), then we are writing a concentration */
-        if (i) {
-            ion_write_depend(type, etype);
-        }
-    }
-#if 0
-	printf("dparam semantics %s ix=%d %s %d\n", memb_func[type].sym,
-	  ix, name, memb_func[type].dparam_semantics[ix]);
-#endif
-}
-
-/* only ion type ion_write_depend_ are non-nullptr */
-/* and those are array of integers with first integer being array size */
-/* and remaining size-1 integers containing the mechanism types that write concentrations to that
- * ion */
-static void ion_write_depend(int type, int etype) {
-    auto& memb_func = corenrn.get_memb_funcs();
-    auto& ion_write_depend_ = corenrn.get_ion_write_dependency();
-    if (ion_write_depend_.size() < memb_func.size()) {
-        ion_write_depend_.resize(memb_func.size());
-    }
-
-    int size = !ion_write_depend_[etype].empty() ? ion_write_depend_[etype][0] + 1: 2;
-
-    ion_write_depend_[etype].resize(size, 0);
-    ion_write_depend_[etype][0] = size;
-    ion_write_depend_[etype][size - 1] = type;
+    corenrn.get_memb_func(type).setSemantics(name, ix);
 }
 
 static int depend_append(int idep, int* dependencies, int deptype, int type) {

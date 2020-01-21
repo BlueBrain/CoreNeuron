@@ -198,7 +198,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
             }
 
-            int ts = corenrn.get_memb_funcs()[type].thread_size_;
+            int ts = corenrn.get_memb_func(type).thread_size_;
             if (ts) {
                 ThreadDatum* td =
                     (ThreadDatum*)acc_copyin(tml->ml->_thread, ts * sizeof(ThreadDatum));
