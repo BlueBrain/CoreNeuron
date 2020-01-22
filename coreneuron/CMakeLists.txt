@@ -92,8 +92,8 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/pattern.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp
-          io/nrn_setup.cpp
-          io/global_vars.cpp)
+      ${CMAKE_CURRENT_SOURCE_DIR}/io/nrn_setup.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
 
   set_source_files_properties(${DIMPLIC_CODE_FILE}
                               ${NMODL_INBUILT_MOD_OUTPUTS}
@@ -151,7 +151,7 @@ add_library(coreneuron
             ${CORENEURON_TEMPLATE_FILES}
             ${CORENEURON_CODE_FILES}
             ${cudacorenrn_objs}
-            ${NMODL_INBUILT_MOD_OUTPUTS} network/netpar.hpp)
+            ${NMODL_INBUILT_MOD_OUTPUTS})
 
 # need to have _kinderiv.h for mod2c generated files
 add_dependencies(coreneuron kin_deriv_header)
@@ -241,8 +241,7 @@ configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/
 file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
 
 # main program required for building special-core
-configure_file(apps/coreneuron.cpp ${CMAKE_BINARY_DIR}/share/coreneuron/coreneuron.cpp COPYONLY)
-
+file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
 
 # =============================================================================

@@ -5,9 +5,9 @@
 namespace coreneuron {
 struct Memb_list;
 
-    extern int nrn_have_gaps;
-    extern void nrnmpi_v_transfer();
-    extern void nrnthread_v_transfer(NrnThread*);
+extern int nrn_have_gaps;
+extern void nrnmpi_v_transfer();
+extern void nrnthread_v_transfer(NrnThread*);
 
 namespace nrn_partrans {
 
