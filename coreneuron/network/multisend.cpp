@@ -1,8 +1,8 @@
 #include "coreneuron/nrniv/nrniv_decl.h"
-#include "multisend.hpp"
+#include "coreneuron/network/multisend.hpp"
 #include "coreneuron/sim/multicore.hpp"
-#include "netcon.hpp"
-#include "netcvode.hpp"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/network/netcvode.hpp"
 
 /*
 Overall exchange strategy

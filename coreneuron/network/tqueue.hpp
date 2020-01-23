@@ -214,5 +214,5 @@ class TQueue {
 #endif
 };
 }  // namespace coreneuron
-#include "tqueue.ipp"
+#include "coreneuron/network/tqueue.ipp"
 #endif

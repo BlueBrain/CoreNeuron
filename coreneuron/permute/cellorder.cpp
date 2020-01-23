@@ -4,7 +4,7 @@
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "cellorder.hpp"
+#include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/network/tnode.hpp"
 #include "coreneuron/utils/lpt.hpp"
 #include "coreneuron/utils/memory.h"

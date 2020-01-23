@@ -20,19 +20,17 @@ file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
 file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
 file(GLOB CORENEURON_CODE_FILES
                   "apps/main1.cpp"
-                  "gpu/*.c*"
-                  "io/*.c*"
-                  "mechanism/*.c*"
-                  "mpi/*.c*"
-                  "network/*.c*"
-                  "nrniv/*.c*"
-                  "nrnoc/*.c*"
-                  "permute/*.c*"
-                  "sim/*.c*")
+                  "gpu/*.cpp"
+                  "io/*.cpp"
+                  "mechanism/*.cpp"
+                  "mpi/*.cpp"
+                  "network/*.cpp"
+                  "permute/*.cpp"
+                  "sim/*.cpp")
 file(GLOB_RECURSE CORENEURON_UTILS_FILES "utils/*.c*")
 list(APPEND CORENEURON_CODE_FILES ${CORENEURON_UTILS_FILES})
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
-file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.c*")
+file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.cpp")
 
 set(DIMPLIC_CODE_FILE "mechanism/mech/dimplic.cpp")
 set(ENGINEMECH_CODE_FILE "mechanism/mech/enginemech.cpp")

@@ -29,7 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/network/netpar.hpp"
 #include "coreneuron/network/netcvode.hpp"
-#include "fast_imem.hpp"
+#include "coreneuron/sim/fast_imem.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/coreneuron.hpp"
