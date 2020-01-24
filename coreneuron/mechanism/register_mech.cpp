@@ -138,22 +138,19 @@ void initnrn() {
 }
 
 /* if vectorized then thread_data_size added to it */
-int register_mech(const char** m,
+void register_mech(const char** m,
                   mod_alloc_t alloc,
                   mod_f_t cur,
                   mod_f_t jacob,
                   mod_f_t stat,
                   mod_f_t initialize,
-                  int nrnpointerindex,
                   int vectorized) {
-    int type;              /* 0 unused, 1 for cable section */
-    (void)nrnpointerindex; /*unused*/
 
-    type = nrn_get_mechtype(m[1]);
+    int type = nrn_get_mechtype(m[1]); /* 0 unused, 1 for cable section */
 
     // No mechanism in the .dat files
     if (type == -1)
-        return type;
+        return;
 
     assert(type);
 #ifdef DEBUG
@@ -163,7 +160,7 @@ int register_mech(const char** m,
     corenrn.get_memb_func(type).register_mech(m[1], alloc, cur, jacob, stat, initialize, vectorized);
 
     register_all_variables_offsets(type, &m[2]);
-    return type;
+    return;
 }
 
 void nrn_writes_conc(int type, int unused) {
@@ -278,7 +275,7 @@ void register_destructor(Pfri d) {
     corenrn.get_memb_funcs().back().destructor = d;
 }
 
-int point_reg_helper(Symbol* s2) {
+int point_reg_helper(const Symbol* s2) {
     static int next_pointtype = 1; /* starts at 1 since 0 means not point in pnt_map */
     int type;
     type = nrn_get_mechtype(s2);
@@ -299,16 +296,9 @@ int point_register_mech(const char** m,
                         mod_f_t jacob,
                         mod_f_t stat,
                         mod_f_t initialize,
-                        int nrnpointerindex,
-                        void* (*constructor)(),
-                        void (*destructor)(),
                         int vectorized) {
-    Symbol* s;
-    (void)constructor;
-    (void)destructor; /* unused */
-    s = (char*)m[1];
-    register_mech(m, alloc, cur, jacob, stat, initialize, nrnpointerindex, vectorized);
-    return point_reg_helper(s);
+    register_mech(m, alloc, cur, jacob, stat, initialize, vectorized);
+    return point_reg_helper(m[1]);
 }
 
 void _modl_cleanup() {
