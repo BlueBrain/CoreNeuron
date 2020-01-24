@@ -15,9 +15,8 @@ pushd ${CORENRN_TYPE}
 
 set +x
 if [ "${TEST_DIR}" = "ringtest" ]; then
-    mkdir -p dummy
-    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core dummy"
-    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core dummy
+    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ."
+    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core .
 else
     echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod"
     $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod
