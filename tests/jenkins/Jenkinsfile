@@ -18,7 +18,7 @@ pipeline {
             }
         }
 
-        stage('spack install neuron@develop'){
+        stage('spack install neuron+debug@develop'){
             steps {
                 sh 'sh tests/jenkins/install_neuron.sh'
             }
