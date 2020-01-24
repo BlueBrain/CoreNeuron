@@ -32,5 +32,5 @@ unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 
 patch_neuron
 
-spack install neuron@develop
+spack install neuron+debug@develop
 module av neuron
