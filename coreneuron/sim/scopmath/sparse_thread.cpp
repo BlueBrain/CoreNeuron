@@ -96,7 +96,6 @@ namespace coreneuron {
 static int matsol(SparseObj* so, int _iml);
 static void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml);
 static void bksub(SparseObj* so, int _iml);
-static void prmat(SparseObj* so);
 static void initeqn(SparseObj* so, unsigned maxeqn);
 static void free_elm(SparseObj* so);
 static Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem);
@@ -224,11 +223,10 @@ int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_)
 }
 
 static int matsol(SparseObj* so, int _iml) {
-    Elm *pivot;
-
     /* Upper triangularization */
     so->numop = 0;
     for (unsigned i = 1; i <= so->neqn; i++) {
+        Elm *pivot;
         if (fabs((pivot = so->diag[i])->value[_iml]) <= ROUNDOFF) {
             return SINGULAR;
         }
@@ -265,26 +263,6 @@ static void bksub(SparseObj* so, int _iml) {
         so->rhs[ix(so->diag[i]->row)] /= so->diag[i]->value[_iml];
         so->numop++;
     }
-}
-
-static void prmat(SparseObj* so) {
-    IGNORE(printf("\n        "));
-    for (unsigned i = 10; i <= so->neqn; i += 10)
-        IGNORE(printf("         %1d", (i % 100) / 10));
-    IGNORE(printf("\n        "));
-    for (unsigned i = 1; i <= so->neqn; i++)
-        IGNORE(printf("%1d", i % 10));
-    IGNORE(printf("\n\n"));
-    for (unsigned i = 1; i <= so->neqn; i++) {
-        IGNORE(printf("%3d %3d ", so->diag[i]->row, i));
-        for (Elm* el = so->rowst[i]; el; el = el->c_right) {
-            for (unsigned j = 1; j < so->varord[el->col]; j++)
-                IGNORE(printf(" "));
-            IGNORE(printf("*"));
-        }
-        IGNORE(printf("\n"));
-    }
-    IGNORE(fflush(stdin));
 }
 
 static void initeqn(SparseObj* so, unsigned maxeqn) /* reallocate space for matrix */
@@ -484,8 +462,6 @@ static void init_minorder(SparseObj* so) {
     /* matrix has been set up. Construct the orderlist and orderfind
        vector.
     */
-    unsigned j;
-    Elm* el;
 
     so->do_flag = 1;
     if (so->roworder) {
@@ -503,7 +479,8 @@ static void init_minorder(SparseObj* so) {
         so->roworder[i] = newitem();
     }
     for (unsigned i = 1; i <= so->neqn; i++) {
-        for (j = 0, el = so->rowst[i]; el; el = el->c_right) {
+        unsigned j = 0;
+        for (auto el = so->rowst[i]; el; el = el->c_right) {
             j++;
         }
         so->roworder[so->diag[i]->row]->elm = so->diag[i];

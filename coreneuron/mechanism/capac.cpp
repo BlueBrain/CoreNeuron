@@ -105,7 +105,7 @@ void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     }
 }
 
-void nrn_init_capacitance(NrnThread* /* _nt */, Memb_list* ml, int /* type */) {
+void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
     double* vdata;

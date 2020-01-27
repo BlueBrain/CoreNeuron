@@ -156,7 +156,7 @@ VarsToReport get_compartment_vars_to_report(NrnThread& nt, std::set<int>& target
             }
             std::vector<VarWithMapping> to_report;
             to_report.reserve(m->size());
-            for (int j = 0; j < m->size(); j++) {
+            for (unsigned j = 0; j < m->size(); j++) {
                 SecMapping* s = m->secmapvec[j];
                 for (secseg_it_type iterator = s->secmap.begin(); iterator != s->secmap.end();
                      iterator++) {
@@ -249,7 +249,7 @@ void register_soma_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
-        for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
+        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
             /** 1st key is section-id and 1st value is segment of soma */
             mapping[0] = vars[var_idx].id;
             records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
@@ -286,7 +286,7 @@ void register_compartment_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
-        for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
+        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
             records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
                                          sizemapping, mapping);
@@ -301,7 +301,6 @@ void register_custom_report(NrnThread& nt,
     int extramapping = 5;
     int mapping[] = {0};
     int extra[] = {1, 0, 0, 0, 1};
-    int segment_count = 0;
     int section_count = 0;
 
     VarsToReport::iterator it;
@@ -324,7 +323,7 @@ void register_custom_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping((char*)config.output_path, gid, 5, extra);
-        for (int var_idx = 0; var_idx < vars.size(); ++var_idx) {
+        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
             mapping[0] = vars[var_idx].id;
             records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
                                          sizemapping, mapping);
@@ -449,8 +448,8 @@ void register_report(double dt, double tstop, double delay, ReportConfiguration&
 void finalize_report() {
 #ifdef ENABLE_REPORTING
     records_flush(nrn_threads[0]._t);
-    for (int i = 0; i < reports.size(); i++) {
-        delete reports[i];
+    for (auto report: reports) {
+        delete report;
     }
     reports.clear();
 #endif

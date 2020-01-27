@@ -805,10 +805,6 @@ void finalize_data_on_device() {
     called yet for Ramdom123 data / streams etc. So handle this better!
     */
     return;
-
-#ifdef _OPENACC
-    acc_shutdown(acc_device_default);
-#endif
 }
 
 void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
@@ -835,10 +831,10 @@ void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
     pd = (double*)acc_copyin(ns->rowmax, n * sizeof(double));
     acc_memcpy_to_device(&(d_ns->rowmax), &pd, sizeof(double*));
 
-    int* pint = (int*)acc_copyin(ns->perm, n * sizeof(int));
+    auto pint = (int*)acc_copyin(ns->perm, n * sizeof(int));
     acc_memcpy_to_device(&(d_ns->perm), &pint, sizeof(int*));
 
-    double** ppd = (double**)acc_copyin(ns->jacobian, ns->n * sizeof(double*));
+    auto ppd = (double**)acc_copyin(ns->jacobian, ns->n * sizeof(double*));
     acc_memcpy_to_device(&(d_ns->jacobian), &ppd, sizeof(double**));
 
     // the actual jacobian doubles were allocated as a single array
@@ -871,13 +867,13 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
     Elm** d_diag = (Elm**)acc_copyin(so->diag, n1 * sizeof(Elm*));
     acc_memcpy_to_device(&(d_so->diag), &d_diag, sizeof(Elm**));
 
-    unsigned* pu = (unsigned*)acc_copyin(so->ngetcall, so->_cntml_padded * sizeof(unsigned));
+    auto pu = (unsigned*)acc_copyin(so->ngetcall, so->_cntml_padded * sizeof(unsigned));
     acc_memcpy_to_device(&(d_so->ngetcall), &pu, sizeof(Elm**));
 
-    double* pd = (double*)acc_copyin(so->rhs, n1 * so->_cntml_padded * sizeof(double));
+    auto pd = (double*)acc_copyin(so->rhs, n1 * so->_cntml_padded * sizeof(double));
     acc_memcpy_to_device(&(d_so->rhs), &pd, sizeof(double*));
 
-    double** d_coef_list =
+    auto d_coef_list =
         (double**)acc_copyin(so->coef_list, so->coef_list_size * sizeof(double*));
     acc_memcpy_to_device(&(d_so->coef_list), &d_coef_list, sizeof(double**));
 
@@ -913,13 +909,13 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
     // visit all the Elm again and fill in pelm->r_down and pelm->c_left
     for (unsigned irow = 1; irow < n1; ++irow) {
         for (Elm* elm = so->rowst[irow]; elm; elm = elm->c_right) {
-            Elm* pelm = (Elm*)acc_deviceptr(elm);
+            auto pelm = (Elm*)acc_deviceptr(elm);
             if (elm->r_down) {
-                Elm* d_e = (Elm*)acc_deviceptr(elm->r_down);
+                auto d_e = (Elm*)acc_deviceptr(elm->r_down);
                 acc_memcpy_to_device(&(pelm->r_down), &d_e, sizeof(Elm*));
             }
             if (elm->c_right) {
-                Elm* d_e = (Elm*)acc_deviceptr(elm->c_right);
+                auto d_e = (Elm*)acc_deviceptr(elm->c_right);
                 acc_memcpy_to_device(&(pelm->c_right), &d_e, sizeof(Elm*));
             }
         }

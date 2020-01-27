@@ -39,6 +39,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #if NRNMPI
 #include <mpi.h>
 
+#include <cstring>
+
 namespace coreneuron {
 static int np;
 static int* displs;
@@ -404,9 +406,8 @@ int nrnmpi_pgvts_least(double* tt, int* op, int* init) {
     ibuf[1] = (double)(*op);
     ibuf[2] = (double)(*init);
     ibuf[3] = (double)nrnmpi_myid;
-    for (int i = 0; i < 4; ++i) {
-        obuf[i] = ibuf[i];
-    }
+    std::memcpy(obuf, ibuf, 4 * sizeof(double));
+
     MPI_Allreduce(ibuf, obuf, 4, MPI_DOUBLE, mpi_pgvts_op, nrnmpi_comm);
     assert(obuf[0] <= *tt);
     if (obuf[0] == *tt) {
@@ -490,9 +491,7 @@ void nrnmpi_dbl_allreduce_vec(double* src, double* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
     if (nrnmpi_numprocs < 2) {
-        for (int i = 0; i < cnt; ++i) {
-            dest[i] = src[i];
-        }
+        std::memcpy(dest, src, cnt * sizeof(double));
         return;
     }
     if (type == 1) {
@@ -510,9 +509,7 @@ void nrnmpi_long_allreduce_vec(long* src, long* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
     if (nrnmpi_numprocs < 2) {
-        for (int i = 0; i < cnt; ++i) {
-            dest[i] = src[i];
-        }
+        std::memcpy(dest, src, cnt * sizeof(long));
         return;
     }
     if (type == 1) {
