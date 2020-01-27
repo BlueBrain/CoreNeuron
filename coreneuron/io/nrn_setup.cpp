@@ -513,9 +513,9 @@ void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
     /// for gid < 0 returns the PreSyn* in the thread (tid) specific map.
     *ps = nullptr;
     *psi = nullptr;
-    std::map<int, PreSyn*>::iterator gid2out_it;
+
     if (gid >= 0) {
-        gid2out_it = gid2out.find(gid);
+        auto gid2out_it = gid2out.find(gid);
         if (gid2out_it != gid2out.end()) {
             *ps = gid2out_it->second;
         } else {
@@ -526,7 +526,7 @@ void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
             }
         }
     } else {
-        gid2out_it = neg_gid2out[tid].find(gid);
+        auto gid2out_it = neg_gid2out[tid].find(gid);
         if (gid2out_it != neg_gid2out[tid].end()) {
             *ps = gid2out_it->second;
         }
@@ -544,8 +544,6 @@ void determine_inputpresyn() {
     // it to search for PreSyn in this thread.
 
     std::vector<InputPreSyn*> inputpresyn_;
-    std::map<int, PreSyn*>::iterator gid2out_it;
-    std::map<int, InputPreSyn*>::iterator gid2in_it;
 
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
@@ -555,13 +553,13 @@ void determine_inputpresyn() {
             int gid = netcon_srcgid[ith][i];
             if (gid >= 0) {
                 /// If PreSyn or InputPreSyn is already in the map
-                gid2out_it = gid2out.find(gid);
+                auto gid2out_it = gid2out.find(gid);
                 if (gid2out_it != gid2out.end()) {
                     /// Increase PreSyn count
                     ++gid2out_it->second->nc_cnt_;
                     continue;
                 }
-                gid2in_it = gid2in.find(gid);
+                auto gid2in_it = gid2in.find(gid);
                 if (gid2in_it != gid2in.end()) {
                     /// Increase InputPreSyn count
                     ++gid2in_it->second->nc_cnt_;
@@ -575,7 +573,7 @@ void determine_inputpresyn() {
                 inputpresyn_.push_back(psi);
                 ++nt.n_input_presyn;
             } else {
-                gid2out_it = neg_gid2out[nt.id].find(gid);
+                auto gid2out_it = neg_gid2out[nt.id].find(gid);
                 if (gid2out_it != neg_gid2out[nt.id].end()) {
                     /// Increase negative PreSyn count
                     ++gid2out_it->second->nc_cnt_;
@@ -619,8 +617,7 @@ void determine_inputpresyn() {
         }
     }
     // for InputPreSyn
-    for (size_t i = 0; i < inputpresyn_.size(); ++i) {
-        InputPreSyn* psi = inputpresyn_[i];
+    for (auto psi: inputpresyn_) {
         psi->nc_index_ = offset;
         offset += psi->nc_cnt_;
         psi->nc_cnt_ = 0;
@@ -901,10 +898,7 @@ int nrn_param_layout(int i, int mtype, Memb_list* ml) {
     }
     assert(layout == 0);
     int sz = corenrn.get_prop_param_size()[mtype];
-    int cnt = ml->nodecount;
-    int i_cnt = i / sz;
-    int i_sz = i % sz;
-    return nrn_i_layout(i_cnt, cnt, i_sz, sz, layout);
+    return nrn_i_layout(i / sz, ml->nodecount, i % sz, sz, layout);
 }
 
 int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {

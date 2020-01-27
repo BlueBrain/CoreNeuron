@@ -101,8 +101,7 @@ void mk_mech(const char* datpath) {
     fs.close();
 
     fname = sdprintf(fnamebuf, sizeof(fnamebuf), "%s/%s", datpath, "byteswap1.dat");
-    FILE* f;
-    f = fopen(fname, "r");
+    FILE* f = fopen(fname, "r");
     if (!f) {
         fprintf(stderr, "Error: couldn't find byteswap1.dat file in the dataset directory \n");
     }
@@ -195,8 +194,7 @@ static void mk_mech(std::istream& s) {
 /// Get mechanism type by the mechanism name
 int nrn_get_mechtype(const char* name) {
     std::string str(name);
-    std::map<std::string, int>::const_iterator mapit;
-    mapit = mech2type.find(str);
+    std::map<std::string, int>::const_iterator mapit = mech2type.find(str);
     if (mapit == mech2type.end())
         return -1;  // Could not find the mechanism
     return mapit->second;

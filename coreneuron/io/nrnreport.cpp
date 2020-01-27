@@ -63,7 +63,7 @@ struct VarWithMapping {
 };
 
 // mapping the set of variables pointers to report to its gid
-typedef std::map<int, std::vector<VarWithMapping> > VarsToReport;
+using VarsToReport = std::map<int, std::vector<VarWithMapping>>;
 
 class ReportEvent : public DiscreteEvent {
   private:
@@ -227,11 +227,10 @@ void register_soma_report(NrnThread& nt,
     int mapping[] = {0};
     // first row, from 2nd value (skip gid)
     int extra[] = {1, 0, 0, 0, 0};
-    VarsToReport::iterator it;
 
-    for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
-        int gid = it->first;
-        std::vector<VarWithMapping>& vars = it->second;
+    for (auto& vars_report: vars_to_report) {
+        int gid = vars_report.first;
+        std::vector<VarWithMapping>& vars = vars_report.second;
         if (!vars.size())
             continue;
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
@@ -249,10 +248,10 @@ void register_soma_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
-        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
+        for (const auto& var: vars) {
             /** 1st key is section-id and 1st value is segment of soma */
-            mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+            mapping[0] = var.id;
+            records_add_var_with_mapping(config.output_path, gid, var.var_value,
                                          sizemapping, mapping);
         }
     }
@@ -266,10 +265,9 @@ void register_compartment_report(NrnThread& nt,
     int mapping[] = {0};
     int extra[] = {1, 0, 0, 0, 1};
 
-    VarsToReport::iterator it;
-    for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
-        int gid = it->first;
-        std::vector<VarWithMapping>& vars = it->second;
+    for (auto& vars_report: vars_to_report) {
+        int gid = vars_report.first;
+        std::vector<VarWithMapping>& vars = vars_report.second;
         if (!vars.size())
             continue;
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
@@ -286,9 +284,9 @@ void register_compartment_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping */
         records_extra_mapping(config.output_path, gid, 5, extra);
-        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
-            mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+        for (const auto& var: vars) {
+            mapping[0] = var.id;
+            records_add_var_with_mapping(config.output_path, gid, var.var_value,
                                          sizemapping, mapping);
         }
     }
@@ -303,10 +301,9 @@ void register_custom_report(NrnThread& nt,
     int extra[] = {1, 0, 0, 0, 1};
     int section_count = 0;
 
-    VarsToReport::iterator it;
-    for (it = vars_to_report.begin(); it != vars_to_report.end(); ++it) {
-        int gid = it->first;
-        std::vector<VarWithMapping>& vars = it->second;
+    for (auto& vars_report: vars_to_report) {
+        int gid = vars_report.first;
+        std::vector<VarWithMapping>& vars = vars_report.second;
         if (!vars.size())
             continue;
         NrnThreadMappingInfo* mapinfo = (NrnThreadMappingInfo*)nt.mapping;
@@ -323,9 +320,9 @@ void register_custom_report(NrnThread& nt,
         records_set_report_max_buffer_size_hint((char*)config.output_path, config.buffer_size);
         /** add extra mapping : @todo api changes in reportinglib*/
         records_extra_mapping((char*)config.output_path, gid, 5, extra);
-        for (unsigned var_idx = 0; var_idx < vars.size(); ++var_idx) {
-            mapping[0] = vars[var_idx].id;
-            records_add_var_with_mapping(config.output_path, gid, vars[var_idx].var_value,
+        for (const auto& var: vars) {
+            mapping[0] = var.id;
+            records_add_var_with_mapping(config.output_path, gid, var.var_value,
                                          sizemapping, mapping);
         }
     }
