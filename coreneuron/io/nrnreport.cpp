@@ -356,9 +356,6 @@ std::vector<int> map_gids(NrnThread& nt) {
 }
 #endif  // ENABLE_REPORTING
 
-// Size in MB of the report buffer
-static int size_report_buffer = 4;
-
 void nrn_flush_reports(double t) {
 #ifdef ENABLE_REPORTING
     // flush before buffer is full
@@ -385,9 +382,8 @@ void setup_report_engine(double dt_report, double mindelay) {
 
 // Size in MB of the report buffers
 void set_report_buffer_size(int n) {
-    size_report_buffer = n;
 #ifdef ENABLE_REPORTING
-    records_set_max_buffer_size_hint(size_report_buffer);
+    records_set_max_buffer_size_hint(n);
 #endif
 }
 

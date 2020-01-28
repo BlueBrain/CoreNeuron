@@ -121,7 +121,7 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt);
+    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         vdata[1 * _STRIDE] = 0;
@@ -175,7 +175,7 @@ void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt);
+    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         vdata[1 * _STRIDE] = VEC_RHS(ni[_iml]);
@@ -199,7 +199,7 @@ void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt);
+    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         VEC_RHS(ni[_iml]) *= cfac * vdata[0 * _STRIDE];
