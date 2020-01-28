@@ -124,8 +124,8 @@ void nrn_mk_table_check() {
     table_check_cnt_ = 0;
     for (int id = 0; id < nrn_nthread; ++id) {
         auto& nt = nrn_threads[id];
-        for (auto tml = nt.tml; tml; tml = tml->next) {
-            int index = tml->index;
+        for (const auto& tml: nt.tml) {
+            int index = tml.index;
             if (memb_func[index].thread_table_check_ && ix[index] == -1) {
                 ix[index] = id;
                 table_check_cnt_ += 2;
@@ -138,11 +138,11 @@ void nrn_mk_table_check() {
     int i = 0;
     for (int id = 0; id < nrn_nthread; ++id) {
         auto& nt = nrn_threads[id];
-        for (auto tml = nt.tml; tml; tml = tml->next) {
-            int index = tml->index;
+        for (auto& tml: nt.tml) {
+            int index = tml.index;
             if (memb_func[index].thread_table_check_ && ix[index] == id) {
                 table_check_[i++].i = id;
-                table_check_[i++]._pvoid = (void*)tml;
+                table_check_[i++]._pvoid = static_cast<void*>(&tml);
             }
         }
     }

@@ -257,8 +257,8 @@ static void pr_realcell(PreSyn& ps, NrnThread& nt, FILE* f) {
         }
 
     // each mechanism
-    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-        pr_memb(tml->index, tml->ml, cellnodes, nt, f);
+    for (const auto& tml: nt.tml) {
+        pr_memb(tml.index, tml.ml, cellnodes, nt, f);
     }
 
     // the NetCon info (uses pnt2index)

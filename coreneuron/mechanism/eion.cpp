@@ -366,9 +366,9 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
     double* _vec_rhs = _nt->_actual_rhs;
 
     if (secondorder == 2) {
-        for (auto tml = _nt->tml; tml; tml = tml->next)
-            if (nrn_is_ion(tml->index)) {
-                auto ml = tml->ml;
+        for (auto& tml: _nt->tml)
+            if (nrn_is_ion(tml.index)) {
+                auto ml = tml.ml;
                 _cntml_actual = ml->nodecount;
                 int* ni = ml->nodeindices;
 #if LAYOUT == 1 /*AoS*/

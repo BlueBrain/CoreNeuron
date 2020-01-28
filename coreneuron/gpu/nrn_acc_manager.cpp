@@ -140,10 +140,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         int first_tml = 1;
         size_t offset = 6 * ne;
 
-        for (auto tml = nt->tml; tml; tml = tml->next) {
+        for (auto& tml: nt->tml) {
             /*copy tml to device*/
             /*QUESTIONS: does tml will point to nullptr as in host ? : I assume so!*/
-            auto d_tml = (NrnThreadMembList*)acc_copyin(tml, sizeof(NrnThreadMembList));
+            auto d_tml = static_cast<NrnThreadMembList*>(acc_copyin(&tml, sizeof(tml)));
 
             /*first tml is pointed by nt */
             if (first_tml) {
@@ -158,14 +158,14 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             d_last_tml = d_tml;
 
             /* now for every tml, there is a ml. copy that and setup pointer */
-            auto d_ml = (Memb_list*)acc_copyin(tml->ml, sizeof(Memb_list));
+            auto d_ml = (Memb_list*)acc_copyin(tml.ml, sizeof(Memb_list));
             acc_memcpy_to_device(&(d_tml->ml), &d_ml, sizeof(Memb_list*));
 
             /* setup nt._ml_list */
-            acc_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml, sizeof(Memb_list*));
+            acc_memcpy_to_device(&(d_ml_list[tml.index]), &d_ml, sizeof(Memb_list*));
 
-            int type = tml->index;
-            int n = tml->ml->nodecount;
+            int type = tml.index;
+            int n = tml.ml->nodecount;
             int szp = corenrn.get_prop_param_size()[type];
             int szdp = corenrn.get_prop_dparam_size()[type];
             int is_art = corenrn.get_is_artificial()[type];
@@ -180,20 +180,20 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             offset += nrn_soa_padded_size(n, layout) * szp;
 
             if (!is_art) {
-                int* d_nodeindices = (int*)acc_copyin(tml->ml->nodeindices, sizeof(int) * n);
+                int* d_nodeindices = (int*)acc_copyin(tml.ml->nodeindices, sizeof(int) * n);
                 acc_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices, sizeof(int*));
             }
 
             if (szdp) {
                 int pcnt = nrn_soa_padded_size(n, layout) * szdp;
-                int* d_pdata = (int*)acc_copyin(tml->ml->pdata, sizeof(int) * pcnt);
+                int* d_pdata = (int*)acc_copyin(tml.ml->pdata, sizeof(int) * pcnt);
                 acc_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
             }
 
             int ts = corenrn.get_memb_funcs()[type].thread_size_;
             if (ts) {
                 ThreadDatum* td =
-                    (ThreadDatum*)acc_copyin(tml->ml->_thread, ts * sizeof(ThreadDatum));
+                    (ThreadDatum*)acc_copyin(tml.ml->_thread, ts * sizeof(ThreadDatum));
                 acc_memcpy_to_device(&(d_ml->_thread), &td, sizeof(ThreadDatum*));
             }
 
@@ -202,7 +202,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             double *d_nrb_t, *d_nrb_flag;
 
             // net_receive buffer associated with mechanism
-            nrb = tml->ml->_net_receive_buffer;
+            nrb = tml.ml->_net_receive_buffer;
 
             // if net receive buffer exist for mechanism
             if (nrb) {
@@ -231,7 +231,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             /* copy NetSendBuffer_t on to GPU */
             NetSendBuffer_t* nsb;
-            nsb = tml->ml->_net_send_buffer;
+            nsb = tml.ml->_net_send_buffer;
 
             if (nsb) {
                 NetSendBuffer_t* d_nsb;
@@ -511,9 +511,9 @@ static void net_receive_buffer_order(NetReceiveBuffer_t* nrb) {
  * functional version.
  */
 void update_net_receive_buffer(NrnThread* nt) {
-    for (auto tml = nt->tml; tml; tml = tml->next) {
+    for (auto& tml: nt->tml) {
         // net_receive buffer to copy
-        NetReceiveBuffer_t* nrb = tml->ml->_net_receive_buffer;
+        NetReceiveBuffer_t* nrb = tml.ml->_net_receive_buffer;
 
         // if net receive buffer exist for mechanism
         if (nrb && nrb->_cnt) {
@@ -585,13 +585,13 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
 
             /* -- copy NrnThreadMembList list ml to host -- */
-            for (auto tml = nt->tml; tml; tml = tml->next) {
-                Memb_list* ml = tml->ml;
+            for (auto& tml: nt->tml) {
+                Memb_list* ml = tml.ml;
 
-                acc_update_self(&tml->index, sizeof(int));
+                acc_update_self(&tml.index, sizeof(int));
                 acc_update_self(&ml->nodecount, sizeof(int));
 
-                int type = tml->index;
+                int type = tml.index;
                 int n = ml->nodecount;
                 int szp = corenrn.get_prop_param_size()[type];
                 int szdp = corenrn.get_prop_dparam_size()[type];
@@ -611,7 +611,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                     acc_update_self(ml->pdata, pcnt * sizeof(int));
                 }
 
-                auto nrb = tml->ml->_net_receive_buffer;
+                auto nrb = tml.ml->_net_receive_buffer;
 
                 if (nrb) {
                     acc_update_self(&nrb->_cnt, sizeof(int));
@@ -681,9 +681,9 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
 
             /* -- copy NrnThreadMembList list ml to host -- */
-            for (auto tml = nt->tml; tml; tml = tml->next) {
-                Memb_list* ml = tml->ml;
-                int type = tml->index;
+            for (auto& tml: nt->tml) {
+                Memb_list* ml = tml.ml;
+                int type = tml.index;
                 int n = ml->nodecount;
                 int szp = corenrn.get_prop_param_size()[type];
                 int szdp = corenrn.get_prop_dparam_size()[type];
@@ -702,7 +702,7 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                     acc_update_device(ml->pdata, pcnt * sizeof(int));
                 }
 
-                auto nrb = tml->ml->_net_receive_buffer;
+                auto nrb = tml.ml->_net_receive_buffer;
 
                 if (nrb) {
                     acc_update_device(&nrb->_cnt, sizeof(int));

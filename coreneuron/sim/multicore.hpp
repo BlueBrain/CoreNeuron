@@ -45,7 +45,6 @@ extern int use_solve_interleave;
 */
 
 struct NrnThreadMembList { /* patterned after CvMembList in cvodeobj.h */
-    NrnThreadMembList* next;
     Memb_list* ml;
     int index;
     int* dependencies; /* list of mechanism types that this mechanism depends on*/
@@ -86,7 +85,7 @@ struct NrnThread : public MemoryManaged {
     double _dt = -1e9;
     double cj = 0.0;
 
-    NrnThreadMembList* tml = nullptr;
+    std::vector<NrnThreadMembList> tml;
     Memb_list** _ml_list = nullptr;
     Point_process* pntprocs = nullptr;  // synapses and artificial cells with and without gid
     PreSyn* presyns = nullptr;          // all the output PreSyn with and without gid

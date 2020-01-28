@@ -156,9 +156,6 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth) {
 }
 
 void update(NrnThread* _nt) {
-    int i1 = 0;
-    int i2 = _nt->end;
-
     double* vec_v = &(VEC_V(0));
     double* vec_rhs = &(VEC_RHS(0));
 
@@ -166,7 +163,7 @@ void update(NrnThread* _nt) {
     if (secondorder) {
 // clang-format off
         #pragma acc parallel loop present(          \
-            vec_v[0:i2], vec_rhs[0:i2])             \
+            vec_v[0:_nt->end], vec_rhs[0:_nt->end])             \
             if (_nt->compute_gpu) async(_nt->stream_id)
         // clang-format on
         for (int i = 0; i < _nt->end; ++i) {
@@ -175,7 +172,7 @@ void update(NrnThread* _nt) {
     } else {
 // clang-format off
         #pragma acc parallel loop present(              \
-                vec_v[0:i2], vec_rhs[0:i2])             \
+                vec_v[0:_nt->end], vec_rhs[0:_nt->end])             \
                 if (_nt->compute_gpu) async(_nt->stream_id)
         // clang-format on
         for (int i = 0; i < _nt->end; ++i) {
@@ -185,9 +182,9 @@ void update(NrnThread* _nt) {
 
     // update_matrix_to_gpu(_nt);
 
-    if (_nt->tml) {
-        assert(_nt->tml->index == CAP);
-        nrn_cur_capacitance(_nt, _nt->tml->ml, _nt->tml->index);
+    if (!_nt->tml.empty()) {
+        assert(_nt->tml.front().index == CAP);
+        nrn_cur_capacitance(_nt, _nt->tml.front().ml, _nt->tml.front().index);
     }
     if (nrn_use_fast_imem) { 
         nrn_calc_fast_imem(_nt);
@@ -202,14 +199,14 @@ void nonvint(NrnThread* _nt) {
     errno = 0;
 
     Instrumentor::phase_begin("state-update");
-    for (auto tml = _nt->tml; tml; tml = tml->next)
-        if (corenrn.get_memb_func(tml->index).state) {
-            mod_f_t s = corenrn.get_memb_func(tml->index).state;
+    for (const auto& tml: _nt->tml)
+        if (corenrn.get_memb_func(tml.index).state) {
+            mod_f_t s = corenrn.get_memb_func(tml.index).state;
             std::string ss("state-");
-            ss += nrn_get_mechname(tml->index);
+            ss += nrn_get_mechname(tml.index);
             {
                 Instrumentor::phase p(ss.c_str());
-                (*s)(_nt, tml->ml, tml->index);
+                (*s)(_nt, tml.ml, tml.index);
             }
 #ifdef DEBUG
             if (errno) {

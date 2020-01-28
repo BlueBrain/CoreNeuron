@@ -70,13 +70,13 @@ static void nrn_rhs(NrnThread* _nt) {
 
     nrn_ba(_nt, BEFORE_BREAKPOINT);
     /* note that CAP has no current */
-    for (auto tml = _nt->tml; tml; tml = tml->next)
-        if (corenrn.get_memb_func(tml->index).current) {
-            mod_f_t s = corenrn.get_memb_func(tml->index).current;
+    for (const auto& tml: _nt->tml)
+        if (corenrn.get_memb_func(tml.index).current) {
+            mod_f_t s = corenrn.get_memb_func(tml.index).current;
             std::string ss("cur-");
-            ss += nrn_get_mechname(tml->index);
+            ss += nrn_get_mechname(tml.index);
             Instrumentor::phase p(ss.c_str());
-            (*s)(_nt, tml->ml, tml->index);
+            (*s)(_nt, tml.ml, tml.index);
 #ifdef DEBUG
             if (errno) {
                 hoc_warning("errno set during calculation of currents", (char*)0);
@@ -129,13 +129,13 @@ static void nrn_lhs(NrnThread* _nt) {
     int i3 = _nt->end;
 
     /* note that CAP has no jacob */
-    for (auto tml = _nt->tml; tml; tml = tml->next)
-        if (corenrn.get_memb_func(tml->index).jacob) {
-            mod_f_t s = corenrn.get_memb_func(tml->index).jacob;
+    for (const auto& tml: _nt->tml)
+        if (corenrn.get_memb_func(tml.index).jacob) {
+            mod_f_t s = corenrn.get_memb_func(tml.index).jacob;
             std::string ss("cur-");
-            ss += nrn_get_mechname(tml->index);
+            ss += nrn_get_mechname(tml.index);
             Instrumentor::phase p(ss.c_str());
-            (*s)(_nt, tml->ml, tml->index);
+            (*s)(_nt, tml.ml, tml.index);
 #ifdef DEBUG
             if (errno) {
                 hoc_warning("errno set during calculation of jacobian", (char*)0);
@@ -146,9 +146,9 @@ static void nrn_lhs(NrnThread* _nt) {
     has taken effect
     */
     /* note, the first is CAP if there are any nodes*/
-    if (_nt->end && _nt->tml) {
-        assert(_nt->tml->index == CAP);
-        nrn_jacob_capacitance(_nt, _nt->tml->ml, _nt->tml->index);
+    if (_nt->end && !_nt->tml.empty()) {
+        assert(_nt->tml.front().index == CAP);
+        nrn_jacob_capacitance(_nt, _nt->tml.front().ml, _nt->tml.front().index);
     }
 
     double* vec_d = &(VEC_D(0));
