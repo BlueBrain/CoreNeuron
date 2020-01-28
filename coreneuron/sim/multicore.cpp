@@ -107,7 +107,7 @@ void nrn_threads_create(int n) {
 
 void nrn_threads_free() {
     if (nrn_nthread) {
-        free_memory((void*)nrn_threads);
+        delete[] nrn_threads;
         nrn_threads = nullptr;
         nrn_nthread = 0;
     }
