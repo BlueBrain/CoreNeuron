@@ -230,21 +230,16 @@ configure_file(${KINDERIV_PYTHON_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/ki
 configure_file(${DIMPLIC_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp COPYONLY)
 configure_file(${ENGINEMECH_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp COPYONLY)
 
-# NOTE: this doesn't get re-copied if source changes
-file(COPY "./"
-     DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/
-     FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.ispc")
-
+# Make headers avail to build tree
+file(GLOB_RECURSE main_headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp *.ispc)
+foreach(header ${main_headers})
+  configure_file("${header}" "${CMAKE_BINARY_DIR}/include/coreneuron/${header}" COPYONLY)
+endforeach()
 configure_file("utils/profile/profiler_interface.h"
-               ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
-configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/mechanism/nrnoc_ml.ispc)
+               ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h COPYONLY)
 
 file(COPY "${CMAKE_SOURCE_DIR}/external/mod2c/share/nrnunits.lib"
      DESTINATION "${CMAKE_BINARY_DIR}/share/mod2c/")
-
-# TODO : this doesn't get re-copied if source changes
-file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
-
 
 # main program required for building special-core
 file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
