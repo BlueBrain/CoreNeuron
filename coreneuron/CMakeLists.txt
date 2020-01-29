@@ -18,20 +18,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # =============================================================================
 file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
 file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
-file(GLOB_RECURSE CORENEURON_CODE_FILES
-                  "nrniv/*.c*"
-                  "nrnmpi/*.c*"
-                  "nrnoc/*.c*"
-                  "nrnomp/*.c*"
-                  "utils/*.c*")
+file(GLOB CORENEURON_CODE_FILES
+                  "apps/main1.cpp"
+                  "gpu/*.cpp"
+                  "io/*.cpp"
+                  "mechanism/*.cpp"
+                  "mpi/*.cpp"
+                  "network/*.cpp"
+                  "permute/*.cpp"
+                  "sim/*.cpp")
+file(GLOB_RECURSE CORENEURON_UTILS_FILES "utils/*.c*")
+list(APPEND CORENEURON_CODE_FILES ${CORENEURON_UTILS_FILES})
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
-file(GLOB_RECURSE SCOPMATH_CODE_FILES "scopmath_core/*.c*")
+file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.cpp")
 
-set(DIMPLIC_CODE_FILE "mech/dimplic.cpp")
-set(ENGINEMECH_CODE_FILE "mech/enginemech.cpp")
+set(DIMPLIC_CODE_FILE "mechanism/mech/dimplic.cpp")
+set(ENGINEMECH_CODE_FILE "mechanism/mech/enginemech.cpp")
 
 # for external mod files we need to generate modl_ref function in mod_func.c
-set(MODFUNC_PERL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/mech/mod_func.c.pl")
+set(MODFUNC_PERL_SCRIPT "mechanism/mech/mod_func.c.pl")
 
 # as openacc limits passing function pointers as arguments, mod2c translated files depend on a
 # _kinderiv.h file that is constructed by kinderiv.py
@@ -39,7 +44,7 @@ set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
-set(INBUILT_MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/mech/modfile")
+set(INBUILT_MOD_PATH "mechanism/mech/modfile")
 set(INBUILT_MOD_FILES expsyn.mod exp2syn.mod hh.mod netstim.mod passive.mod pattern.mod stim.mod)
 
 # Has helper macro for generating cpp file from mod2c
@@ -85,8 +90,8 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/pattern.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/nrn_setup.cpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/nrniv/global_vars.cpp)
+      ${CMAKE_CURRENT_SOURCE_DIR}/io/nrn_setup.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
 
   set_source_files_properties(${DIMPLIC_CODE_FILE}
                               ${NMODL_INBUILT_MOD_OUTPUTS}
@@ -194,6 +199,20 @@ add_custom_command(TARGET coreneuron
 add_dependencies(coreneuron scopmath)
 
 # =============================================================================
+# create nrnivmodl-core
+# =============================================================================
+# coreneuron executable
+include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
+add_executable(nrniv-core "apps/coreneuron.cpp")
+target_link_libraries(nrniv-core
+        corenrnmech
+        ${MPI_C_LIBRARIES}
+        ${MPI_CXX_LIBRARIES}
+        ${reportinglib_LIBRARY}
+        ${sonatareport_LIBRARY})
+set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
 # =============================================================================
 get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
@@ -205,6 +224,7 @@ set(CORENRN_LINK_LIBS "${CORENRN_LINK_LIBS}" PARENT_SCOPE)
 # =============================================================================
 # Copy files for nrnivmodl-core workflow during build time
 # =============================================================================
+
 configure_file(${MODFUNC_PERL_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl COPYONLY)
 configure_file(${KINDERIV_PYTHON_SCRIPT} ${CMAKE_BINARY_DIR}/share/coreneuron/kinderiv.py COPYONLY)
 configure_file(${DIMPLIC_CODE_FILE} ${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp COPYONLY)
@@ -215,8 +235,19 @@ file(COPY "./"
      DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/
      FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.ispc")
 
+configure_file("utils/profile/profiler_interface.h"
+               ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h)
+configure_file("mechanism/nrnoc_ml.ispc" ${CMAKE_BINARY_DIR}/include/coreneuron/mechanism/nrnoc_ml.ispc)
+
 file(COPY "${CMAKE_SOURCE_DIR}/external/mod2c/share/nrnunits.lib"
      DESTINATION "${CMAKE_BINARY_DIR}/share/mod2c/")
+
+# TODO : this doesn't get re-copied if source changes
+file(COPY "utils/randoms" DESTINATION ${CMAKE_BINARY_DIR}/include/coreneuron/utils)
+
+
+# main program required for building special-core
+file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
 
 # =============================================================================
@@ -253,3 +284,7 @@ install(PROGRAMS ${CORENRN_NMODL_BINARY} DESTINATION bin)
 if(NOT CORENRN_ENABLE_NMODL)
   install(FILES ${NMODL_UNITS_FILE} DESTINATION share/mod2c)
 endif()
+
+# install nrniv-core app
+install(TARGETS nrniv-core DESTINATION bin)
+install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)

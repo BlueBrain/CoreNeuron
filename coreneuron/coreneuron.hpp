@@ -42,15 +42,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 
 #include "coreneuron/utils/randoms/nrnran123.h"      //Random Number Generator
-#include "coreneuron/scopmath_core/newton_struct.h"  //Newton Struct
-#include "coreneuron/nrnoc/membdef.h"                //static definitions
-#include "coreneuron/nrnoc/nrnoc_ml.h"               //Memb_list and mechs info
+#include "coreneuron/sim/scopmath/newton_struct.h"  //Newton Struct
+#include "coreneuron/membrane_definitions.h"                //static definitions
+#include "coreneuron/mechanism/mechanism.hpp"               //Memb_list and mechs info
 
-#include "coreneuron/nrniv/memory.h"  //Memory alignments and padding
+#include "coreneuron/utils/memory.h"  //Memory alignments and padding
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/nrnoc/multicore.h"
-#include "coreneuron/nrnoc/nrnoc_decl.h"
-#include "coreneuron/nrnoc/mech_mapping.hpp"
+#include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/mechanism/mech_mapping.hpp"
 
 namespace coreneuron {
 
@@ -75,10 +74,6 @@ using DependencyTable = std::vector<std::vector<int>>;
  * this class.
  */
 class CoreNeuron {
-
-
-    /// Local to coreneuron, used to keep track of point process IDs
-    int pointtype = 1; /* starts at 1 since 0 means not point in pnt_map*/
 
     /**
      * map if mech is a point process
@@ -236,15 +231,6 @@ class CoreNeuron {
 
     auto& get_bbcore_write() {
         return nrn_bbcore_write;
-    }
-
-
-    /**
-     * Generate point process IDs for pnt_map starting at 1 (since 0 means no point process)
-     * \return the next available point process ID
-     */
-    int get_next_pointtype() {
-        return pointtype++;
     }
 
 };

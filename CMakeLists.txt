@@ -17,6 +17,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set(CMAKE_BUILD_TYPE
+        RelWithDebInfo
+        CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")
 
 # =============================================================================
 # Settings to enable project as submodule
@@ -212,7 +215,6 @@ endif()
 # Add main directories
 # =============================================================================
 add_subdirectory(coreneuron)
-add_subdirectory(apps)
 add_subdirectory(extra)
 
 if(CORENRN_ENABLE_UNIT_TESTS)
