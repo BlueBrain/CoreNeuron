@@ -32,6 +32,17 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 # =============================================================================
+# HPC Coding Conventions
+# =============================================================================
+set(NMODL_ClangFormat_EXCLUDES_RE ".*/external/.*$$"
+        CACHE STRING "list of regular expressions to exclude C/C++ files from formatting"
+        FORCE)
+set(NMODL_CMakeFormat_EXCLUDES_RE ".*/external/.*$$"
+        CACHE STRING "list of regular expressions to exclude CMake files from formatting"
+        FORCE)
+add_subdirectory(CMake/hpc-coding-conventions/cpp)
+
+# =============================================================================
 # Include cmake modules path
 # =============================================================================
 list(APPEND CMAKE_MODULE_PATH
