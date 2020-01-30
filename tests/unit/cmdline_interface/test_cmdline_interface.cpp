@@ -30,10 +30,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define BOOST_TEST_MAIN
 
 #include <boost/test/unit_test.hpp>
-#include "nrniv/nrnoptarg.h"
-#include <float.h>
-#include "CLI/CLI.hpp"
-#include "coreneuron/nrniv/corenrn_parameters.h"
+#include <cfloat>
+#include "coreneuron/utils/corenrn_parameters.hpp"
 
 using namespace coreneuron;
 
@@ -41,7 +39,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
     const char* argv[] = {
 
-        "coreneuron_exec",
+        "nrniv-core",
 
         "--mpi", //generic commands
 
@@ -170,6 +168,10 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     BOOST_CHECK(corenrn_param_test.spkcompress == 32);
 
     BOOST_CHECK(corenrn_param_test.multisend == true);
+
+    // check if default flags are false
+    const char* argv_empty[] = {"nrniv-core"};
+    argc = 1;
 
     corenrn_param_test.dt = 18.1;
     

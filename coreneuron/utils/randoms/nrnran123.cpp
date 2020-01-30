@@ -31,7 +31,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/randoms/Random123/philox.h"
-#include "coreneuron/nrniv/nrnmutdec.h"
+#include "coreneuron/utils/nrnmutdec.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
+
 namespace coreneuron {
 static const double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
@@ -48,7 +50,7 @@ size_t nrnran123_state_size() {
 
 void nrnran123_set_globalindex(uint32_t gix) {
     k.v[0] = gix;
-#if (defined(__CUDACC__) || defined(_OPENACC)) && !defined(CUDA_MODULES_DISABLED)
+#if (defined(__CUDACC__) || defined(_OPENACC))
     nrnran123_set_gpu_globalindex(gix);
 #endif
 }

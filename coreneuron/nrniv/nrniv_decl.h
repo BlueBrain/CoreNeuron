@@ -31,10 +31,15 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <map>
-#include "coreneuron/nrniv/netcon.h"
-#include "coreneuron/utils/endianness.h"
-#include "coreneuron/nrniv/nrnoptarg.h"
+#include "coreneuron/network/netcon.hpp"
+#include "coreneuron/utils/endianness.hpp"
 namespace coreneuron {
+
+/// Mechanism type to be used from stdindex2ptr and nrn_dblpntr2nrncore (in Neuron)
+/// Values of the mechanism types should be negative numbers to avoid any conflict with
+/// mechanism types of Memb_list(>0) or time(0) passed from Neuron
+enum mech_type {voltage = -1, i_membrane_ = -2};
+
 extern int cvode_active_;
 /// Vector of maps for negative presyns
 extern std::vector<std::map<int, PreSyn*> > neg_gid2out;
@@ -55,6 +60,8 @@ extern void nrn_setup(const char* filesdat,
                       bool is_mapping_needed,
                       int byte_swap,
                       bool run_setup_cleanup = true);
+extern double* stdindex2ptr(int mtype, int index, NrnThread&);
+extern void delete_trajectory_requests(NrnThread&);
 extern int nrn_setup_multiple;
 extern int nrn_setup_extracon;
 extern void nrn_cleanup(bool clean_ion_global_map = true);

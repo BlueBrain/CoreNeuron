@@ -1,22 +1,15 @@
 #!/usr/bin/bash
 
 set -e
-set +x
 
 TEST_DIR="$1"
 
 . /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
-module load intel
+export SPACK_INSTALL_PREFIX="${SPACK_INSTALL_PREFIX:-${WORKSPACE}/INSTALL_HOME}"
+export PATH=$WORKSPACE/BUILD_HOME/spack/bin:/usr/bin:$PATH
+export MODULEPATH=$SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch):$MODULEPATH
 
-neuron_version=$(module av neuron 2>&1 | grep -o -m 1 '^neuron.*/parallel$' | awk -F' ' '{print $1}')
-if [[ $neuron_version ]]; then
-    module load $neuron_version
-    module list
-else
-    echo "Error: no compatible neuron version found." >&2
-    module list
-    exit 1
-fi
+module load intel neuron
 
 unset $(env|awk -F= '/^(PMI|SLURM)_/ {if ($1 != "SLURM_ACCOUNT") print $1}')
 

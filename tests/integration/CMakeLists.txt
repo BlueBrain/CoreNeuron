@@ -58,20 +58,39 @@ set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} --seed 1234
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
-    foreach(test_suffix "multisend" "binqueue" "savestate_permute0" "savestate_permute1" "savestate_permute2" "permute1" "permute2")
-      file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}_${test_suffix}/")
-    endforeach()
+  foreach(test_suffix
+          "multisend"
+          "binqueue"
+          "savestate_permute0"
+          "savestate_permute1"
+          "savestate_permute2"
+          "permute1"
+          "permute2")
+    file(COPY
+         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
+         DESTINATION
+         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}_${test_suffix}/")
+  endforeach()
 endforeach()
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ring_spike_buffer/")
+file(COPY
+     "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
+     DESTINATION
+     "${CMAKE_CURRENT_SOURCE_DIR}/ring_spike_buffer/")
 
-file (GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
+file(GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
 
-#Configure test scripts
-foreach (args_line ${TEST_CASE_ARGS})
-  string(REPLACE "!" ";" string_line ${args_line})
+# Configure test scripts
+foreach(args_line ${TEST_CASES_WITH_ARGS})
+  string(REPLACE "!"
+                 ";"
+                 string_line
+                 ${args_line})
   if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
+    string(REPLACE ";"
+                   " "
+                   SRUN_PREFIX
+                   "${TEST_MPI_EXEC_BIN};-n;2")
   endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
@@ -82,10 +101,16 @@ foreach (args_line ${TEST_CASE_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-foreach (args_line ${NEGATIVE_TEST_CASE_ARGS})
-  string(REPLACE "!" ";" string_line ${args_line})
+foreach(args_line ${NEGATIVE_TEST_CASES_WITH_ARGS})
+  string(REPLACE "!"
+                 ";"
+                 string_line
+                 ${args_line})
   if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
+    string(REPLACE ";"
+                   " "
+                   SRUN_PREFIX
+                   "${TEST_MPI_EXEC_BIN};-n;2")
   endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
@@ -96,45 +121,15 @@ foreach (args_line ${NEGATIVE_TEST_CASE_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-
-# This test is for coreneuron having all the mechanisms integrated into the
-# library. Runs when the corresponding condition is utilized plus the
-# executable is built.
-# Set of 10Cells tests
-if(ADDITIONAL_MECHS AND CORENEURON_MAIN)
-
-  function(exec_test TEST_NAME SUBTEST_NAME)
-if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX  "${TEST_MPI_EXEC_BIN};-n;2")
-endif()
-    set(SIM_NAME "${TEST_NAME}/${SUBTEST_NAME}")
-    if(${SUBTEST_NAME} MATCHES "generic")
-      set(TEST_ARGS "--tstop 100. --mpi input --datpath ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
-    elseif(${SUBTEST_NAME} MATCHES "forwardskip")
-      set(TEST_ARGS " --tstop 100. --mpi input --datpath=${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME} output --outpath=${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME} config --forwardskip 5000.")
-    elseif(${SUBTEST_NAME} MATCHES "spikereplay")
-      set(TEST_ARGS "--tstop 100. --mpi input --pattern ${CMAKE_CURRENT_SOURCE_DIR}/${SIM_NAME}/out.std --datpath ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME} output --outpath ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
-    endif()
-    set(TEST_ARGS "${TEST_ARGS} ${GPU_ARGS}")
-
-    configure_file(integration_test.sh.in ${SIM_NAME}/integration_test.sh @ONLY)
-
-    add_test(NAME ${TEST_NAME}_${SUBTEST_NAME}_TEST
-             COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/integration_test.sh
+if(CORENRN_ENABLE_REPORTINGLIB)
+  foreach(TEST_NAME "1")
+    set(SIM_NAME "reporting_${TEST_NAME}")
+    set(CONFIG_ARG "${TEST_NAME}")
+    configure_file(reportinglib/${TEST_NAME}.conf.in ${SIM_NAME}/${TEST_NAME}.conf @ONLY)
+    configure_file(reportinglib/reporting_test.sh.in ${SIM_NAME}/reporting_test.sh @ONLY)
+    configure_file(reportinglib/${TEST_NAME}.check.in ${SIM_NAME}/${TEST_NAME}.check @ONLY)
+    add_test(NAME ${SIM_NAME}
+             COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
              WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
-  endfunction(exec_test)
-
-endif()
-
-if (ENABLE_REPORTINGLIB)
-    foreach(TEST_NAME "1")
-        set (SIM_NAME "reporting_${TEST_NAME}")
-        set (CONFIG_ARG "${TEST_NAME}")
-        configure_file(reportinglib/${TEST_NAME}.conf.in ${SIM_NAME}/${TEST_NAME}.conf @ONLY)
-        configure_file(reportinglib/reporting_test.sh.in ${SIM_NAME}/reporting_test.sh @ONLY)
-        configure_file(reportinglib/${TEST_NAME}.check.in ${SIM_NAME}/${TEST_NAME}.check @ONLY)
-        add_test(NAME ${SIM_NAME}
-            COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
-             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
-    endforeach()
+  endforeach()
 endif()

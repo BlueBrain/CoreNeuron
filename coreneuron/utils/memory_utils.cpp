@@ -44,8 +44,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <fstream>
 #include <unistd.h>
-#include "memory_utils.h"
-#include "coreneuron/nrnmpi/nrnmpi.h"
+#include "coreneuron/utils/memory_utils.h"
+#include "coreneuron/mpi/nrnmpi.h"
 
 #ifdef HAVE_MEMORY_H
 #include <spi/include/kernel/memory.h>
@@ -74,6 +74,8 @@ double nrn_mallinfo(void) {
         KERN_SUCCESS)
         return (size_t)0L; /* Can't access? */
     return info.resident_size / (1024.0 * 1024.0);
+#elif defined(MINGW)
+    mbs = -1;
 #else
     std::ifstream file;
     file.open("/proc/self/statm");
@@ -87,8 +89,6 @@ double nrn_mallinfo(void) {
         struct mallinfo m;
         m = mallinfo();
         mbs = (m.hblkhd + m.uordblks) / (1024.0 * 1024.0);
-#else
-        mbs = -1;
 #endif
     }
 #endif

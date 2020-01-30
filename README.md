@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/BlueBrain/CoreNeuron.svg?branch=master)](https://travis-ci.org/BlueBrain/CoreNeuron)
+
 # CoreNEURON
 > Optimised simulator engine for [NEURON](https://www.neuron.yale.edu/neuron/)
 
@@ -42,12 +44,12 @@ cmake ..
 make -j
 ```
 
-If you don't have MPI, you can disable MPI dependency using the CMake option `-DENABLE_MPI=OFF`:
+If you don't have MPI, you can disable MPI dependency using the CMake option `-DCORENRN_ENABLE_MPI=OFF`:
 
 ```bash
 export CC=gcc
 export CXX=g++
-cmake .. -DENABLE_MPI=OFF
+cmake .. -DCORENRN_ENABLE_MPI=OFF
 make -j
 ```
 
@@ -59,16 +61,16 @@ make test
 
 ### About MOD files
 
-The workflow for building CoreNEURON is different from that of NEURON, especially considering the use of **nrnivmodl**. Currently we do not provide **nrnivmodl-core** for CoreNEURON. If you have MOD files from a NEURON model, you have to explicitly specify those MOD file directory paths during CoreNEURON build using the `-DADDITIONAL_MECHPATH` option:
+With the latest master branch, the workflow of building CoreNEURON is same as that of NEURON, especially considering the use of **nrnivmodl**. We provide **nrnivmodl-core** for CoreNEURON and you can build **special-core** as:
 
 ```bash
-cmake .. -DADDITIONAL_MECHPATH="path/of/mod/files/directory/"
+/install-path/bin/nrnivmodl-core mod-dir
 ```
 
 
 ## Building with GPU support
 
-CoreNEURON has support for GPUs using the OpenACC programming model when enabled with `-DENABLE_OPENACC=ON`. Below are the steps to compile with PGI compiler:
+CoreNEURON has support for GPUs using the OpenACC programming model when enabled with `-DCORENRN_ENABLE_GPU=ON`. Below are the steps to compile with PGI compiler:
 
 ```bash
 module purge
@@ -83,8 +85,7 @@ cmake ..  -DCMAKE_C_FLAGS:STRING="-O2" \
           -DCOMPILE_LIBRARY_TYPE=STATIC \
           -DCUDA_HOST_COMPILER=`which gcc` \
           -DCUDA_PROPAGATE_HOST_FLAGS=OFF \
-          -DENABLE_SELECTIVE_GPU_PROFILING=ON \
-          -DENABLE_OPENACC=ON
+          -DCORENRN_ENABLE_GPU=ON
 ```
 
 Note that the CUDA Toolkit version should be compatible with PGI compiler installed on your system. Otherwise you have to add extra C/C++ flags. For example, if we are using CUDA Toolkit 9.0 installation but PGI default target is CUDA 8.0 then we have to add :
@@ -98,7 +99,7 @@ Note that the CUDA Toolkit version should be compatible with PGI compiler instal
 You have to run GPU executable with the `--gpu` or `-gpu`. Make sure to enable cell re-ordering mechanism to improve GPU performance using `--cell_permute` option (permutation types : 2 or 1):
 
 ```bash
-mpirun -n 1 ./bin/coreneuron_exec -d ../tests/integration/ring -mpi -e 100 --gpu --cell_permute 2
+mpirun -n 1 ./bin/nrniv-core -d ../tests/integration/ring -mpi -e 100 --gpu --cell_permute 2
 ```
 
 Note that if your model is using Random123 random number generator, you can't use same executable for CPU and GPU runs. We suggest to build separate executable for CPU and GPU simulations. This will be fixed in future releases.
@@ -125,8 +126,8 @@ cmake .. -DCMAKE_CXX_FLAGS="-O3 -g" \
          -DCMAKE_BUILD_TYPE=CUSTOM
 ```
 
-* By default OpenMP threading is enabled. You can disable it with `-DCORENEURON_OPENMP=OFF`
-* By default CoreNEURON uses the SoA (Structure of Array) memory layout for all data structures. You can switch to AoS using `-DENABLE_SOA=OFF`.
+* By default OpenMP threading is enabled. You can disable it with `-DCORENRN_ENABLE_OPENMP=OFF`
+* By default CoreNEURON uses the SoA (Structure of Array) memory layout for all data structures. You can switch to AoS using `-DCORENRN_ENABLE_SOA=OFF`.
 
 
 ## RUNNING SIMULATION:
@@ -135,12 +136,14 @@ Note that the CoreNEURON simulator depends on NEURON to build the network model:
 
 ```bash
 export OMP_NUM_THREADS=2     #set appropriate value
-mpiexec -np 2 build/apps/coreneuron_exec -e 10 --mpi input -d /path/to/model/built/by/neuron
+mpiexec -np 2 build/bin/nrniv-core -e 10 -d /path/to/model/built/by/neuron --mpi
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
 
 ### Command Line Interface
+
+--write-config no more exist
 
 :warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly!**
 
@@ -148,7 +151,7 @@ Some details on the new interface:
 
 The new command line interface is based on CLI11. All the previous options are still supported but they are organized differently. You can find more details by running `coreneuron_exec --help-all` or using the table reported below.
 
-Multiple character options with single dash (e.g. `-gpu`) are **not** supported anymore. All multiple characters options now require a double dash (e.g. `--gpu`), but single characters options still support a single dash (e.g. `-g`).
+Multiple characters options with single dash (`-gpu`, `-mpi`, `-dt`) are **not** supported anymore. All those options now require a double dash (`--gpu`, `--mpi`, `--dt`), but single characters options still support a single dash (e.g. `-g`).
 
 The structure of a command is the following: `./apps/coreneuron_exec [GENERIC OPTIONS] [SUBCOMMAND [OPTIONS]]`. More specifically, a `GENERIC OPTION` is a parameter that doesn't belong to **any** `SUBCOMMANDS`. `GENERIC OPTIONS` should **always** be written before any `SUBCOMMAND`. To know the various subcommands and their respective options run `coreneuron_exec --help-all` or refer to the table below.
 
@@ -158,7 +161,7 @@ Hence, the old command `coreneuron_exec -d /path/to/model/built/by/neuron` becom
 In order to see the command line options, you can use:
 
 ```bash
-/path/to/install/directory/coreneuron_exec -H                                             
+/path/to/install/directory/coreneuron_exec --help-all
 CoreNeuron - Optimised Simulator Engine for NEURON.
 Usage: ./apps/coreneuron_exec [OPTIONS] [SUBCOMMAND]
 
@@ -180,7 +183,7 @@ gpu
     -R,--cell-permute INT:INT in [0 - 3]=0          Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.
 
 input
-  Input dataset options. REQUIRED 
+  Input dataset options. REQUIRED
   Options:
     -d,--datpath TEXT:PATH(existing) REQUIRED       Path containing CoreNeuron data files.
     -f,--filesdat TEXT:FILE=files.dat               Name for the distribution file.
@@ -252,7 +255,7 @@ cmake .. -DTEST_MPI_EXEC_BIN="mpirun" \
 You can disable tests using with options:
 
 ```
-cmake .. -DUNIT_TESTS=OFF -DFUNCTIONAL_TESTS=OFF
+cmake .. -CORENRN_ENABLE_UNIT_TESTS=OFF
 ```
 
 ## License

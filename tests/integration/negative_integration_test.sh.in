@@ -9,9 +9,9 @@ SRUN_EXTRA=
 if [ -n "$VALGRIND" -a -n "$VALGRIND_PRELOAD" ]; then
     echo "Running with valgrind"
     LD_PRELOAD=$VALGRIND_PRELOAD \
-    @SRUN_PREFIX@ $SRUN_EXTRA $VALGRIND @CMAKE_BINARY_DIR@/apps/coreneuron_exec @TEST_ARGS@
+    @SRUN_PREFIX@ $SRUN_EXTRA $VALGRIND @CMAKE_BINARY_DIR@/bin/@CMAKE_SYSTEM_PROCESSOR@/special-core @TEST_ARGS@
 else
-    @SRUN_PREFIX@ $SRUN_EXTRA @CMAKE_BINARY_DIR@/apps/coreneuron_exec @TEST_ARGS@
+    @SRUN_PREFIX@ $SRUN_EXTRA @CMAKE_BINARY_DIR@/bin/@CMAKE_SYSTEM_PROCESSOR@/special-core @TEST_ARGS@
 fi
 exitvalue=$?
 
