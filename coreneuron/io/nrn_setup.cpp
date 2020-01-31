@@ -2243,7 +2243,6 @@ size_t model_size(void) {
     size_t sz_psi = sizeof(InputPreSyn);
     size_t sz_nc = sizeof(NetCon);
     size_t sz_pp = sizeof(Point_process);
-    NrnThreadMembList* tml;
     size_t nccnt = 0;
 
     for (int i = 0; i < nrn_nthread; ++i) {
@@ -2253,7 +2252,7 @@ size_t model_size(void) {
 
         // Memb_list size
         int nmech = 0;
-        for (tml = nt.tml; tml; tml = tml->next) {
+        for (auto tml = nt.tml; tml; tml = tml->next) {
             nb_nt += memb_list_size(tml);
             ++nmech;
         }

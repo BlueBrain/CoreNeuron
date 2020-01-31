@@ -156,9 +156,6 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth) {
 }
 
 void update(NrnThread* _nt) {
-    int i1 = 0;
-    int i2 = _nt->end;
-
     double* vec_v = &(VEC_V(0));
     double* vec_rhs = &(VEC_RHS(0));
 
@@ -166,7 +163,7 @@ void update(NrnThread* _nt) {
     if (secondorder) {
 // clang-format off
         #pragma acc parallel loop present(          \
-            vec_v[0:i2], vec_rhs[0:i2])             \
+            vec_v[0:_nt->end], vec_rhs[0:_nt->end])             \
             if (_nt->compute_gpu) async(_nt->stream_id)
         // clang-format on
         for (int i = 0; i < _nt->end; ++i) {
@@ -175,7 +172,7 @@ void update(NrnThread* _nt) {
     } else {
 // clang-format off
         #pragma acc parallel loop present(              \
-                vec_v[0:i2], vec_rhs[0:i2])             \
+                vec_v[0:_nt->end], vec_rhs[0:_nt->end])             \
                 if (_nt->compute_gpu) async(_nt->stream_id)
         // clang-format on
         for (int i = 0; i < _nt->end; ++i) {

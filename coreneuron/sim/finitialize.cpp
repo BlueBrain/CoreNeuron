@@ -80,8 +80,7 @@ void nrn_finitialize(int setv, double v) {
     /* the memblist list in NrnThread is already so ordered */
     for (int i = 0; i < nrn_nthread; ++i) {
         NrnThread* nt = nrn_threads + i;
-        NrnThreadMembList* tml;
-        for (tml = nt->tml; tml; tml = tml->next) {
+        for (auto tml = nt->tml; tml; tml = tml->next) {
             mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
             if (s) {
                 (*s)(nt, tml->ml, tml->index);
