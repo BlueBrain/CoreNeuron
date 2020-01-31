@@ -170,7 +170,7 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
      */
     FileHandlerWrap f;
     for (int i = 0; i < nb_threads; i++) {
-        if (nt[i].ncell || !nt[i].tml.empty()) {
+        if (nt[i].ncell || nt[i].tml) {
             write_phase2(nt[i], f);
         }
     }
@@ -210,8 +210,8 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     fh << nt.end << " nnode\n";
     fh << ((nt._actual_diam == nullptr) ? 0 : nt.end) << " ndiam\n";
     int nmech = 0;
-    for (const auto& tml: nt.tml) {
-        if (tml.index != patstimtype) {  // skip PatternStim
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        if (tml->index != patstimtype) {  // skip PatternStim
             ++nmech;
         }
     }
@@ -221,12 +221,12 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     assert(nmech == ntc.nmech);
 #endif
 
-    for (const auto& tml: nt.tml) {
-        if (tml.index == patstimtype) {
+    for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
+        if (current_tml->index == patstimtype) {
             continue;
         }
-        fh << tml.index << "\n";
-        fh << tml.ml->nodecount << "\n";
+        fh << current_tml->index << "\n";
+        fh << current_tml->ml->nodecount << "\n";
     }
 
     fh << nt._nidata << " nidata\n";
@@ -286,9 +286,9 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     // will need the ml_pinv inverse permutation of ml._permute for ions
     int** ml_pinv = (int**)ecalloc(memb_func.size(), sizeof(int*));
 
-    for (const auto& tml: nt.tml) {
-        Memb_list* ml = tml.ml;
-        int type = tml.index;
+    for (NrnThreadMembList* current_tml = nt.tml; current_tml; current_tml = current_tml->next) {
+        Memb_list* ml = current_tml->ml;
+        int type = current_tml->index;
         if (type == patstimtype) {
             continue;
         }
@@ -414,11 +414,11 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
     int synoffset = 0;
     std::vector<int> pnt_offset(memb_func.size(), -1);
-    for (const auto& tml: nt.tml) {
-        int type = tml.index;
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        int type = tml->index;
         if (corenrn.get_pnt_map()[type] > 0) {
             pnt_offset[type] = synoffset;
-            synoffset += tml.ml->nodecount;
+            synoffset += tml->ml->nodecount;
         }
     }
 
@@ -465,8 +465,8 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
     // BBCOREPOINTER
     int nbcp = 0;
-    for (const auto& tml: nt.tml) {
-        if (corenrn.get_bbcore_read()[tml.index] && tml.index != patstimtype) {
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        if (corenrn.get_bbcore_read()[tml->index] && tml->index != patstimtype) {
             ++nbcp;
         }
     }
@@ -476,12 +476,12 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     assert(nbcp == ntc.nbcp);
 #endif
     nbcp = 0;
-    for (const auto& tml: nt.tml) {
-        if (corenrn.get_bbcore_read()[tml.index] && tml.index != patstimtype) {
+    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+        if (corenrn.get_bbcore_read()[tml->index] && tml->index != patstimtype) {
             int i = nbcp++;
-            int type = tml.index;
+            int type = tml->index;
             assert(corenrn.get_bbcore_write()[type]);
-            Memb_list* ml = tml.ml;
+            Memb_list* ml = tml->ml;
             double* d = nullptr;
             Datum* pd = nullptr;
             int layout = corenrn.get_mech_data_layout()[type];
@@ -554,11 +554,11 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 
         // not as efficient as possible but there should not be too many
         Memb_list* ml = nullptr;
-        for (const auto& tml: nt.tml) {
-            ml = tml.ml;
-            int nn = corenrn.get_prop_param_size()[tml.index] * ml->nodecount;
+        for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+            ml = tml->ml;
+            int nn = corenrn.get_prop_param_size()[tml->index] * ml->nodecount;
             if (nn && pr->pd_ >= ml->data && pr->pd_ < (ml->data + nn)) {
-                mtype = tml.index;
+                mtype = tml->index;
                 ix = (pr->pd_ - ml->data);
                 break;
             }
@@ -782,9 +782,9 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
 
     // PatternStim
     int patstim_index = -1;
-    for (const auto& tml: nt.tml) {
-        if (tml.index == patstimtype) {
-            Memb_list* ml = tml.ml;
+    for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
+        if (tml->index == patstimtype) {
+            Memb_list* ml = tml->ml;
             patstim_index = checkpoint_save_patternstim(
                 /* below correct only for AoS */
                 0, ml->nodecount, ml->data, ml->pdata, ml->_thread, nrn_threads, 0.0);
@@ -871,20 +871,20 @@ bool checkpoint_initialize() {
     _nrn_skip_initmodel = 1;
     for (int i = 0; i < nrn_nthread; ++i) {  // should be parallel
         NrnThread& nt = nrn_threads[i];
-        for (const auto& tml: nt.tml) {
-            Memb_list* ml = tml.ml;
-            mod_f_t s = corenrn.get_memb_func(tml.index).initialize;
+        for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+            Memb_list* ml = tml->ml;
+            mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
             if (s) {
-                (*s)(&nt, ml, tml.index);
+                (*s)(&nt, ml, tml->index);
             }
         }
     }
     _nrn_skip_initmodel = 0;
 
     // if PatternStim exists, needs initialization
-    for (const auto& tml: nrn_threads[0].tml) {
-        if (tml.index == patstimtype && patstim_index >= 0 && patstim_te > 0.0) {
-            Memb_list* ml = tml.ml;
+    for (NrnThreadMembList* tml = nrn_threads[0].tml; tml; tml = tml->next) {
+        if (tml->index == patstimtype && patstim_index >= 0 && patstim_te > 0.0) {
+            Memb_list* ml = tml->ml;
             checkpoint_restore_patternstim(patstim_index, patstim_te,
                                            /* below correct only for AoS */
                                            0, ml->nodecount, ml->data, ml->pdata, ml->_thread,

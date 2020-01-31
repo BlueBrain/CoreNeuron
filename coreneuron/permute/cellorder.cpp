@@ -268,8 +268,6 @@ static void warp_balance(int ith, InterleaveInfo& ii) {
         printf("  %s=%ld (%ld:%ld)", cp[i], smm[i][0], smm[i][1], smm[i][2]);
     }
     printf("\n");
-#else
-    (void)bal; // Remove warning about unused
 #endif
 }
 

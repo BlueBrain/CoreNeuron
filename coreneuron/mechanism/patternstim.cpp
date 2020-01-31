@@ -176,14 +176,22 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
     // see nrn_setup.cpp:read_phase2 for how it creates NrnThreadMembList instances.
     // create and append to nt.tml
     assert(nt->_ml_list[type] == nullptr);  // FIXME
-    {
-        NrnThreadMembList tml;
-        tml.ml = (Memb_list*)emalloc(sizeof(Memb_list));
-        tml.dependencies = nullptr;
-        tml.ndependencies = 0;
-        nt->_ml_list[type] = tml.ml;
-        tml.index = type;
-        nt->tml.push_back(tml);
+    NrnThreadMembList* tml = (NrnThreadMembList*)emalloc(sizeof(NrnThreadMembList));
+    tml->ml = (Memb_list*)emalloc(sizeof(Memb_list));
+    tml->dependencies = nullptr;
+    tml->ndependencies = 0;
+    nt->_ml_list[type] = tml->ml;
+    tml->index = type;
+    tml->next = nullptr;
+    if (!nt->tml) {
+        nt->tml = tml;
+    } else {
+        for (NrnThreadMembList* i = nt->tml; i; i = i->next) {
+            if (!i->next) {
+                i->next = tml;
+                break;
+            }
+        }
     }
 
     // fill in tml->ml info. The data is not in the cache efficient
@@ -191,7 +199,7 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
     int psize = corenrn.get_prop_param_size()[type];
     int dsize = corenrn.get_prop_dparam_size()[type];
     // int layout = nrn_mech_data_layout[type]; // not needed because singleton
-    Memb_list* ml = nt->tml.back().ml;
+    Memb_list* ml = tml->ml;
     ml->nodecount = 1;
     ml->_nodecount_padded = ml->nodecount;
     ml->nodeindices = nullptr;
