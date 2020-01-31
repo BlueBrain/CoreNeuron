@@ -344,13 +344,14 @@ void register_destructor(Pfri d) {
 }
 
 int point_reg_helper(const Symbol* s2) {
+    static int next_pointtype = 1; /* starts at 1 since 0 means not point in pnt_map */
     int type = nrn_get_mechtype(s2);
 
     // No mechanism in the .dat files
     if (type == -1)
         return type;
 
-    corenrn.get_pnt_map()[type] = corenrn.get_next_pointtype();
+    corenrn.get_pnt_map()[type] = next_pointtype++;
     corenrn.get_memb_func(type).is_point = 1;
 
     return corenrn.get_pnt_map()[type];
