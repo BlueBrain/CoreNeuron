@@ -89,7 +89,7 @@ static void nrn_spike_exchange_compressed(NrnThread*);
 
 #endif  // NRNMPI
 
-static int active_;
+static bool active_ = false;
 static double usable_mindelay_;
 static double mindelay_;  // the one actually used. Some of our optional algorithms
 static double last_maxstep_arg_;
@@ -779,7 +779,7 @@ double set_mindelay(double maxdelay) {
 
 #if NRNMPI
     if (nrnmpi_use) {
-        active_ = 1;
+        active_ = true;
     }
     if (use_compress_) {
         if (mindelay / dt > 255) {

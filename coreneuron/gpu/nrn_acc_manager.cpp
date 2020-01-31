@@ -137,7 +137,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
         NrnThreadMembList* d_last_tml;
 
-        int first_tml = 1;
+        bool first_tml = true;
         size_t offset = 6 * ne;
 
         for (auto tml = nt->tml; tml; tml = tml->next) {
@@ -148,7 +148,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             /*first tml is pointed by nt */
             if (first_tml) {
                 acc_memcpy_to_device(&(d_nt->tml), &d_tml, sizeof(NrnThreadMembList*));
-                first_tml = 0;
+                first_tml = false;
             } else {
                 /*rest of tml forms linked list */
                 acc_memcpy_to_device(&(d_last_tml->next), &d_tml, sizeof(NrnThreadMembList*));
