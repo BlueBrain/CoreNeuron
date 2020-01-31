@@ -1116,7 +1116,7 @@ void nrn_cleanup(bool clean_ion_global_map) {
         }
 
         if (nt->pnt2presyn_ix) {
-            for (int i = 0; i < corenrn.get_has_net_event().size(); ++i) {
+            for (size_t i = 0; i < corenrn.get_has_net_event().size(); ++i) {
                 if (nt->pnt2presyn_ix[i]) {
                     free(nt->pnt2presyn_ix[i]);
                 }
@@ -1564,7 +1564,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 }
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
-                int elayout = corenrn.get_mech_data_layout()[etype];
                 /* if ion is SoA, must recalculate pdata values */
                 /* if ion is AoS, have to deal with offset */
                 Memb_list* eml = nt._ml_list[etype];
@@ -1713,7 +1712,7 @@ for (int i=0; i < nt.end; ++i) {
     /// Fill the BA lists
     std::vector<BAMech*> bamap(memb_func.size());
     for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
-        for (int ii = 0; ii < memb_func.size(); ++ii) {
+        for (size_t ii = 0; ii < memb_func.size(); ++ii) {
             bamap[ii] = nullptr;
         }
         for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
@@ -1759,12 +1758,12 @@ for (int i=0; i < nt.end; ++i) {
     if (pnttype2presyn.empty()) {
         pnttype2presyn.resize(memb_func.size(), -1);
     }
-    for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
+    for (size_t i = 0; i < nrn_has_net_event_.size(); ++i) {
         pnttype2presyn[nrn_has_net_event_[i]] = i;
     }
     // create the nt.pnt2presyn_ix array of arrays.
     nt.pnt2presyn_ix = (int**)ecalloc(nrn_has_net_event_.size(), sizeof(int*));
-    for (int i = 0; i < nrn_has_net_event_.size(); ++i) {
+    for (size_t i = 0; i < nrn_has_net_event_.size(); ++i) {
         Memb_list* ml = nt._ml_list[nrn_has_net_event_[i]];
         if (ml && ml->nodecount > 0) {
             nt.pnt2presyn_ix[i] = (int*)ecalloc(ml->nodecount, sizeof(int));

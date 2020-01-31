@@ -592,7 +592,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
         }
     }
 
-    for (int i = 0; i < memb_func.size(); ++i) {
+    for (size_t i = 0; i < memb_func.size(); ++i) {
         if (ml_pinv[i]) {
             delete[] ml_pinv[i];
         }

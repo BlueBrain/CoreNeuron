@@ -539,7 +539,6 @@ void nrnmpi_multisend_comm() {
 
 void nrnmpi_multisend(NRNMPI_Spike* spk, int n, int* hosts) {
     MPI_Request r;
-    MPI_Status status;
     for (int i = 0; i < n; ++i) {
         MPI_Isend(spk, 1, spike_type, hosts[i], 1, multisend_comm, &r);
         MPI_Request_free(&r);
