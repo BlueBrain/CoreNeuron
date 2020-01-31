@@ -143,15 +143,13 @@ mpiexec -np 2 build/bin/nrniv-core -e 10 -d /path/to/model/built/by/neuron --mpi
 
 ### Command Line Interface
 
---write-config no more exist
-
 :warning: :warning: :warning: **In a recent update the command line interface was updated, so please update your scripts accordingly!**
 
 Some details on the new interface:
 
 The new command line interface is based on CLI11. All the previous options are still supported but they are organized differently. You can find more details by running `coreneuron_exec --help-all` or using the table reported below.
 
-Multiple characters options with single dash (`-gpu`, `-mpi`, `-dt`) are **not** supported anymore. All those options now require a double dash (`--gpu`, `--mpi`, `--dt`), but single characters options still support a single dash (e.g. `-g`).
+Multiple characters options with single dash (`-gpu`, `-mpi`, `-dt`) are **not** supported anymore. All those options now require a double dash (`--gpu`, `--mpi`, `--dt`), but single characters options still support a single dash (e.g. `-g`). More over the option `--write-config` has been remove, use `--show` and a shell redirection to mimic.
 
 The structure of a command is the following: `./apps/coreneuron_exec [GENERIC OPTIONS] [SUBCOMMAND [OPTIONS]]`. More specifically, a `GENERIC OPTION` is a parameter that doesn't belong to **any** `SUBCOMMANDS`. `GENERIC OPTIONS` should **always** be written before any `SUBCOMMAND`. To know the various subcommands and their respective options run `coreneuron_exec --help-all` or refer to the table below.
 
