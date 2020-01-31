@@ -214,7 +214,7 @@ void nrn_init_and_load_data(int argc,
                 corenrn_param.seed);
 
     // set global variables for start time, timestep and temperature
-    std::string restore_path = corenrn_param.reportfilepath;
+    std::string restore_path = corenrn_param.restorepath;
     t = restore_time(restore_path.c_str());
 
     if (corenrn_param.dt != -1000.) {  // command line arg highest precedence
@@ -434,9 +434,9 @@ using namespace coreneuron;
 
 
 extern "C" void mk_mech_init(int argc, char** argv) {
-    #if NRNMPI
-        nrnmpi_init(1, &argc, &argv);
-    #endif
+#if NRNMPI
+    nrnmpi_init(1, &argc, &argv);
+#endif
     // read command line parameters and parameter config files
 
     try {

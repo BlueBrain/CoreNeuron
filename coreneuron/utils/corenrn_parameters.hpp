@@ -60,16 +60,16 @@ struct corenrn_parameters {
 
     const int report_buff_size_default=4;
 
-    int spikebuf=100'000;          /// Internal buffer used on every rank for spikes
+    unsigned spikebuf=100'000;     /// Internal buffer used on every rank for spikes
     int prcellgid=-1;              /// Gid of cell for prcellstate
-    int ms_phases=2;               /// Number of multisend phases, 1 or 2
-    int ms_subint=2;               /// Number of multisend interval. 1 or 2
-    int spkcompress=0;             /// Spike Compression
-    int cell_interleave_permute=0; /// Cell interleaving permutation
-    int nwarp=0;                   /// Number of warps to balance for cell_interleave_permute == 2
-    int multiple=1;                /// Model duplication factor
-    int extracon=0;                /// Number of extra random connections in each thread to other duplicate models.
-    int report_buff_size=report_buff_size_default;    ///Size in MB of the report buffer.
+    unsigned char ms_phases=2;     /// Number of multisend phases, 1 or 2
+    unsigned char ms_subint=2;     /// Number of multisend interval. 1 or 2
+    unsigned spkcompress=0;        /// Spike Compression
+    unsigned char cell_interleave_permute=0; /// Cell interleaving permutation
+    unsigned nwarp=0;              /// Number of warps to balance for cell_interleave_permute == 2
+    unsigned multiple=1;           /// Model duplication factor
+    unsigned extracon=0;           /// Number of extra random connections in each thread to other duplicate models.
+    unsigned char report_buff_size=report_buff_size_default; ///Size in MB of the report buffer.
     int seed=-1;                   /// Initialization seed for random number generator (int)
 
     bool mpi_enable=0;             /// Enable MPI flag.
@@ -98,11 +98,11 @@ struct corenrn_parameters {
     string_t reportfilepath;       /// Reports configuration file.
     string_t checkpointpath;       /// Enable checkpoint and specify directory to store related files.
 
-    CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."};    ///CLI app that performs CLI parsing
+    CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."}; ///CLI app that performs CLI parsing
 
-    corenrn_parameters();    ///Constructor that initializes the CLI11 app.
+    corenrn_parameters();          ///Constructor that initializes the CLI11 app.
 
-    void parse (int argc, char** argv);    /// Runs the CLI11_PARSE macro.
+    void parse (int argc, char** argv); /// Runs the CLI11_PARSE macro.
 
 };
 
