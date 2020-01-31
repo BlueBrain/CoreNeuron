@@ -31,7 +31,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/test/unit_test.hpp>
 #include <cfloat>
-#include "coreneuron/utils/corenrn_parameters.hpp"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 using namespace coreneuron;
 

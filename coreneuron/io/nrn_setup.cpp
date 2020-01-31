@@ -48,7 +48,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/io/nrnsection_mapping.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include "coreneuron/utils/corenrn_parameters.hpp"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/sim/fast_imem.hpp"
@@ -677,7 +676,10 @@ void nrn_setup_cleanup() {
 void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
                int byte_swap,
-               bool run_setup_cleanup) {
+               bool run_setup_cleanup,
+               const std::string& datapath,
+               const std::string& restore_path,
+               double* mindelay) {
     /// Number of local cell groups
     int ngroup = 0;
 
@@ -738,17 +740,9 @@ void nrn_setup(const char* filesdat,
 
     FileHandler* file_reader = new FileHandler[ngroup];
 
-    std::string datapath = corenrn_param.datpath;
-    std::string restore_path = corenrn_param.restorepath;
-
-    // if not restoring then phase2 files will be read from dataset directory
-    if (!restore_path.length()) {
-        restore_path = datapath;
-    }
-
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(), restore_path.c_str(),
-                     byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(),
+            restore_path.empty() ? datapath.c_str() : restore_path.c_str(), byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -788,9 +782,7 @@ void nrn_setup(const char* filesdat,
     if (is_mapping_needed)
         coreneuron::phase_wrapper<(coreneuron::phase)3>();
 
-    double mindelay = set_mindelay(corenrn_param.mindelay);
-
-    corenrn_param.mindelay = mindelay;
+    *mindelay = set_mindelay(*mindelay);
 
     if (run_setup_cleanup)  // if run_setup_cleanup==false, user must call nrn_setup_cleanup() later
         nrn_setup_cleanup();

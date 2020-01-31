@@ -20,6 +20,7 @@ file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
 file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
 file(GLOB CORENEURON_CODE_FILES
                   "apps/main1.cpp"
+                  "apps/corenrn_parameters.cpp"
                   "gpu/*.cpp"
                   "io/*.cpp"
                   "mechanism/*.cpp"

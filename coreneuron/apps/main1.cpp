@@ -58,7 +58,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
-#include "coreneuron/utils/corenrn_parameters.hpp"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 extern "C" {
 const char* corenrn_version() {
@@ -278,7 +278,8 @@ void nrn_init_and_load_data(int argc,
     use_phase2_ = (corenrn_param.ms_phases == 2) ? 1 : 0;
 
     // reading *.dat files and setting up the data structures, setting mindelay
-    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup);
+    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup,
+              corenrn_param.datpath, restore_path, &corenrn_param.mindelay);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = corenrn_param.binqueue;
