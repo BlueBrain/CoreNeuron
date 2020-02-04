@@ -29,18 +29,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/coreneuron.hpp"
 
 #if defined(_OPENACC)
-#define _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt) \
+#define _PRAGMA_FOR_INIT_ACC_LOOP_ \
     _Pragma("acc parallel loop present(vdata[0:_cntml_padded*nparm]) if(_nt->compute_gpu)")
-#define _PRAGMA_FOR_CUR_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_rhs, _nt) \
+#define _PRAGMA_FOR_CUR_ACC_LOOP_ \
     _Pragma(                      \
         "acc parallel loop present(vdata[0:_cntml_padded*nparm], ni[0:_cntml_actual], _vec_rhs[0:_nt->end]) if(_nt->compute_gpu) async(_nt->stream_id)")
-#define _PRAGMA_FOR_JACOB_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_d, _nt) \
+#define _PRAGMA_FOR_JACOB_ACC_LOOP_ \
     _Pragma(                        \
         "acc parallel loop present(vdata[0:_cntml_padded*nparm], ni[0:_cntml_actual], _vec_d[0:_nt->end]) if(_nt->compute_gpu) async(_nt->stream_id)")
-#else
-#define _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt) _Pragma("")
-#define _PRAGMA_FOR_CUR_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_rhs, _nt) _Pragma("")
-#define _PRAGMA_FOR_JACOB_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_d, _nt) _Pragma("")
 #endif
 
 #if !defined(LAYOUT)
@@ -100,7 +96,7 @@ void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
             vdata = ml->data + _iml * nparm;
 #else
         vdata = ml->data;
-        _PRAGMA_FOR_JACOB_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_d, _nt);
+        _PRAGMA_FOR_JACOB_ACC_LOOP_
         for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
             _vec_d[ni[_iml]] += cfac * CM(vdata);
@@ -124,7 +120,7 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
+    _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         I_CAP(vdata) = 0;
@@ -152,7 +148,8 @@ void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_CUR_ACC_LOOP_(vdata, _cntml_padded, nparm, ni, _cntml_actual, _vec_rhs, _nt);
+    _PRAGMA_FOR_CUR_ACC_LOOP_
+
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         I_CAP(vdata) = cfac * CM(vdata) * _vec_rhs[ni[_iml]];
@@ -178,7 +175,7 @@ void nrn_div_capacity(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
+    _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         I_CAP(vdata) = VEC_RHS(ni[_iml]);
@@ -202,7 +199,7 @@ void nrn_mul_capacity(NrnThread* _nt, Memb_list* ml, int /* type */) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
-    _PRAGMA_FOR_INIT_ACC_LOOP_(vdata, _cntml_padded, nparm, _nt)
+    _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         VEC_RHS(ni[_iml]) *= cfac * CM(vdata);
