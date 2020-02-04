@@ -37,6 +37,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define _PRAGMA_FOR_JACOB_ACC_LOOP_ \
     _Pragma(                        \
         "acc parallel loop present(vdata[0:_cntml_padded*nparm], ni[0:_cntml_actual], _vec_d[0:_nt->end]) if(_nt->compute_gpu) async(_nt->stream_id)")
+#else
+#define _PRAGMA_FOR_INIT_ACC_LOOP_ _Pragma("")
+#define _PRAGMA_FOR_CUR_ACC_LOOP_ _Pragma("")
+#define _PRAGMA_FOR_JACOB_ACC_LOOP_ _Pragma("")
 #endif
 
 #if !defined(LAYOUT)
