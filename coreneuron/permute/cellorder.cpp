@@ -655,7 +655,7 @@ void solve_interleaved1(int ith) {
         bksub_interleaved(nt, icell, icellsize, nstride, stride, firstnode);
     }
 #ifdef _OPENACC
-#pragma acc wait(nt->stream_id)
+#pragma acc wait(stream_id)
 #endif
 #endif
 }
