@@ -60,8 +60,8 @@ extern void nrn_setup(const char* filesdat,
                       bool is_mapping_needed,
                       int byte_swap,
                       bool run_setup_cleanup = true,
-                      const std::string& datapath = "",
-                      const std::string& restore_path = "",
+                      const std::string& datapath = std::string(""),
+                      const std::string& restore_path = std::string(""),
                       double* mindelay = nullptr);
 extern double* stdindex2ptr(int mtype, int index, NrnThread&);
 extern void delete_trajectory_requests(NrnThread&);
