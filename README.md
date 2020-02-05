@@ -99,7 +99,7 @@ Note that the CUDA Toolkit version should be compatible with PGI compiler instal
 You have to run GPU executable with the `--gpu` or `-gpu`. Make sure to enable cell re-ordering mechanism to improve GPU performance using `--cell_permute` option (permutation types : 2 or 1):
 
 ```bash
-mpirun -n 1 ./bin/nrniv-core -d ../tests/integration/ring -mpi -e 100 --gpu --cell_permute 2
+mpirun -n 1 ./bin/nrniv-core --mpi --gpu --tstop 100 input --datpath ../tests/integration/ring gpu --cell-permute 2
 ```
 
 Note that if your model is using Random123 random number generator, you can't use same executable for CPU and GPU runs. We suggest to build separate executable for CPU and GPU simulations. This will be fixed in future releases.

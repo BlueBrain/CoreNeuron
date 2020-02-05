@@ -47,6 +47,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/io/nrn_checkpoint.hpp"
 #include "coreneuron/utils/memory_utils.h"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/io/prcellstate.hpp"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/sdprintf.h"
@@ -58,7 +59,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
-#include "coreneuron/apps/corenrn_parameters.hpp"
 
 extern "C" {
 const char* corenrn_version() {

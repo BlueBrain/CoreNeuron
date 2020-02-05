@@ -34,7 +34,7 @@ corenrn_parameters::corenrn_parameters(){
     app.get_formatter()->column_width(50);
     app.set_help_all_flag("-H, --help-all", "Print this help including subcommands and exit.");
 
-    app.set_config("--config", "config.ini", "Read parameters from ini file", false)
+    app.set_config("--config", "", "Read parameters from ini file", false)
         ->check(CLI::ExistingFile);
     app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
     app.add_flag("--gpu", this->gpu, "Activate GPU computation.");
