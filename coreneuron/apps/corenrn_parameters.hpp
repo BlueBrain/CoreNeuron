@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include "CLI/CLI.hpp"
+#include <CLI/CLI.hpp>
 
 /**
  * \class corenrn_parameters

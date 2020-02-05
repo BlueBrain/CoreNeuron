@@ -46,6 +46,7 @@ include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
 include(CTest)
+include(AddCLI11Submodule)
 include_directories(${PROJECT_SOURCE_DIR}/external/CLI11/include)
 
 # =============================================================================
