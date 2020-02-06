@@ -99,7 +99,7 @@ Note that the CUDA Toolkit version should be compatible with PGI compiler instal
 You have to run GPU executable with the `--gpu` or `-gpu`. Make sure to enable cell re-ordering mechanism to improve GPU performance using `--cell_permute` option (permutation types : 2 or 1):
 
 ```bash
-mpirun -n 1 ./bin/nrniv-core --mpi --gpu --tstop 100 input --datpath ../tests/integration/ring gpu --cell-permute 2
+mpirun -n 1 ./bin/nrniv-core --mpi --gpu --tstop 100 --datpath ../tests/integration/ring --cell-permute 2
 ```
 
 Note that if your model is using Random123 random number generator, you can't use same executable for CPU and GPU runs. We suggest to build separate executable for CPU and GPU simulations. This will be fixed in future releases.
@@ -136,7 +136,7 @@ Note that the CoreNEURON simulator depends on NEURON to build the network model:
 
 ```bash
 export OMP_NUM_THREADS=2     #set appropriate value
-mpiexec -np 2 build/bin/nrniv-core -e 10 -d /path/to/model/built/by/neuron --mpi
+mpiexec -np 2 build/bin/nrniv-core --tstop 10 --datpath /path/to/model/built/by/neuron --mpi
 ```
 
 [This tutorial](https://github.com/nrnhines/ringtest) provide more information for parallel runs and performance comparison.
@@ -147,21 +147,11 @@ mpiexec -np 2 build/bin/nrniv-core -e 10 -d /path/to/model/built/by/neuron --mpi
 
 Some details on the new interface:
 
-The new command line interface is based on CLI11. All the previous options are still supported but they are organized differently. You can find more details by running `coreneuron_exec --help-all` or using the table reported below.
+The new command line interface is based on CLI11. You can find more details by running `coreneuron_exec --help`.
 
-Multiple characters options with single dash (`-gpu`, `-mpi`, `-dt`) are **not** supported anymore. All those options now require a double dash (`--gpu`, `--mpi`, `--dt`), but single characters options still support a single dash (e.g. `-g`). More over the option `--write-config` has been remove, use `--show` and a shell redirection to mimic.
+Multiple characters options with single dash (`-gpu`, `-mpi`, `-dt`) are **not** supported anymore. All those options now require a double dash (`--gpu`, `--mpi`, `--dt`), but single characters options still support a single dash (e.g. `-g`).
 
-The structure of a command is the following: `./apps/coreneuron_exec [GENERIC OPTIONS] [SUBCOMMAND [OPTIONS]]`. More specifically, a `GENERIC OPTION` is a parameter that doesn't belong to **any** `SUBCOMMANDS`. `GENERIC OPTIONS` should **always** be written before any `SUBCOMMAND`. To know the various subcommands and their respective options run `coreneuron_exec --help-all` or refer to the table below.
-
-To access a subcommand-specific parameter it must always follow that subcommand. For example to use the `-d` option, one must first write the `input` subcommand.
-Hence, the old command `coreneuron_exec -d /path/to/model/built/by/neuron` becomes `coreneuron_exec input -d /path/to/model/built/by/neuron` in the new implementation. All subcommand-specific options must be grouped with their respective subcommand.
-
-In order to see the command line options, you can use:
-
-```bash
-/path/to/install/directory/coreneuron_exec --help-all
-```
-
+The format of the configuration options file has changed, regenerate them if there is any problem.
 
 ## Results
 

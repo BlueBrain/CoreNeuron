@@ -31,11 +31,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 corenrn_parameters::corenrn_parameters(){
 
-    app.get_formatter()->column_width(50);
-    app.set_help_all_flag("-H, --help-all", "Print this help including subcommands and exit.");
-
-    app.set_config("--config", "", "Read parameters from ini file", false)
+    app.set_config("--read-config", "", "Read parameters from ini file", false)
         ->check(CLI::ExistingFile);
+    app.add_option("--write-config", this->writeParametersFilepath, "Write parameters to this file", false);
+
     app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
     app.add_flag("--gpu", this->gpu, "Activate GPU computation.");
     app.add_option("--dt", this->dt, "Fixed time step. The default value is set by defaults.dat or is 0.025.", true)
@@ -44,13 +43,13 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(0., 1e9));
     app.add_flag("--show", this->print_arg, "Print arguments.");
 
-    auto sub_gpu = app.add_subcommand("gpu", "Commands relative to GPU.");
+    auto sub_gpu = app.add_option_group("GPU", "Commands relative to GPU.");
     sub_gpu -> add_option("-W, --nwarp", this->nwarp, "Number of warps to balance.", true)
         ->check(CLI::Range(0, 1'000'000));
     sub_gpu -> add_option("-R, --cell-permute", this->cell_interleave_permute, "Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.", true)
         ->check(CLI::Range(0, 3));
 
-    auto sub_input = app.add_subcommand("input", "Input dataset options.")->required(true);
+    auto sub_input = app.add_option_group("input", "Input dataset options.")->required(true);
     sub_input -> add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")
         ->required(true)->check(CLI::ExistingPath);
     sub_input -> add_option("-f, --filesdat", this->filesdat, "Name for the distribution file.", true)
@@ -61,18 +60,16 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(0, 100'000'000));
     sub_input -> add_option("-v, --voltage", this->voltage, "Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...).")
         ->check(CLI::Range(-1e9, 1e9));
-    sub_input -> add_option("--read-config", this->rconfigfilepath, "Read configuration file filename.")
-        ->check(CLI::ExistingPath);
     sub_input -> add_option("--report-conf", this->reportfilepath, "Reports configuration file.")
         ->check(CLI::ExistingPath);
     sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.")
         ->check(CLI::ExistingPath);
 
-    auto sub_parallel = app.add_subcommand("parallel", "Parallel processing options.");
+    auto sub_parallel = app.add_option_group("parallel", "Parallel processing options.");
     sub_parallel -> add_flag("-c, --threading", this->threading, "Parallel threads. The default is serial threads.");
     sub_parallel -> add_flag("--skip-mpi-finalize", this->skip_mpi_finalize, "Do not call mpi finalize.");
 
-    auto sub_spike = app.add_subcommand("spike", "Spike exchange options.");
+    auto sub_spike = app.add_option_group("spike", "Spike exchange options.");
     sub_spike -> add_option("--ms-phases", this->ms_phases, "Number of multisend phases, 1 or 2.", true)
         ->check(CLI::Range(1, 2));
     sub_spike -> add_option("--ms-subintervals", this->ms_subint, "Number of multisend subintervals, 1 or 2.", true)
@@ -82,7 +79,7 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(0, 100'000));
     sub_spike->add_flag("--binqueue", this->binqueue, "Use bin queue." );
 
-    auto sub_config = app.add_subcommand("config", "Config options.");
+    auto sub_config = app.add_option_group("config", "Config options.");
     sub_config -> add_option("-b, --spikebuf", this->spikebuf, "Spike buffer size.", true)
         ->check(CLI::Range(0, 2'000'000'000));
     sub_config -> add_option("-g, --prcellgid", this->prcellgid, "Output prcellstate information for the gid NUMBER.")
@@ -100,7 +97,7 @@ corenrn_parameters::corenrn_parameters(){
     sub_config -> add_option("--report-buffer-size", this->report_buff_size, "Size in MB of the report buffer.")
         ->check(CLI::Range(1, 128));
 
-    auto sub_output = app.add_subcommand("output", "Output configuration.");
+    auto sub_output = app.add_option_group("output", "Output configuration.");
     sub_output -> add_option("-i, --dt_io", this->dt_io, "Dt of I/O.", true)
         ->check(CLI::Range(-1000., 1e9));
     sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true)
@@ -115,7 +112,7 @@ void corenrn_parameters::parse (int argc, char** argv) {
         app.parse(argc, argv);
     } catch (const CLI::ExtrasError &e) {
 
-        std::cerr << "Single-dash arguments such as -mpi are deprecated, please check ./coreneuron_exec --help-all for more information. \n" << std::endl;
+        std::cerr << "Single-dash arguments such as -mpi are deprecated, please check ./coreneuron_exec --help for more information. \n" << std::endl;
         app.exit(e);
         throw e;
 
@@ -144,7 +141,6 @@ std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_par
         << std::left << std::setw(15) << "Filesdat" << std::right << std::setw(7) << corenrn_param.filesdat << std::endl;
         if (!corenrn_param.patternstim.empty()) os << std::left << std::setw(15) << "Patternstim" << std::right << std::setw(7) << corenrn_param.patternstim << std::endl;
         if (!corenrn_param.reportfilepath.empty()) os << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << corenrn_param.reportfilepath << std::endl;
-        if (!corenrn_param.rconfigfilepath.empty()) os << std::left << std::setw(15) << "Rconfigpath" << std::right << std::setw(7) << corenrn_param.rconfigfilepath << std::endl;
         if (!corenrn_param.restorepath.empty()) os << std::left << std::setw(15) << "Restorepath" << std::right << std::setw(7) << corenrn_param.restorepath << std::endl;
         os << std::endl
         << "PARALLEL COMPUTATION PARAMETERS" << std::endl

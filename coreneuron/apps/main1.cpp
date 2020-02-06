@@ -454,9 +454,11 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         }
     }
 
-    std::ofstream out("last_config.ini");
-    out << corenrn_param.app.config_to_str(true, true);
-    out.close();
+    if (!corenrn_param.writeParametersFilepath.empty()) {
+        std::ofstream out(corenrn_param.writeParametersFilepath, std::ios::trunc);
+        out << corenrn_param.app.config_to_str(true, true);
+        out.close();
+    }
 
     // reads mechanism information from bbcore_mech.dat
 

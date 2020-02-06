@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
         "nrniv-core",
 
-        "--mpi", //generic commands
+        "--mpi",
 
         "--dt",
         "0.02",
@@ -51,15 +51,11 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
         "--gpu",
 
-        "gpu", //gpu commands
-
         "--cell-permute",
         "2",
 
         "--nwarp",
         "8",
-
-        "input", //input subcommands
 
         "-d",
         "./",
@@ -67,11 +63,7 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "--voltage",
         "-32",
 
-        "parallel", //parallel subcommands
-
         "--threading",
-
-        "spike", //spike exchange subcommands
 
         "--ms-phases",
         "1",
@@ -85,8 +77,6 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "32",
 
         "--binqueue",
-
-        "config", //config subcommands
 
         "--spikebuf",
         "100",
@@ -108,8 +98,6 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
 
         "--mindelay",
         "0.1",
-
-        "output", //output subcommands
 
         "--dt_io",
         "0.2"

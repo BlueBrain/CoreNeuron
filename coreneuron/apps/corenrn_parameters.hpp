@@ -54,7 +54,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 namespace coreneuron {
-typedef std::string string_t;
 
 struct corenrn_parameters {
 
@@ -62,14 +61,14 @@ struct corenrn_parameters {
 
     unsigned spikebuf=100'000;     /// Internal buffer used on every rank for spikes
     int prcellgid=-1;              /// Gid of cell for prcellstate
-    unsigned char ms_phases=2;     /// Number of multisend phases, 1 or 2
-    unsigned char ms_subint=2;     /// Number of multisend interval. 1 or 2
+    unsigned ms_phases=2;     /// Number of multisend phases, 1 or 2
+    unsigned ms_subint=2;     /// Number of multisend interval. 1 or 2
     unsigned spkcompress=0;        /// Spike Compression
-    unsigned char cell_interleave_permute=0; /// Cell interleaving permutation
+    unsigned cell_interleave_permute=0; /// Cell interleaving permutation
     unsigned nwarp=0;              /// Number of warps to balance for cell_interleave_permute == 2
     unsigned multiple=1;           /// Model duplication factor
     unsigned extracon=0;           /// Number of extra random connections in each thread to other duplicate models.
-    unsigned char report_buff_size=report_buff_size_default; ///Size in MB of the report buffer.
+    unsigned report_buff_size=report_buff_size_default; ///Size in MB of the report buffer.
     int seed=-1;                   /// Initialization seed for random number generator (int)
 
     bool mpi_enable=0;             /// Enable MPI flag.
@@ -89,20 +88,20 @@ struct corenrn_parameters {
     double forwardskip=0.;         /// Forward skip to TIME.
     double mindelay=10.;           /// Maximum integration interval (likely reduced by minimum NetCon delay).
 
-    string_t patternstim;          /// Apply patternstim using the specified spike file.
-    string_t datpath=".";          /// Directory path where .dat files
-    string_t outpath=".";          /// Directory where spikes will be written
-    string_t filesdat="files.dat"; /// Name of file containing list of gids dat files read in
-    string_t rconfigfilepath;      /// Read configuration file filename.
-    string_t restorepath;          /// Restore simulation from provided checkpoint directory.
-    string_t reportfilepath;       /// Reports configuration file.
-    string_t checkpointpath;       /// Enable checkpoint and specify directory to store related files.
+    std::string patternstim;          /// Apply patternstim using the specified spike file.
+    std::string datpath=".";          /// Directory path where .dat files
+    std::string outpath=".";          /// Directory where spikes will be written
+    std::string filesdat="files.dat"; /// Name of file containing list of gids dat files read in
+    std::string restorepath;          /// Restore simulation from provided checkpoint directory.
+    std::string reportfilepath;       /// Reports configuration file.
+    std::string checkpointpath;       /// Enable checkpoint and specify directory to store related files.
+    std::string writeParametersFilepath; /// Write parameters to this file
 
     CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."}; ///CLI app that performs CLI parsing
 
     corenrn_parameters();          ///Constructor that initializes the CLI11 app.
 
-    void parse (int argc, char** argv); /// Runs the CLI11_PARSE macro.
+    void parse(int argc, char* argv[]); /// Runs the CLI11_PARSE macro.
 
 };
 
