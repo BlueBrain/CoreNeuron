@@ -35,7 +35,9 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::ExistingFile);
     app.add_option("--write-config", this->writeParametersFilepath, "Write parameters to this file", false);
 
-    app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified." );
+    app.add_flag("--version", this->print_version, "Print the version number of CoreNeuron and quit.");
+
+    app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified.");
     app.add_flag("--gpu", this->gpu, "Activate GPU computation.");
     app.add_option("--dt", this->dt, "Fixed time step. The default value is set by defaults.dat or is 0.025.", true)
         ->check(CLI::Range(-1'000.,1e9));
@@ -49,7 +51,7 @@ corenrn_parameters::corenrn_parameters(){
     sub_gpu -> add_option("-R, --cell-permute", this->cell_interleave_permute, "Cell permutation: 0 No permutation; 1 optimise node adjacency; 2 optimize parent adjacency.", true)
         ->check(CLI::Range(0, 3));
 
-    auto sub_input = app.add_option_group("input", "Input dataset options.")->required(true);
+    auto sub_input = app.add_option_group("input", "Input dataset options.");
     sub_input -> add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")
         ->required(true)->check(CLI::ExistingPath);
     sub_input -> add_option("-f, --filesdat", this->filesdat, "Name for the distribution file.", true)

@@ -71,13 +71,14 @@ struct corenrn_parameters {
     unsigned report_buff_size=report_buff_size_default; ///Size in MB of the report buffer.
     int seed=-1;                   /// Initialization seed for random number generator (int)
 
-    bool mpi_enable=0;             /// Enable MPI flag.
-    bool print_arg=0;              /// Print arguments flag.
-    bool skip_mpi_finalize=0;      /// Skip MPI finalization
-    bool multisend=0;              /// Use Multisend spike exchange instead of Allgather.
-    bool threading=0;              /// Enable pthread/openmp
-    bool gpu=0;                    /// Enable GPU computation.
-    bool binqueue=0;               /// Use bin queue.
+    bool mpi_enable=false;         /// Enable MPI flag.
+    bool print_arg=false;          /// Print arguments flag.
+    bool skip_mpi_finalize=false;  /// Skip MPI finalization
+    bool multisend=false;          /// Use Multisend spike exchange instead of Allgather.
+    bool threading=false;          /// Enable pthread/openmp
+    bool gpu=false;                /// Enable GPU computation.
+    bool binqueue=false;           /// Use bin queue.
+    bool print_version=false;      /// Print the version and quit.
 
     double tstop=100;              /// Stop time of simulation in msec
     double dt=-1000.0;             /// Timestep to use in msec
