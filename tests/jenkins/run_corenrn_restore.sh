@@ -1,9 +1,10 @@
 #!/usr/bin/bash
 
 set -e
-
+module load unstable
 module load hpe-mpi
 
+set -x
 CORENRN_TYPE="$1"
 MPI_RANKS="$2"
 

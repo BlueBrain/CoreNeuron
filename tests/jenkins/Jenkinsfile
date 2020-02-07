@@ -13,6 +13,7 @@ pipeline {
 
     environment {
         HOME = "${WORKSPACE}"
+        JENKINS_DIR = "${WORKSPACE}/tests/jenkins"
     }
 
     stages {

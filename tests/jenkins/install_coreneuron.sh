@@ -3,6 +3,7 @@
 set -e
 
 . /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
+module load unstable
 
 CORENRN_TYPE="$1"
 

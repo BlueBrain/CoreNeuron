@@ -1,9 +1,11 @@
 #!/usr/bin/bash
 
-set -xe
-
+set -e
 . /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
+module load unstable
 module load intel hpe-mpi
+
+set -x
 TEST_DIR="$1"
 CORENRN_TYPE="$2"
 
