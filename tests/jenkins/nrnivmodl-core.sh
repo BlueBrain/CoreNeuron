@@ -1,10 +1,8 @@
 #!/usr/bin/bash
 
 set -e
-unset MODULEPATH
-. /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
-module load unstable
-module load intel hpe-mpi
+source ${JENKINS_DIR:-.}/_env_setup.sh
+module load intel
 
 set -x
 TEST_DIR="$1"
