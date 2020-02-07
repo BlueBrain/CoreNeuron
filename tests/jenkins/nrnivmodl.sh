@@ -1,7 +1,8 @@
 #!/usr/bin/bash
 
 set -e
-source ${JENKINS_ROOT:-.}/_env_setup.sh
+source ${JENKINS_DIR:-.}/_env_setup.sh
+module load neuron
 
 set -x
 TEST_DIR="$1"

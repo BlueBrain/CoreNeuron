@@ -333,9 +333,7 @@ pipeline {
     }
     post {
         always {
-            dir("${WORKSPACE}") {
-                deleteDir()
-            }
+            cleanWs()
         }
     }
 }
