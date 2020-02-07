@@ -279,7 +279,7 @@ void nrn_init_and_load_data(int argc,
 
     // reading *.dat files and setting up the data structures, setting mindelay
     nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup,
-              corenrn_param.datpath, restore_path, &corenrn_param.mindelay);
+              corenrn_param.datpath.c_str(), restore_path.c_str(), &corenrn_param.mindelay);
 
     // Allgather spike compression and  bin queuing.
     nrn_use_bin_queue_ = corenrn_param.binqueue;

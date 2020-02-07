@@ -674,8 +674,8 @@ void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
                int byte_swap,
                bool run_setup_cleanup,
-               const std::string& datapath,
-               const std::string& restore_path,
+               const char* datpath,
+               const char* restore_path,
                double* mindelay) {
     /// Number of local cell groups
     int ngroup = 0;
@@ -738,8 +738,8 @@ void nrn_setup(const char* filesdat,
     FileHandler* file_reader = new FileHandler[ngroup];
 
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datapath.c_str(),
-            restore_path.empty() ? datapath.c_str() : restore_path.c_str(), byte_swap);
+    store_phase_args(ngroup, gidgroups, imult, file_reader, datpath,
+            restore_path ? datpath : restore_path, byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
