@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
 set -e
+unset MODULEPATH
 . /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
 module load unstable
 module load intel hpe-mpi

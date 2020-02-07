@@ -2,6 +2,7 @@
 
 set -e
 
+unset MODULEPATH
 . /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
 module load unstable
 
