@@ -98,9 +98,6 @@ static void bksub(NrnThread* _nt) {
         vec_rhs[i] /= vec_d[i];
     }
 
-#if defined(_OPENACC)
-    int stream_id = _nt->stream_id;
-#endif
 /** @todo: just for benchmarking, otherwise produces wrong results */
 // clang-format off
     #pragma acc parallel loop seq present(          \
