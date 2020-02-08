@@ -160,12 +160,16 @@ void update(NrnThread* _nt) {
     double* vec_rhs = &(VEC_RHS(0));
     int i2 = _nt->end;
 
+#if defined(_OPENACC)
+    int stream_id = _nt->stream_id;
+#endif
+
     /* do not need to worry about linmod or extracellular*/
     if (secondorder) {
 // clang-format off
         #pragma acc parallel loop present(          \
             vec_v[0:i2], vec_rhs[0:i2])             \
-            if (_nt->compute_gpu) async(_nt->stream_id)
+            if (_nt->compute_gpu) async(stream_id)
         // clang-format on
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += 2. * vec_rhs[i];
@@ -174,7 +178,7 @@ void update(NrnThread* _nt) {
 // clang-format off
         #pragma acc parallel loop present(              \
                 vec_v[0:i2], vec_rhs[0:i2])             \
-                if (_nt->compute_gpu) async(_nt->stream_id)
+                if (_nt->compute_gpu) async(stream_id)
         // clang-format on
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += vec_rhs[i];
@@ -283,10 +287,11 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
 
     if (nth->ncell) {
 #if defined(_OPENACC)
+        int stream_id = nth->stream_id;
 /*@todo: do we need to update nth->_t on GPU: Yes (Michael, but can launch kernel) */
 // clang-format off
-        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id)
-        #pragma acc wait(nth->stream_id)
+        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(stream_id)
+        #pragma acc wait(stream_id)
 // clang-format on
 #endif
         fixed_play_continuous(nth);
@@ -323,10 +328,11 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 
     if (nth->ncell) {
 #if defined(_OPENACC)
+        int stream_id = nth->stream_id;
 /*@todo: do we need to update nth->_t on GPU */
 // clang-format off
-        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id)
-        #pragma acc wait(nth->stream_id)
+        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(stream_id)
+        #pragma acc wait(stream_id)
 // clang-format on
 #endif
 
