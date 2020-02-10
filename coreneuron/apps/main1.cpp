@@ -434,7 +434,7 @@ static void trajectory_return() {
 using namespace coreneuron;
 
 
-extern "C" int mk_mech_init(int argc, char** argv) {
+extern "C" void mk_mech_init(int argc, char** argv) {
 #if NRNMPI
     nrnmpi_init(1, &argc, &argv);
 #endif
@@ -446,8 +446,6 @@ extern "C" int mk_mech_init(int argc, char** argv) {
     catch (...) {
         if (!corenrn_param.app["--version"]->empty()) {
             // --version has been called
-            std::cout << CORENRN_VERSION << std::endl;
-            return 1;
         } else {
             nrn_abort(1);
         }
@@ -473,8 +471,6 @@ extern "C" int mk_mech_init(int argc, char** argv) {
     // reads mechanism information from bbcore_mech.dat
 
     mk_mech((corenrn_param.datpath).c_str());
-
-    return 0;
 }
 
 extern "C" int run_solve_core(int argc, char** argv) {
