@@ -19,9 +19,5 @@ if(NOT CLI11_FOUND)
   execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --
                           ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11
                   WORKING_DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR})
-else()
-  message(STATUS "Using CLI11 submodule from ${CLI11_PROJ}")
 endif()
-
-add_subdirectory(${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11)
 

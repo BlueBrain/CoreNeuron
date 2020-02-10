@@ -173,8 +173,8 @@ target_link_libraries(coreneuron
                       ${CUDA_LIBRARIES}
                       ${CALIPER_LIB}
                       ${CALIPER_MPI_LIB}
-                      ${likwid_LIBRARIES}
-                      CLI11::CLI11)
+                      ${likwid_LIBRARIES})
+target_include_directories(coreneuron SYSTEM PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 
 target_link_libraries(corenrnmech scopmath coreneuron)
 

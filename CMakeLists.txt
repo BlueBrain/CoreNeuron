@@ -44,6 +44,7 @@ include(CrayPortability)
 include(SetRpath)
 include(CTest)
 include(AddCLI11Submodule)
+add_subdirectory(${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11)
 
 # =============================================================================
 # Build options
