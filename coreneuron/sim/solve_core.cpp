@@ -57,12 +57,15 @@ static void triang(NrnThread* _nt) {
     double* vec_rhs = &(VEC_RHS(0));
     int* parent_index = _nt->_v_parent_index;
 
+#if defined(_OPENACC)
+    int stream_id = _nt->stream_id;
+#endif
 /** @todo: just for benchmarking, otherwise produces wrong results */
 // clang-format off
     #pragma acc parallel loop seq present(      \
         vec_a[0:i3], vec_b[0:i3], vec_d[0:i3],  \
         vec_rhs[0:i3], parent_index[0:i3])      \
-        async(_nt->stream_id) if (_nt->compute_gpu)
+        async(stream_id) if (_nt->compute_gpu)
     // clang-format on
     for (int i = i3 - 1; i >= i2; --i) {
         double p = vec_a[i] / vec_d[i];
@@ -82,11 +85,14 @@ static void bksub(NrnThread* _nt) {
     double* vec_rhs = &(VEC_RHS(0));
     int* parent_index = _nt->_v_parent_index;
 
+#if defined(_OPENACC)
+    int stream_id = _nt->stream_id;
+#endif
 /** @todo: just for benchmarking, otherwise produces wrong results */
 // clang-format off
     #pragma acc parallel loop seq present(      \
         vec_d[0:i2], vec_rhs[0:i2])             \
-        async(_nt->stream_id) if (_nt->compute_gpu)
+        async(stream_id) if (_nt->compute_gpu)
     // clang-format on
     for (int i = i1; i < i2; ++i) {
         vec_rhs[i] /= vec_d[i];

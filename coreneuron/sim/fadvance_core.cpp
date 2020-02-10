@@ -159,13 +159,16 @@ void update(NrnThread* _nt) {
     double* vec_v = &(VEC_V(0));
     double* vec_rhs = &(VEC_RHS(0));
     int i2 = _nt->end;
+#if defined(_OPENACC)
+    int stream_id = _nt->stream_id;
+#endif
 
     /* do not need to worry about linmod or extracellular*/
     if (secondorder) {
 // clang-format off
         #pragma acc parallel loop present(          \
             vec_v[0:i2], vec_rhs[0:i2])             \
-            if (_nt->compute_gpu) async(_nt->stream_id)
+            if (_nt->compute_gpu) async(stream_id)
         // clang-format on
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += 2. * vec_rhs[i];
@@ -174,7 +177,7 @@ void update(NrnThread* _nt) {
 // clang-format off
         #pragma acc parallel loop present(              \
                 vec_v[0:i2], vec_rhs[0:i2])             \
-                if (_nt->compute_gpu) async(_nt->stream_id)
+                if (_nt->compute_gpu) async(stream_id)
         // clang-format on
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += vec_rhs[i];
