@@ -444,7 +444,11 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         corenrn_param.parse(argc, argv);
     }
     catch (...) {
-        nrn_abort(1);
+        if (!corenrn_param.app["--version"]->empty()) {
+            // --version has been called
+        } else {
+            nrn_abort(1);
+        }
     }
 
     if (corenrn_param.print_version) {
