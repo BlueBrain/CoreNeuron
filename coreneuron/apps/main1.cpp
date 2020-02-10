@@ -477,7 +477,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     report_mem_usage("After mk_mech");
 
-    if (corenrn_param.reportfilepath.size()) {
+    if (!corenrn_param.reportfilepath.empty()) {
         if (corenrn_param.multiple > 1) {
             if (nrnmpi_myid == 0)
                 printf("\n WARNING! : Can't enable reports with model duplications feature! \n");

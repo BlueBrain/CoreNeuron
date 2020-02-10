@@ -173,7 +173,8 @@ target_link_libraries(coreneuron
                       ${CUDA_LIBRARIES}
                       ${CALIPER_LIB}
                       ${CALIPER_MPI_LIB}
-                      ${likwid_LIBRARIES})
+                      ${likwid_LIBRARIES}
+                      CLI11::CLI11)
 
 target_link_libraries(corenrnmech scopmath coreneuron)
 
