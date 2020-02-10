@@ -102,14 +102,14 @@ static void bksub(NrnThread* _nt) {
 // clang-format off
     #pragma acc parallel loop seq present(          \
         vec_b[0:i3], vec_d[0:i3], vec_rhs[0:i3],    \
-        parent_index[0:i3]) async(_nt->stream_id)        \
+        parent_index[0:i3]) async(stream_id)        \
         if (_nt->compute_gpu)
     for (int i = i2; i < i3; ++i) {
         vec_rhs[i] -= vec_b[i] * vec_rhs[parent_index[i]];
         vec_rhs[i] /= vec_d[i];
     }
 
-    #pragma acc wait(_nt->stream_id)
+    #pragma acc wait(stream_id)
     // clang-format on
 }
 }  // namespace coreneuron
