@@ -35,8 +35,6 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::ExistingFile);
     app.add_option("--write-config", this->writeParametersFilepath, "Write parameters to this file", false);
 
-    app.add_flag("--version", [](long int) { throw(CLI::Success{}); }, "Print the version number of CoreNeuron and quit.");
-
     app.add_flag("--mpi", this->mpi_enable, "Enable MPI. In order to initialize MPI environment this argument must be specified.");
     app.add_flag("--gpu", this->gpu, "Activate GPU computation.");
     app.add_option("--dt", this->dt, "Fixed time step. The default value is set by defaults.dat or is 0.025.", true)
