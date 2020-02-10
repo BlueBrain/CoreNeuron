@@ -11,7 +11,9 @@ extern void modl_reg();
 #endif
 
 int solve_core(int argc, char** argv) {
-    mk_mech_init(argc, argv);
+    if (mk_mech_init(argc, argv) == 1) { // If this return 1, it means it has only receive "--version", so finish
+        return 0;
+    }
 
 #ifdef ADDITIONAL_MECHS
     /// Initializing additional Neurodamus mechanisms (in mod_func.c, built by mech/mod_func.c.pl)
