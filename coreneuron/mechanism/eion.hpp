@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace coreneuron {
 
-extern int nrn_is_ion(int);
+extern bool nrn_is_ion(int);
 extern void ion_reg(const char*, double);
 
 } // namespace coreneuron

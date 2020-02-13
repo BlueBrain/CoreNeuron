@@ -127,8 +127,8 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
     return first;
 }
 
-int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, int use_fast_imem, const char* arg) {
-    corenrn_embedded = 1;
+int corenrn_embedded_run(int nthread, bool have_gaps, int use_mpi, int use_fast_imem, const char* arg) {
+    corenrn_embedded = true;
     corenrn_embedded_nthread = nthread;
     coreneuron::nrn_have_gaps = have_gaps;
     if (use_fast_imem) {
@@ -254,7 +254,7 @@ void nrn_init_and_load_data(int argc,
 #if LAYOUT == 1
     // permuting not allowed for AoS
     use_interleave_permute = 0;
-    use_solve_interleave = 0;
+    use_solve_interleave = false;
 #endif
 
     if (nrnopt_get_flag("--gpu") && use_interleave_permute == 0) {
@@ -263,7 +263,7 @@ void nrn_init_and_load_data(int argc,
                 " WARNING : GPU execution requires --cell-permute type 1 or 2. Setting it to 1.\n");
         }
         use_interleave_permute = 1;
-        use_solve_interleave = 1;
+        use_solve_interleave = true;
     }
 
     // pass by flag so existing tests do not need a changed nrn_setup prototype.
