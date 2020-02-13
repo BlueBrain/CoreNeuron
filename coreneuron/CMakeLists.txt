@@ -173,6 +173,8 @@ target_link_libraries(coreneuron
                       ${CALIPER_LIB}
                       ${CALIPER_MPI_LIB}
                       ${likwid_LIBRARIES})
+target_include_directories(coreneuron SYSTEM PRIVATE
+        ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
 
 target_link_libraries(corenrnmech scopmath coreneuron)
 

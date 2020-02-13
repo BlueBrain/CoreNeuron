@@ -46,6 +46,7 @@ include(ReleaseDebugAutoFlags)
 include(CrayPortability)
 include(SetRpath)
 include(CTest)
+include(AddRandom123Submodule)
 
 # =============================================================================
 # Build options
