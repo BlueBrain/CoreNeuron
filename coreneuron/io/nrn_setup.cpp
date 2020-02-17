@@ -739,7 +739,7 @@ void nrn_setup(const char* filesdat,
 
     /* nrn_multithread_job supports serial, pthread, and openmp. */
     store_phase_args(ngroup, gidgroups, imult, file_reader, datpath,
-            restore_path ? restore_path : datpath, byte_swap);
+            strlen(restore_path) != 0 ? restore_path : datpath, byte_swap);
 
     // gap junctions
     if (nrn_have_gaps) {
