@@ -78,7 +78,6 @@ struct corenrn_parameters {
     bool threading=false;          /// Enable pthread/openmp
     bool gpu=false;                /// Enable GPU computation.
     bool binqueue=false;           /// Use bin queue.
-    bool print_version=false;      /// Print the version and quit.
 
     double tstop=100;              /// Stop time of simulation in msec
     double dt=-1000.0;             /// Timestep to use in msec

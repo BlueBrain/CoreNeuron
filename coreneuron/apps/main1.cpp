@@ -449,10 +449,6 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         nrn_abort(1);
     }
 
-    if (corenrn_param.print_version) {
-        std::cout << "CoreNeuron version: " CORENRN_VERSION << std::endl;
-    }
-
     if (!corenrn_param.writeParametersFilepath.empty()) {
         std::ofstream out(corenrn_param.writeParametersFilepath, std::ios::trunc);
         out << corenrn_param.app.config_to_str(false, false);

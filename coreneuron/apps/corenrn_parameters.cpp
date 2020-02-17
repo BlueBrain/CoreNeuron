@@ -123,49 +123,49 @@ void corenrn_parameters::parse (int argc, char** argv) {
 std::ostream& operator<<(std::ostream& os, const corenrn_parameters& corenrn_param){
 
     os  << "GENERAL PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "MPI" << std::right << std::setw(7) << corenrn_param.mpi_enable << "      "
-        << std::left << std::setw(15) << "dt" << std::right << std::setw(7) << corenrn_param.dt << "      "
-        << std::left << std::setw(15) << "Tstop" << std::right << std::setw(7) << corenrn_param.tstop << std::endl
-        << std::left << std::setw(15) << "Print_arg" << std::right << std::setw(7) << corenrn_param.print_arg << std::endl
+        << "--mpi=" << (corenrn_param.gpu ? "true" : "false") <<  std::endl
+        << "--gpu=" << (corenrn_param.mpi_enable ? "true" : "false") <<  std::endl
+        << "--dt=" << corenrn_param.dt <<  std::endl
+        << "--tstop=" << corenrn_param.tstop << std::endl
         << std::endl
-        << "GPU PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "Nwarp" << std::right << std::setw(7) << corenrn_param.nwarp << "      "
-        << std::left << std::setw(15) << "Cell_perm" << std::right << std::setw(7) << corenrn_param.cell_interleave_permute << std::endl
+        << "GPU" << std::endl
+        << "--nwarp=" << corenrn_param.nwarp <<  std::endl
+        << "--cell-permute=" << corenrn_param.cell_interleave_permute << std::endl
         << std::endl
         << "INPUT PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "Voltage" << std::right << std::setw(7) << corenrn_param.voltage << "      "
-        << std::left << std::setw(15) << "Seed" << std::right << std::setw(7) << corenrn_param.seed << std::endl
-        << std::left << std::setw(15) << "Datpath" << std::right << std::setw(7) << corenrn_param.datpath << std::endl
-        << std::left << std::setw(15) << "Filesdat" << std::right << std::setw(7) << corenrn_param.filesdat << std::endl;
-        if (!corenrn_param.patternstim.empty()) os << std::left << std::setw(15) << "Patternstim" << std::right << std::setw(7) << corenrn_param.patternstim << std::endl;
-        if (!corenrn_param.reportfilepath.empty()) os << std::left << std::setw(15) << "Reportpath" << std::right << std::setw(7) << corenrn_param.reportfilepath << std::endl;
-        if (!corenrn_param.restorepath.empty()) os << std::left << std::setw(15) << "Restorepath" << std::right << std::setw(7) << corenrn_param.restorepath << std::endl;
-        os << std::endl
+        << "--voltage=" << corenrn_param.voltage << std::endl
+        << "--seed=" << corenrn_param.seed << std::endl
+        << "--datpath=" << corenrn_param.datpath << std::endl
+        << "--filesdat=" << corenrn_param.filesdat << std::endl
+        << "--pattern=" << corenrn_param.patternstim << std::endl
+        << "--report-conf=" << corenrn_param.reportfilepath << std::endl
+        << std::left << std::setw(15) << "--restore=" << corenrn_param.restorepath << std::endl
+        << std::endl
         << "PARALLEL COMPUTATION PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "Threading" << std::right << std::setw(7) << corenrn_param.threading << "      "
-        << std::left << std::setw(15) << "Skip_mpi_fin" << std::right << std::setw(7) << corenrn_param.skip_mpi_finalize << std::endl
+        << "--threading=" << (corenrn_param.threading ? "true" : "false") << std::endl
+        << "--skip_mpi_finalize=" << (corenrn_param.skip_mpi_finalize ? "true" : "false") << std::endl
         << std::endl
         << "SPIKE EXCHANGE" << std::endl
-        << std::left << std::setw(15) << "Ms_phases" << std::right << std::setw(7) << corenrn_param.ms_phases << "      "
-        << std::left << std::setw(15) << "Ms_Subint" << std::right << std::setw(7) << corenrn_param.ms_subint << "      "
-        << std::left << std::setw(15) << "Multisend" << std::right << std::setw(7) << corenrn_param.multisend << std::endl
-        << std::left << std::setw(15) << "Spk_compress" << std::right << std::setw(7) << corenrn_param.spkcompress << "      "
-        << std::left << std::setw(15) << "Binqueue" << std::right << std::setw(7) << corenrn_param.binqueue << std::endl
+        << "--ms_phases=" << corenrn_param.ms_phases << std::endl
+        << "--ms_subintervals=" << corenrn_param.ms_subint << std::endl
+        << "--multisend=" << (corenrn_param.multisend ? "true" : "false") << std::endl
+        << "--spk_compress=" << corenrn_param.spkcompress << std::endl
+        << "--binqueue=" << (corenrn_param.binqueue ? "true" : "false") << std::endl
         << std::endl
         << "CONFIGURATION" << std::endl
-        << std::left << std::setw(15) << "Spike Buffer" << std::right << std::setw(7) << corenrn_param.spikebuf << "      "
-        << std::left << std::setw(15) << "Pr Cell Gid" << std::right << std::setw(7) << corenrn_param.prcellgid << "      "
-        << std::left << std::setw(15) << "Forwardskip" << std::right << std::setw(7) << corenrn_param.forwardskip << std::endl
-        << std::left << std::setw(15) << "Celsius" << std::right << std::setw(7) << corenrn_param.celsius << "      "
-        << std::left << std::setw(15) << "Extracon" << std::right << std::setw(7) << corenrn_param.extracon << "      "
-        << std::left << std::setw(15) << "Multiple" << std::right << std::setw(7) << corenrn_param.multiple << std::endl
-        << std::left << std::setw(15) << "Mindelay" << std::right << std::setw(7) << corenrn_param.mindelay << "      "
-        << std::left << std::setw(15) << "Rep_buff" << std::right << std::setw(7) << corenrn_param.report_buff_size << std::endl
+        << "--spikebuf=" << corenrn_param.spikebuf << std::endl
+        << "--prcellgid=" << corenrn_param.prcellgid << std::endl
+        << "--forwardskip=" << corenrn_param.forwardskip << std::endl
+        << "--celsius=" << corenrn_param.celsius << std::endl
+        << "--extracon=" << corenrn_param.extracon << std::endl
+        << "--multiple=" << corenrn_param.multiple << std::endl
+        << "--mindelay=" << corenrn_param.mindelay << std::endl
+        << "--report-buffer-size=" << corenrn_param.report_buff_size << std::endl
         << std::endl
         << "OUTPUT PARAMETERS" << std::endl
-        << std::left << std::setw(15) << "dt_io" << std::right << std::setw(7) << corenrn_param.dt_io << std::endl
-        << std::left << std::setw(15) << "Outpath" << std::right << std::setw(7) << corenrn_param.outpath << std::endl;
-        if (!corenrn_param.checkpointpath.empty()) os << std::left << std::setw(15) << "Checkpointpath" << std::right << std::setw(7) << corenrn_param.checkpointpath<< std::endl;
+        << "--dt_io=" << corenrn_param.dt_io << std::endl
+        << "--outpath=" << corenrn_param.outpath << std::endl
+        << "--checkpoint=" << corenrn_param.checkpointpath << std::endl;
 
     return os;
 }
