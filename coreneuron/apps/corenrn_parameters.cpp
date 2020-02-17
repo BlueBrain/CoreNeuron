@@ -41,7 +41,7 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(-1'000.,1e9));
     app.add_option("-e, --tstop", this->tstop, "Stop Time in ms.")
         ->check(CLI::Range(0., 1e9));
-    app.add_flag("--show", this->print_arg, "Print arguments.");
+    app.add_flag("--show", this->print_arg, "Print arguments. (This option is deprecated and do nothing because options are always shown");
 
     auto sub_gpu = app.add_option_group("GPU", "Commands relative to GPU.");
     sub_gpu -> add_option("-W, --nwarp", this->nwarp, "Number of warps to balance.", true)
@@ -51,7 +51,7 @@ corenrn_parameters::corenrn_parameters(){
 
     auto sub_input = app.add_option_group("input", "Input dataset options.");
     sub_input -> add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")
-        ->required(true)->check(CLI::ExistingPath);
+        ->check(CLI::ExistingPath);
     sub_input -> add_option("-f, --filesdat", this->filesdat, "Name for the distribution file.", true)
         ->check(CLI::ExistingFile);
     sub_input -> add_option("-p, --pattern", this->patternstim, "Apply patternstim using the specified spike file.")
