@@ -62,8 +62,7 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(-1e9, 1e9));
     sub_input -> add_option("--report-conf", this->reportfilepath, "Reports configuration file.")
         ->check(CLI::ExistingPath);
-    sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.")
-        ->check(CLI::ExistingPath);
+    sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.");
 
     auto sub_parallel = app.add_option_group("parallel", "Parallel processing options.");
     sub_parallel -> add_flag("-c, --threading", this->threading, "Parallel threads. The default is serial threads.");

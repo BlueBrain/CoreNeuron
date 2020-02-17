@@ -444,11 +444,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         corenrn_param.parse(argc, argv);
     }
     catch (...) {
-        if (!corenrn_param.app["--version"]->empty()) {
-            // --version has been called
-        } else {
-            nrn_abort(1);
-        }
+        nrn_abort(1);
     }
 
     if (corenrn_param.print_version) {
@@ -498,11 +494,13 @@ extern "C" int run_solve_core(int argc, char** argv) {
         nrn_init_and_load_data(argc, argv, !configs.empty());
     }
 
-    std::string checkpoint_path = corenrn_param.checkpointpath;
-
-    if (strlen(checkpoint_path.c_str())) {
-        nrn_checkpoint_arg_exists = true;
+    nrn_checkpoint_arg_exists = !corenrn_param.checkpoint_path.empty();
+    if (nrn_checkpoint_arg_exists) {
+        if (nrnmpi_myid == 0) {
+            mkdir_p(corenrn_param.checkpoint_path.c_str());
+        }
     }
+
     std::string output_dir = corenrn_param.outpath;
 
     if (nrnmpi_myid == 0) {
@@ -549,7 +547,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;
-        int report_buffer_size = corenrn_param.report_buff_size;
         for (size_t i = 0; i < configs.size(); i++) {
             register_report(dt, tstop, delay, configs[i]);
             if (configs[i].report_dt < min_report_dt) {
@@ -599,7 +596,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     {
         Instrumentor::phase p("checkpoint");
-        write_checkpoint(nrn_threads, nrn_nthread, checkpoint_path.c_str(), nrn_need_byteswap);
+        write_checkpoint(nrn_threads, nrn_nthread, corenrn_param.checkpoint_path.c_str(), nrn_need_byteswap);
     }
 
     // must be done after checkpoint (to avoid deleting events)
