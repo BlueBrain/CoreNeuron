@@ -37,6 +37,7 @@ BEGIN_INCLUDE_LIST
  void coreneuron::nrn_finitialize(int, double)
  void coreneuron::nrn_fixed_step_group(int)
  void coreneuron::nrn_fixed_step_group_minimal(int)
+ void coreneuron::nrn_fixed_single_steps_minimal(int, double)
  void coreneuron::nrn_flush_reports(double)
  void coreneuron::nrn_lhs(coreneuron::NrnThread *)
  void coreneuron::nrn_multithread_job(void *(*)(coreneuron::NrnThread *))
