@@ -494,10 +494,10 @@ extern "C" int run_solve_core(int argc, char** argv) {
         nrn_init_and_load_data(argc, argv, !configs.empty());
     }
 
-    nrn_checkpoint_arg_exists = !corenrn_param.checkpoint_path.empty();
+    nrn_checkpoint_arg_exists = !corenrn_param.checkpointpath.empty();
     if (nrn_checkpoint_arg_exists) {
         if (nrnmpi_myid == 0) {
-            mkdir_p(corenrn_param.checkpoint_path.c_str());
+            mkdir_p(corenrn_param.checkpointpath.c_str());
         }
     }
 
@@ -596,7 +596,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     {
         Instrumentor::phase p("checkpoint");
-        write_checkpoint(nrn_threads, nrn_nthread, corenrn_param.checkpoint_path.c_str(), nrn_need_byteswap);
+        write_checkpoint(nrn_threads, nrn_nthread, corenrn_param.checkpointpath.c_str(), nrn_need_byteswap);
     }
 
     // must be done after checkpoint (to avoid deleting events)
