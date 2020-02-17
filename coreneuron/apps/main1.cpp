@@ -556,7 +556,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         // Set the buffer size if is not the default value. Otherwise use report.conf on
         // register_report
         if (corenrn_param.report_buff_size != corenrn_param.report_buff_size_default) {
-            set_report_buffer_size(report_buffer_size);
+            set_report_buffer_size(corenrn_param.report_buff_size);
         }
         setup_report_engine(min_report_dt, delay);
         configs.clear();
