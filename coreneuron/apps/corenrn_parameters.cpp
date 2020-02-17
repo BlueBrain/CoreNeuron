@@ -101,8 +101,7 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(-1000., 1e9));
     sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true)
         ->check(CLI::ExistingPath);
-    sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.")
-        ->check(CLI::ExistingDirectory);
+    sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.");
 };
 
 void corenrn_parameters::parse (int argc, char** argv) {
