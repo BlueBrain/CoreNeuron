@@ -296,10 +296,9 @@ void nrn_init_and_load_data(int argc,
     /// Setting the timeout
     nrn_set_timeout(200.);
 
-    std::cout << corenrn_param << std::endl;
-
     // show all configuration parameters for current run
     if (nrnmpi_myid == 0) {
+        std::cout << corenrn_param << std::endl;
         std::cout << " Start time (t) = " << t << std::endl << std::endl;
     }
 
