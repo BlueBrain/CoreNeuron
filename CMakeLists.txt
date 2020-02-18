@@ -34,12 +34,13 @@ endif()
 # =============================================================================
 # HPC Coding Conventions
 # =============================================================================
-set(NMODL_ClangFormat_EXCLUDES_RE ".*/external/.*$$"
-        CACHE STRING "list of regular expressions to exclude C/C++ files from formatting"
-        FORCE)
-set(NMODL_CMakeFormat_EXCLUDES_RE ".*/external/.*$$"
-        CACHE STRING "list of regular expressions to exclude CMake files from formatting"
-        FORCE)
+set(CODING_CONV_PREFIX "CORENRN")
+set(CORENRN_ClangFormat_EXCLUDES_RE
+        ".*/external/.*$$"
+        CACHE STRING "list of regular expressions to exclude C/C++ files from formatting" FORCE)
+set(CORENRN_CMakeFormat_EXCLUDES_RE
+        ".*/external/.*$$"
+        CACHE STRING "list of regular expressions to exclude CMake files from formatting" FORCE)
 add_subdirectory(CMake/hpc-coding-conventions/cpp)
 
 # =============================================================================
