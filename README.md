@@ -1,3 +1,4 @@
+TEST
 [![Build Status](https://travis-ci.org/BlueBrain/CoreNeuron.svg?branch=master)](https://travis-ci.org/BlueBrain/CoreNeuron)
 
 # CoreNEURON
