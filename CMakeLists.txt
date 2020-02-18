@@ -13,7 +13,6 @@ project(coreneuron VERSION 0.16.0)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_definitions(-DCORENRN_VERSION="${PROJECT_VERSION}")
 set(CMAKE_BUILD_TYPE
         RelWithDebInfo
         CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")

@@ -41,7 +41,7 @@ corenrn_parameters::corenrn_parameters(){
         ->check(CLI::Range(-1'000.,1e9));
     app.add_option("-e, --tstop", this->tstop, "Stop Time in ms.")
         ->check(CLI::Range(0., 1e9));
-    app.add_flag("--show", this->print_arg, "Print arguments. (This option is deprecated and do nothing because options are always shown");
+    app.add_flag("--show");
 
     auto sub_gpu = app.add_option_group("GPU", "Commands relative to GPU.");
     sub_gpu -> add_option("-W, --nwarp", this->nwarp, "Number of warps to balance.", true)
@@ -103,6 +103,8 @@ corenrn_parameters::corenrn_parameters(){
     sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true)
         ->check(CLI::ExistingDirectory);
     sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.");
+
+    CLI::retire_option(app, "--show");
 };
 
 void corenrn_parameters::parse (int argc, char** argv) {

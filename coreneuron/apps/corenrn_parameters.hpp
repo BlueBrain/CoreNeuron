@@ -72,7 +72,6 @@ struct corenrn_parameters {
     int seed=-1;                   /// Initialization seed for random number generator (int)
 
     bool mpi_enable=false;         /// Enable MPI flag.
-    bool print_arg=false;          /// Print arguments flag.
     bool skip_mpi_finalize=false;  /// Skip MPI finalization
     bool multisend=false;          /// Use Multisend spike exchange instead of Allgather.
     bool threading=false;          /// Enable pthread/openmp
