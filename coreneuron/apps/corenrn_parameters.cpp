@@ -51,7 +51,7 @@ corenrn_parameters::corenrn_parameters(){
 
     auto sub_input = app.add_option_group("input", "Input dataset options.");
     sub_input -> add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")
-        ->check(CLI::ExistingPath);
+        ->check(CLI::ExistingDirectory);
     sub_input -> add_option("-f, --filesdat", this->filesdat, "Name for the distribution file.", true)
         ->check(CLI::ExistingFile);
     sub_input -> add_option("-p, --pattern", this->patternstim, "Apply patternstim using the specified spike file.")
@@ -61,8 +61,9 @@ corenrn_parameters::corenrn_parameters(){
     sub_input -> add_option("-v, --voltage", this->voltage, "Initial voltage used for nrn_finitialize(1, v_init). If 1000, then nrn_finitialize(0,...).")
         ->check(CLI::Range(-1e9, 1e9));
     sub_input -> add_option("--report-conf", this->reportfilepath, "Reports configuration file.")
-        ->check(CLI::ExistingPath);
-    sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.");
+        ->check(CLI::ExistingFile);
+    sub_input -> add_option("--restore", this->restorepath, "Restore simulation from provided checkpoint directory.")
+        ->check(CLI::ExistingDirectory);
 
     auto sub_parallel = app.add_option_group("parallel", "Parallel processing options.");
     sub_parallel -> add_flag("-c, --threading", this->threading, "Parallel threads. The default is serial threads.");
@@ -100,7 +101,7 @@ corenrn_parameters::corenrn_parameters(){
     sub_output -> add_option("-i, --dt_io", this->dt_io, "Dt of I/O.", true)
         ->check(CLI::Range(-1000., 1e9));
     sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true)
-        ->check(CLI::ExistingPath);
+        ->check(CLI::ExistingDirectory);
     sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.");
 };
 
