@@ -100,8 +100,7 @@ corenrn_parameters::corenrn_parameters(){
     auto sub_output = app.add_option_group("output", "Output configuration.");
     sub_output -> add_option("-i, --dt_io", this->dt_io, "Dt of I/O.", true)
         ->check(CLI::Range(-1000., 1e9));
-    sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true)
-        ->check(CLI::ExistingDirectory);
+    sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true);
     sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.");
 
     CLI::retire_option(app, "--show");

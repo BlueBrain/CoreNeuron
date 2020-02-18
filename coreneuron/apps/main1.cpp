@@ -468,6 +468,11 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     report_mem_usage("After mk_mech");
 
+    // Create outpath if it does not exist
+    if (nrnmpi_myid == 0) {
+        mkdir_p(corenrn_param.outpath.c_str());
+    }
+
     if (!corenrn_param.reportfilepath.empty()) {
         if (corenrn_param.multiple > 1) {
             if (nrnmpi_myid == 0)
