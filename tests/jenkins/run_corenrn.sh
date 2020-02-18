@@ -25,6 +25,5 @@ else
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --show --mpi -e 100 -d test${TEST}dat -o ${TEST}
 fi
 
-cat ${TEST}/out.dat > ${TEST}/out_cn_${TEST}.spk
-rm ${TEST}/out.dat
-diff -w -q ${TEST}/out_nrn_${TEST}.spk ${TEST}/out_cn_${TEST}.spk
+mv ${TEST}/out.dat ${TEST}/out_cn_${TEST}.spk
+diff -w ${TEST}/out_nrn_${TEST}.spk ${TEST}/out_cn_${TEST}.spk
