@@ -7,6 +7,11 @@
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 project(coreneuron VERSION 0.18.0)
 
+# It is a bad idea having floating point versions, since macros cant handle them
+# We therefore, have version as an int, which is pretty much standard
+math(EXPR CORENEURON_VERSION_COMBINED
+  "${coreneuron_VERSION_MAJOR} * 100 + ${coreneuron_VERSION_MINOR}")
+
 # =============================================================================
 # CMake common project settings
 # =============================================================================
