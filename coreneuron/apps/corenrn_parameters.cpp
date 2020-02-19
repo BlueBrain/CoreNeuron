@@ -111,8 +111,7 @@ void corenrn_parameters::parse (int argc, char** argv) {
     try {
         app.parse(argc, argv);
     } catch (const CLI::ExtrasError &e) {
-
-        std::cerr << "Single-dash arguments such as -mpi are deprecated, please check ./coreneuron_exec --help for more information. \n" << std::endl;
+        std::cerr << "Single-dash arguments such as -mpi are deleted, please check ./coreneuron_exec --help for more information. \n" << std::endl;
         app.exit(e);
         throw e;
 
