@@ -1,0 +1,23 @@
+#ifndef CORENEURON_ENGINE_H
+#define CORENEURON_ENGINE_H
+
+// Use MAJOR.MINOR for public version
+#define CORENEURON_VERSION @coreneuron_VERSION_MAJOR@.@coreneuron_VERSION_MINOR@
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/// All-in-one initialization of mechanisms and solver
+int solve_core(int argc, char** argv);
+
+/// Initialize mechanisms
+void mk_mech_init(int argc, char** argv);
+/// Run core solver
+int run_solve_core(int argc, char** argv);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

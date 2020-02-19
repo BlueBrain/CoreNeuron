@@ -5,7 +5,7 @@
 # =============================================================================
 
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-project(coreneuron VERSION 0.16.0)
+project(coreneuron VERSION 0.18.0)
 
 # =============================================================================
 # CMake common project settings
