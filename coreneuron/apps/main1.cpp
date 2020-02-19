@@ -126,11 +126,11 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
     return first;
 }
 
-int corenrn_embedded_run(int nthread, bool have_gaps, int use_mpi, int use_fast_imem, const char* arg) {
+int corenrn_embedded_run(int nthread, int have_gaps, int use_mpi, int use_fast_imem, const char* arg) {
     corenrn_embedded = true;
     corenrn_embedded_nthread = nthread;
-    coreneuron::nrn_have_gaps = have_gaps;
-    if (use_fast_imem) {
+    coreneuron::nrn_have_gaps = have_gaps != 0;
+    if (use_fast_imem != 0) {
         coreneuron::nrn_use_fast_imem = true;
     }
 
@@ -143,7 +143,7 @@ int corenrn_embedded_run(int nthread, bool have_gaps, int use_mpi, int use_fast_
     free(new_arg);
     delete[] argv;
 
-    return corenrn_embedded;
+    return corenrn_embedded ? 1 : 0;
 }
 }
 
