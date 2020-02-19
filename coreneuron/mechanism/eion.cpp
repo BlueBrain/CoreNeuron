@@ -84,7 +84,7 @@ void nrn_alloc_ion(double*, Datum*, int);
 double nrn_nernst(), nrn_ghk();
 static int na_ion, k_ion, ca_ion; /* will get type for these special ions */
 
-bool nrn_is_ion(int type) {
+int nrn_is_ion(int type) {
     // Old: commented to remove dependency on memb_func and alloc function
     // return (memb_func[type].alloc == ion_alloc);
     return (type < nrn_ion_global_map_size         // type smaller than largest ion's
