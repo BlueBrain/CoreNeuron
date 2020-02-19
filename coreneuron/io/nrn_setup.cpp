@@ -1581,7 +1581,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
        vectors will be read and will need to be permuted as well in subsequent
        sections of this function.
     */
-    if (use_interleave_permute) {
+    if (interleave_permute_type) {
         nt._permute = interleave_order(nt.id, nt.ncell, nt.end, nt._v_parent_index);
     }
     if (nt._permute) {
@@ -1628,7 +1628,7 @@ for (int i=0; i < nt.end; ++i) {
         }
     }
 
-    if (nrn_have_gaps && use_interleave_permute) {
+    if (nrn_have_gaps && interleave_permute_type) {
         nrn_partrans::gap_indices_permute(nt);
     }
 

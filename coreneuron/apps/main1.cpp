@@ -249,22 +249,22 @@ void nrn_init_and_load_data(int argc,
     report_mem_usage("Before nrn_setup");
 
     // set if need to interleave cells
-    use_interleave_permute = corenrn_param.cell_interleave_permute;
+    interleave_permute_type = corenrn_param.cell_interleave_permute;
     cellorder_nwarp = corenrn_param.nwarp;
     use_solve_interleave = corenrn_param.cell_interleave_permute;
 
 #if LAYOUT == 1
     // permuting not allowed for AoS
-    use_interleave_permute = 0;
+    interleave_permute_type = 0;
     use_solve_interleave = false;
 #endif
 
-    if (corenrn_param.gpu && use_interleave_permute == 0) {
+    if (corenrn_param.gpu && interleave_permute_type == 0) {
         if (nrnmpi_myid == 0) {
             printf(
                 " WARNING : GPU execution requires --cell-permute type 1 or 2. Setting it to 1.\n");
         }
-        use_interleave_permute = 1;
+        interleave_permute_type = 1;
         use_solve_interleave = true;
     }
 
