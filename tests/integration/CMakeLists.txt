@@ -32,7 +32,8 @@ set(TEST_CASES
 
 set(NEGATIVE_TEST_CASES "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
-# There are no directories for permute and multisend related tests, create them and copy ref spikes
+# There are no directories for permute and multisend related tests,
+# create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
   foreach(test_suffix
           "multisend"
@@ -49,12 +50,19 @@ foreach(data_dir "ring" "ring_gap")
   endforeach()
 endforeach()
 
+# base tests : ring, ring with gap and ring duplication
+foreach(data_dir "ring" "ring_gap" "ring_duplicate")
+  file(COPY
+         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
+         DESTINATION
+         "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}/")
+endforeach()
+
+# test for small spike buffer
 file(COPY
      "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
      DESTINATION
      "${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer/")
-
-file(GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
 
 # Configure test scripts
 foreach(args_line ${TEST_CASES})

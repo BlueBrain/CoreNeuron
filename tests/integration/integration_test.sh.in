@@ -28,7 +28,7 @@ then
   exit 1
 fi
 
-diff -w out.dat @CMAKE_CURRENT_SOURCE_DIR@/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
+diff -w out.dat @CMAKE_BINARY_DIR@/tests/integration/@SIM_NAME@/out.dat.ref > diff.dat 2>&1
 
 if [ -s diff.dat ]
 then
