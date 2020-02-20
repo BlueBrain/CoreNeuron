@@ -2,6 +2,6 @@
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:@CMAKE_BINARY_DIR@/lib:@reportinglib_LIB_DIR@
 export OMP_NUM_THREADS=1
-@SRUN_PREFIX@ @CMAKE_BINARY_DIR@/bin/@CMAKE_SYSTEM_PROCESSOR@/special-core --read-config @TEST_NAME@.conf -mpi
+@SRUN_PREFIX@ @CMAKE_BINARY_DIR@/bin/@CMAKE_SYSTEM_PROCESSOR@/special-core --mpi --read-config @TEST_NAME@.conf
 chmod +x ./@TEST_NAME@.check
 exit `./@TEST_NAME@.check`
