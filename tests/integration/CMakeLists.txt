@@ -14,8 +14,8 @@ if(CORENRN_ENABLE_GPU)
   set(GPU_ARGS "--nwarp 8 --gpu")
 endif()
 
-# List of tests with arguments
-set(TEST_CASE_ARGS
+# List of tests with their arguments
+set(TEST_CASES
     "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
@@ -30,7 +30,7 @@ set(TEST_CASE_ARGS
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
 
-set(NEGATIVE_TEST_CASE_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
+set(NEGATIVE_TEST_CASES "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
 # There are no directories for permute and multisend related tests, create them and copy ref spikes
 foreach(data_dir "ring" "ring_gap")
@@ -57,7 +57,7 @@ file(COPY
 file(GLOB INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/ring/*.dat")
 
 # Configure test scripts
-foreach(args_line ${TEST_CASES_WITH_ARGS})
+foreach(args_line ${TEST_CASES})
   string(REPLACE "!"
                  ";"
                  string_line
@@ -77,7 +77,7 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
 endforeach()
 
-foreach(args_line ${NEGATIVE_TEST_CASES_WITH_ARGS})
+foreach(args_line ${NEGATIVE_TEST_CASES})
   string(REPLACE "!"
                  ";"
                  string_line
