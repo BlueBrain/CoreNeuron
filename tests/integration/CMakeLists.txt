@@ -11,7 +11,7 @@ set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMO
 set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
 set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
 if(CORENRN_ENABLE_GPU)
-  set(GPU_ARGS "--nwarp 8 --gpu")
+  set(GPU_ARGS "--gpu")
 endif()
 
 # List of tests with their arguments
