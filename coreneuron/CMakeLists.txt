@@ -293,3 +293,7 @@ endif()
 # install nrniv-core app
 install(TARGETS nrniv-core DESTINATION bin)
 install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)
+
+# install Random123
+install(DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
+        DESTINATION include)
