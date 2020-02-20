@@ -375,10 +375,6 @@ static void question2(VVTN& levels) {
     }
 }
 
-// size of groups with contiguous parents for each level
-static void question(VVTN& levels) {
-}
-
 static void analyze(VVTN& levels) {
     // sort each level with respect to parent level order
     // earliest parent level first.
@@ -462,9 +458,6 @@ void group_order2(VecTNode& nodevec, size_t groupsize, size_t ncell) {
         analyze(groups[i]);
         question2(groups[i]);
     }
-
-    question(groups[0]);
-    //  question2(groups[0]);
 
     // final nodevec order according to group_index and treenode_order
     std::sort(nodevec.begin() + ncell, nodevec.end(), final_nodevec_cmp);
