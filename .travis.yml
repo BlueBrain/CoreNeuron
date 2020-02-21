@@ -99,6 +99,7 @@ addons:
       - flex
       - openmpi
       - boost
+    update: true # https://travis-ci.community/t/macos-build-fails-because-of-homebrew-bundle-unknown-command/7296/10
 
 #=============================================================================
 # Set up environments
