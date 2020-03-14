@@ -8,14 +8,14 @@ set(COMMON_ARGS "--tstop 100. --celsius 6.3 --mpi")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
-set(PERMUTE1_ARGS "--cell-permute 1 --nwarp 8")
-set(PERMUTE2_ARGS "--cell-permute 2 --nwarp 16")
+set(PERMUTE1_ARGS "--cell-permute 1")
+set(PERMUTE2_ARGS "--cell-permute 2")
 if(CORENRN_ENABLE_GPU)
   set(GPU_ARGS "--gpu")
 endif()
 
-# List of tests with their arguments
-set(TEST_CASES
+# List of tests with arguments
+set(TEST_CASES_WITH_ARGS
     "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
@@ -30,7 +30,7 @@ set(TEST_CASES
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
 
-set(NEGATIVE_TEST_CASES "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
+set(NEGATIVE_TEST_CASES_WITH_ARGS "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456")
 
 # There are no directories for permute and multisend related tests,
 # create them and copy ref spikes
