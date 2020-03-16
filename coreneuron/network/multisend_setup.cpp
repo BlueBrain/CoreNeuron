@@ -255,8 +255,8 @@ Anyway, to potentially support this in the future, we write setup_target_lists
 to not use any PreSyn information.
 */
 
-static std::vector<int> setup_target_lists(int);
-static void fill_multisend_lists(int, int, int*, int*&, int*&);
+static std::vector<int> setup_target_lists(bool);
+static void fill_multisend_lists(bool, const std::vector<int>&, int*&, int*&);
 
 void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& targets_phase2) {
     auto r = setup_target_lists(use_phase2);
@@ -273,7 +273,7 @@ void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& ta
         ps->multisend_phase2_index_ = -1;
     }
 
-    fill_multisend_lists(use_phase2, r.size(), r.data(), targets_phase1, targets_phase2);
+    fill_multisend_lists(use_phase2, r, targets_phase1, targets_phase2);
 
     // phase1debug(targets_phase1);
     // phase2debug(targets_phase2);
@@ -283,9 +283,8 @@ void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& ta
 // Assume all MPI message sent and received from a single thread (0).
 // gid2in and gid2out are rank wide lists for all threads
 //
-static void fill_multisend_lists(int use_phase2,
-                                 int sz,
-                                 int* r,
+static void fill_multisend_lists(bool use_phase2,
+                                 const std::vector<int>& r,
                                  int*& targets_phase1,
                                  int*& targets_phase2) {
     // sequence of gid, size, [totalsize], list
@@ -298,7 +297,7 @@ static void fill_multisend_lists(int use_phase2,
     // Count and fill in multisend_index and multisend_phase2_index_
     // From the counts can allocate targets_phase1 and targets_phase2
     // Then can iterate again and copy r to proper target locations.
-    for (int i = 0; i < sz;) {
+    for (int i = 0; i < r.size();) {
         InputPreSyn* ips = nullptr;
         int gid = r[i++];
         int size = r[i++];
@@ -317,7 +316,7 @@ static void fill_multisend_lists(int use_phase2,
             PreSyn* ps = gid2out_it->second;
             ps->multisend_index_ = phase1_index;
             phase1_index += 2 + size;  // total + count + ranks
-            if (use_phase2 > 0) {
+            if (use_phase2) {
                 i++;
             }
             i += size;
@@ -327,8 +326,8 @@ static void fill_multisend_lists(int use_phase2,
     targets_phase1 = new int[phase1_index];
     targets_phase2 = new int[phase2_index];
 
-    // printf("%d sz=%d\n", nrnmpi_myid, sz);
-    for (int i = 0; i < sz;) {
+    // printf("%d sz=%d\n", nrnmpi_myid, r.size());
+    for (int i = 0; i < r.size();) {
         InputPreSyn* ips = nullptr;
         int gid = r[i++];
         int size = r[i++];
@@ -355,7 +354,7 @@ static void fill_multisend_lists(int use_phase2,
             int p = ps->multisend_index_;
             int* ranks = targets_phase1 + p;
             int total = size;
-            if (use_phase2 > 0) {
+            if (use_phase2) {
                 total = r[i++];
             }
             ranks[0] = total;
@@ -379,26 +378,23 @@ static void fill_multisend_lists(int use_phase2,
         PreSyn* ps = g.second;
         if (ps->output_index_ >= 0) {  // only ones that generate spikes
             int i = ps->multisend_index_;
-            if (max_ntarget_host < targets_phase1[i]) {
-                max_ntarget_host = targets_phase1[i];
-            }
-            if (max_multisend_targets < targets_phase1[i + 1]) {
-                max_multisend_targets = targets_phase1[i + 1];
-            }
+            max_ntarget_host = std::max(targets_phase1[i], max_ntarget_host);
+            max_multisend_targets = std::max(targets_phase1[i + 1], max_multisend_targets);
         }
     }
-    if (use_phase2)
+    if (use_phase2) {
         for (auto& g: gid2in) {
             InputPreSyn* ps = g.second;
             int i = ps->multisend_phase2_index_;
-            if (i >= 0 && max_multisend_targets < targets_phase2[i]) {
-                max_multisend_targets = targets_phase2[i];
+            if (i >= 0) {
+                max_multisend_targets = std::max(max_multisend_targets, targets_phase2[i]);
             }
         }
+    }
 }
 
 // Return the vector encoding a sequence of gid, target list size, and target list
-static std::vector<int> setup_target_lists(int use_phase2) {
+static std::vector<int> setup_target_lists(bool use_phase2) {
     int nhost = nrnmpi_numprocs;
 
     // Construct hash table for finding the target rank list for a given gid.
@@ -437,15 +433,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
 
         // Now figure out the size of the target list for each distinct gid in r1.
         for (const auto& gid: r1) {
-            auto itl_it = gid2tarlist.find(gid);
-            if (itl_it != gid2tarlist.end()) {
-                TarList* tl = itl_it->second;
-                ++(tl->size);
-            } else {
-                TarList* tl = new TarList();
-                tl->size = 1;
-                gid2tarlist.emplace(gid, tl);
-            }
+            auto tar = gid2tarlist[gid];
+            ++(tar->size);
         }
 
         // Conceptually, now the intermediate is the mpi source and the gid
@@ -622,7 +611,6 @@ static std::vector<int> setup_target_lists(int use_phase2) {
                     s3[sdispl4_[rank]++] = tl->list[j];
                 }
             }
-
         } else {
             // gid, list size, list
             s3[sdispl4_[tl->rank]++] = gid;
