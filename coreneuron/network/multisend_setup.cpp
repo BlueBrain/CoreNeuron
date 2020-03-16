@@ -18,51 +18,46 @@ the source host owning the gid.
 
 #if NRN_MULTISEND
 namespace coreneuron {
-typedef std::map<int, InputPreSyn*> Gid2IPS;
-typedef std::map<int, PreSyn*> Gid2PS;
+using Gid2IPS = std::map<int, InputPreSyn*>;
+using Gid2PS = std::map<int, PreSyn*>;
 
 #if DEBUG
 template <typename T>
 static void celldebug(const char* p, T& map) {
-    FILE* f;
-    char fname[100];
-    sprintf(fname, "debug.%d", nrnmpi_myid);
-    f = fopen(fname, "a");
-    fprintf(f, "\n%s\n", p);
+    std::string fname = std::string("debug.") + std::to_string(nrnmpi_myid);
+    std::ofstream f(fname, std::ios::app);
+    f << std::endl << p << std::endl;
     int rank = nrnmpi_myid;
-    fprintf(f, "  %2d:", rank);
-    for (typename T::iterator map_it = map.begin(); map_it != map.end(); ++map_it) {
-        int gid = map_it->first;
+    f << "  " << std::setw(2) << std::setfill('0') << rank << ":";
+    for (const auto& m: map) {
+        int gid = m.first;
+        f << "  " << std::setw(2) << std::setfill('0') << gid << ":";
         fprintf(f, " %2d", gid);
     }
-    fprintf(f, "\n");
-    fclose(f);
+    f << std::endl;
 }
 
 static void
 alltoalldebug(const char* p, int* s, int* scnt, int* sdispl, int* r, int* rcnt, int* rdispl) {
-    FILE* f;
-    char fname[100];
-    sprintf(fname, "debug.%d", nrnmpi_myid);
-    f = fopen(fname, "a");
-    fprintf(f, "\n%s\n", p);
+    std::string fname = std::string("debug.") + std::to_string(nrnmpi_myid);
+    std::ofstream f(fname, std::ios::app);
+    f << std::endl << p << std::endl;
     int rank = nrnmpi_myid;
-    fprintf(f, "  rank %d\n", rank);
+    f << "  rank " << rank << std::endl;
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
-        fprintf(f, "    s%d : %d %d :", i, scnt[i], sdispl[i]);
+        f << "    s" << i << " : " << scnt[i] << " " << sdispl[i] << " :";
         for (int j = sdispl[i]; j < sdispl[i + 1]; ++j) {
-            fprintf(f, " %2d", s[j]);
+            f << "  " << std::setw(2) << std::setfill('0') << s[j] << ":";
         }
-        fprintf(f, "\n");
+        f << std::endl;
     }
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
-        fprintf(f, "    r%d : %d %d :", i, rcnt[i], rdispl[i]);
+        f << "    r" << i << " : " << rcnt[i] << " " << rdispl[i] << " :";
         for (int j = rdispl[i]; j < rdispl[i + 1]; ++j) {
-            fprintf(f, " %2d", r[j]);
+            f << "  " << std::setw(2) << std::setfill('0') << r[j] << ":";
         }
-        fprintf(f, "\n");
+        f << std::endl;
     }
-    fclose(f);
 }
 #else
 template <typename T>
@@ -74,55 +69,43 @@ static void alltoalldebug(const char*, int*, int*, int*, int*, int*, int*) {
 
 #if DEBUG
 void phase1debug(int* targets_phase1) {
-    FILE* f;
-    char fname[100];
-    sprintf(fname, "debug.%d", nrnmpi_myid);
-    f = fopen(fname, "a");
-    fprintf(f, "\nphase1debug %d", nrnmpi_myid);
-    for (Gid2PS::iterator gid2out_it = gid2out.begin(); gid2out_it != gid2out.end(); ++gid2out_it) {
-        PreSyn* ps = gid2out_it->second;
-        fprintf(f, "\n %2d:", ps->gid_);
+    std::string fname = std::string("debug.") + std::to_string(nrnmpi_myid);
+    std::ofstream f(fname, std::ios::app);
+    f << std::endl << "phase1debug " << nrnmpi_myid;
+    for (auto& g: gid2out) {
+        PreSyn* ps = g.second;
+        f << std::endl <<  " " << std::setw(2) << std::setfill('0') << ps->gid_ << ":";
         int* ranks = targets_phase1 + ps->multisend_index_;
         int n = ranks[1];
         ranks += 2;
         for (int i = 0; i < n; ++i) {
-            fprintf(f, " %2d", ranks[i]);
+            f << " " << std::setw(2) << std::setfill('0') << ranks[i];
         }
     }
-    fprintf(f, "\n");
-    fclose(f);
+    f << std::endl;
 }
 
 void phase2debug(int* targets_phase2) {
-    FILE* f;
-    char fname[100];
-    sprintf(fname, "debug.%d", nrnmpi_myid);
-    f = fopen(fname, "a");
-    fprintf(f, "\nphase2debug %d", nrnmpi_myid);
-    for (Gid2IPS::iterator gid2in_it = gid2in.begin(); gid2in_it != gid2in.end(); ++gid2in_it) {
-        int gid = gid2in_it->first;
-        InputPreSyn* ps = gid2in_it->second;
-        fprintf(f, "\n %2d:", gid);
+    std::string fname = std::string("debug.") + std::to_string(nrnmpi_myid);
+    std::ofstream f(fname, std::ios::app);
+    f << std::endl << "phase2debug " << nrnmpi_myid;
+    for (auto& g: gid2in) {
+        int gid = g.first;
+        InputPreSyn* ps = g.second;
+        f << std::endl <<  " " << std::setw(2) << std::setfill('0') << gid << ":";
         int j = ps->multisend_phase2_index_;
         if (j >= 0) {
             int* ranks = targets_phase2 + j;
             int cnt = ranks[0];
             ranks += 1;
             for (int i = 0; i < cnt; ++i) {
-                fprintf(f, " %2d", ranks[i]);
+                f << " " << std::setw(2) << std::setfill('0') << ranks[i];
             }
         }
     }
-    fprintf(f, "\n");
-    fclose(f);
+    f << std::endl;
 }
 #endif
-
-static void del(int* a) {
-    if (a) {
-        delete[] a;
-    }
-}
 
 static int* newintval(int val, int size) {
     if (size == 0) {
@@ -151,8 +134,8 @@ static void all2allv_helper(int* scnt, int*& rcnt, int*& rdispl) {
     rdispl = newoffset(c, np);
     rcnt = newintval(0, np);
     nrnmpi_int_alltoallv(scnt, c, rdispl, rcnt, c, rdispl);
-    del(c);
-    del(rdispl);
+    delete[] c;
+    delete[] rdispl;
     rdispl = newoffset(rcnt, np);
 }
 
@@ -196,18 +179,15 @@ class TarList {
                    // to send the ith group of phase2 targets.
 };
 
-typedef std::map<int, TarList*> Int2TarList;
-static Int2TarList* gid2tarlist;
+using Int2TarList = std::map<int, TarList*>;
 
-TarList::TarList() {
-    size = 0;
-    list = 0;
-    rank = -1;
-    indices = 0;
-}
+TarList::TarList()
+  : size(0), list(nullptr), rank(-1), indices(nullptr)
+{}
+
 TarList::~TarList() {
-    del(list);
-    del(indices);
+    delete[] list;
+    delete[] indices;
 }
 
 void TarList::alloc() {
@@ -241,9 +221,8 @@ static int iran(int i1, int i2) {
 }
 
 static void phase2organize(TarList* tl) {
-    int n, nt;
-    nt = tl->size;
-    n = int(sqrt(double(nt)));
+    int nt = tl->size;
+    int n = int(sqrt(double(nt)));
     // change to about 20
     if (n > 1) {  // do not bother if not many connections
         // equal as possible group sizes
@@ -293,19 +272,19 @@ void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& ta
     int sz = setup_target_lists(use_phase2, &r);
 
     // initialize as unused
-    for (Gid2PS::iterator gid2out_it = gid2out.begin(); gid2out_it != gid2out.end(); ++gid2out_it) {
-        PreSyn* ps = gid2out_it->second;
+    for (auto& g: gid2out) {
+        PreSyn* ps = g.second;
         ps->multisend_index_ = -1;
     }
 
     // Only will be not -1 if non-nullptr input is a phase 2 sender.
-    for (Gid2IPS::iterator gid2in_it = gid2in.begin(); gid2in_it != gid2in.end(); ++gid2in_it) {
-        InputPreSyn* ps = gid2in_it->second;
+    for (auto& g: gid2in) {
+        InputPreSyn* ps = g.second;
         ps->multisend_phase2_index_ = -1;
     }
 
     fill_multisend_lists(use_phase2, sz, r, targets_phase1, targets_phase2);
-    del(r);
+    delete[] r;
 
     // phase1debug(targets_phase1);
     // phase2debug(targets_phase2);
@@ -335,20 +314,16 @@ static void fill_multisend_lists(int use_phase2,
         int gid = r[i++];
         int size = r[i++];
         if (use_phase2) {  // look in gid2in first
-            Gid2IPS::iterator gid2in_it;
-            gid2in_it = gid2in.find(gid);
+            auto gid2in_it = gid2in.find(gid);
             if (gid2in_it != gid2in.end()) {  // phase 2 target list
                 ips = gid2in_it->second;
                 ips->multisend_phase2_index_ = phase2_index;
                 phase2_index += 1 + size;  // count + ranks
-                for (int j = 0; j < size; ++j) {
-                    i++;
-                }
+                i += size;
             }
         }
         if (!ips) {  // phase 1 target list (or whole list if use_phase2 is 0)
-            Gid2PS::iterator gid2out_it;
-            gid2out_it = gid2out.find(gid);
+            auto gid2out_it = gid2out.find(gid);
             assert(gid2out_it != gid2out.end());
             PreSyn* ps = gid2out_it->second;
             ps->multisend_index_ = phase1_index;
@@ -356,9 +331,7 @@ static void fill_multisend_lists(int use_phase2,
             if (use_phase2 > 0) {
                 i++;
             }
-            for (int j = 0; j < size; ++j) {
-                i++;
-            }
+            i += size;
         }
     }
 
@@ -371,8 +344,7 @@ static void fill_multisend_lists(int use_phase2,
         int gid = r[i++];
         int size = r[i++];
         if (use_phase2) {  // look in gid2in first
-            Gid2IPS::iterator gid2in_it;
-            gid2in_it = gid2in.find(gid);
+            auto gid2in_it = gid2in.find(gid);
             if (gid2in_it != gid2in.end()) {  // phase 2 target list
                 ips = gid2in_it->second;
                 int p = ips->multisend_phase2_index_;
@@ -388,8 +360,7 @@ static void fill_multisend_lists(int use_phase2,
             }
         }
         if (!ips) {  // phase 1 target list (or whole list if use_phase2 is 0)
-            Gid2PS::iterator gid2out_it;
-            gid2out_it = gid2out.find(gid);
+            auto gid2out_it = gid2out.find(gid);
             assert(gid2out_it != gid2out.end());
             PreSyn* ps = gid2out_it->second;
             int p = ps->multisend_index_;
@@ -415,8 +386,8 @@ static void fill_multisend_lists(int use_phase2,
     // compute max_ntarget_host and max_multisend_targets
     int max_ntarget_host = 0;
     int max_multisend_targets = 0;
-    for (Gid2PS::iterator gid2out_it = gid2out.begin(); gid2out_it != gid2out.end(); ++gid2out_it) {
-        PreSyn* ps = gid2out_it->second;
+    for (auto& g: gid2out) {
+        PreSyn* ps = g.second;
         if (ps->output_index_ >= 0) {  // only ones that generate spikes
             int i = ps->multisend_index_;
             if (max_ntarget_host < targets_phase1[i]) {
@@ -428,8 +399,8 @@ static void fill_multisend_lists(int use_phase2,
         }
     }
     if (use_phase2)
-        for (Gid2IPS::iterator gid2in_it = gid2in.begin(); gid2in_it != gid2in.end(); ++gid2in_it) {
-            InputPreSyn* ps = gid2in_it->second;
+        for (auto& g: gid2in) {
+            InputPreSyn* ps = g.second;
             int i = ps->multisend_phase2_index_;
             if (i >= 0 && max_multisend_targets < targets_phase2[i]) {
                 max_multisend_targets = targets_phase2[i];
@@ -440,7 +411,7 @@ static void fill_multisend_lists(int use_phase2,
 // return is vector and its size. The vector encodes a sequence of
 // gid, target list size, and target list
 static int setup_target_lists(int use_phase2, int** r_return) {
-    int *s, *r, *scnt, *rcnt, *sdispl, *rdispl;
+    int *r, *scnt, *rcnt, *rdispl;
     int nhost = nrnmpi_numprocs;
 
     celldebug<Gid2PS>("output gid", gid2out);
@@ -453,39 +424,38 @@ static int setup_target_lists(int use_phase2, int** r_return) {
 
     // scnt is number of input gids from target
     scnt = newintval(0, nhost);
-    for (Gid2IPS::iterator gid2in_it = gid2in.begin(); gid2in_it != gid2in.end(); ++gid2in_it) {
-        int gid = gid2in_it->first;
+    for (auto& g: gid2in) {
+        int gid = g.first;
         ++scnt[gid % nhost];
     }
 
     // s are the input gids from target to be sent to the various intermediates
-    sdispl = newoffset(scnt, nhost);
-    s = newintval(0, sdispl[nhost]);
-    for (Gid2IPS::iterator gid2in_it = gid2in.begin(); gid2in_it != gid2in.end(); ++gid2in_it) {
-        int gid = gid2in_it->first;
+    int* sdispl = newoffset(scnt, nhost);
+    int* s = newintval(0, sdispl[nhost]);
+    for (auto& g: gid2in) {
+        int gid = g.first;
         s[sdispl[gid % nhost]++] = gid;
     }
     // Restore sdispl for the message.
-    del(sdispl);
+    delete[] sdispl;
     sdispl = newoffset(scnt, nhost);
 
     all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "gidin to intermediate");
-    del(s);
-    del(scnt);
-    del(sdispl);
+    delete[] s;
+    delete[] scnt;
+    delete[] sdispl;
     // r is the gids received by this intermediate rank from all other ranks.
 
     // Construct hash table for finding the target rank list for a given gid.
-    gid2tarlist = new Int2TarList;
+    auto gid2tarlist = new Int2TarList;
     // Now figure out the size of the target list for each distinct gid in r.
     for (int i = 0; i < rdispl[nhost]; ++i) {
-        TarList* tl;
-        Int2TarList::iterator itl_it = gid2tarlist->find(r[i]);
+        auto itl_it = gid2tarlist->find(r[i]);
         if (itl_it != gid2tarlist->end()) {
-            tl = itl_it->second;
+            TarList* tl = itl_it->second;
             tl->size += 1;
         } else {
-            tl = new TarList();
+            TarList* tl = new TarList();
             tl->size = 1;
             (*gid2tarlist)[r[i]] = tl;
         }
@@ -505,9 +475,8 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     // target lists.
 
     // Allocate the target lists (and set size to 0 (we will recount when filling).
-    for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
-         ++itl_it) {
-        TarList* tl = itl_it->second;
+    for (auto g: *gid2tarlist) {
+        TarList* tl = g.second;
         tl->alloc();
         tl->size = 0;
     }
@@ -517,18 +486,17 @@ static int setup_target_lists(int use_phase2, int** r_return) {
         int b = rdispl[rank];
         int e = rdispl[rank + 1];
         for (int i = b; i < e; ++i) {
-            TarList* tl;
             Int2TarList::iterator itl_it = gid2tarlist->find(r[i]);
             if (itl_it != gid2tarlist->end()) {
-                tl = itl_it->second;
+                TarList* tl = itl_it->second;
                 tl->list[tl->size] = rank;
                 tl->size++;
             }
         }
     }
-    del(r);
-    del(rcnt);
-    del(rdispl);
+    delete[] r;
+    delete[] rcnt;
+    delete[] rdispl;
 
     // Now the intermediate hosts have complete target lists and
     // the sources know the intermediate host from the gid2out_ map.
@@ -541,9 +509,9 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     // be tested for random distributions of gids.
     // How many on the source rank?
     scnt = newintval(0, nhost);
-    for (Gid2PS::iterator gid2ps_it = gid2out.begin(); gid2ps_it != gid2out.end(); ++gid2ps_it) {
-        int gid = gid2ps_it->first;
-        PreSyn* ps = gid2ps_it->second;
+    for (auto& g: gid2out) {
+        int gid = g.first;
+        PreSyn* ps = g.second;
         if (ps->output_index_ >= 0) {  // only ones that generate spikes
             ++scnt[gid % nhost];
         }
@@ -552,15 +520,15 @@ static int setup_target_lists(int use_phase2, int** r_return) {
 
     // what are the gids of those target lists
     s = newintval(0, sdispl[nhost]);
-    for (Gid2PS::iterator gid2ps_it = gid2out.begin(); gid2ps_it != gid2out.end(); ++gid2ps_it) {
-        int gid = gid2ps_it->first;
-        PreSyn* ps = gid2ps_it->second;
+    for (auto& g: gid2out) {
+        int gid = g.first;
+        PreSyn* ps = g.second;
         if (ps->output_index_ >= 0) {  // only ones that generate spikes
             s[sdispl[gid % nhost]++] = gid;
         }
     }
     // Restore sdispl for the message.
-    del(sdispl);
+    delete[] sdispl;
     sdispl = newoffset(scnt, nhost);
     all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "gidout");
 
@@ -571,25 +539,24 @@ static int setup_target_lists(int use_phase2, int** r_return) {
         int b = rdispl[rank];
         int e = rdispl[rank + 1];
         for (int i = b; i < e; ++i) {
-            TarList* tl;
             // note that there may be input gids with no corresponding
             // output gid so that the find may not return true and in
             // that case the tl->rank remains -1.
             // For example multisplit gids or simulation of a subset of
             // cells.
-            Int2TarList::iterator itl_it = gid2tarlist->find(r[i]);
+            auto itl_it = gid2tarlist->find(r[i]);
             if (itl_it != gid2tarlist->end()) {
-                tl = itl_it->second;
+                TarList* tl = itl_it->second;
                 tl->rank = rank;
             }
         }
     }
-    del(s);
-    del(scnt);
-    del(sdispl);
-    del(r);
-    del(rcnt);
-    del(rdispl);
+    delete[] s;
+    delete[] scnt;
+    delete[] sdispl;
+    delete[] r;
+    delete[] rcnt;
+    delete[] rdispl;
 
     if (use_phase2) {
         random_init(nrnmpi_myid + 1);
@@ -693,13 +660,13 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     delete gid2tarlist;
     sdispl = newoffset(scnt, nhost);
     all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "lists");
-    del(s);
-    del(scnt);
-    del(sdispl);
+    delete[] s;
+    delete[] scnt;
+    delete[] sdispl;
 
-    del(rcnt);
+    delete[] rcnt;
     int sz = rdispl[nhost];
-    del(rdispl);
+    delete[] rdispl;
     *r_return = r;
     return sz;
 }
