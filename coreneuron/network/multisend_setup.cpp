@@ -107,17 +107,6 @@ void phase2debug(int* targets_phase2) {
 }
 #endif
 
-static int* newintval(int val, int size) {
-    if (size == 0) {
-        return 0;
-    }
-    int* x = new int[size];
-    for (int i = 0; i < size; ++i) {
-        x[i] = val;
-    }
-    return x;
-}
-
 static std::vector<int> newoffset(const std::vector<int>& acnt) {
     std::vector<int> aoff(acnt.size() + 1);
     aoff[0] = 0;
@@ -128,26 +117,29 @@ static std::vector<int> newoffset(const std::vector<int>& acnt) {
 }
 
 // input scnt, sdispl ; output, newly allocated rcnt, rdispl
-static void all2allv_helper(const std::vector<int>& scnt, std::vector<int>& rcnt, std::vector<int>& rdispl) {
+static std::pair<std::vector<int>, std::vector<int>> all2allv_helper(const std::vector<int>& scnt) {
     int np = nrnmpi_numprocs;
     std::vector<int> c(np, 1);
-    rdispl = newoffset(c);
-    rcnt = std::vector<int>(np, 0);
+    std::vector<int> rdispl = newoffset(c);
+    std::vector<int> rcnt = std::vector<int>(np, 0);
     nrnmpi_int_alltoallv(scnt.data(), c.data(), rdispl.data(), rcnt.data(), c.data(), rdispl.data());
     rdispl = newoffset(rcnt);
+    return std::make_pair(rcnt, rdispl);
 }
 
 #define all2allv_perf 1
 // input s, scnt, sdispl ; output, newly allocated r, rcnt, rdispl
-static void
-all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std::vector<int>& sdispl, std::vector<int>& r, std::vector<int>& rcnt, std::vector<int>& rdispl, const char* dmes) {
+static std::pair<std::vector<int>, std::vector<int>>
+all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std::vector<int>& sdispl, const char* dmes) {
 #if all2allv_perf
     double tm = nrn_wtime();
 #endif
     int np = nrnmpi_numprocs;
-    all2allv_helper(scnt, rcnt, rdispl);
-    r = std::vector<int>(np, 0);
 
+    std::vector<int> r(np, 0);
+    std::vector<int> rcnt;
+    std::vector<int> rdispl;
+    std::tie(rcnt, rdispl) = all2allv_helper(scnt);
     nrnmpi_int_alltoallv(s.data(), scnt.data(), sdispl.data(), r.data(), rcnt.data(), rdispl.data());
     alltoalldebug(dmes, s, scnt, sdispl, r, rcnt, rdispl);
 
@@ -159,6 +151,7 @@ all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std:
         printf("all2allv_int %s space=%d total=%g time=%g\n", dmes, nb, nrn_mallinfo(), tm);
     }
 #endif
+    return std::make_pair(r, rdispl);
 }
 
 class TarList {
@@ -404,13 +397,12 @@ static void fill_multisend_lists(int use_phase2,
         }
 }
 
-// return is vector and its size. The vector encodes a sequence of
-// gid, target list size, and target list
+// Return the vector encoding a sequence of gid, target list size, and target list
 static std::vector<int> setup_target_lists(int use_phase2) {
     int nhost = nrnmpi_numprocs;
 
     // Construct hash table for finding the target rank list for a given gid.
-    auto gid2tarlist = new Int2TarList;
+    Int2TarList gid2tarlist;
 
     celldebug<Gid2PS>("output gid", gid2out);
     celldebug<Gid2IPS>("input gid", gid2in);
@@ -423,37 +415,36 @@ static std::vector<int> setup_target_lists(int use_phase2) {
     {
         // scnt is number of input gids from target
         std::vector<int> scnt1(nhost, 0);
-        for (auto& g: gid2in) {
+        for (const auto& g: gid2in) {
             int gid = g.first;
             ++scnt1[gid % nhost];
         }
 
         // s are the input gids from target to be sent to the various intermediates
-        std::vector<int> sdispl1 = newoffset(scnt1);
+        const std::vector<int> sdispl1 = newoffset(scnt1);
+        // Make an usable copy
+        auto sdispl1_ = sdispl1;
         std::vector<int> s1(sdispl1[nhost], 0);
-        for (auto& g: gid2in) {
+        for (const auto& g: gid2in) {
             int gid = g.first;
-            s1[sdispl1[gid % nhost]++] = gid;
+            s1[sdispl1_[gid % nhost]++] = gid;
         }
-        // Restore sdispl1 for the message.
-        sdispl1 = newoffset(scnt1);
 
         std::vector<int> r1;
-        std::vector<int> rcnt1;
         std::vector<int> rdispl1;
-        all2allv_int(s1, scnt1, sdispl1, r1, rcnt1, rdispl1, "gidin to intermediate");
+        std::tie(r1, rdispl1) = all2allv_int(s1, scnt1, sdispl1, "gidin to intermediate");
         // r1 is the gids received by this intermediate rank from all other ranks.
 
         // Now figure out the size of the target list for each distinct gid in r1.
-        for (int i = 0; i < rdispl1[nhost]; ++i) {
-            auto itl_it = gid2tarlist->find(r1[i]);
-            if (itl_it != gid2tarlist->end()) {
+        for (const auto& gid: r1) {
+            auto itl_it = gid2tarlist.find(gid);
+            if (itl_it != gid2tarlist.end()) {
                 TarList* tl = itl_it->second;
-                tl->size += 1;
+                ++(tl->size);
             } else {
                 TarList* tl = new TarList();
                 tl->size = 1;
-                (*gid2tarlist)[r1[i]] = tl;
+                gid2tarlist.emplace(gid, tl);
             }
         }
 
@@ -471,7 +462,7 @@ static std::vector<int> setup_target_lists(int use_phase2) {
         // target lists.
 
         // Allocate the target lists (and set size to 0 (we will recount when filling).
-        for (auto&& g: *gid2tarlist) {
+        for (const auto& g: gid2tarlist) {
             TarList* tl = g.second;
             tl->alloc();
             tl->size = 0;
@@ -482,8 +473,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
             int b = rdispl1[rank];
             int e = rdispl1[rank + 1];
             for (int i = b; i < e; ++i) {
-                Int2TarList::iterator itl_it = gid2tarlist->find(r1[i]);
-                if (itl_it != gid2tarlist->end()) {
+                const auto itl_it = gid2tarlist.find(r1[i]);
+                if (itl_it != gid2tarlist.end()) {
                     TarList* tl = itl_it->second;
                     tl->list[tl->size] = rank;
                     tl->size++;
@@ -511,7 +502,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
                 ++scnt2[gid % nhost];
             }
         }
-        auto sdispl2 = newoffset(scnt2);
+        const auto sdispl2 = newoffset(scnt2);
+        auto sdispl2_ = sdispl2;
 
         // what are the gids of those target lists
         std::vector<int> s2(sdispl2[nhost], 0);
@@ -519,15 +511,12 @@ static std::vector<int> setup_target_lists(int use_phase2) {
             int gid = g.first;
             PreSyn* ps = g.second;
             if (ps->output_index_ >= 0) {  // only ones that generate spikes
-                s2[sdispl2[gid % nhost]++] = gid;
+                s2[sdispl2_[gid % nhost]++] = gid;
             }
         }
-        // Restore sdispl2 for the message.
-        sdispl2 = newoffset(scnt2);
         std::vector<int> r2;
-        std::vector<int> rcnt2;
         std::vector<int> rdispl2;
-        all2allv_int(s2, scnt2, sdispl2, r2, rcnt2, rdispl2, "gidout");
+        std::tie(r2, rdispl2) = all2allv_int(s2, scnt2, sdispl2, "gidout");
 
         // fill in the tl->rank for phase 1 target lists
         // r2 is an array of source spiking gids
@@ -541,8 +530,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
                 // that case the tl->rank remains -1.
                 // For example multisplit gids or simulation of a subset of
                 // cells.
-                auto itl_it = gid2tarlist->find(r2[i]);
-                if (itl_it != gid2tarlist->end()) {
+                const auto itl_it = gid2tarlist.find(r2[i]);
+                if (itl_it != gid2tarlist.end()) {
                     TarList* tl = itl_it->second;
                     tl->rank = rank;
                 }
@@ -552,9 +541,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
 
     if (use_phase2) {
         random_init(nrnmpi_myid + 1);
-        for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
-             ++itl_it) {
-            TarList* tl = itl_it->second;
+        for (const auto& gid2tar: gid2tarlist) {
+            TarList* tl = gid2tar.second;
             if (tl->rank >= 0) {  // only if output gid is spike generating
                 phase2organize(tl);
             }
@@ -575,9 +563,8 @@ static std::vector<int> setup_target_lists(int use_phase2) {
 
     // how much to send to each rank
     std::vector<int> scnt3(nhost, 0);
-    for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
-         ++itl_it) {
-        TarList* tl = itl_it->second;
+    for (const auto& gid2tar: gid2tarlist) {
+        TarList* tl = gid2tar.second;
         if (tl->rank < 0) {
             // When the output gid does not generate spikes, that rank
             // is not interested if there is a target list for it.
@@ -607,54 +594,51 @@ static std::vector<int> setup_target_lists(int use_phase2) {
             scnt3[tl->rank] += 1;
         }
     }
-    auto sdispl4 = newoffset(scnt3);
+    const auto sdispl4 = newoffset(scnt3);
+    auto sdispl4_ = sdispl4;
     std::vector<int> s3(sdispl4[nhost], 0);
     // what to send to each rank
-    for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
-         ++itl_it) {
-        int gid = itl_it->first;
-        TarList* tl = itl_it->second;
+    for (const auto& gid2tar: gid2tarlist) {
+        int gid = gid2tar.first;
+        TarList* tl = gid2tar.second;
         if (tl->rank < 0) {
             continue;
         }
         if (tl->indices) {
-            s3[sdispl4[tl->rank]++] = gid;
-            s3[sdispl4[tl->rank]++] = tl->size;
+            s3[sdispl4_[tl->rank]++] = gid;
+            s3[sdispl4_[tl->rank]++] = tl->size;
             if (use_phase2) {
-                s3[sdispl4[tl->rank]++] = tl->indices[tl->size];
+                s3[sdispl4_[tl->rank]++] = tl->indices[tl->size];
             }
             for (int i = 0; i < tl->size; ++i) {
-                s3[sdispl4[tl->rank]++] = tl->list[tl->indices[i]];
+                s3[sdispl4_[tl->rank]++] = tl->list[tl->indices[i]];
             }
             for (int i = 0; i < tl->size; ++i) {
                 int rank = tl->list[tl->indices[i]];
-                s3[sdispl4[rank]++] = gid;
+                s3[sdispl4_[rank]++] = gid;
                 assert(tl->indices[i + 1] > tl->indices[i]);
-                s3[sdispl4[rank]++] = tl->indices[i + 1] - tl->indices[i] - 1;
+                s3[sdispl4_[rank]++] = tl->indices[i + 1] - tl->indices[i] - 1;
                 for (int j = tl->indices[i] + 1; j < tl->indices[i + 1]; ++j) {
-                    s3[sdispl4[rank]++] = tl->list[j];
+                    s3[sdispl4_[rank]++] = tl->list[j];
                 }
             }
 
         } else {
             // gid, list size, list
-            s3[sdispl4[tl->rank]++] = gid;
-            s3[sdispl4[tl->rank]++] = tl->size;
+            s3[sdispl4_[tl->rank]++] = gid;
+            s3[sdispl4_[tl->rank]++] = tl->size;
             if (use_phase2) {
-                s3[sdispl4[tl->rank]++] = tl->size;
+                s3[sdispl4_[tl->rank]++] = tl->size;
             }
             for (int i = 0; i < tl->size; ++i) {
-                s3[sdispl4[tl->rank]++] = tl->list[i];
+                s3[sdispl4_[tl->rank]++] = tl->list[i];
             }
         }
         delete tl;
     }
-    delete gid2tarlist;
-    auto sdispl5 = newoffset(scnt3);
     std::vector<int> r_return;
-    std::vector<int> rcnt3;
     std::vector<int> rdispl3;
-    all2allv_int(s3, scnt3, sdispl5, r_return, rcnt3, rdispl3, "lists");
+    std::tie(r_return, rdispl3) = all2allv_int(s3, scnt3, sdispl4, "lists");
     return r_return;
 }
 }  // namespace coreneuron
