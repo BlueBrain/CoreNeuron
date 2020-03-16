@@ -38,7 +38,7 @@ static void celldebug(const char* p, T& map) {
 }
 
 static void
-alltoalldebug(const char* p, int* s, int* scnt, int* sdispl, int* r, int* rcnt, int* rdispl) {
+alltoalldebug(const char* p, const std::vector<int>& s, const std::vector<int>& scnt, const std::vector<int>& sdispl, const std::vector<int>& r, const std::vector<int>& rcnt, const std::vector<int>& rdispl) {
     std::string fname = std::string("debug.") + std::to_string(nrnmpi_myid);
     std::ofstream f(fname, std::ios::app);
     f << std::endl << p << std::endl;
@@ -63,7 +63,7 @@ alltoalldebug(const char* p, int* s, int* scnt, int* sdispl, int* r, int* rcnt, 
 template <typename T>
 static void celldebug(const char*, T&) {
 }
-static void alltoalldebug(const char*, int*, int*, int*, int*, int*, int*) {
+static void alltoalldebug(const char*, const std::vector<int>&, const std::vector<int>&, const std::vector<int>&, const std::vector<int>&, const std::vector<int>&, const std::vector<int>&) {
 }
 #endif
 
@@ -118,39 +118,37 @@ static int* newintval(int val, int size) {
     return x;
 }
 
-static int* newoffset(int* acnt, int size) {
-    int* aoff = new int[size + 1];
+static std::vector<int> newoffset(const std::vector<int>& acnt) {
+    std::vector<int> aoff(acnt.size() + 1);
     aoff[0] = 0;
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < acnt.size(); ++i) {
         aoff[i + 1] = aoff[i] + acnt[i];
     }
     return aoff;
 }
 
 // input scnt, sdispl ; output, newly allocated rcnt, rdispl
-static void all2allv_helper(int* scnt, int*& rcnt, int*& rdispl) {
+static void all2allv_helper(const std::vector<int>& scnt, std::vector<int>& rcnt, std::vector<int>& rdispl) {
     int np = nrnmpi_numprocs;
-    int* c = newintval(1, np);
-    rdispl = newoffset(c, np);
-    rcnt = newintval(0, np);
-    nrnmpi_int_alltoallv(scnt, c, rdispl, rcnt, c, rdispl);
-    delete[] c;
-    delete[] rdispl;
-    rdispl = newoffset(rcnt, np);
+    std::vector<int> c(np, 1);
+    rdispl = newoffset(c);
+    rcnt = std::vector<int>(np, 0);
+    nrnmpi_int_alltoallv(scnt.data(), c.data(), rdispl.data(), rcnt.data(), c.data(), rdispl.data());
+    rdispl = newoffset(rcnt);
 }
 
 #define all2allv_perf 1
 // input s, scnt, sdispl ; output, newly allocated r, rcnt, rdispl
 static void
-all2allv_int(int* s, int* scnt, int* sdispl, int*& r, int*& rcnt, int*& rdispl, const char* dmes) {
+all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std::vector<int>& sdispl, std::vector<int>& r, std::vector<int>& rcnt, std::vector<int>& rdispl, const char* dmes) {
 #if all2allv_perf
     double tm = nrn_wtime();
 #endif
     int np = nrnmpi_numprocs;
     all2allv_helper(scnt, rcnt, rdispl);
-    r = newintval(0, rdispl[np]);
+    r = std::vector<int>(np, 0);
 
-    nrnmpi_int_alltoallv(s, scnt, sdispl, r, rcnt, rdispl);
+    nrnmpi_int_alltoallv(s.data(), scnt.data(), sdispl.data(), r.data(), rcnt.data(), rdispl.data());
     alltoalldebug(dmes, s, scnt, sdispl, r, rcnt, rdispl);
 
 // when finished with r, rcnt, rdispl, caller should del them.
@@ -264,12 +262,11 @@ Anyway, to potentially support this in the future, we write setup_target_lists
 to not use any PreSyn information.
 */
 
-static int setup_target_lists(int, int**);
+static std::vector<int> setup_target_lists(int);
 static void fill_multisend_lists(int, int, int*, int*&, int*&);
 
 void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& targets_phase2) {
-    int* r;
-    int sz = setup_target_lists(use_phase2, &r);
+    auto r = setup_target_lists(use_phase2);
 
     // initialize as unused
     for (auto& g: gid2out) {
@@ -283,8 +280,7 @@ void nrn_multisend_setup_targets(bool use_phase2, int*& targets_phase1, int*& ta
         ps->multisend_phase2_index_ = -1;
     }
 
-    fill_multisend_lists(use_phase2, sz, r, targets_phase1, targets_phase2);
-    delete[] r;
+    fill_multisend_lists(use_phase2, r.size(), r.data(), targets_phase1, targets_phase2);
 
     // phase1debug(targets_phase1);
     // phase2debug(targets_phase2);
@@ -410,9 +406,11 @@ static void fill_multisend_lists(int use_phase2,
 
 // return is vector and its size. The vector encodes a sequence of
 // gid, target list size, and target list
-static int setup_target_lists(int use_phase2, int** r_return) {
-    int *r, *scnt, *rcnt, *rdispl;
+static std::vector<int> setup_target_lists(int use_phase2) {
     int nhost = nrnmpi_numprocs;
+
+    // Construct hash table for finding the target rank list for a given gid.
+    auto gid2tarlist = new Int2TarList;
 
     celldebug<Gid2PS>("output gid", gid2out);
     celldebug<Gid2IPS>("input gid", gid2in);
@@ -422,141 +420,135 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     // gid%nhost rank. The intermediate rank can then construct the
     // list of target ranks for the gids it gets.
 
-    // scnt is number of input gids from target
-    scnt = newintval(0, nhost);
-    for (auto& g: gid2in) {
-        int gid = g.first;
-        ++scnt[gid % nhost];
-    }
-
-    // s are the input gids from target to be sent to the various intermediates
-    int* sdispl = newoffset(scnt, nhost);
-    int* s = newintval(0, sdispl[nhost]);
-    for (auto& g: gid2in) {
-        int gid = g.first;
-        s[sdispl[gid % nhost]++] = gid;
-    }
-    // Restore sdispl for the message.
-    delete[] sdispl;
-    sdispl = newoffset(scnt, nhost);
-
-    all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "gidin to intermediate");
-    delete[] s;
-    delete[] scnt;
-    delete[] sdispl;
-    // r is the gids received by this intermediate rank from all other ranks.
-
-    // Construct hash table for finding the target rank list for a given gid.
-    auto gid2tarlist = new Int2TarList;
-    // Now figure out the size of the target list for each distinct gid in r.
-    for (int i = 0; i < rdispl[nhost]; ++i) {
-        auto itl_it = gid2tarlist->find(r[i]);
-        if (itl_it != gid2tarlist->end()) {
-            TarList* tl = itl_it->second;
-            tl->size += 1;
-        } else {
-            TarList* tl = new TarList();
-            tl->size = 1;
-            (*gid2tarlist)[r[i]] = tl;
+    {
+        // scnt is number of input gids from target
+        std::vector<int> scnt1(nhost, 0);
+        for (auto& g: gid2in) {
+            int gid = g.first;
+            ++scnt1[gid % nhost];
         }
-    }
 
-    // Conceptually, now the intermediate is the mpi source and the gid
-    // sources are the mpi destination in regard to target lists.
-    // It would be possible at this point, but confusing,
-    // to allocate a s[rdispl[nhost]] and figure out scnt and sdispl by
-    // by getting the counts and gids from the ranks that own the source
-    // gids. In this way we could organize s without having to allocate
-    // individual target lists on the intermediate and then allocate
-    // another large s buffer to receive a copy of them. However for
-    // this processing we already require two large buffers for input
-    // gid's so there is no real savings of space.
-    // So let's do the simple obvious sequence and now complete the
-    // target lists.
+        // s are the input gids from target to be sent to the various intermediates
+        std::vector<int> sdispl1 = newoffset(scnt1);
+        std::vector<int> s1(sdispl1[nhost], 0);
+        for (auto& g: gid2in) {
+            int gid = g.first;
+            s1[sdispl1[gid % nhost]++] = gid;
+        }
+        // Restore sdispl1 for the message.
+        sdispl1 = newoffset(scnt1);
 
-    // Allocate the target lists (and set size to 0 (we will recount when filling).
-    for (auto g: *gid2tarlist) {
-        TarList* tl = g.second;
-        tl->alloc();
-        tl->size = 0;
-    }
+        std::vector<int> r1;
+        std::vector<int> rcnt1;
+        std::vector<int> rdispl1;
+        all2allv_int(s1, scnt1, sdispl1, r1, rcnt1, rdispl1, "gidin to intermediate");
+        // r1 is the gids received by this intermediate rank from all other ranks.
 
-    // fill the target lists
-    for (int rank = 0; rank < nhost; ++rank) {
-        int b = rdispl[rank];
-        int e = rdispl[rank + 1];
-        for (int i = b; i < e; ++i) {
-            Int2TarList::iterator itl_it = gid2tarlist->find(r[i]);
+        // Now figure out the size of the target list for each distinct gid in r1.
+        for (int i = 0; i < rdispl1[nhost]; ++i) {
+            auto itl_it = gid2tarlist->find(r1[i]);
             if (itl_it != gid2tarlist->end()) {
                 TarList* tl = itl_it->second;
-                tl->list[tl->size] = rank;
-                tl->size++;
+                tl->size += 1;
+            } else {
+                TarList* tl = new TarList();
+                tl->size = 1;
+                (*gid2tarlist)[r1[i]] = tl;
+            }
+        }
+
+        // Conceptually, now the intermediate is the mpi source and the gid
+        // sources are the mpi destination in regard to target lists.
+        // It would be possible at this point, but confusing,
+        // to allocate a s[rdispl1[nhost]] and figure out scnt and sdispl by
+        // by getting the counts and gids from the ranks that own the source
+        // gids. In this way we could organize s without having to allocate
+        // individual target lists on the intermediate and then allocate
+        // another large s buffer to receive a copy of them. However for
+        // this processing we already require two large buffers for input
+        // gid's so there is no real savings of space.
+        // So let's do the simple obvious sequence and now complete the
+        // target lists.
+
+        // Allocate the target lists (and set size to 0 (we will recount when filling).
+        for (auto&& g: *gid2tarlist) {
+            TarList* tl = g.second;
+            tl->alloc();
+            tl->size = 0;
+        }
+
+        // fill the target lists
+        for (int rank = 0; rank < nhost; ++rank) {
+            int b = rdispl1[rank];
+            int e = rdispl1[rank + 1];
+            for (int i = b; i < e; ++i) {
+                Int2TarList::iterator itl_it = gid2tarlist->find(r1[i]);
+                if (itl_it != gid2tarlist->end()) {
+                    TarList* tl = itl_it->second;
+                    tl->list[tl->size] = rank;
+                    tl->size++;
+                }
             }
         }
     }
-    delete[] r;
-    delete[] rcnt;
-    delete[] rdispl;
 
-    // Now the intermediate hosts have complete target lists and
-    // the sources know the intermediate host from the gid2out_ map.
-    // We could potentially organize here for two-phase exchange as well.
+    {
+        // Now the intermediate hosts have complete target lists and
+        // the sources know the intermediate host from the gid2out_ map.
+        // We could potentially organize here for two-phase exchange as well.
 
-    // Which target lists are desired by the source rank?
+        // Which target lists are desired by the source rank?
 
-    // Ironically, for round robin distributions, the target lists are
-    // already on the proper source rank so the following code should
-    // be tested for random distributions of gids.
-    // How many on the source rank?
-    scnt = newintval(0, nhost);
-    for (auto& g: gid2out) {
-        int gid = g.first;
-        PreSyn* ps = g.second;
-        if (ps->output_index_ >= 0) {  // only ones that generate spikes
-            ++scnt[gid % nhost];
+        // Ironically, for round robin distributions, the target lists are
+        // already on the proper source rank so the following code should
+        // be tested for random distributions of gids.
+        // How many on the source rank?
+        std::vector<int> scnt2(nhost, 0);
+        for (auto& g: gid2out) {
+            int gid = g.first;
+            PreSyn* ps = g.second;
+            if (ps->output_index_ >= 0) {  // only ones that generate spikes
+                ++scnt2[gid % nhost];
+            }
         }
-    }
-    sdispl = newoffset(scnt, nhost);
+        auto sdispl2 = newoffset(scnt2);
 
-    // what are the gids of those target lists
-    s = newintval(0, sdispl[nhost]);
-    for (auto& g: gid2out) {
-        int gid = g.first;
-        PreSyn* ps = g.second;
-        if (ps->output_index_ >= 0) {  // only ones that generate spikes
-            s[sdispl[gid % nhost]++] = gid;
+        // what are the gids of those target lists
+        std::vector<int> s2(sdispl2[nhost], 0);
+        for (auto& g: gid2out) {
+            int gid = g.first;
+            PreSyn* ps = g.second;
+            if (ps->output_index_ >= 0) {  // only ones that generate spikes
+                s2[sdispl2[gid % nhost]++] = gid;
+            }
         }
-    }
-    // Restore sdispl for the message.
-    delete[] sdispl;
-    sdispl = newoffset(scnt, nhost);
-    all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "gidout");
+        // Restore sdispl2 for the message.
+        sdispl2 = newoffset(scnt2);
+        std::vector<int> r2;
+        std::vector<int> rcnt2;
+        std::vector<int> rdispl2;
+        all2allv_int(s2, scnt2, sdispl2, r2, rcnt2, rdispl2, "gidout");
 
-    // fill in the tl->rank for phase 1 target lists
-    // r is an array of source spiking gids
-    // tl is list associating input gids with list of target ranks.
-    for (int rank = 0; rank < nhost; ++rank) {
-        int b = rdispl[rank];
-        int e = rdispl[rank + 1];
-        for (int i = b; i < e; ++i) {
-            // note that there may be input gids with no corresponding
-            // output gid so that the find may not return true and in
-            // that case the tl->rank remains -1.
-            // For example multisplit gids or simulation of a subset of
-            // cells.
-            auto itl_it = gid2tarlist->find(r[i]);
-            if (itl_it != gid2tarlist->end()) {
-                TarList* tl = itl_it->second;
-                tl->rank = rank;
+        // fill in the tl->rank for phase 1 target lists
+        // r2 is an array of source spiking gids
+        // tl is list associating input gids with list of target ranks.
+        for (int rank = 0; rank < nhost; ++rank) {
+            int b = rdispl2[rank];
+            int e = rdispl2[rank + 1];
+            for (int i = b; i < e; ++i) {
+                // note that there may be input gids with no corresponding
+                // output gid so that the find may not return true and in
+                // that case the tl->rank remains -1.
+                // For example multisplit gids or simulation of a subset of
+                // cells.
+                auto itl_it = gid2tarlist->find(r2[i]);
+                if (itl_it != gid2tarlist->end()) {
+                    TarList* tl = itl_it->second;
+                    tl->rank = rank;
+                }
             }
         }
     }
-    delete[] s;
-    delete[] scnt;
-    delete[] sdispl;
-    delete[] r;
-    delete[] rcnt;
-    delete[] rdispl;
 
     if (use_phase2) {
         random_init(nrnmpi_myid + 1);
@@ -573,7 +565,7 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     // from source to destination as above
     // and also use a uniform code
     // for copying one and two phase information from a TarList to
-    // develop the s, scnt, and sdispl buffers. That is, a buffer list
+    // develop the s, scnt, and sdispl3 buffers. That is, a buffer list
     // section in s for either a one-phase list or the much shorter
     // (individually) lists for first and second phases, has a
     // gid, size, totalsize header for each list where totalsize
@@ -582,7 +574,7 @@ static int setup_target_lists(int use_phase2, int** r_return) {
     // Note that totalsize is tl->indices[tl->size]
 
     // how much to send to each rank
-    scnt = newintval(0, nhost);
+    std::vector<int> scnt3(nhost, 0);
     for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
          ++itl_it) {
         TarList* tl = itl_it->second;
@@ -600,23 +592,23 @@ static int setup_target_lists(int use_phase2, int** r_return) {
             // Also there is a phase 1 target list of size so there
             // are altogether size+1 target lists.
             // (one phase 1 list and size phase 2 lists)
-            scnt[tl->rank] += tl->size + 2;  // gid, size, list
+            scnt3[tl->rank] += tl->size + 2;  // gid, size, list
             for (int i = 0; i < tl->size; ++i) {
-                scnt[tl->list[tl->indices[i]]] += tl->indices[i + 1] - tl->indices[i] + 1;
+                scnt3[tl->list[tl->indices[i]]] += tl->indices[i + 1] - tl->indices[i] + 1;
                 // gid, size, list
             }
         } else {
             // gid, list size, list
-            scnt[tl->rank] += tl->size + 2;
+            scnt3[tl->rank] += tl->size + 2;
         }
         if (use_phase2) {
             // The phase 1 header has as its third element, the
             // total list size (needed for conservation);
-            scnt[tl->rank] += 1;
+            scnt3[tl->rank] += 1;
         }
     }
-    sdispl = newoffset(scnt, nhost);
-    s = newintval(0, sdispl[nhost]);
+    auto sdispl4 = newoffset(scnt3);
+    std::vector<int> s3(sdispl4[nhost], 0);
     // what to send to each rank
     for (Int2TarList::iterator itl_it = gid2tarlist->begin(); itl_it != gid2tarlist->end();
          ++itl_it) {
@@ -626,49 +618,44 @@ static int setup_target_lists(int use_phase2, int** r_return) {
             continue;
         }
         if (tl->indices) {
-            s[sdispl[tl->rank]++] = gid;
-            s[sdispl[tl->rank]++] = tl->size;
+            s3[sdispl4[tl->rank]++] = gid;
+            s3[sdispl4[tl->rank]++] = tl->size;
             if (use_phase2) {
-                s[sdispl[tl->rank]++] = tl->indices[tl->size];
+                s3[sdispl4[tl->rank]++] = tl->indices[tl->size];
             }
             for (int i = 0; i < tl->size; ++i) {
-                s[sdispl[tl->rank]++] = tl->list[tl->indices[i]];
+                s3[sdispl4[tl->rank]++] = tl->list[tl->indices[i]];
             }
             for (int i = 0; i < tl->size; ++i) {
                 int rank = tl->list[tl->indices[i]];
-                s[sdispl[rank]++] = gid;
+                s3[sdispl4[rank]++] = gid;
                 assert(tl->indices[i + 1] > tl->indices[i]);
-                s[sdispl[rank]++] = tl->indices[i + 1] - tl->indices[i] - 1;
+                s3[sdispl4[rank]++] = tl->indices[i + 1] - tl->indices[i] - 1;
                 for (int j = tl->indices[i] + 1; j < tl->indices[i + 1]; ++j) {
-                    s[sdispl[rank]++] = tl->list[j];
+                    s3[sdispl4[rank]++] = tl->list[j];
                 }
             }
 
         } else {
             // gid, list size, list
-            s[sdispl[tl->rank]++] = gid;
-            s[sdispl[tl->rank]++] = tl->size;
+            s3[sdispl4[tl->rank]++] = gid;
+            s3[sdispl4[tl->rank]++] = tl->size;
             if (use_phase2) {
-                s[sdispl[tl->rank]++] = tl->size;
+                s3[sdispl4[tl->rank]++] = tl->size;
             }
             for (int i = 0; i < tl->size; ++i) {
-                s[sdispl[tl->rank]++] = tl->list[i];
+                s3[sdispl4[tl->rank]++] = tl->list[i];
             }
         }
         delete tl;
     }
     delete gid2tarlist;
-    sdispl = newoffset(scnt, nhost);
-    all2allv_int(s, scnt, sdispl, r, rcnt, rdispl, "lists");
-    delete[] s;
-    delete[] scnt;
-    delete[] sdispl;
-
-    delete[] rcnt;
-    int sz = rdispl[nhost];
-    delete[] rdispl;
-    *r_return = r;
-    return sz;
+    auto sdispl5 = newoffset(scnt3);
+    std::vector<int> r_return;
+    std::vector<int> rcnt3;
+    std::vector<int> rdispl3;
+    all2allv_int(s3, scnt3, sdispl5, r_return, rcnt3, rdispl3, "lists");
+    return r_return;
 }
 }  // namespace coreneuron
 #endif  // NRN_MULTISEND
