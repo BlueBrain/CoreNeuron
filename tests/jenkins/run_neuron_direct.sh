@@ -2,7 +2,7 @@
 
 set -e
 source ${JENKINS_DIR:-.}/_env_setup.sh
-module load neuron intel
+module load neuron/develop intel
 
 set -x
 CORENRN_TYPE="$1"

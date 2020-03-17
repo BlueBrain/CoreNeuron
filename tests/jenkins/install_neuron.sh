@@ -24,5 +24,4 @@ source ${JENKINS_DIR:-.}/_env_setup.sh
 set -x
 patch_neuron
 spack install neuron+debug@develop
-ls $SPACK_INSTALL_PREFIX/modules/tcl/$(spack arch)/
 module av neuron
