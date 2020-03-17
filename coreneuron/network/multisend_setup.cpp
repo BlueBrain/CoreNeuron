@@ -110,13 +110,11 @@ void phase2debug(int* targets_phase2) {
 static std::vector<int> newoffset(const std::vector<int>& acnt) {
     std::vector<int> aoff(acnt.size() + 1);
     aoff[0] = 0;
-    for (int i = 0; i < acnt.size(); ++i) {
-        aoff[i + 1] = aoff[i] + acnt[i];
-    }
+    std::partial_sum(acnt.begin(), acnt.end(), aoff.begin() + 1);
     return aoff;
 }
 
-// input scnt, sdispl ; output, newly allocated rcnt, rdispl
+// input: scnt, sdispl; output: rcnt, rdispl
 static std::pair<std::vector<int>, std::vector<int>> all2allv_helper(const std::vector<int>& scnt) {
     int np = nrnmpi_numprocs;
     std::vector<int> c(np, 1);
@@ -128,7 +126,7 @@ static std::pair<std::vector<int>, std::vector<int>> all2allv_helper(const std::
 }
 
 #define all2allv_perf 1
-// input s, scnt, sdispl ; output, newly allocated r, rcnt, rdispl
+// input: s, scnt, sdispl; output: r, rdispl
 static std::pair<std::vector<int>, std::vector<int>>
 all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std::vector<int>& sdispl, const char* dmes) {
 #if all2allv_perf
@@ -143,7 +141,6 @@ all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std:
     nrnmpi_int_alltoallv(s.data(), scnt.data(), sdispl.data(), r.data(), rcnt.data(), rdispl.data());
     alltoalldebug(dmes, s, scnt, sdispl, r, rcnt, rdispl);
 
-// when finished with r, rcnt, rdispl, caller should del them.
 #if all2allv_perf
     if (nrnmpi_myid == 0) {
         int nb = 4 * nrnmpi_numprocs + sdispl[nrnmpi_numprocs] + rdispl[nrnmpi_numprocs];
