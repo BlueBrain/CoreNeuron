@@ -11,7 +11,7 @@ export SPACK_INSTALL_PREFIX="${SPACK_INSTALL_PREFIX:-${INSTALL_HOME}}"
 export SOFTS_DIR_PATH=$SPACK_INSTALL_PREFIX  # Deprecated, but might still be reqd
 export PATH=$SPACK_ROOT/bin:/usr/bin:$PATH
 
-if [ -d "$SPACK_ROOTY" ]; then
+if [ -d "$SPACK_ROOT" ]; then
     source $SPACK_ROOT/share/spack/setup-env.sh
 fi
 
