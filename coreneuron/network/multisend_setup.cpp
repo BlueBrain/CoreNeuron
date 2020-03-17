@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cmath>
+#include <numeric>
 
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
