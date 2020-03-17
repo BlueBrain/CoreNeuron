@@ -24,4 +24,8 @@ source ${JENKINS_DIR:-.}/_env_setup.sh
 set -x
 patch_neuron
 spack install neuron+debug@develop
+spack config get config
+spack config get modules
+module av neuron
+source $SPACK_ROOT/share/spack/setup-env.sh
 module av neuron
