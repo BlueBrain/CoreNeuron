@@ -286,38 +286,34 @@ std::vector<int*> netcon_srcgid;
 // Args marshaled by store_phase_args are used by phase1_wrapper
 // and phase2_wrapper.
 static void store_phase_args(int ngroup,
-                             int* gidgroups,
-                             int* imult,
-                             FileHandler* file_reader,
+                             std::vector<int>& gidgroups,
+                             std::vector<int>& imult,
+                             std::vector<FileHandler>& file_reader,
                              const char* path,
                              const char* restore_path,
                              bool byte_swap) {
     ngroup_w = ngroup;
-    gidgroups_w = gidgroups;
-    imult_w = imult;
-    file_reader_w = file_reader;
+    gidgroups_w = gidgroups.data();
+    imult_w = imult.data();
+    file_reader_w = file_reader.data();
     path_w = path;
     restore_path_w = restore_path;
     byte_swap_w = byte_swap;
 }
 
-/* read files.dat file and distribute cellgroups to all mpi ranks */
-void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const char* filesdat) {
+/* read files.dat file */
+std::tuple<int, std::vector<int>, std::vector<int>> nrn_read_filesdat(int multiple, const char* filesdat) {
     patstimtype = nrn_get_mechtype("PatternStim");
     if (corenrn_embedded) {
-        ngrp = corenrn_embedded_nthread;
+        int ngrp = corenrn_embedded_nthread;
         nrn_assert(multiple == 1);
-        grp = new int[ngrp + 1];
-        imult = new int[ngrp + 1];
-        (*nrn2core_group_ids_)(grp);
-        for (int i = 0; i <= ngrp; ++i) {
-            imult[i] = 0;
-        }
-        return;
+        std::vector<int> grp(ngrp + 1);
+        std::vector<int> imult(ngrp + 1, 0);
+        (*nrn2core_group_ids_)(grp.data());
+        return std::make_tuple(ngrp, grp, imult);
     }
 
     FILE* fp = fopen(filesdat, "r");
-
     if (!fp) {
         nrn_fatal_error("No input file with nrnthreads, exiting...");
     }
@@ -344,9 +340,9 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
             "Info : The number of input datasets are less than ranks, some ranks will be idle!\n");
     }
 
-    ngrp = 0;
-    grp = new int[iNumFiles * multiple / nrnmpi_numprocs + 1];
-    imult = new int[iNumFiles * multiple / nrnmpi_numprocs + 1];
+    int ngrp = 0;
+    std::vector<int> grp(iNumFiles * multiple / nrnmpi_numprocs + 1);
+    std::vector<int> imult(iNumFiles * multiple / nrnmpi_numprocs + 1);
 
     // irerate over gids in files.dat
     for (int iNum = 0; iNum < iNumFiles * multiple; ++iNum) {
@@ -367,6 +363,7 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     }
 
     fclose(fp);
+    return std::make_tuple(ngrp, grp, imult);
 }
 
 static void read_phase1(int* output_gid, int imult, NrnThread& nt);
@@ -379,6 +376,7 @@ static void* direct_phase1(NrnThread* n) {
     if (valid) {
         read_phase1(output_gid, 0, nt);
     }
+    delete[] output_gid;
     return nullptr;
 }
 
@@ -394,6 +392,7 @@ void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     F.close();
 
     read_phase1(output_gid, imult, nt);
+    delete[] output_gid;
 }
 
 static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
@@ -435,16 +434,15 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         /// Or to the negative PreSyn map
         PreSyn* ps = nt.presyns + i;
         if (gid >= 0) {
-            char m[200];
             if (gid2in.find(gid) != gid2in.end()) {
-                sprintf(m, "gid=%d already exists as an input port", gid);
+                std::string m = "gid=" + std::to_string(gid) + " already exists as an input port";
                 hoc_execerror(
-                    m,
+                    m.c_str(),
                     "Setup all the output ports on this process before using them as input ports.");
             }
             if (gid2out.find(gid) != gid2out.end()) {
-                sprintf(m, "gid=%d already exists on this process as an output port", gid);
-                hoc_execerror(m, 0);
+                std::string m = "gid=" + std::to_string(gid) + " already exists on this process as an output port";
+                hoc_execerror(m.c_str(), 0);
             }
             gid2out[gid] = ps;
             ps->gid_ = gid;
@@ -456,11 +454,9 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         MUTUNLOCK
 
         if (gid < 0) {
-            nt.presyns[i].output_index_ = -1;
+            ps->output_index_ = -1;
         }
     }
-
-    delete[] output_gid;
 
     if (nrn_setup_extracon > 0) {
         // very simplistic
@@ -474,14 +470,12 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         // Would not be difficult to modify so that random positive source was
         // used, and/or random connect to another duplicate.
         // Note that we increment the nt.n_netcon at the end of this function.
-        int sidoffset;  // how much to increment the corresponding positive gid
+        int sidoffset = 0;  // how much to increment the corresponding positive gid
         // like ring connectivity
         if (imult > 0) {
             sidoffset = -maxgid;
         } else if (nrn_setup_multiple > 1) {
             sidoffset = (nrn_setup_multiple - 1) * maxgid;
-        } else {
-            sidoffset = 0;
         }
         // set up the extracon srcgid_
         int* nc_srcgid = netcon_srcgid[nt.id];
@@ -508,28 +502,33 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
     }
 }
 
-void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
+std::pair<PreSyn*, InputPreSyn*> netpar_tid_gid2ps_2(int tid, int gid) {
     /// for gid < 0 returns the PreSyn* in the thread (tid) specific map.
-    *ps = nullptr;
-    *psi = nullptr;
+    PreSyn *ps = nullptr;
+    InputPreSyn *psi = nullptr;
 
     if (gid >= 0) {
         auto gid2out_it = gid2out.find(gid);
         if (gid2out_it != gid2out.end()) {
-            *ps = gid2out_it->second;
+            ps = gid2out_it->second;
         } else {
             std::map<int, InputPreSyn*>::iterator gid2in_it;
             gid2in_it = gid2in.find(gid);
             if (gid2in_it != gid2in.end()) {
-                *psi = gid2in_it->second;
+                psi = gid2in_it->second;
             }
         }
     } else {
         auto gid2out_it = neg_gid2out[tid].find(gid);
         if (gid2out_it != neg_gid2out[tid].end()) {
-            *ps = gid2out_it->second;
+            ps = gid2out_it->second;
         }
     }
+    return std::make_pair(ps, psi);
+}
+
+void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
+    std::tie(*ps, *psi) = netpar_tid_gid2ps_2(tid, gid);
 }
 
 void determine_inputpresyn() {
@@ -640,10 +639,10 @@ void determine_inputpresyn() {
         NrnThread& nt = nrn_threads[ith];
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;
-            int gid = netcon_srcgid[ith][i];
+            const int gid = netcon_srcgid[ith][i];
             PreSyn* ps;
             InputPreSyn* psi;
-            netpar_tid_gid2ps(ith, gid, &ps, &psi);
+            std::tie(ps, psi) = netpar_tid_gid2ps_2(ith, gid);
             if (ps) {
                 netcon_in_presyn_order_[ps->nc_index_ + ps->nc_cnt_] = nc;
                 ++ps->nc_cnt_;
@@ -681,16 +680,16 @@ void nrn_setup(const char* filesdat,
     int ngroup = 0;
 
     /// Array of cell group numbers (indices)
-    int* gidgroups = nullptr;
+    std::vector<int> gidgroups;
 
     /// Array of duplicate indices. Normally, with nrn_setup_multiple=1,
     //   they are ngroup values of 0.
-    int* imult = nullptr;
+    std::vector<int> imult;
 
     double time = nrn_wtime();
 
     maxgid = 0x7fffffff / nrn_setup_multiple;
-    nrn_read_filesdat(ngroup, gidgroups, nrn_setup_multiple, imult, filesdat);
+    std::tie(ngroup, gidgroups, imult) = nrn_read_filesdat(nrn_setup_multiple, filesdat);
 
     if (!MUTCONSTRUCTED) {
         MUTCONSTRUCT(1)
@@ -700,7 +699,7 @@ void nrn_setup(const char* filesdat,
     // Fortunately, empty threads work fine.
     // Allocate NrnThread* nrn_threads of size ngroup (minimum 2)
     // Note that rank with 0 dataset/cellgroup works fine
-    nrn_threads_create(ngroup <= 1 ? 2 : ngroup);
+    nrn_threads_create(std::max(ngroup, 2));
 
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
 
@@ -730,10 +729,9 @@ void nrn_setup(const char* filesdat,
     gid2out.clear();
 
     netcon_srcgid.resize(nrn_nthread);
-    for (int i = 0; i < nrn_nthread; ++i)
-        netcon_srcgid[i] = nullptr;
+    memset(netcon_srcgid.data(), 0, nrn_nthread * sizeof(int));
 
-    FileHandler* file_reader = new FileHandler[ngroup];
+    std::vector<FileHandler> file_reader(ngroup);
 
     /* nrn_multithread_job supports serial, pthread, and openmp. */
     store_phase_args(ngroup, gidgroups, imult, file_reader, datpath,
@@ -797,19 +795,15 @@ void nrn_setup(const char* filesdat,
     /// which is only executed by StochKV.c.
     nrn_mk_table_check();  // was done in nrn_thread_memblist_setup in multicore.c
 
-    delete[] file_reader;
-
     model_size();
-    delete[] gidgroups;
-    delete[] imult;
 
     if (nrnmpi_myid == 0) {
         printf(" Setup Done   : %.2lf seconds \n", nrn_wtime() - time);
     }
 }
 
-void setup_ThreadData(NrnThread& nt) {
-    for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
+void setup_ThreadData(const NrnThreadMembList* tml_) {
+    for (const NrnThreadMembList* tml = tml_; tml; tml = tml->next) {
         Memb_func& mf = corenrn.get_memb_func(tml->index);
         Memb_list* ml = tml->ml;
         if (mf.thread_size_) {
@@ -824,7 +818,7 @@ void setup_ThreadData(NrnThread& nt) {
     }
 }
 
-void read_phasegap(FileHandler& F, int imult, NrnThread& nt) {
+void read_phasegap(FileHandler& F, int imult, const NrnThread& nt) {
     nrn_assert(imult == 0);
     nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[nt.id];
     si.ntar = 0;
@@ -882,14 +876,14 @@ static size_t nrn_soa_byte_align(size_t i) {
 // Return the corresponding SoA index -- taking into account the
 // alignment requirements. Ie. i_instance + i_item*align_cnt.
 
-int nrn_param_layout(int i, int mtype, Memb_list* ml) {
+int nrn_param_layout(int i, int mtype, int nodecount) {
     int layout = corenrn.get_mech_data_layout()[mtype];
     if (layout == 1) {
         return i;
     }
     assert(layout == 0);
     int sz = corenrn.get_prop_param_size()[mtype];
-    return nrn_i_layout(i / sz, ml->nodecount, i % sz, sz, layout);
+    return nrn_i_layout(i / sz, nodecount, i % sz, sz, layout);
 }
 
 int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
@@ -928,7 +922,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
     } else if (mtype > 0 && mtype < corenrn.get_memb_funcs().size()) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
-        int ix = nrn_param_layout(index, mtype, ml);
+        int ix = nrn_param_layout(index, mtype, ml->nodecount);
         if (ml->_permute) {
             ix = nrn_index_permute(ix, mtype, ml);
         }
@@ -963,26 +957,24 @@ inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
             return;
         }
         F.read_array<T>(data, cnt * sz);
-    } else if (layout == 0) { /* SoA */
-        int align_cnt = nrn_soa_padded_size(cnt, layout);
-        T* d;
-        if (corenrn_embedded) {
-            d = new T[cnt * sz];
-            for (int i = 0; i < cnt; ++i) {
-                for (int j = 0; j < sz; ++j) {
-                    d[i * sz + j] = data[i * sz + j];
-                }
-            }
-        } else {
-            d = F.read_array<T>(cnt * sz);
-        }
-        for (int i = 0; i < cnt; ++i) {
-            for (int j = 0; j < sz; ++j) {
-                data[i + j * align_cnt] = d[i * sz + j];
-            }
-        }
-        delete[] d;
+        return;
     }
+
+    // else if (layout == 0) { /* SoA */
+    int align_cnt = nrn_soa_padded_size(cnt, layout);
+    T* d;
+    if (corenrn_embedded) {
+        d = new T[cnt * sz];
+        memcpy(d, data, cnt * sz * sizeof(T));
+    } else {
+        d = F.read_array<T>(cnt * sz);
+    }
+    for (int i = 0; i < cnt; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            data[i + j * align_cnt] = d[i * sz + j];
+        }
+    }
+    delete[] d;
 }
 
 /* nrn_threads_free() presumes all NrnThread and NrnThreadMembList data is
@@ -1186,6 +1178,36 @@ void delete_trajectory_requests(NrnThread& nt) {
     }
 }
 
+static NrnThreadMembList* createNrnThreadMembList(int tml_index, int i, int ml_nodecount, int shadow_rhs_cnt) {
+    auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
+    tml->next = nullptr;
+    tml->index = tml_index;
+
+    tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
+    tml->ml->_net_receive_buffer = nullptr;
+    tml->ml->_net_send_buffer = nullptr;
+    tml->ml->_permute = nullptr;
+    auto memb_func = corenrn.get_memb_funcs();
+    if (memb_func[tml->index].alloc == nullptr) {
+        hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
+    }
+    tml->ml->nodecount = ml_nodecount;
+    if (!memb_func[tml->index].sym) {
+        printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
+        exit(1);
+    }
+    tml->ml->_nodecount_padded =
+        nrn_soa_padded_size(tml->ml->nodecount, corenrn.get_mech_data_layout()[tml->index]);
+    if (memb_func[tml->index].is_point && corenrn.get_is_artificial()[tml->index] == 0) {
+        // Avoid race for multiple PointProcess instances in same compartment.
+        if (tml->ml->nodecount > shadow_rhs_cnt) {
+            shadow_rhs_cnt = tml->ml->nodecount;
+        }
+    }
+
+    return tml;
+}
+
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     bool direct = corenrn_embedded;
     if (!direct) {
@@ -1276,33 +1298,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #if defined(_OPENMP)
     nt.stream_id = omp_get_thread_num();
 #endif
-    auto& memb_func = corenrn.get_memb_funcs();
     NrnThreadMembList* tml_last = nullptr;
     for (int i = 0; i < nmech; ++i) {
-        auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
-        tml->next = nullptr;
-        tml->index = tml_index[i];
-
-        tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
-        tml->ml->_net_receive_buffer = nullptr;
-        tml->ml->_net_send_buffer = nullptr;
-        tml->ml->_permute = nullptr;
-        if (memb_func[tml->index].alloc == nullptr) {
-            hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
-        }
-        tml->ml->nodecount = ml_nodecount[i];
-        if (!memb_func[tml->index].sym) {
-            printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
-            exit(1);
-        }
-        tml->ml->_nodecount_padded =
-            nrn_soa_padded_size(tml->ml->nodecount, corenrn.get_mech_data_layout()[tml->index]);
-        if (memb_func[tml->index].is_point && corenrn.get_is_artificial()[tml->index] == 0) {
-            // Avoid race for multiple PointProcess instances in same compartment.
-            if (tml->ml->nodecount > shadow_rhs_cnt) {
-                shadow_rhs_cnt = tml->ml->nodecount;
-            }
-        }
+        auto tml = createNrnThreadMembList(tml_index[i], i, ml_nodecount[i], shadow_rhs_cnt);
 
         nt._ml_list[tml->index] = tml->ml;
 #if CHKPNTDEBUG
@@ -1311,6 +1309,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
         // printf("index=%d nodecount=%d membfunc=%s\n", tml->index, tml->ml->nodecount,
         // memb_func[tml->index].sym?memb_func[tml->index].sym:"None");
+
         if (nt.tml) {
             tml_last->next = tml;
         } else {
@@ -1361,10 +1360,10 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     int npnt = 0;
     for (auto tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
-        int type = tml->index;
-        int layout = corenrn.get_mech_data_layout()[type];
-        int n = ml->nodecount;
-        int sz = nrn_prop_param_size_[type];
+        const int type = tml->index;
+        const int layout = corenrn.get_mech_data_layout()[type];
+        const int n = ml->nodecount;
+        const int sz = nrn_prop_param_size_[type];
         offset = nrn_soa_byte_align(offset);
         ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
         offset += nrn_soa_padded_size(n, layout) * sz;
@@ -1416,6 +1415,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 #endif
 
     int synoffset = 0;
+    auto& memb_func = corenrn.get_memb_funcs();
     std::vector<int> pnt_offset(memb_func.size());
 
     // All the mechanism data and pdata.
@@ -1424,13 +1424,13 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     int itml = 0;
     int dsz_inst = 0;
     for (auto tml = nt.tml; tml; tml = tml->next, ++itml) {
-        int type = tml->index;
+        const int type = tml->index;
+        const bool is_art = corenrn.get_is_artificial()[type];
+        const int szp = nrn_prop_param_size_[type];
+        const int szdp = nrn_prop_dparam_size_[type];
+        const int layout = corenrn.get_mech_data_layout()[type];
         Memb_list* ml = tml->ml;
-        int is_art = corenrn.get_is_artificial()[type];
-        int n = ml->nodecount;
-        int szp = nrn_prop_param_size_[type];
-        int szdp = nrn_prop_dparam_size_[type];
-        int layout = corenrn.get_mech_data_layout()[type];
+        const int n = ml->nodecount;
 
         if (!is_art && !direct) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
@@ -1462,7 +1462,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             if (layout == 1) {  // AoS just copy
                 for (int i = 0; i < n; ++i) {
                     for (int j = 0; j < szdp; ++j) {
-                        mlc->pdata_not_permuted[i * szdp + j] = ml->pdata[i * szdp + j];
+                        memcpy(mlc->pdata_not_permuted, ml->pdata, n * szdp * sizeof(Datum));
                     }
                 }
             } else if (layout == 0) {  // SoA transpose and unpad
@@ -1478,9 +1478,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             ml->pdata = nullptr;
         }
         if (corenrn.get_pnt_map()[type] > 0) {  // POINT_PROCESS mechanism including acell
-            int cnt = ml->nodecount;
-            Point_process* pnt = nullptr;
-            pnt = nt.pntprocs + synoffset;
+            const int cnt = ml->nodecount;
+            Point_process* pnt = nt.pntprocs + synoffset;
             pnt_offset[type] = synoffset;
             synoffset += cnt;
             for (int i = 0; i < cnt; ++i) {
@@ -1503,12 +1502,12 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // or 0-999 (ion variables). Note that pdata has a layout and the
     // type block in nt.data into which it indexes, has a layout.
     for (auto tml = nt.tml; tml; tml = tml->next) {
-        int type = tml->index;
-        int layout = corenrn.get_mech_data_layout()[type];
+        const int type = tml->index;
+        const int layout = corenrn.get_mech_data_layout()[type];
+        const int cnt = tml->ml->nodecount;
+        const int szdp = nrn_prop_dparam_size_[type];
+        const int* semantics = memb_func[type].dparam_semantics;
         int* pdata = tml->ml->pdata;
-        int cnt = tml->ml->nodecount;
-        int szdp = nrn_prop_dparam_size_[type];
-        int* semantics = memb_func[type].dparam_semantics;
 
         // ignore ARTIFICIAL_CELL (has useless area pointer with semantics=-1)
         if (corenrn.get_is_artificial()[type]) {
@@ -1524,7 +1523,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
 
         for (int i = 0; i < szdp; ++i) {
             int s = semantics[i];
-            if (s == -1) {  // area
+            if (s == -1) { // area
                 int area0 = nt._actual_area - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
                     int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
@@ -1532,6 +1531,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                     nrn_assert((ix >= 0) && (ix < nt.end));
                     *pd = area0 + ix;  // relative to nt._data
                 }
+                break;
             } else if (s == -9) {  // diam
                 int diam0 = nt._actual_diam - nt._data;
                 for (int iml = 0; iml < cnt; ++iml) {
@@ -1552,7 +1552,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                 int etype = s;
                 /* if ion is SoA, must recalculate pdata values */
                 /* if ion is AoS, have to deal with offset */
-                Memb_list* eml = nt._ml_list[etype];
+                const Memb_list* eml = nt._ml_list[etype];
                 int edata0 = eml->data - nt._data;
                 int ecnt = eml->nodecount;
                 int esz = nrn_prop_param_size_[etype];
@@ -1561,7 +1561,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
                     int ix = *pd;  // relative to the ion data
                     nrn_assert((ix >= 0) && (ix < ecnt * esz));
                     /* Original pd order assumed ecnt groups of esz */
-                    *pd = edata0 + nrn_param_layout(ix, etype, eml);
+                    *pd = edata0 + nrn_param_layout(ix, etype, ecnt);
                 }
             }
         }
@@ -1595,9 +1595,9 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         node_permute(nt._v_parent_index, nt.end, p);
 
 #if DEBUG
-for (int i=0; i < nt.end; ++i) {
-  printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
-}
+        for (int i=0; i < nt.end; ++i) {
+            printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
+        }
 #endif
 
         // specify the ml->_permute and sort the nodeindices
@@ -1696,14 +1696,13 @@ for (int i=0; i < nt.end; ++i) {
     free(mech_deps);
 
     /// Fill the BA lists
-    std::vector<BAMech*> bamap(memb_func.size());
     for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
-        for (size_t ii = 0; ii < memb_func.size(); ++ii) {
-            bamap[ii] = nullptr;
-        }
+        std::vector<BAMech*> bamap(memb_func.size(), nullptr);
+
         for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
             bamap[bam->type] = bam;
         }
+
         /* unnecessary but keep in order anyway */
         NrnThreadBAList **ptbl = nt.tbl + i;
         for (auto tml = nt.tml; tml; tml = tml->next) {
@@ -1728,7 +1727,7 @@ for (int i=0; i < nt.end; ++i) {
                 ++sz;
             }
         }
-        if (sz) {
+        if (sz != 0) {
             nt._watch_types = (int*)ecalloc(sz + 1, sizeof(int));  // nullptr terminated
             sz = 0;
             for (auto tml = nt.tml; tml; tml = tml->next) {
@@ -1766,8 +1765,7 @@ for (int i=0; i < nt.end; ++i) {
     if (direct) {
         (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold, pnttype,
                                 pntindex, nt.weights, delay);
-    }
-    if (!direct) {
+    } else {
         output_vindex = F.read_array<int>(nt.n_presyn);
     }
 #if CHKPNTDEBUG
@@ -1835,8 +1833,6 @@ for (int i=0; i < nt.end; ++i) {
     // with pnttype[i] > 0 have a target.
     if (!direct) {
         pnttype = F.read_array<int>(nnetcon);
-    }
-    if (!direct) {
         pntindex = F.read_array<int>(nnetcon);
     }
 #if CHKPNTDEBUG
@@ -2065,7 +2061,7 @@ for (int i=0; i < nt.end; ++i) {
             F.read_array<double>(vector_vec(yvec), sz);
             F.read_array<double>(vector_vec(tvec), sz);
         }
-        ix = nrn_param_layout(ix, mtype, ml);
+        ix = nrn_param_layout(ix, mtype, ml->nodecount);
         if (ml->_permute) {
             ix = nrn_index_permute(ix, mtype, ml);
         }

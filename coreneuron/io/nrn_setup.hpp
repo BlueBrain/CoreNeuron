@@ -46,8 +46,8 @@ static bool byte_swap_w;
 static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
 static void read_phase2(FileHandler& F, int imult, NrnThread& nt);
 static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
-static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
-static void setup_ThreadData(NrnThread& nt);
+static void read_phasegap(FileHandler& F, int imult, const NrnThread& nt);
+static void setup_ThreadData(const NrnThreadMembList* tml);
 
 // Functions to load and clean data;
 extern void nrn_init_and_load_data(int argc,
@@ -144,7 +144,7 @@ inline void* phase_wrapper_w(NrnThread* nt) {
             file_reader_w[i].close();
         }
         if (P == 2) {
-            setup_ThreadData(*nt);
+            setup_ThreadData(nt->tml);
         }
     }
     return nullptr;
