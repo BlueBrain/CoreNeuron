@@ -146,6 +146,191 @@ void (*nrn2core_trajectory_values_)(int tid, int n_pr, void** vpr, double t);
 
 void (*nrn2core_trajectory_return_)(int tid, int n_pr, int vecsz, void** vpr, double t);
 
+struct Phase1 {
+    int n_presyn;
+    int n_netcon;
+};
+
+struct Phase2 {
+    int n_output;
+    int n_real_output;
+    int n_node;
+    int n_diam;
+    int n_mech;
+    int n_idata;
+    int n_vdata;
+    int n_weight;
+    std::vector<int> v_parent_index;
+    std::vector<double> actual_a;
+    std::vector<double> actual_b;
+    std::vector<double> actual_area;
+    std::vector<double> actual_v;
+    std::vector<double> diam;
+    struct TML {
+        int type;
+        int nodecount;
+        std::vector<int> nodeindices;
+        std::vector<double> data;
+        std::vector<int> pdata;
+        int type2;
+        int icnt;
+        int dcnt;
+        std::vector<int> iArray;
+        std::vector<double> dArray;
+    };
+    std::vector<TML> tml;
+    std::vector<int> output_vindex;
+    std::vector<double> output_threshold;
+    std::vector<int> netcon_pnttype;
+    std::vector<int> netcon_pntindex;
+    std::vector<double> weights;
+    std::vector<double> delays;
+    int npnt;
+    int n_vector_play;
+    struct VectorPlay {
+        int vtype;
+        int mtype;
+        int index;
+        int vecsize;
+        std::vector<double> yvec;
+        std::vector<double> tvec;
+    };
+    std::vector<VectorPlay> vector_play;
+};
+
+void transform_phase2(const Phase2& p2, NrnThread& nt) {
+    nt._nidata = p2.n_idata;
+    nt._nvdata = p2.n_vdata;
+    nt.n_weight = p2.n_weight;
+    nt.ncell = p2.n_real_output;
+    nt.end = p2.n_node;
+    nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
+    nt._v_parent_index = p2.v_parent_index.data();
+    nt._actual_a = p2.actual_a.data();
+    nt._actual_b = p2.actual_b.data();
+    nt._actual_area = p2.actual_area.data();
+    nt._actual_v = p2.actual_v.data();
+    nt._actual_diam = p2.diam.data();
+}
+
+void read_direct_phase2(int id, int param_size, int dparam_size) {
+    Phase2 p2;
+    int* index = nullptr, *nodecount = nullptr;
+    (*nrn2core_get_dat2_1_)(id, p2.n_output, p2.n_real_output, p2.n_node, p2.n_diam,
+            p2.n_mech, index, nodecount, p2.n_idata, p2.n_vdata, p2.n_weight);
+    p2.tml.resize(p2.n_mech);
+    for (size_t i = 0; i < p2.n_mech; ++i) {
+        auto& tml = p2.tml[i];
+        tml.type = index[i];
+        tml.nodecount = nodecount[i];
+    }
+    delete index;
+    delete nodecount;
+
+    p2.v_parent_index.resize(p2.n_node);
+    p2.actual_a.resize(p2.n_node);
+    p2.actual_b.resize(p2.n_node);
+    p2.actual_area.resize(p2.n_node);
+    p2.actual_v.resize(p2.n_node);
+    p2.diam.resize(p2.n_node);
+    (*nrn2core_get_dat2_2_)(id, p2.v_parent_index, p2.actual_a, p2.actual_b,
+            p2.actual_area, p2.actual_v, p2.diam);
+
+    for(size_t itml = 0; itml < p2.n_mech; ++itml) {
+        auto& tml = p2.tml[i];
+        int* nodeindices = nullptr;
+        double* data = nullptr;
+        int* pdata = nullptr;
+        (*nrn2core_get_dat2_mech_)(id, itml, dparam_size > 0 ? itml : 0, nodeindices, data, pdata);
+        tml.nodeindices = std::vector(nodeindices, nodeindices + tml.nodecount);
+        delete[] nodeindices;
+        tml.data = std::vector(data, data + tml.nodecount * param_size);
+        delete[] data;
+        if (dparam_size > 0) {
+            tml.pdata = std::vector(pdata, pdata + tml.nodecount * dparam_size);
+            delete[] pdata;
+        }
+
+    }
+}
+
+void read_file_phase2(coreneuron::FileHandler& F, bool is_art, int param_size, int dparam_size, const Phase1& p1) {
+    Phase2 p2;
+    p2.n_output = F.read_int();
+    p2.n_real_output = F.read_int();
+    p2.n_node = F.read_int();
+    p2.n_diam = F.read_int();
+    p2.n_mech = F.read_int();
+    p2.tml.reserve(p2.n_mech);
+    for (size_t i = 0; i < p2.n_mech; ++i) {
+        p2.tml[i].type = F.read_int();
+        p2.tml[i].nodecount = F.read_int();
+    }
+    p2.n_idata = F.read_int();
+    p2.n_vdata = F.read_int();
+    p2.n_weight = F.read_int();
+    p2.v_parent_index.reserve(p2.n_node);
+    p2.actual_a.reserve(p2.n_node);
+    p2.actual_b.reserve(p2.n_node);
+    p2.actual_area.reserve(p2.n_node);
+    p2.actual_v.reserve(p2.n_node);
+    F.read_array<int>(p2.v_parent_index.data(), p2.n_node);
+    F.read_array<double>(p2.actual_a.data(), p2.n_node);
+    F.read_array<double>(p2.actual_b.data(), p2.n_node);
+    F.read_array<double>(p2.actual_area.data(), p2.n_node);
+    F.read_array<double>(p2.actual_v.data(), p2.n_node);
+    if (p2.n_diam > 0) {
+        p2.diam.resize(p2.n_node);
+        F.read_array<double>(p2.diam.data(), p2.n_node);
+    }
+    for (size_t i = 0; i < p2.n_mech; ++i) {
+        auto& tml = p2.tml[i];
+        tml.nodeindices.resize(tml.nodecount);
+        tml.data.resize(tml.nodecount * param_size);
+        tml.pdata.resize(tml.nodecount * dparam_size);
+
+        if (!is_art) {
+            F.read_array<int>(tml.nodeindices.data(), tml.nodecount);
+        }
+        F.read_array<double>(tml.data.data(), tml.nodecount * param_size);
+        F.read_array<int>(tml.pdata.data(), tml.nodecount * dparam_size);
+    }
+    p2.output_vindex.resize(p1.n_presyn);
+    F.read_array<int>(p2.output_vindex.data(), p1.n_presyn);
+    p2.output_threshold.resize(p2.n_real_output);
+    F.read_array<double>(p2.output_threshold.data(), p2.n_real_output);
+    p2.netcon_pnttype.resize(p1.n_netcon);
+    F.read_array<int>(p2.netcon_pnttype.data(), p1.n_netcon);
+    p2.netcon_pntindex.resize(p1.n_netcon);
+    F.read_array<int>(p2.netcon_pntindex.data(), p1.n_netcon);
+    p2.weights.resize(p2.n_weight);
+    F.read_array<double>(p2.weights.data(), p2.n_weight);
+    p2.delays.resize(p1.n_netcon);
+    F.read_array<double>(p2.delays.data(), p1.n_netcon);
+    p2.npnt = F.read_int();
+    for (size_t i = 0; i < p2.n_mech; ++i) {
+        p2.tml[i].type2 = F.read_int();
+        p2.tml[i].icnt = F.read_int();
+        p2.tml[i].dcnt = F.read_int();
+        p2.tml[i].iArray.resize(p2.tml[i].icnt);
+        F.read_array<int>(p2.tml[i].iArray.data(), p2.tml[i].icnt);
+        p2.tml[i].dArray.resize(p2.tml[i].dcnt);
+        F.read_array<double>(p2.tml[i].dArray.data(), p2.tml[i].dcnt);
+    }
+    p2.n_vector_play = F.read_int();
+    p2.vector_play.resize(p2.n_vector_play);
+    for (auto& v_play: p2.vector_play) {
+        v_play.vtype = F.read_int();
+        v_play.mtype = F.read_int();
+        v_play.index = F.read_int();
+        v_play.vecsize = F.read_int();
+        v_play.yvec.resize(v_play.vecsize);
+        F.read_array<double>(v_play.yvec.data(), v_play.vecsize);
+        v_play.tvec.resize(v_play.vecsize);
+        F.read_array<double>(v_play.tvec.data(), v_play.vecsize);
+    }
+}
+
 // file format defined in cooperation with nrncore/src/nrniv/nrnbbcore_write.cpp
 // single integers are ascii one per line. arrays are binary int or double
 // Note that regardless of the gid contents of a group, since all gids are
@@ -187,20 +372,21 @@ void (*nrn2core_trajectory_return_)(int tid, int n_pr, int vecsz, void** vpr, do
 // netcon_pntindex (nnetcon)
 // weights (nweight)
 // delays (nnetcon)
+// npnt (same thing that ntc.nbcp)
 // for the nmech tml mechanisms that have a nrn_bbcore_write method
 //   type
 //   icnt
 //   dcnt
-//   int array (number specified by the nodecount nrn_bbcore_write
-//     to be intepreted by this side's nrn_bbcore_read method)
-//   double array
+//   int array of size icnt
+//   double array of size dcnt
 // #VectorPlay_instances, for each of these instances
-// 4 (VecPlayContinuousType)
-// mtype
-// index (from Memb_list.data)
-// vecsize
-// yvec
-// tvec
+// VectorPlay_instances, composed by:
+//     vtype
+//     mtype
+//     index (from Memb_list.data)
+//     vecsize
+//     yvec(vecsize)
+//     tvec(vecsize)
 //
 // The critical issue requiring careful attention is that a coreneuron
 // process reads many coreneuron thread files with a result that, although
@@ -1210,38 +1396,29 @@ static NrnThreadMembList* createNrnThreadMembList(int tml_index, int i, int ml_n
 
 void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     bool direct = corenrn_embedded;
+    Phase1 p1;
+    Phase2 p2;
     if (!direct) {
         assert(!F.fail());  // actually should assert that it is open
+        p2 = read_file_phase2(F, is_art, param_size, dparam_size, p1);
+    } else {
+        p2 = read_direct_phase2(nt.id);
     }
+    transform_phase2(p2, nt);
+
     nrn_assert(imult >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = gidgroups_w[nt.id];
 
-    int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
-    if (direct) {
-        int nidata, nvdata;
-        (*nrn2core_get_dat2_1_)(nt.id, n_outputgid, nt.ncell, nt.end, ndiam, nmech, tml_index,
-                                ml_nodecount, nidata, nvdata, nt.n_weight);
-        nt._nidata = nidata;
-        nt._nvdata = nvdata;
-    } else {
-        n_outputgid = F.read_int();
-        nt.ncell = F.read_int();
-        nt.end = F.read_int();
-        ndiam = F.read_int();  // 0 if not needed, else nt.end
-        nmech = F.read_int();
-        tml_index = new int[nmech];
-        ml_nodecount = new int[nmech];
+    if (!direct) {
         int diff_mech_count = 0;
         for (int i = 0; i < nmech; ++i) {
-            tml_index[i] = F.read_int();
-            ml_nodecount[i] = F.read_int();
             if (std::any_of(corenrn.get_different_mechanism_type().begin(),
                             corenrn.get_different_mechanism_type().end(),
-                [&](int e) { return e == tml_index[i]; })) {
+                [&](int e) { return e == p2.tml[i].type; })) {
                 if (nrnmpi_myid == 0) {
                     printf("Error: %s is a different MOD file than used by NEURON!\n",
-                           nrn_get_mechname(tml_index[i]));
+                           nrn_get_mechname(p2.tml[i].type));
                 }
                 diff_mech_count++;
             }
@@ -1255,18 +1432,14 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
             }
             nrn_abort(1);
         }
-
-        nt._nidata = F.read_int();
-        nt._nvdata = F.read_int();
-        nt.n_weight = F.read_int();
     }
 
 #if CHKPNTDEBUG
-    ntc.n_outputgids = n_outputgid;
-    ntc.nmech = nmech;
+    ntc.n_outputgids = p2.n_output;
+    ntc.nmech = p2.n_mech;
 #endif
     if (!direct) {
-        nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
+        nrn_assert(p2.n_output > 0);  // avoid p2.n_output unused warning
     }
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
@@ -1299,8 +1472,8 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nt.stream_id = omp_get_thread_num();
 #endif
     NrnThreadMembList* tml_last = nullptr;
-    for (int i = 0; i < nmech; ++i) {
-        auto tml = createNrnThreadMembList(tml_index[i], i, ml_nodecount[i], shadow_rhs_cnt);
+    for (int i = 0; i < p2.n_mech; ++i) {
+        auto tml = createNrnThreadMembList(p2.tml[i].type, i, p2.tml[i].nodecount, shadow_rhs_cnt);
 
         nt._ml_list[tml->index] = tml->ml;
 #if CHKPNTDEBUG
@@ -1317,8 +1490,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
         tml_last = tml;
     }
-    delete[] tml_index;
-    delete[] ml_nodecount;
 
     if (shadow_rhs_cnt) {
         nt._shadow_rhs =
@@ -1347,7 +1518,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     int ne = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
     size_t offset = 6 * ne;
 
-    if (ndiam) {
+    if (p2.n_diam) {
         // in the rare case that a mechanism has dparam with diam semantics
         // then actual_diam array added after matrix in nt._data
         // Generally wasteful since only a few diam are pointed to.
@@ -1386,27 +1557,12 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     nt._actual_b = nt._data + 3 * ne;
     nt._actual_v = nt._data + 4 * ne;
     nt._actual_area = nt._data + 5 * ne;
-    nt._actual_diam = ndiam ? nt._data + 6 * ne : nullptr;
+    nt._actual_diam = p2.n_diam ? nt._data + 6 * ne : nullptr;
     for (auto tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         ml->data = nt._data + (ml->data - (double*)0);
     }
 
-    // matrix info
-    nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
-    if (direct) {
-        (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
-                                nt._actual_area, nt._actual_v, nt._actual_diam);
-    } else {
-        F.read_array<int>(nt._v_parent_index, nt.end);
-        F.read_array<double>(nt._actual_a, nt.end);
-        F.read_array<double>(nt._actual_b, nt.end);
-        F.read_array<double>(nt._actual_area, nt.end);
-        F.read_array<double>(nt._actual_v, nt.end);
-        if (ndiam) {
-            F.read_array<double>(nt._actual_diam, nt.end);
-        }
-    }
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];
     memcpy(ntc.parent, nt._v_parent_index, nt.end * sizeof(int));
@@ -1422,7 +1578,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
     // Also fill in the pnt_offset
     // Complete spec of Point_process except for the acell presyn_ field.
     int itml = 0;
-    int dsz_inst = 0;
     for (auto tml = nt.tml; tml; tml = tml->next, ++itml) {
         const int type = tml->index;
         const bool is_art = corenrn.get_is_artificial()[type];
@@ -1442,14 +1597,11 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
         }
 
         if (direct) {
-            (*nrn2core_get_dat2_mech_)(nt.id, itml, dsz_inst, ml->nodeindices, ml->data, ml->pdata);
+            (*nrn2core_get_dat2_mech_)(nt.id, itml, szdp ? itml : 0, ml->nodeindices, ml->data, ml->pdata);
         } else {
             if (!is_art) {
                 F.read_array<int>(ml->nodeindices, ml->nodecount);
             }
-        }
-        if (szdp) {
-            ++dsz_inst;
         }
 
         mech_layout<double>(F, ml->data, n, szp, layout);
