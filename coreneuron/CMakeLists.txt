@@ -205,11 +205,6 @@ add_custom_command(TARGET coreneuron
                    COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_dependencies(coreneuron scopmath)
 
-# make sure to have nmodl python module is built
-if(CORENRN_ENABLE_NMODL AND NOT nmodl_FOUND)
-   add_dependencies(coreneuron _nmodl)
-endif()
-
 # =============================================================================
 # create nrnivmodl-core
 # =============================================================================
