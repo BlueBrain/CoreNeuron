@@ -51,6 +51,11 @@ ISPC = @CMAKE_ISPC_COMPILER@
 ISPC_FLAGS = @CMAKE_ISPC_FLAGS@
 ISPC_COMPILE = $(ISPC) $(ISPC_FLAGS) -I$(incdir)
 
+ifeq (@nmodl_FOUND@, TRUE)
+INCLUDES += -I@CORENRN_NMODL_INCLUDE@
+ISPC_COMPILE += -I@CORENRN_NMODL_INCLUDE@
+endif
+
 # Variables used in the "ARTIFICIAL_CELL" detection
 mod_c_srcs_path =
 mod_ispc_srcs_path =
