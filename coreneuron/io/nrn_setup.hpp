@@ -43,7 +43,20 @@ static const char* restore_path_w;
 static FileHandler* file_reader_w;
 static bool byte_swap_w;
 
-static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
+struct Phase1 {
+    public:
+    void read_direct(int thread_id);
+    void read_file(FileHandler& F);
+    void populate(NrnThread& nt, int imult);
+
+    private:
+    void shift_gids(int imult);
+    void add_extracon(NrnThread& nt, int imult);
+
+    std::vector<int> output_gids;
+    std::vector<int> netcon_srcgids;
+
+};
 static void read_phase2(FileHandler& F, int imult, NrnThread& nt);
 static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
 static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
@@ -93,7 +106,9 @@ inline void read_phase_aux(FileHandler& F, int imult, NrnThread& nt);
 
 template <>
 inline void read_phase_aux<one>(FileHandler& F, int imult, NrnThread& nt) {
-    read_phase1(F, imult, nt);
+    Phase1 p1;
+    p1.read_file(F);
+    p1.populate(nt, imult);
 }
 
 template <>

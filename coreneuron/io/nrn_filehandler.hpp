@@ -205,7 +205,7 @@ class FileHandler {
 
     // convenience interfaces:
 
-    /** Read and optionally allocate an integer array of fixed length. */
+    /** Read an integer array of fixed length. */
     template <typename T>
     inline T* read_array(T* p, size_t count) {
         return parse_array(p, count, read);

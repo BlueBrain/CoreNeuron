@@ -373,60 +373,126 @@ void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const ch
     fclose(fp);
 }
 
-static void read_phase1(int* output_gid, int imult, NrnThread& nt);
-
-static void* direct_phase1(NrnThread* n) {
-    NrnThread& nt = *n;
-    int* output_gid;
+void Phase1::read_direct(int thread_id) {
+    int* output_gids;
+    int* netcon_srcgid;
+    int n_presyn;
+    int n_netcon;
     int valid =
-        (*nrn2core_get_dat1_)(nt.id, nt.n_presyn, nt.n_netcon, output_gid, netcon_srcgid[nt.id]);
-    if (valid) {
-        read_phase1(output_gid, 0, nt);
+        (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid);
+    if (!valid) {
+        return;
     }
-    return nullptr;
+
+    this->output_gids = std::vector<int>(output_gids, output_gids + n_presyn);
+    delete[] output_gids;
+    this->netcon_srcgids = std::vector<int>(netcon_srcgid, netcon_srcgid + n_netcon);
+    delete[] netcon_srcgid;
+
+    // read_phase1(p1, 0, nt);
 }
 
-void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
+void Phase1::read_file(FileHandler& F) {
     assert(!F.fail());
-    nt.n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
-    nt.n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
+    int n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
+    int n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
 
-    int* output_gid = F.read_array<int>(nt.n_presyn);
+    this->output_gids.reserve(n_presyn);
     // the extra netcon_srcgid will be filled in later
-    netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
-    F.read_array<int>(netcon_srcgid[nt.id], nt.n_netcon);
+    this->netcon_srcgids.reserve(n_netcon);
+    F.read_array<int>(this->netcon_srcgids.data(), n_netcon);
     F.close();
 
-    read_phase1(output_gid, imult, nt);
+    // read_phase1(p1, imult, nt);
 }
 
-static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
+void Phase1::shift_gids(int imult) {
     int zz = imult * maxgid;  // offset for each gid
+
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
-    for (int i = 0; i < nt.n_presyn; ++i) {
-        if (output_gid[i] >= 0) {
-            nrn_assert(output_gid[i] < maxgid);
-            output_gid[i] += zz;
+    for (auto& gid: this->output_gids) {
+        if (gid >= 0) {
+            nrn_assert(gid < maxgid);
+            gid += zz;
         }
     }
 
-    nt.presyns = new PreSyn[nt.n_presyn];
+    for (auto& srcgid: this->netcon_srcgids) {
+        if (srcgid >= 0) {
+            nrn_assert(srcgid < maxgid);
+            srcgid += zz;
+        }
+    }
+}
+
+void Phase1::add_extracon(NrnThread& nt, int imult) {
+    if (nrn_setup_extracon <= 0) {
+        return;
+    }
+
+    // very simplistic
+    // Use this threads positive source gids - zz in nt.netcon order as the
+    // source gids for extracon.
+    // The edge cases are:
+    // The 0th duplicate uses uses source gids for the last duplicate.
+    // If there are fewer positive source gids than extracon, then keep
+    // rotating through the nt.netcon .
+    // If there are no positive source gids, use a source gid of -1.
+    // Would not be difficult to modify so that random positive source was
+    // used, and/or random connect to another duplicate.
+    // Note that we increment the nt.n_netcon at the end of this function.
+    int sidoffset = 0;  // how much to increment the corresponding positive gid
+    // like ring connectivity
+    if (imult > 0) {
+        sidoffset = -maxgid;
+    } else if (nrn_setup_multiple > 1) {
+        sidoffset = (nrn_setup_multiple - 1) * maxgid;
+    }
+    // set up the extracon srcgid_
+    int* nc_srcgid = netcon_srcgid[nt.id];
+    int j = 0;  // rotate through the n_netcon netcon_srcgid
+    for (int i = 0; i < nrn_setup_extracon; ++i) {
+        int sid = -1;
+        for (int k = 0; k < nt.n_netcon; ++k) {
+            // potentially rotate j through the entire n_netcon but no further
+            sid = nc_srcgid[j];
+            j = (j + 1) % nt.n_netcon;
+            if (sid >= 0) {
+                break;
+            }
+        }
+        if (sid < 0) {  // only connect to real cells.
+            sid = -1;
+        } else {
+            sid += sidoffset;
+        }
+        nc_srcgid[nt.n_netcon + i] = sid;
+    }
+    // finally increment the n_netcon
+    nt.n_netcon += nrn_setup_extracon;
+}
+
+void Phase1::populate(NrnThread& nt, int imult) {
+    nt.n_presyn = this->output_gids.size();
+    nt.n_netcon = this->netcon_srcgids.size();
+
+    shift_gids(imult);
+
+    netcon_srcgid[nt.id] = new int[nt.n_netcon + nrn_setup_extracon];
+    std::copy(this->netcon_srcgids.begin(), this->netcon_srcgids.end(),
+              netcon_srcgid[nt.id]);
+
     nt.netcons = new NetCon[nt.n_netcon + nrn_setup_extracon];
     nt.presyns_helper = (PreSynHelper*)ecalloc_align(nt.n_presyn, sizeof(PreSynHelper));
 
-    int* nc_srcgid = netcon_srcgid[nt.id];
-    for (int i = 0; i < nt.n_netcon; ++i) {
-        if (nc_srcgid[i] >= 0) {
-            nrn_assert(nc_srcgid[i] < maxgid);
-            nc_srcgid[i] += zz;
-        }
-    }
-
-    for (int i = 0; i < nt.n_presyn; ++i) {
-        int gid = output_gid[i];
-        if (gid == -1)
+    nt.presyns = new PreSyn[nt.n_presyn];
+    PreSyn* ps = nt.presyns;
+    for (auto& gid: this->output_gids) {
+        if (gid == -1) {
+            ++ps;
             continue;
+        }
 
         // Note that the negative (type, index)
         // coded information goes into the neg_gid2out[tid] hash table.
@@ -434,10 +500,9 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
         // Both that table and the process wide gid2out table can be deleted
         // before the end of setup
 
-        MUTLOCK
+        MUTLOCK // Protect gid2in, gid2out and neg_gid2out
         /// Put gid into the gid2out hash table with correspondent output PreSyn
         /// Or to the negative PreSyn map
-        PreSyn* ps = nt.presyns + i;
         if (gid >= 0) {
             char m[200];
             if (gid2in.find(gid) != gid2in.end()) {
@@ -450,66 +515,20 @@ static void read_phase1(int* output_gid, int imult, NrnThread& nt) {
                 sprintf(m, "gid=%d already exists on this process as an output port", gid);
                 hoc_execerror(m, 0);
             }
-            gid2out[gid] = ps;
             ps->gid_ = gid;
             ps->output_index_ = gid;
+            gid2out[gid] = ps;
         } else {
             nrn_assert(neg_gid2out[nt.id].find(gid) == neg_gid2out[nt.id].end());
+            ps->output_index_ = -1;
             neg_gid2out[nt.id][gid] = ps;
         }
         MUTUNLOCK
 
-        if (gid < 0) {
-            nt.presyns[i].output_index_ = -1;
-        }
+        ++ps;
     }
 
-    delete[] output_gid;
-
-    if (nrn_setup_extracon > 0) {
-        // very simplistic
-        // Use this threads positive source gids - zz in nt.netcon order as the
-        // source gids for extracon.
-        // The edge cases are:
-        // The 0th duplicate uses uses source gids for the last duplicate.
-        // If there are fewer positive source gids than extracon, then keep
-        // rotating through the nt.netcon .
-        // If there are no positive source gids, use a source gid of -1.
-        // Would not be difficult to modify so that random positive source was
-        // used, and/or random connect to another duplicate.
-        // Note that we increment the nt.n_netcon at the end of this function.
-        int sidoffset;  // how much to increment the corresponding positive gid
-        // like ring connectivity
-        if (imult > 0) {
-            sidoffset = -maxgid;
-        } else if (nrn_setup_multiple > 1) {
-            sidoffset = (nrn_setup_multiple - 1) * maxgid;
-        } else {
-            sidoffset = 0;
-        }
-        // set up the extracon srcgid_
-        int* nc_srcgid = netcon_srcgid[nt.id];
-        int j = 0;  // rotate through the n_netcon netcon_srcgid
-        for (int i = 0; i < nrn_setup_extracon; ++i) {
-            int sid = -1;
-            for (int k = 0; k < nt.n_netcon; ++k) {
-                // potentially rotate j through the entire n_netcon but no further
-                sid = nc_srcgid[j];
-                j = (j + 1) % nt.n_netcon;
-                if (sid >= 0) {
-                    break;
-                }
-            }
-            if (sid < 0) {  // only connect to real cells.
-                sid = -1;
-            } else {
-                sid += sidoffset;
-            }
-            nc_srcgid[i + nt.n_netcon] = sid;
-        }
-        // finally increment the n_netcon
-        nt.n_netcon += nrn_setup_extracon;
-    }
+    add_extracon(nt, imult);
 }
 
 void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
@@ -765,7 +784,7 @@ void nrn_setup(const char* filesdat,
         coreneuron::phase_wrapper<(coreneuron::phase)1>();  /// If not the xlc compiler, it should
                                                             /// be coreneuron::phase::one
     } else {
-        nrn_multithread_job(direct_phase1);
+        nrn_multithread_job([](NrnThread* n) {Phase1 p1; p1.read_direct(n->id); NrnThread& nt = *n; p1.populate(nt, 0);});
     }
 
     // from the gid2out map and the netcon_srcgid array,
