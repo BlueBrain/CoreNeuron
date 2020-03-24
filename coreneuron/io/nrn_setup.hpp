@@ -32,7 +32,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/io/nrn_filehandler.hpp"
-#include "coreneuron/io/phase1.hpp"
 
 namespace coreneuron {
 static bool do_not_open;
@@ -44,6 +43,20 @@ static const char* restore_path_w;
 static FileHandler* file_reader_w;
 static bool byte_swap_w;
 
+struct Phase1 {
+    public:
+    void read_direct(int thread_id);
+    void read_file(FileHandler& F);
+    void populate(NrnThread& nt, int imult);
+
+    private:
+    void shift_gids(int imult);
+    void add_extracon(NrnThread& nt, int imult);
+
+    std::vector<int> output_gids;
+    std::vector<int> netcon_srcgids;
+
+};
 static void read_phase2(FileHandler& F, int imult, NrnThread& nt);
 static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
 static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
