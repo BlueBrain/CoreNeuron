@@ -285,26 +285,6 @@ std::vector<NetCon*> netcon_in_presyn_order_;
 /// Only for setup vector of netcon source gids
 std::vector<int*> netcon_srcgid;
 
-
-// Wrap read_phase1 and read_phase2 calls to allow using  nrn_multithread_job.
-// Args marshaled by store_phase_args are used by phase1_wrapper
-// and phase2_wrapper.
-static void store_phase_args(int ngroup,
-                             int* gidgroups,
-                             int* imult,
-                             FileHandler* file_reader,
-                             const char* path,
-                             const char* restore_path,
-                             bool byte_swap) {
-    ngroup_w = ngroup;
-    gidgroups_w = gidgroups;
-    imult_w = imult;
-    file_reader_w = file_reader;
-    path_w = path;
-    restore_path_w = restore_path;
-    byte_swap_w = byte_swap;
-}
-
 /* read files.dat file and distribute cellgroups to all mpi ranks */
 void nrn_read_filesdat(int& ngrp, int*& grp, int multiple, int*& imult, const char* filesdat) {
     patstimtype = nrn_get_mechtype("PatternStim");
@@ -700,20 +680,16 @@ void nrn_setup(const char* filesdat,
                const char* datpath,
                const char* restore_path,
                double* mindelay) {
-    /// Number of local cell groups
-    int ngroup = 0;
+    UserParams userParams;
 
-    /// Array of cell group numbers (indices)
-    int* gidgroups = nullptr;
-
-    /// Array of duplicate indices. Normally, with nrn_setup_multiple=1,
-    //   they are ngroup values of 0.
-    int* imult = nullptr;
+    userParams.path = datpath;
+    userParams.restore_path = strlen(restore_path) == 0 ? datpath : restore_path;
+    userParams.byte_swap = byte_swap;
 
     double time = nrn_wtime();
 
     maxgid = 0x7fffffff / nrn_setup_multiple;
-    nrn_read_filesdat(ngroup, gidgroups, nrn_setup_multiple, imult, filesdat);
+    nrn_read_filesdat(userParams.ngroup, userParams.gidgroups, nrn_setup_multiple, userParams.imult, filesdat);
 
     if (!MUTCONSTRUCTED) {
         MUTCONSTRUCT(1)
@@ -723,7 +699,7 @@ void nrn_setup(const char* filesdat,
     // Fortunately, empty threads work fine.
     // Allocate NrnThread* nrn_threads of size ngroup (minimum 2)
     // Note that rank with 0 dataset/cellgroup works fine
-    nrn_threads_create(ngroup <= 1 ? 2 : ngroup);
+    nrn_threads_create(userParams.ngroup <= 1 ? 2 : userParams.ngroup);
 
     nrnthread_chkpnt = new NrnThreadChkpnt[nrn_nthread];
 
@@ -740,7 +716,7 @@ void nrn_setup(const char* filesdat,
 
     /// Reserve vector of maps of size ngroup for negative gid-s
     /// std::vector< std::map<int, PreSyn*> > neg_gid2out;
-    neg_gid2out.resize(ngroup);
+    neg_gid2out.resize(userParams.ngroup);
 
     // bug fix. gid2out is cumulative over all threads and so do not
     // know how many there are til after phase1
@@ -756,32 +732,28 @@ void nrn_setup(const char* filesdat,
     for (int i = 0; i < nrn_nthread; ++i)
         netcon_srcgid[i] = nullptr;
 
-    FileHandler* file_reader = new FileHandler[ngroup];
-
-    /* nrn_multithread_job supports serial, pthread, and openmp. */
-    store_phase_args(ngroup, gidgroups, imult, file_reader, datpath,
-            strlen(restore_path) != 0 ? restore_path : datpath, byte_swap);
+    userParams.file_reader = new FileHandler[userParams.ngroup];
 
     // gap junctions
     if (nrn_have_gaps) {
         assert(nrn_setup_multiple == 1);
         nrn_partrans::transfer_thread_data_ = new nrn_partrans::TransferThreadData[nrn_nthread];
-        nrn_partrans::setup_info_ = new nrn_partrans::SetupInfo[ngroup];
+        nrn_partrans::setup_info_ = new nrn_partrans::SetupInfo[userParams.ngroup];
         if (!corenrn_embedded) {
-            coreneuron::phase_wrapper<coreneuron::gap>();
+            coreneuron::phase_wrapper<coreneuron::gap>(userParams);
         } else {
             nrn_assert(sizeof(nrn_partrans::sgid_t) == sizeof(int));
-            for (int i = 0; i < ngroup; ++i) {
+            for (int i = 0; i < userParams.ngroup; ++i) {
                 nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[i];
                 (*nrn2core_get_partrans_setup_info_)(i, si.ntar, si.nsrc, si.type, si.ix_vpre,
                                                      si.sid_target, si.sid_src, si.v_indices);
             }
         }
-        nrn_partrans::gap_mpi_setup(ngroup);
+        nrn_partrans::gap_mpi_setup(userParams.ngroup);
     }
 
     if (!corenrn_embedded) {
-        coreneuron::phase_wrapper<(coreneuron::phase)1>();  /// If not the xlc compiler, it should
+        coreneuron::phase_wrapper<(coreneuron::phase)1>(userParams);  /// If not the xlc compiler, it should
                                                             /// be coreneuron::phase::one
     } else {
         nrn_multithread_job([](NrnThread* n) {Phase1 p1; p1.read_direct(n->id); NrnThread& nt = *n; p1.populate(nt, 0);});
@@ -795,10 +767,10 @@ void nrn_setup(const char* filesdat,
     // read the rest of the gidgroup's data and complete the setup for each
     // thread.
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    coreneuron::phase_wrapper<(coreneuron::phase)2>(corenrn_embedded);
+    coreneuron::phase_wrapper<(coreneuron::phase)2>(userParams, corenrn_embedded);
 
     if (is_mapping_needed)
-        coreneuron::phase_wrapper<(coreneuron::phase)3>();
+        coreneuron::phase_wrapper<(coreneuron::phase)3>(userParams);
 
     *mindelay = set_mindelay(*mindelay);
 
@@ -820,11 +792,11 @@ void nrn_setup(const char* filesdat,
     /// which is only executed by StochKV.c.
     nrn_mk_table_check();  // was done in nrn_thread_memblist_setup in multicore.c
 
-    delete[] file_reader;
+    delete[] userParams.file_reader;
 
     model_size();
-    delete[] gidgroups;
-    delete[] imult;
+    delete[] userParams.gidgroups;
+    delete[] userParams.imult;
 
     if (nrnmpi_myid == 0 && !corenrn_param.is_quiet()) {
         printf(" Setup Done   : %.2lf seconds \n", nrn_wtime() - time);
@@ -1223,14 +1195,14 @@ void delete_trajectory_requests(NrnThread& nt) {
     }
 }
 
-void read_phase2(FileHandler& F, int imult, NrnThread& nt) {
+void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams) {
     bool direct = corenrn_embedded;
     if (!direct) {
         assert(!F.fail());  // actually should assert that it is open
     }
     nrn_assert(imult >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
-    ntc.file_id = gidgroups_w[nt.id];
+    ntc.file_id = userParams.gidgroups[nt.id];
 
     int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
     if (direct) {
