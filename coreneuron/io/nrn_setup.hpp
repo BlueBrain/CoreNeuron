@@ -71,6 +71,8 @@ struct Phase2 {
     void populate(NrnThread& nt, int imult, const UserParams& userParams);
 
     private:
+    void check_mechanism();
+
     int n_output;
     int n_real_output;
     int n_node;
@@ -80,7 +82,6 @@ struct Phase2 {
     std::vector<int> nodecounts;
     int n_idata;
     int n_vdata;
-    int n_weight;
     std::vector<int> v_parent_index;
     std::vector<double> actual_a;
     std::vector<double> actual_b;

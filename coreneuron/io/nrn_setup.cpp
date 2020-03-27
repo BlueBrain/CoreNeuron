@@ -950,24 +950,16 @@ void nrn_inverse_i_layout(int i, int& icnt, int cnt, int& isz, int sz, int layou
 }
 
 template <typename T>
-inline void mech_layout(FileHandler& F, T* data, int cnt, int sz, int layout) {
+inline void mech_layout(T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
-        if (corenrn_embedded) {
-            return;
-        }
-        F.read_array<T>(data, cnt * sz);
+        return;
     } else if (layout == 0) { /* SoA */
         int align_cnt = nrn_soa_padded_size(cnt, layout);
-        T* d;
-        if (corenrn_embedded) {
-            d = new T[cnt * sz];
-            for (int i = 0; i < cnt; ++i) {
-                for (int j = 0; j < sz; ++j) {
-                    d[i * sz + j] = data[i * sz + j];
-                }
+        T* d = new T[cnt * sz];
+        for (int i = 0; i < cnt; ++i) {
+            for (int j = 0; j < sz; ++j) {
+                d[i * sz + j] = data[i * sz + j];
             }
-        } else {
-            d = F.read_array<T>(cnt * sz);
         }
         for (int i = 0; i < cnt; ++i) {
             for (int j = 0; j < sz; ++j) {
@@ -1208,7 +1200,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     }
     n_idata = F.read_int();
     n_vdata = F.read_int();
-    n_weight = F.read_int();
+    int n_weight = F.read_int();
     auto v_parent_index = F.read_vector<int>(n_node);
     auto actual_a = F.read_vector<double>(n_node);
     auto actual_b = F.read_vector<double>(n_node);
@@ -1263,17 +1255,15 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
 }
 
 void Phase2::read_direct(int thread_id, const NrnThread& nt) {
-    // FIXME types and nodecounts should be n_mech sized
     int* types_ = nullptr;
     int* nodecounts_ = nullptr;
+    int n_weight;
     (*nrn2core_get_dat2_1_)(thread_id, n_output, n_real_output, n_node, n_diam, n_mech, types_,
             nodecounts_, n_idata, n_vdata, n_weight);
-    types.resize(n_mech);
-    std::copy(types_, types_ + n_mech, types.begin());
+    types = std::vector<int>(types_, types_ + n_mech);
     delete[] types_;
 
-    nodecounts.resize(n_mech);
-    std::copy(nodecounts_, nodecounts_ + n_mech, nodecounts.begin());
+    nodecounts = std::vector<int>(nodecounts_, nodecounts_ + n_mech);
     delete[] nodecounts_;
 
     v_parent_index.resize(n_node);
@@ -1319,29 +1309,23 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     (*nrn2core_get_dat2_3_)(thread_id, n_weight, output_vindex_, output_threshold_, pnttype_,
             pntindex_, weight_, delay_);
 
-    output_vindex.resize(nt.n_presyn);
-    std::copy(output_vindex_, output_vindex_ + nt.n_presyn, output_vindex.begin());
+    output_vindex = std::vector<int>(output_vindex_, output_vindex_ + nt.n_presyn);
     delete[] output_vindex_;
 
-    output_threshold.resize(n_real_output);
-    std::copy(output_threshold_, output_threshold_ + n_real_output, output_threshold.begin());
+    output_threshold = std::vector<double>(output_threshold_, output_threshold_ + n_real_output);
     delete[] output_threshold_;
 
     int n_netcon = nt.n_netcon - nrn_setup_extracon;
-    pnttype.resize(n_netcon);
-    std::copy(pnttype_, pnttype_ + n_netcon, pnttype.begin());
+    pnttype = std::vector<int>(pnttype_, pnttype_ + n_netcon);
     delete[] pnttype_;
 
-    pntindex.resize(n_netcon);
-    std::copy(pntindex_, pntindex_ + n_netcon, pntindex.begin());
+    pntindex = std::vector<int>(pntindex_, pntindex_ + n_netcon);
     delete[] pntindex_;
 
-    weights.resize(n_weight);
-    std::copy(weight_, weight_ + n_weight, weights.begin());
+    weights = std::vector<double>(weight_, weight_ + n_weight);
     delete[] weight_;
 
-    delay.resize(n_netcon);
-    std::copy(delay_, delay_ + n_netcon, delay.begin());
+    delay = std::vector<double>(delay_, delay_ + n_netcon);
     delete[] delay_;
 
     (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
@@ -1380,6 +1364,31 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     }
 }
 
+void Phase2::check_mechanism() {
+    int diff_mech_count = 0;
+    for (int i = 0; i < n_mech; ++i) {
+        if (std::any_of(corenrn.get_different_mechanism_type().begin(),
+                    corenrn.get_different_mechanism_type().end(),
+                    [&](int e) { return e == types[i]; })) {
+            if (nrnmpi_myid == 0) {
+                printf("Error: %s is a different MOD file than used by NEURON!\n",
+                        nrn_get_mechname(types[i]));
+            }
+            diff_mech_count++;
+        }
+    }
+
+    if (diff_mech_count > 0) {
+        if (nrnmpi_myid == 0) {
+            printf(
+                    "Error : NEURON and CoreNEURON must use same mod files for compatibility, %d different mod file(s) found. Re-compile special and special-core!\n",
+                    diff_mech_count);
+        }
+        nrn_abort(1);
+    }
+
+}
+
 void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     bool direct = corenrn_embedded;
 
@@ -1387,37 +1396,13 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = userParams.gidgroups[nt.id];
 
-    int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
     nt.ncell = n_real_output;
     nt.end = n_node;
     nt._nidata = n_idata;
     nt._nvdata = n_vdata;
-    nt.n_weight = n_weight;
+    nt.n_weight = weights.size();
 
-    { // FIXME: put inside a function
-        int diff_mech_count = 0;
-        for (int i = 0; i < nmech; ++i) {
-            if (std::any_of(corenrn.get_different_mechanism_type().begin(),
-                        corenrn.get_different_mechanism_type().end(),
-                        [&](int e) { return e == types[i]; })) {
-                if (nrnmpi_myid == 0) {
-                    printf("Error: %s is a different MOD file than used by NEURON!\n",
-                            nrn_get_mechname(types[i]));
-                }
-                diff_mech_count++;
-            }
-        }
-
-        if (diff_mech_count > 0) {
-            if (nrnmpi_myid == 0) {
-                printf(
-                    "Error : NEURON and CoreNEURON must use same mod files for compatibility, %d different mod file(s) found. Re-compile special and special-core!\n",
-                    diff_mech_count);
-                nrn_abort(1);
-            }
-        }
-
-    }
+    check_mechanism();
 
 #if CHKPNTDEBUG
     ntc.n_outputgids = n_output;
@@ -1426,7 +1411,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together
-    // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
+    // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, n_mech);
     // printf("nart=%d\n", nart);
     nt._ml_list = (Memb_list**)ecalloc_align(corenrn.get_memb_funcs().size(), sizeof(Memb_list*));
 
@@ -1455,10 +1440,10 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 #endif
     auto& memb_func = corenrn.get_memb_funcs();
     NrnThreadMembList* tml_last = nullptr;
-    for (int i = 0; i < nmech; ++i) {
+    for (int i = 0; i < n_mech; ++i) {
         auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
         tml->next = nullptr;
-        tml->index = tml_index[i];
+        tml->index = types[i];
 
         tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
         tml->ml->_net_receive_buffer = nullptr;
@@ -1467,7 +1452,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         if (memb_func[tml->index].alloc == nullptr) {
             hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
         }
-        tml->ml->nodecount = ml_nodecount[i];
+        tml->ml->nodecount = nodecounts[i];
         if (!memb_func[tml->index].sym) {
             printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
             exit(1);
@@ -1495,8 +1480,6 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         }
         tml_last = tml;
     }
-    delete[] tml_index;
-    delete[] ml_nodecount;
 
     if (shadow_rhs_cnt) {
         nt._shadow_rhs =
@@ -1525,7 +1508,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     int ne = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
     size_t offset = 6 * ne;
 
-    if (ndiam) {
+    if (n_diam) {
         // in the rare case that a mechanism has dparam with diam semantics
         // then actual_diam array added after matrix in nt._data
         // Generally wasteful since only a few diam are pointed to.
@@ -1564,7 +1547,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     nt._actual_b = nt._data + 3 * ne;
     nt._actual_v = nt._data + 4 * ne;
     nt._actual_area = nt._data + 5 * ne;
-    nt._actual_diam = ndiam ? nt._data + 6 * ne : nullptr;
+    nt._actual_diam = n_diam ? nt._data + 6 * ne : nullptr;
     for (auto tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         ml->data = nt._data + (ml->data - (double*)0);
@@ -1610,18 +1593,13 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         }
 
         std::copy(tmls[itml].data.begin(), tmls[itml].data.end(), ml->data);
+        mech_layout<double>(ml->data, n, szp, layout);
 
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp, sizeof(int));
             std::copy(tmls[itml].pdata.begin(), tmls[itml].pdata.end(), ml->pdata);
-        }
+            mech_layout<int>(ml->pdata, n, szdp, layout);
 
-        // FIXME
-        // mech_layout<double>(F, ml->data, n, szp, layout);
-
-        if (szdp) {
-            // FIXME
-            // mech_layout<int>(F, ml->pdata, n, szdp, layout);
 #if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
             mlc->pdata_not_permuted = (int*)coreneuron::ecalloc_align(n * szdp, sizeof(int));
@@ -2075,8 +2053,7 @@ for (int i=0; i < nt.end; ++i) {
     ntc.bcpdcnt = new int[npnt];
     ntc.bcptype = new int[npnt];
 #endif
-    int i = 0;
-    for (auto tml = nt.tml; tml; tml = tml->next, ++i) {
+    for (size_t i = 0; i < n_mech; ++i) {
         int type = tmls[i].type;
         if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
