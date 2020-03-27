@@ -217,6 +217,13 @@ class FileHandler {
         return parse_array(new T[count], count, read);
     }
 
+    template <typename T>
+    inline std::vector<T> read_vector(size_t count) {
+        std::vector<T> vec(count);
+        parse_array(vec.data(), count, read);
+        return vec;
+    }
+
     /** Close currently open file. */
     void close();
 

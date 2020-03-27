@@ -52,7 +52,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/sim/fast_imem.hpp"
-#include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/coreneuron.hpp"
 
 
@@ -270,11 +269,10 @@ static int maxgid;
 static MUTDEC
 #endif
 
-    static size_t
-    model_size(void);
+static size_t model_size(void);
 
 /// Vector of maps for negative presyns
-std::vector<std::map<int, PreSyn*> > neg_gid2out;
+std::vector<std::map<int, PreSyn*>> neg_gid2out;
 /// Maps for ouput and input presyns
 std::map<int, PreSyn*> gid2out;
 std::map<int, InputPreSyn*> gid2in;
@@ -1195,40 +1193,216 @@ void delete_trajectory_requests(NrnThread& nt) {
     }
 }
 
-void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams) {
-    bool direct = corenrn_embedded;
-    if (!direct) {
-        assert(!F.fail());  // actually should assert that it is open
+void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
+    n_output = F.read_int();
+    nrn_assert(n_output > 0);  // avoid n_output unused warning
+    n_real_output = F.read_int();
+    n_node = F.read_int();
+    n_diam = F.read_int();
+    n_mech = F.read_int();
+    std::vector<int> types(0, n_mech);
+    std::vector<int> nodecounts(0, n_mech);
+    for (int i = 0; i < n_mech; ++i) {
+        types[i] = F.read_int();
+        nodecounts[i] = F.read_int();
     }
+    n_idata = F.read_int();
+    n_vdata = F.read_int();
+    n_weight = F.read_int();
+    auto v_parent_index = F.read_vector<int>(n_node);
+    auto actual_a = F.read_vector<double>(n_node);
+    auto actual_b = F.read_vector<double>(n_node);
+    auto actual_area = F.read_vector<double>(n_node);
+    auto actual_v = F.read_vector<double>(n_node);
+    if (n_diam > 0)
+        auto actual_diam = F.read_vector<double>(n_node);
+
+    auto& param_sizes = corenrn.get_prop_param_size();
+    auto& dparam_sizes = corenrn.get_prop_dparam_size();
+    for (size_t i = 0; i < n_mech; ++i) {
+        std::vector<int> nodeindices;
+        if (!corenrn.get_is_artificial()[types[i]]) {
+            nodeindices = F.read_vector<int>(nodecounts[i]);
+        }
+        auto data = F.read_vector<double>(param_sizes[i] * nodecounts[i]);
+        std::vector<int> pdata;
+        if (dparam_sizes[i] > 0) {
+            pdata = F.read_vector<int>(dparam_sizes[i] * nodecounts[i]);
+        }
+        tmls.emplace_back(TML{nodeindices, data, pdata, 0, {}, {}});
+    }
+    output_vindex = F.read_vector<int>(nt.n_presyn);
+    output_threshold = F.read_vector<double>(nt.ncell);
+    pnttype = F.read_vector<int>(nt.n_netcon - nrn_setup_extracon);
+    pntindex = F.read_vector<int>(nt.n_netcon - nrn_setup_extracon);
+    weights = F.read_vector<double>(n_weight);
+    delay = F.read_vector<double>(nt.n_netcon);
+    npnt = F.read_int();
+
+    for (size_t i = 0; i < n_mech; ++i) {
+        tmls[i].type = F.read_int();
+        int icnt = F.read_int();
+        int dcnt = F.read_int();
+        tmls[i].iArray = F.read_vector<int>(icnt);
+        tmls[i].dArray = F.read_vector<double>(dcnt);
+    }
+
+    int n_vecPlayContinous = F.read_int();
+    vecPlayContinuous.resize(n_vecPlayContinous);
+    for (size_t i = 0; i < n_vecPlayContinous; ++i) {
+        VecPlayContinuous2 item;
+        int sz;
+        item.vtype = F.read_int();
+        item.mtype = F.read_int();
+        item.ix = F.read_int();
+        sz = F.read_int();
+        item.yvec = F.read_vector<double>(sz);
+        item.tvec = F.read_vector<double>(sz);
+        vecPlayContinuous.push_back(item);
+    }
+}
+
+void Phase2::read_direct(int thread_id, const NrnThread& nt) {
+    // FIXME types and nodecounts should be n_mech sized
+    int* types_ = nullptr;
+    int* nodecounts_ = nullptr;
+    (*nrn2core_get_dat2_1_)(thread_id, n_output, n_real_output, n_node, n_diam, n_mech, types_,
+            nodecounts_, n_idata, n_vdata, n_weight);
+    types.resize(n_mech);
+    std::copy(types_, types_ + n_mech, types.begin());
+    delete[] types_;
+
+    nodecounts.resize(n_mech);
+    std::copy(nodecounts_, nodecounts_ + n_mech, nodecounts.begin());
+    delete[] nodecounts_;
+
+    v_parent_index.resize(n_node);
+    actual_a.resize(n_node);
+    actual_b.resize(n_node);
+    actual_area.resize(n_node);
+    actual_v.resize(n_node);
+    if (n_diam > 0) {
+        actual_diam.resize(n_node);
+    }
+    int* v_parent_index_ = const_cast<int*>(v_parent_index.data());
+    double* actual_a_ = const_cast<double*>(actual_a.data());
+    double* actual_b_ = const_cast<double*>(actual_b.data());
+    double* actual_area_ = const_cast<double*>(actual_area.data());
+    double* actual_v_ = const_cast<double*>(actual_v.data());
+    double* actual_diam_ = const_cast<double*>(actual_diam.data());
+    (*nrn2core_get_dat2_2_)(thread_id, v_parent_index_, actual_a_, actual_b_,
+            actual_area_, actual_v_, actual_diam_);
+
+    tmls.resize(n_mech);
+
+    auto& param_sizes = corenrn.get_prop_param_size();
+    auto& dparam_sizes = corenrn.get_prop_dparam_size();
+    for (size_t i = 0; i < n_mech; ++i) {
+        auto& tml = tmls[i];
+        tml.nodeindices.resize(nodecounts[i]);
+        tml.data.resize(nodecounts[i] * param_sizes[i]);
+        tml.pdata.resize(nodecounts[i] * dparam_sizes[i]);
+
+        int type = types[i];
+        int* nodeindices_ = const_cast<int*>(tml.nodeindices.data());
+        double* data_ = const_cast<double*>(tml.data.data());
+        int* pdata_ = const_cast<int*>(tml.pdata.data());
+        (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[i] > 0 ? i : 0, nodeindices_, data_, pdata_);
+    }
+
+    int* output_vindex_ = nullptr;
+    double* output_threshold_ = nullptr;
+    int* pnttype_ = nullptr;
+    int* pntindex_ = nullptr;
+    double* weight_ = nullptr;
+    double* delay_ = nullptr;
+    (*nrn2core_get_dat2_3_)(thread_id, n_weight, output_vindex_, output_threshold_, pnttype_,
+            pntindex_, weight_, delay_);
+
+    output_vindex.resize(nt.n_presyn);
+    std::copy(output_vindex_, output_vindex_ + nt.n_presyn, output_vindex.begin());
+    delete[] output_vindex_;
+
+    output_threshold.resize(n_real_output);
+    std::copy(output_threshold_, output_threshold_ + n_real_output, output_threshold.begin());
+    delete[] output_threshold_;
+
+    int n_netcon = nt.n_netcon - nrn_setup_extracon;
+    pnttype.resize(n_netcon);
+    std::copy(pnttype_, pnttype_ + n_netcon, pnttype.begin());
+    delete[] pnttype_;
+
+    pntindex.resize(n_netcon);
+    std::copy(pntindex_, pntindex_ + n_netcon, pntindex.begin());
+    delete[] pntindex_;
+
+    weights.resize(n_weight);
+    std::copy(weight_, weight_ + n_weight, weights.begin());
+    delete[] weight_;
+
+    delay.resize(n_netcon);
+    std::copy(delay_, delay_ + n_netcon, delay.begin());
+    delete[] delay_;
+
+    (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
+
+    for (size_t i = 0; i < n_mech; ++i) {
+        if (!corenrn.get_bbcore_read()[types[i]]) {
+            continue; // I don't get this test
+        }
+        int icnt;
+        int* iArray_ = nullptr;
+        int dcnt;
+        double* dArray_ = nullptr;
+        (*nrn2core_get_dat2_corepointer_mech_)(nt.id, tmls[i].type, icnt, dcnt, iArray_, dArray_);
+        tmls[i].iArray.resize(icnt);
+        std::copy(iArray_, iArray_ + icnt, tmls[i].iArray.begin());
+        delete[] iArray_;
+
+        tmls[i].dArray.resize(dcnt);
+        std::copy(dArray_, dArray_ + dcnt, tmls[i].dArray.begin());
+        delete[] dArray_;
+    }
+
+    int n_vecPlayContinous_;
+    (*nrn2core_get_dat2_vecplay_)(thread_id, n_vecPlayContinous_);
+
+    for (size_t i = 0; i < n_vecPlayContinous_; ++i) {
+        VecPlayContinuous2 item;
+        // yvec_ and tvec_ are not deleted as that space is within
+        // NEURON Vector
+        double *yvec_, *tvec_;
+        int sz;
+        (*nrn2core_get_dat2_vecplay_inst_)(thread_id, i, item.vtype, item.mtype, item.ix, sz, yvec_, tvec_);
+        item.yvec = std::vector<double>(yvec_, yvec_ + sz);
+        item.tvec = std::vector<double>(tvec_, tvec_ + sz);
+        vecPlayContinuous.push_back(item);
+    }
+}
+
+void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
+    bool direct = corenrn_embedded;
+
     nrn_assert(imult >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = userParams.gidgroups[nt.id];
 
     int n_outputgid, ndiam, nmech, *tml_index, *ml_nodecount;
-    if (direct) {
-        int nidata, nvdata;
-        (*nrn2core_get_dat2_1_)(nt.id, n_outputgid, nt.ncell, nt.end, ndiam, nmech, tml_index,
-                                ml_nodecount, nidata, nvdata, nt.n_weight);
-        nt._nidata = nidata;
-        nt._nvdata = nvdata;
-    } else {
-        n_outputgid = F.read_int();
-        nt.ncell = F.read_int();
-        nt.end = F.read_int();
-        ndiam = F.read_int();  // 0 if not needed, else nt.end
-        nmech = F.read_int();
-        tml_index = new int[nmech];
-        ml_nodecount = new int[nmech];
+    nt.ncell = n_real_output;
+    nt.end = n_node;
+    nt._nidata = n_idata;
+    nt._nvdata = n_vdata;
+    nt.n_weight = n_weight;
+
+    { // FIXME: put inside a function
         int diff_mech_count = 0;
         for (int i = 0; i < nmech; ++i) {
-            tml_index[i] = F.read_int();
-            ml_nodecount[i] = F.read_int();
             if (std::any_of(corenrn.get_different_mechanism_type().begin(),
-                            corenrn.get_different_mechanism_type().end(),
-                [&](int e) { return e == tml_index[i]; })) {
+                        corenrn.get_different_mechanism_type().end(),
+                        [&](int e) { return e == types[i]; })) {
                 if (nrnmpi_myid == 0) {
                     printf("Error: %s is a different MOD file than used by NEURON!\n",
-                           nrn_get_mechname(tml_index[i]));
+                            nrn_get_mechname(types[i]));
                 }
                 diff_mech_count++;
             }
@@ -1243,18 +1417,12 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
             }
         }
 
-        nt._nidata = F.read_int();
-        nt._nvdata = F.read_int();
-        nt.n_weight = F.read_int();
     }
 
 #if CHKPNTDEBUG
-    ntc.n_outputgids = n_outputgid;
-    ntc.nmech = nmech;
+    ntc.n_outputgids = n_output;
+    ntc.nmech = n_mech;
 #endif
-    if (!direct) {
-        nrn_assert(n_outputgid > 0);  // avoid n_outputgid unused warning
-    }
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together
@@ -1404,19 +1572,15 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
 
     // matrix info
     nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
-    if (direct) {
-        (*nrn2core_get_dat2_2_)(nt.id, nt._v_parent_index, nt._actual_a, nt._actual_b,
-                                nt._actual_area, nt._actual_v, nt._actual_diam);
-    } else {
-        F.read_array<int>(nt._v_parent_index, nt.end);
-        F.read_array<double>(nt._actual_a, nt.end);
-        F.read_array<double>(nt._actual_b, nt.end);
-        F.read_array<double>(nt._actual_area, nt.end);
-        F.read_array<double>(nt._actual_v, nt.end);
-        if (ndiam) {
-            F.read_array<double>(nt._actual_diam, nt.end);
-        }
+    std::copy(v_parent_index.begin(), v_parent_index.end(), nt._v_parent_index);
+    std::copy(actual_a.begin(), actual_a.end(), nt._actual_a);
+    std::copy(actual_b.begin(), actual_b.end(), nt._actual_b);
+    std::copy(actual_area.begin(), actual_area.end(), nt._actual_area);
+    std::copy(actual_v.begin(), actual_v.end(), nt._actual_v);
+    if (n_diam) {
+        std::copy(actual_diam.begin(), actual_diam.end(), nt._actual_diam);
     }
+
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];
     memcpy(ntc.parent, nt._v_parent_index, nt.end * sizeof(int));
@@ -1431,7 +1595,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
     // Also fill in the pnt_offset
     // Complete spec of Point_process except for the acell presyn_ field.
     int itml = 0;
-    int dsz_inst = 0;
     for (auto tml = nt.tml; tml; tml = tml->next, ++itml) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
@@ -1441,30 +1604,24 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
         int szdp = nrn_prop_dparam_size_[type];
         int layout = corenrn.get_mech_data_layout()[type];
 
-        if (!is_art && !direct) {
+        if (!is_art) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
-        } else {
-            ml->nodeindices = nullptr;
+            std::copy(tmls[itml].nodeindices.begin(), tmls[itml].nodeindices.end(), ml->nodeindices);
         }
+
+        std::copy(tmls[itml].data.begin(), tmls[itml].data.end(), ml->data);
+
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp, sizeof(int));
+            std::copy(tmls[itml].pdata.begin(), tmls[itml].pdata.end(), ml->pdata);
         }
 
-        if (direct) {
-            (*nrn2core_get_dat2_mech_)(nt.id, itml, dsz_inst, ml->nodeindices, ml->data, ml->pdata);
-        } else {
-            if (!is_art) {
-                F.read_array<int>(ml->nodeindices, ml->nodecount);
-            }
-        }
-        if (szdp) {
-            ++dsz_inst;
-        }
-
-        mech_layout<double>(F, ml->data, n, szp, layout);
+        // FIXME
+        // mech_layout<double>(F, ml->data, n, szp, layout);
 
         if (szdp) {
-            mech_layout<int>(F, ml->pdata, n, szdp, layout);
+            // FIXME
+            // mech_layout<int>(F, ml->pdata, n, szdp, layout);
 #if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
             mlc->pdata_not_permuted = (int*)coreneuron::ecalloc_align(n * szdp, sizeof(int));
@@ -1770,25 +1927,13 @@ for (int i=0; i < nt.end; ++i) {
     // Here we associate the real cells with voltage pointers and
     // acell PreSyn with the Point_process.
     // nt.presyns order same as output_vindex order
-    int *output_vindex, *pnttype, *pntindex;
-    double *output_threshold, *delay;
-    if (direct) {
-        (*nrn2core_get_dat2_3_)(nt.id, nt.n_weight, output_vindex, output_threshold, pnttype,
-                                pntindex, nt.weights, delay);
-    }
-    if (!direct) {
-        output_vindex = F.read_array<int>(nt.n_presyn);
-    }
 #if CHKPNTDEBUG
     ntc.output_vindex = new int[nt.n_presyn];
     memcpy(ntc.output_vindex, output_vindex, nt.n_presyn * sizeof(int));
 #endif
     if (nt._permute) {
         // only indices >= 0 (i.e. _actual_v indices) will be changed.
-        node_permute(output_vindex, nt.n_presyn, nt._permute);
-    }
-    if (!direct) {
-        output_threshold = F.read_array<double>(nt.ncell);
+        node_permute(output_vindex.data(), nt.n_presyn, nt._permute);
     }
 #if CHKPNTDEBUG
     ntc.output_threshold = new double[nt.ncell];
@@ -1822,8 +1967,6 @@ for (int i=0; i < nt.end; ++i) {
             ps->threshold_ = output_threshold[i];
         }
     }
-    delete[] output_vindex;
-    delete[] output_threshold;
 
     // initial net_send_buffer size about 1% of number of presyns
     // nt._net_send_buffer_size = nt.ncell/100 + 1;
@@ -1840,14 +1983,6 @@ for (int i=0; i < nt.end; ++i) {
     // it may happen that Point_process structures will be made unnecessary
     // by factoring into NetCon.
 
-    // Make NetCon.target_ point to proper Point_process. Only the NetCon
-    // with pnttype[i] > 0 have a target.
-    if (!direct) {
-        pnttype = F.read_array<int>(nnetcon);
-    }
-    if (!direct) {
-        pntindex = F.read_array<int>(nnetcon);
-    }
 #if CHKPNTDEBUG
     ntc.pnttype = new int[nnetcon];
     ntc.pntindex = new int[nnetcon];
@@ -1897,14 +2032,10 @@ for (int i=0; i < nt.end; ++i) {
         }
     }
 
-    delete[] pntindex;
-
     // weights in netcons order in groups defined by Point_process target type.
     nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
-    if (!direct) {
-        nt.weights = (double*)ecalloc_align(nt.n_weight, sizeof(double));
-        F.read_array<double>(nt.weights, nweight);
-    }
+    nt.weights = (double*)ecalloc_align(nt.n_weight, sizeof(double));
+    std::copy(weights.begin(), weights.end(), nt.weights);
 
     int iw = 0;
     for (int i = 0; i < nnetcon; ++i) {
@@ -1917,12 +2048,7 @@ for (int i=0; i < nt.end; ++i) {
         }
     }
     assert(iw == nweight);
-    delete[] pnttype;
 
-    // delays in netcons order
-    if (!direct) {
-        delay = F.read_array<double>(nnetcon);
-    }
 #if CHKPNTDEBUG
     ntc.delay = new double[nnetcon];
     memcpy(ntc.delay, delay, nnetcon * sizeof(double));
@@ -1931,7 +2057,6 @@ for (int i=0; i < nt.end; ++i) {
         NetCon& nc = nt.netcons[i];
         nc.delay_ = delay[i];
     }
-    delete[] delay;
 
     if (nrn_setup_extracon > 0) {
         // simplistic. delay is 1 and weight is 0.001
@@ -1944,38 +2069,15 @@ for (int i=0; i < nt.end; ++i) {
     }
 
     // BBCOREPOINTER information
-    if (direct) {
-        (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
-    } else {
-        npnt = F.read_int();
-    }
 #if CHKPNTDEBUG
     ntc.nbcp = npnt;
     ntc.bcpicnt = new int[npnt];
     ntc.bcpdcnt = new int[npnt];
     ntc.bcptype = new int[npnt];
 #endif
-    for (auto tml = nt.tml; tml; tml = tml->next) {
-        int type = tml->index;
-        if (!corenrn.get_bbcore_read()[type]) {
-            continue;
-        }
-        int* iArray = nullptr;
-        double* dArray = nullptr;
-        int icnt, dcnt;
-        if (direct) {
-            (*nrn2core_get_dat2_corepointer_mech_)(nt.id, type, icnt, dcnt, iArray, dArray);
-        } else {
-            type = F.read_int();
-            icnt = F.read_int();
-            dcnt = F.read_int();
-            if (icnt) {
-                iArray = F.read_array<int>(icnt);
-            }
-            if (dcnt) {
-                dArray = F.read_array<double>(dcnt);
-            }
-        }
+    int i = 0;
+    for (auto tml = nt.tml; tml; tml = tml->next, ++i) {
+        int type = tmls[i].type;
         if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
@@ -2005,81 +2107,55 @@ for (int i=0; i < nt.end; ++i) {
             d += nrn_i_layout(jp, cntml, 0, dsz, layout);
             pd += nrn_i_layout(jp, cntml, 0, pdsz, layout);
             int aln_cntml = nrn_soa_padded_size(cntml, layout);
-            (*corenrn.get_bbcore_read()[type])(dArray, iArray, &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
+            (*corenrn.get_bbcore_read()[type])(tmls[i].dArray.data(), tmls[i].iArray.data(), &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
                                       &nt, 0.0);
         }
-        assert(dk == dcnt);
-        assert(ik == icnt);
-        if (ik) {
-            delete[] iArray;
-        }
-        if (dk) {
-            delete[] dArray;
-        }
+        assert(dk == tmls[i].dArray.size());
+        assert(ik == tmls[i].iArray.size());
     }
 
     // VecPlayContinuous instances
     // No attempt at memory efficiency
-    int n;
-    if (direct) {
-        (*nrn2core_get_dat2_vecplay_)(nt.id, n);
-    } else {
-        n = F.read_int();
-    }
-    nt.n_vecplay = n;
-    if (n) {
-        nt._vecplay = new void*[n];
+    nt.n_vecplay = vecPlayContinuous.size();
+    if (nt.n_vecplay) {
+        nt._vecplay = new void*[nt.n_vecplay];
     } else {
         nt._vecplay = nullptr;
     }
 #if CHKPNTDEBUG
-    ntc.vecplay_ix = new int[n];
-    ntc.vtype = new int[n];
-    ntc.mtype = new int[n];
+    ntc.vecplay_ix = new int[nt.n_vecplay];
+    ntc.vtype = new int[nt.n_vecplay];
+    ntc.mtype = new int[nt.n_vecplay];
 #endif
-    for (int i = 0; i < n; ++i) {
-        int vtype, mtype, ix, sz;
-        double *yvec1, *tvec1;
-        if (direct) {
-            (*nrn2core_get_dat2_vecplay_inst_)(nt.id, i, vtype, mtype, ix, sz, yvec1, tvec1);
-        } else {
-            vtype = F.read_int();
-            mtype = F.read_int();
-            ix = F.read_int();
-            sz = F.read_int();
+    for (int i = 0; i < vecPlayContinuous.size(); ++i) {
+        auto& vecPlay = vecPlayContinuous[i];
+        nrn_assert(vecPlay.vtype == VecPlayContinuousType);
+#if CHKPNTDEBUG
+        ntc.vtype[i] = vecPlay.vtype;
+#endif
+#if CHKPNTDEBUG
+        ntc.mtype[i] = vecPlay.mtype;
+#endif
+        Memb_list* ml = nt._ml_list[vecPlay.mtype];
+#if CHKPNTDEBUG
+        ntc.vecplay_ix[i] = vecPlay.ix;
+#endif
+        IvocVect* yvec = vector_new(vecPlay.yvec.size());
+        IvocVect* tvec = vector_new(vecPlay.tvec.size());
+        double* py = vector_vec(yvec);
+        double* pt = vector_vec(tvec);
+        for (int j = 0; j < vecPlay.yvec.size(); ++j) {
+            py[j] = vecPlay.yvec[j];
+            pt[j] = vecPlay.tvec[j];
         }
-        nrn_assert(vtype == VecPlayContinuousType);
-#if CHKPNTDEBUG
-        ntc.vtype[i] = vtype;
-#endif
-#if CHKPNTDEBUG
-        ntc.mtype[i] = mtype;
-#endif
-        Memb_list* ml = nt._ml_list[mtype];
-#if CHKPNTDEBUG
-        ntc.vecplay_ix[i] = ix;
-#endif
-        IvocVect* yvec = vector_new(sz);
-        IvocVect* tvec = vector_new(sz);
-        if (direct) {
-            double* py = vector_vec(yvec);
-            double* pt = vector_vec(tvec);
-            for (int j = 0; j < sz; ++j) {
-                py[j] = yvec1[j];
-                pt[j] = tvec1[j];
-            }
-            // yvec1 and tvec1 are not deleted as that space is within
-            // NEURON Vector
-        } else {
-            F.read_array<double>(vector_vec(yvec), sz);
-            F.read_array<double>(vector_vec(tvec), sz);
-        }
-        ix = nrn_param_layout(ix, mtype, ml);
+
+        vecPlay.ix = nrn_param_layout(vecPlay.ix, vecPlay.mtype, ml);
         if (ml->_permute) {
-            ix = nrn_index_permute(ix, mtype, ml);
+            vecPlay.ix = nrn_index_permute(vecPlay.ix, vecPlay.mtype, ml);
         }
-        nt._vecplay[i] = new VecPlayContinuous(ml->data + ix, yvec, tvec, nullptr, nt.id);
+        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
     }
+    /* FIXME:
     if (!direct) {
         // store current checkpoint state to continue reading mapping
         F.record_checkpoint();
@@ -2089,6 +2165,7 @@ for (int i=0; i < nt.end; ++i) {
             checkpoint_restore_tqueue(nt, F);
         }
     }
+    */
 
     // NetReceiveBuffering
     for (auto& net_buf_receive : corenrn.get_net_buf_receive()) {
