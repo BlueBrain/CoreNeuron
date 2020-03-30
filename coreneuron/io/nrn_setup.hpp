@@ -33,6 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/io/phase1.hpp"
 
 namespace coreneuron {
 struct UserParams {
@@ -48,20 +49,6 @@ struct UserParams {
     const char* restore_path;
     FileHandler* file_reader;
     bool byte_swap;
-};
-
-struct Phase1 {
-    public:
-    void read_direct(int thread_id);
-    void read_file(FileHandler& F);
-    void populate(NrnThread& nt, int imult);
-
-    private:
-    void shift_gids(int imult);
-    void add_extracon(NrnThread& nt, int imult);
-
-    std::vector<int> output_gids;
-    std::vector<int> netcon_srcgids;
 };
 
 struct Phase2 {
@@ -114,6 +101,7 @@ struct Phase2 {
     std::vector<VecPlayContinuous2> vecPlayContinuous;
 };
 
+static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
 static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
 static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
 static void setup_ThreadData(NrnThread& nt);
@@ -162,9 +150,7 @@ inline void read_phase_aux(FileHandler& F, int imult, NrnThread& nt, const UserP
 
 template <>
 inline void read_phase_aux<one>(FileHandler& F, int imult, NrnThread& nt, const UserParams&) {
-    Phase1 p1;
-    p1.read_file(F);
-    p1.populate(nt, imult);
+    read_phase1(F, imult, nt);
 }
 
 template <>
