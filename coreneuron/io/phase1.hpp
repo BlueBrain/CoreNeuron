@@ -13,7 +13,7 @@ struct Phase1 {
     public:
     void read_direct(int thread_id);
     void read_file(FileHandler& F);
-    void populate(NrnThread& nt, int imult, omp_lock_t* mut_);
+    void populate(NrnThread& nt, int imult MUTCOMMA MUTTYPE MUTVAR);
 
     private:
     void shift_gids(int imult);

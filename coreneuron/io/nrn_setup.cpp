@@ -518,7 +518,7 @@ void nrn_setup(const char* filesdat,
         coreneuron::phase_wrapper<(coreneuron::phase)1>(userParams);  /// If not the xlc compiler, it should
                                                             /// be coreneuron::phase::one
     } else {
-        nrn_multithread_job([](NrnThread* n) {Phase1 p1; p1.read_direct(n->id); NrnThread& nt = *n; p1.populate(nt, 0, mut_);});
+        nrn_multithread_job([](NrnThread* n) {Phase1 p1; p1.read_direct(n->id); NrnThread& nt = *n; p1.populate(nt, 0 MUTCOMMA MUTVAR);});
     }
 
     // from the gid2out map and the netcon_srcgid array,
@@ -898,7 +898,7 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
 void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
     Phase1 p1;
     p1.read_file(F);
-    p1.populate(nt, imult, mut_);
+    p1.populate(nt, imult MUTCOMMA MUTVAR);
 }
 
 /** read mapping information for neurons */

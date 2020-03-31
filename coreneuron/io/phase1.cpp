@@ -116,7 +116,7 @@ void Phase1::add_extracon(NrnThread& nt, int imult) {
     nt.n_netcon += nrn_setup_extracon;
 }
 
-void Phase1::populate(NrnThread& nt, int imult, omp_lock_t* mut_) {
+void Phase1::populate(NrnThread& nt, int imult MUTCOMMA MUTTYPE MUTVAR) {
     nt.n_presyn = this->output_gids.size();
     nt.n_netcon = this->netcon_srcgids.size();
 
