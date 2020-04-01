@@ -40,13 +40,10 @@ void Phase1::read_file(FileHandler& F) {
     int n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
     int n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
 
-    this->output_gids.reserve(n_presyn);
-    // the extra netcon_srcgid will be filled in later
-    this->netcon_srcgids.reserve(n_netcon);
-    F.read_array<int>(this->netcon_srcgids.data(), n_netcon);
-    F.close();
+    this->output_gids = F.read_vector<int>(n_presyn);
+    this->netcon_srcgids = F.read_vector<int>(n_netcon);
 
-    // read_phase1(p1, imult, nt);
+    F.close();
 }
 
 void Phase1::shift_gids(int imult) {
