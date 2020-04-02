@@ -13,6 +13,10 @@ struct Phase2 {
     void populate(NrnThread& nt, int imult, const UserParams& userParams);
 
     private:
+    // Internal state
+    bool setted = false;
+    bool direct;
+
     void check_mechanism();
 
     int n_output;
