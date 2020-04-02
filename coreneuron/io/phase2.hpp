@@ -5,6 +5,9 @@
 
 namespace coreneuron {
 struct NrnThread;
+struct NrnThreadMembList;
+struct Memb_func;
+struct Memb_list;
 
 struct Phase2 {
     public:
@@ -18,6 +21,9 @@ struct Phase2 {
     bool direct;
 
     void check_mechanism();
+    NrnThreadMembList* create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt);
+    void pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
+    void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
 
     int n_output;
     int n_real_output;

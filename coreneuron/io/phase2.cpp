@@ -72,21 +72,23 @@ template <typename T>
 inline void mech_layout(T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
         return;
-    } else if (layout == 0) { /* SoA */
-        int align_cnt = nrn_soa_padded_size(cnt, layout);
-        T* d = new T[cnt * sz];
-        for (int i = 0; i < cnt; ++i) {
-            for (int j = 0; j < sz; ++j) {
-                d[i * sz + j] = data[i * sz + j];
-            }
-        }
-        for (int i = 0; i < cnt; ++i) {
-            for (int j = 0; j < sz; ++j) {
-                data[i + j * align_cnt] = d[i * sz + j];
-            }
-        }
-        delete[] d;
     }
+    // layout is equal to 0 because we are SoA, let's transpose
+    int align_cnt = nrn_soa_padded_size(cnt, layout);
+    T* d = new T[cnt * sz];
+    // copy matrix
+    for (int i = 0; i < cnt; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            d[i * sz + j] = data[i * sz + j];
+        }
+    }
+    // transpose matrix
+    for (int i = 0; i < cnt; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            data[i + j * align_cnt] = d[i * sz + j];
+        }
+    }
+    delete[] d;
 }
 
 void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
@@ -299,6 +301,101 @@ void Phase2::check_mechanism() {
 
 }
 
+void Phase2::pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_) {
+    for (int iml = 0; iml < nodecount; ++iml) {
+        int* pd = pdata + nrn_i_layout(iml, nodecount, i, dparam_size, layout);
+        int ix = *pd;  // relative to beginning of _actual_*
+        nrn_assert((ix >= 0) && (ix < n_node_));
+        *pd = elem0 + ix;  // relative to nt._data
+    }
+}
+
+NrnThreadMembList* Phase2::create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt) {
+    auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
+    tml->next = nullptr;
+    tml->index = types[mech_id];
+
+    tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
+    tml->ml->_net_receive_buffer = nullptr;
+    tml->ml->_net_send_buffer = nullptr;
+    tml->ml->_permute = nullptr;
+    if (memb_func.alloc == nullptr) {
+        hoc_execerror(memb_func.sym, "mechanism does not exist");
+    }
+    tml->ml->nodecount = nodecounts[mech_id];
+    if (!memb_func.sym) {
+        printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
+        exit(1);
+    }
+    tml->ml->_nodecount_padded =
+        nrn_soa_padded_size(tml->ml->nodecount, corenrn.get_mech_data_layout()[tml->index]);
+    if (memb_func.is_point && corenrn.get_is_artificial()[tml->index] == 0) {
+        // Avoid race for multiple PointProcess instances in same compartment.
+        if (tml->ml->nodecount > shadow_rhs_cnt) {
+            shadow_rhs_cnt = tml->ml->nodecount;
+        }
+    }
+
+    // printf("index=%d nodecount=%d membfunc=%s\n", tml->index, tml->ml->nodecount,
+    // memb_func.sym?memb_func.sym:"None");
+
+    return tml;
+}
+
+void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset) {
+    // NetReceiveBuffering
+    for (auto& net_buf_receive : corenrn.get_net_buf_receive()) {
+        int type = net_buf_receive.second;
+        // Does this thread have this type.
+        Memb_list* ml = ml_list[type];
+        if (ml) {  // needs a NetReceiveBuffer
+            NetReceiveBuffer_t* nrb =
+                (NetReceiveBuffer_t*)ecalloc_align(1, sizeof(NetReceiveBuffer_t));
+            ml->_net_receive_buffer = nrb;
+            nrb->_pnt_offset = pnt_offset[type];
+
+            // begin with a size of 5% of the number of instances
+            nrb->_size = ml->nodecount;
+            // or at least 8
+            nrb->_size = std::max(8, nrb->_size);
+            // but not more than nodecount
+            nrb->_size = std::min(ml->nodecount, nrb->_size);
+
+            nrb->_pnt_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_displ = (int*)ecalloc_align(nrb->_size + 1, sizeof(int));
+            nrb->_nrb_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_weight_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
+            nrb->_nrb_t = (double*)ecalloc_align(nrb->_size, sizeof(double));
+            nrb->_nrb_flag = (double*)ecalloc_align(nrb->_size, sizeof(double));
+        }
+    }
+
+    // NetSendBuffering
+    for (int type: corenrn.get_net_buf_send_type()) {
+        // Does this thread have this type.
+        Memb_list* ml = ml_list[type];
+        if (ml) {  // needs a NetSendBuffer
+            NetSendBuffer_t* nsb = (NetSendBuffer_t*)ecalloc_align(1, sizeof(NetSendBuffer_t));
+            ml->_net_send_buffer = nsb;
+
+            // begin with a size equal to twice number of instances
+            // at present there is no provision for dynamically increasing this.
+            nsb->_size = ml->nodecount * 2;
+            nsb->_cnt = 0;
+
+            nsb->_sendtype = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_vdata_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_pnt_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            nsb->_weight_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
+            // when == 1, NetReceiveBuffer_t is newly allocated (i.e. we need to free previous copy
+            // and recopy new data
+            nsb->reallocated = 1;
+            nsb->_nsb_t = (double*)ecalloc_align(nsb->_size, sizeof(double));
+            nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, sizeof(double));
+        }
+    }
+}
+
 void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     assert(this->setted);
 
@@ -308,9 +405,6 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 
     nt.ncell = n_real_output;
     nt.end = n_node;
-    nt._nidata = n_idata;
-    nt._nvdata = n_vdata;
-    nt.n_weight = weights.size();
 
     check_mechanism();
 
@@ -325,15 +419,13 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     // printf("nart=%d\n", nart);
     nt._ml_list = (Memb_list**)ecalloc_align(corenrn.get_memb_funcs().size(), sizeof(Memb_list*));
 
+    auto& memb_func = corenrn.get_memb_funcs();
 #if CHKPNTDEBUG
     ntc.mlmap = new Memb_list_chkpnt*[memb_func.size()];
     for (int i = 0; i < _memb_func.size(); ++i) {
         ntc.mlmap[i] = nullptr;
     }
 #endif
-
-    int shadow_rhs_cnt = 0;
-    nt.shadow_rhs_cnt = 0;
 
     nt.stream_id = 0;
     nt.compute_gpu = 0;
@@ -348,41 +440,21 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 #if defined(_OPENMP)
     nt.stream_id = omp_get_thread_num();
 #endif
-    auto& memb_func = corenrn.get_memb_funcs();
+
+    int shadow_rhs_cnt = 0;
+    nt.shadow_rhs_cnt = 0;
+
     NrnThreadMembList* tml_last = nullptr;
     for (int i = 0; i < n_mech; ++i) {
-        auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
-        tml->next = nullptr;
-        tml->index = types[i];
-
-        tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
-        tml->ml->_net_receive_buffer = nullptr;
-        tml->ml->_net_send_buffer = nullptr;
-        tml->ml->_permute = nullptr;
-        if (memb_func[tml->index].alloc == nullptr) {
-            hoc_execerror(memb_func[tml->index].sym, "mechanism does not exist");
-        }
-        tml->ml->nodecount = nodecounts[i];
-        if (!memb_func[tml->index].sym) {
-            printf("%s (type %d) is not available\n", nrn_get_mechname(tml->index), tml->index);
-            exit(1);
-        }
-        tml->ml->_nodecount_padded =
-            nrn_soa_padded_size(tml->ml->nodecount, corenrn.get_mech_data_layout()[tml->index]);
-        if (memb_func[tml->index].is_point && corenrn.get_is_artificial()[tml->index] == 0) {
-            // Avoid race for multiple PointProcess instances in same compartment.
-            if (tml->ml->nodecount > shadow_rhs_cnt) {
-                shadow_rhs_cnt = tml->ml->nodecount;
-            }
-        }
+        auto tml = create_tml(i, memb_func[types[i]], shadow_rhs_cnt);
 
         nt._ml_list[tml->index] = tml->ml;
+
 #if CHKPNTDEBUG
         Memb_list_chkpnt* mlc = new Memb_list_chkpnt;
         ntc.mlmap[tml->index] = mlc;
 #endif
-        // printf("index=%d nodecount=%d membfunc=%s\n", tml->index, tml->ml->nodecount,
-        // memb_func[tml->index].sym?memb_func[tml->index].sym:"None");
+
         if (nt.tml) {
             tml_last->next = tml;
         } else {
@@ -402,12 +474,14 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     nt._data = nullptr;    // allocated below after padding
     nt.mapping = nullptr;  // section segment mapping
 
+    nt._nidata = n_idata;
     if (nt._nidata)
         nt._idata = (int*)ecalloc(nt._nidata, sizeof(int));
     else
         nt._idata = nullptr;
     // see patternstim.cpp
     int extra_nv = (&nt == nrn_threads) ? nrn_extra_thread0_vdata : 0;
+    nt._nvdata = n_vdata;
     if (nt._nvdata + extra_nv)
         nt._vdata = (void**)ecalloc_align(nt._nvdata + extra_nv, sizeof(void*));
     else
@@ -491,13 +565,12 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     for (auto tml = nt.tml; tml; tml = tml->next, ++itml) {
         int type = tml->index;
         Memb_list* ml = tml->ml;
-        int is_art = corenrn.get_is_artificial()[type];
         int n = ml->nodecount;
         int szp = nrn_prop_param_size_[type];
         int szdp = nrn_prop_dparam_size_[type];
         int layout = corenrn.get_mech_data_layout()[type];
 
-        if (!is_art) {
+        if (!corenrn.get_is_artificial()[type]) {
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
             std::copy(tmls[itml].nodeindices.begin(), tmls[itml].nodeindices.end(), ml->nodeindices);
         }
@@ -553,9 +626,9 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 
     // Some pdata may index into data which has been reordered from AoS to
     // SoA. The four possibilities are if semantics is -1 (area), -5 (pointer),
-    // -9 (diam),
-    // or 0-999 (ion variables). Note that pdata has a layout and the
-    // type block in nt.data into which it indexes, has a layout.
+    // -9 (diam), // or 0-999 (ion variables).
+    // Note that pdata has a layout and the // type block in nt.data into which
+    // it indexes, has a layout.
     for (auto tml = nt.tml; tml; tml = tml->next) {
         int type = tml->index;
         int layout = corenrn.get_mech_data_layout()[type];
@@ -579,29 +652,11 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         for (int i = 0; i < szdp; ++i) {
             int s = semantics[i];
             if (s == -1) {  // area
-                int area0 = nt._actual_area - nt._data;
-                for (int iml = 0; iml < cnt; ++iml) {
-                    int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd;  // relative to beginning of _actual_area
-                    nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = area0 + ix;  // relative to nt._data
-                }
+                pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
             } else if (s == -9) {  // diam
-                int diam0 = nt._actual_diam - nt._data;
-                for (int iml = 0; iml < cnt; ++iml) {
-                    int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd;  // relative to beginning of _actual_diam
-                    nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = diam0 + ix;  // relative to nt._data
-                }
+                pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
             } else if (s == -5) {  // pointer assumes a pointer to membrane voltage
-                int v0 = nt._actual_v - nt._data;
-                for (int iml = 0; iml < cnt; ++iml) {
-                    int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd;  // relative to _actual_v
-                    nrn_assert((ix >= 0) && (ix < nt.end));
-                    *pd = v0 + ix;  // relative to nt._data
-                }
+                pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
             } else if (s >= 0 && s < 1000) {  // ion
                 int etype = s;
                 /* if ion is SoA, must recalculate pdata values */
@@ -866,7 +921,6 @@ for (int i=0; i < nt.end; ++i) {
     // is not directly in the file
     int nnetcon = nt.n_netcon - nrn_setup_extracon;
 
-    int nweight = nt.n_weight;
     // printf("nnetcon=%d nweight=%d\n", nnetcon, nweight);
     // it may happen that Point_process structures will be made unnecessary
     // by factoring into NetCon.
@@ -920,39 +974,43 @@ for (int i=0; i < nt.end; ++i) {
         }
     }
 
-    // weights in netcons order in groups defined by Point_process target type.
-    nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
-    nt.weights = (double*)ecalloc_align(nt.n_weight, sizeof(double));
-    std::copy(weights.begin(), weights.end(), nt.weights);
+    {
+        nt.n_weight = weights.size();
+        int nweight = nt.n_weight;
+        // weights in netcons order in groups defined by Point_process target type.
+        nt.n_weight += nrn_setup_extracon * extracon_target_nweight;
+        nt.weights = (double*)ecalloc_align(nt.n_weight, sizeof(double));
+        std::copy(weights.begin(), weights.end(), nt.weights);
 
-    int iw = 0;
-    for (int i = 0; i < nnetcon; ++i) {
-        NetCon& nc = nt.netcons[i];
-        nc.u.weight_index_ = iw;
-        if (pnttype[i] != 0) {
-            iw += corenrn.get_pnt_receive_size()[pnttype[i]];
-        } else {
-            iw += 1;
+        int iw = 0;
+        for (int i = 0; i < nnetcon; ++i) {
+            NetCon& nc = nt.netcons[i];
+            nc.u.weight_index_ = iw;
+            if (pnttype[i] != 0) {
+                iw += corenrn.get_pnt_receive_size()[pnttype[i]];
+            } else {
+                iw += 1;
+            }
         }
-    }
-    assert(iw == nweight);
+        assert(iw == nweight);
 
 #if CHKPNTDEBUG
-    ntc.delay = new double[nnetcon];
-    memcpy(ntc.delay, delay, nnetcon * sizeof(double));
+        ntc.delay = new double[nnetcon];
+        memcpy(ntc.delay, delay, nnetcon * sizeof(double));
 #endif
-    for (int i = 0; i < nnetcon; ++i) {
-        NetCon& nc = nt.netcons[i];
-        nc.delay_ = delay[i];
-    }
+        for (int i = 0; i < nnetcon; ++i) {
+            NetCon& nc = nt.netcons[i];
+            nc.delay_ = delay[i];
+        }
 
-    if (nrn_setup_extracon > 0) {
-        // simplistic. delay is 1 and weight is 0.001
-        for (int i = 0; i < nrn_setup_extracon; ++i) {
-            NetCon& nc = nt.netcons[nnetcon + i];
-            nc.delay_ = 1.0;
-            nc.u.weight_index_ = nweight + i * extracon_target_nweight;
-            nt.weights[nc.u.weight_index_] = 2.0;  // this value 2.0 is extracted from .dat files
+        if (nrn_setup_extracon > 0) {
+            // simplistic. delay is 1 and weight is 0.001
+            for (int i = 0; i < nrn_setup_extracon; ++i) {
+                NetCon& nc = nt.netcons[nnetcon + i];
+                nc.delay_ = 1.0;
+                nc.u.weight_index_ = nweight + i * extracon_target_nweight;
+                nt.weights[nc.u.weight_index_] = 2.0;  // this value 2.0 is extracted from .dat files
+            }
         }
     }
 
@@ -1042,8 +1100,8 @@ for (int i=0; i < nt.end; ++i) {
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
     }
-    /* FIXME:
     if (!direct) {
+        /* FIXME:
         // store current checkpoint state to continue reading mapping
         F.record_checkpoint();
 
@@ -1051,60 +1109,10 @@ for (int i=0; i < nt.end; ++i) {
         if (!F.eof()) {
             checkpoint_restore_tqueue(nt, F);
         }
-    }
-    */
-
-    // NetReceiveBuffering
-    for (auto& net_buf_receive : corenrn.get_net_buf_receive()) {
-        int type = net_buf_receive.second;
-        // Does this thread have this type.
-        Memb_list* ml = nt._ml_list[type];
-        if (ml) {  // needs a NetReceiveBuffer
-            NetReceiveBuffer_t* nrb =
-                (NetReceiveBuffer_t*)ecalloc_align(1, sizeof(NetReceiveBuffer_t));
-            ml->_net_receive_buffer = nrb;
-            nrb->_pnt_offset = pnt_offset[type];
-
-            // begin with a size of 5% of the number of instances
-            nrb->_size = ml->nodecount;
-            // or at least 8
-            nrb->_size = std::max(8, nrb->_size);
-            // but not more than nodecount
-            nrb->_size = std::min(ml->nodecount, nrb->_size);
-
-            nrb->_pnt_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
-            nrb->_displ = (int*)ecalloc_align(nrb->_size + 1, sizeof(int));
-            nrb->_nrb_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
-            nrb->_weight_index = (int*)ecalloc_align(nrb->_size, sizeof(int));
-            nrb->_nrb_t = (double*)ecalloc_align(nrb->_size, sizeof(double));
-            nrb->_nrb_flag = (double*)ecalloc_align(nrb->_size, sizeof(double));
-        }
+        */
     }
 
-    // NetSendBuffering
-    for (int type : corenrn.get_net_buf_send_type()) {
-        // Does this thread have this type.
-        Memb_list* ml = nt._ml_list[type];
-        if (ml) {  // needs a NetSendBuffer
-            NetSendBuffer_t* nsb = (NetSendBuffer_t*)ecalloc_align(1, sizeof(NetSendBuffer_t));
-            ml->_net_send_buffer = nsb;
-
-            // begin with a size equal to twice number of instances
-            // at present there is no provision for dynamically increasing this.
-            nsb->_size = ml->nodecount * 2;
-            nsb->_cnt = 0;
-
-            nsb->_sendtype = (int*)ecalloc_align(nsb->_size, sizeof(int));
-            nsb->_vdata_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
-            nsb->_pnt_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
-            nsb->_weight_index = (int*)ecalloc_align(nsb->_size, sizeof(int));
-            // when == 1, NetReceiveBuffer_t is newly allocated (i.e. we need to free previous copy
-            // and recopy new data
-            nsb->reallocated = 1;
-            nsb->_nsb_t = (double*)ecalloc_align(nsb->_size, sizeof(double));
-            nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, sizeof(double));
-        }
-    }
+    set_net_send_buffer(nt._ml_list, pnt_offset);
 }
 }  // namespace coreneuron
 
