@@ -18,7 +18,7 @@ nrnivmodl-core ../tests/jenkins/mod
 ls -la x86_64
 
 # run test sim with external mechanism
-nrniv -python $WORKSPACE/tests/jenkins/neuron_direct.py -mpi
+mpirun -n 1 nrniv -python $WORKSPACE/tests/jenkins/neuron_direct.py -mpi
 
 # remove build directory
 cd -
