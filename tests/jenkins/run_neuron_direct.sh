@@ -2,7 +2,8 @@
 
 set -e
 source ${JENKINS_DIR:-.}/_env_setup.sh
-module load neuron/develop intel hpe-mpi
+module purge
+module load unstable neuron/develop intel hpe-mpi
 
 set -x
 CORENRN_TYPE="$1"
