@@ -34,9 +34,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <omp.h>
 #define USE_PTHREAD 0
 
-#define MUTCOMMA ,
-#define MUTTYPE omp_lock_t*
-#define MUTVAR mut_
 #define MUTDEC omp_lock_t* mut_;
 #define MUTCONSTRUCTED (mut_ != (omp_lock_t*)0)
 #if defined(__cplusplus)
@@ -89,9 +86,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
         }                         \
     }
 #else
-#define MUTCOMMA
-#define MUTTYPE
-#define MUTVAR
 #define MUTDEC /**/
 #define MUTCONSTRUCTED (0)
 #define MUTCONSTRUCT(mkmut) /**/

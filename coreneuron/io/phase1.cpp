@@ -31,8 +31,6 @@ void Phase1::read_direct(int thread_id) {
     delete[] output_gids;
     this->netcon_srcgids = std::vector<int>(netcon_srcgid, netcon_srcgid + n_netcon);
     delete[] netcon_srcgid;
-
-    // read_phase1(p1, 0, nt);
 }
 
 void Phase1::read_file(FileHandler& F) {
@@ -113,7 +111,7 @@ void Phase1::add_extracon(NrnThread& nt, int imult) {
     nt.n_netcon += nrn_setup_extracon;
 }
 
-void Phase1::populate(NrnThread& nt, int imult MUTCOMMA MUTTYPE MUTVAR) {
+void Phase1::populate(NrnThread& nt, int imult) {
     nt.n_presyn = this->output_gids.size();
     nt.n_netcon = this->netcon_srcgids.size();
 
@@ -140,7 +138,6 @@ void Phase1::populate(NrnThread& nt, int imult MUTCOMMA MUTTYPE MUTVAR) {
         // Both that table and the process wide gid2out table can be deleted
         // before the end of setup
 
-        MUTLOCK // Protect gid2in, gid2out and neg_gid2out
         /// Put gid into the gid2out hash table with correspondent output PreSyn
         /// Or to the negative PreSyn map
         if (gid >= 0) {
@@ -163,7 +160,6 @@ void Phase1::populate(NrnThread& nt, int imult MUTCOMMA MUTTYPE MUTVAR) {
             ps->output_index_ = -1;
             neg_gid2out[nt.id][gid] = ps;
         }
-        MUTUNLOCK
 
         ++ps;
     }
