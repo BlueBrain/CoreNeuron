@@ -199,7 +199,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
     for (size_t i = 0; i < n_mech; ++i) {
         auto& tml = tmls[i];
-        int type = types[i];
+        int type = tml.type;
 
         tml.nodeindices.resize(nodecounts[i]);
         tml.data.resize(nodecounts[i] * param_sizes[type]);
@@ -1020,7 +1020,10 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     ntc.bcptype = new int[npnt];
 #endif
     for (size_t i = 0; i < n_mech; ++i) {
-        int type = tmls[i].type;
+        int type = types[i];
+        if (!corenrn.get_bbcore_read()[type]) {
+            continue;
+        }
         if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
