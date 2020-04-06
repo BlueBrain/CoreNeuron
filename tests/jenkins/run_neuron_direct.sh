@@ -19,7 +19,7 @@ nrnivmodl-core ../tests/jenkins/mod
 ls -la x86_64
 
 module purge
-module load unstable hpe-mpi
+module load unstable neuron/develop hpe-mpi
 which mpirun
 
 # run test sim with external mechanism
