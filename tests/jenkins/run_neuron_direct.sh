@@ -18,9 +18,8 @@ nrnivmodl ../tests/jenkins/mod
 nrnivmodl-core ../tests/jenkins/mod
 ls -la x86_64
 
-module purge
-module load unstable neuron/develop hpe-mpi
-which mpirun
+# Unload intel module to avoid issue whith mpirun
+module unload intel
 
 # run test sim with external mechanism
 mpirun -n 1 nrniv -python $WORKSPACE/tests/jenkins/neuron_direct.py -mpi
