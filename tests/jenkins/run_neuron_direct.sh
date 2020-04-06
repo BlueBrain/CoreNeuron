@@ -3,7 +3,7 @@
 set -e
 source ${JENKINS_DIR:-.}/_env_setup.sh
 module purge
-module load unstable neuron/develop intel hpe-mpi
+module load unstable neuron/develop hpe-mpi
 
 set -x
 CORENRN_TYPE="$1"
@@ -17,6 +17,8 @@ cd $build_dir
 nrnivmodl ../tests/jenkins/mod
 nrnivmodl-core ../tests/jenkins/mod
 ls -la x86_64
+
+which mpirun
 
 # run test sim with external mechanism
 mpirun -n 1 nrniv -python $WORKSPACE/tests/jenkins/neuron_direct.py -mpi
