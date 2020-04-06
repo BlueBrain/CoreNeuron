@@ -199,15 +199,16 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
     for (size_t i = 0; i < n_mech; ++i) {
         auto& tml = tmls[i];
-        tml.nodeindices.resize(nodecounts[i]);
-        tml.data.resize(nodecounts[i] * param_sizes[i]);
-        tml.pdata.resize(nodecounts[i] * dparam_sizes[i]);
-
         int type = types[i];
+
+        tml.nodeindices.resize(nodecounts[i]);
+        tml.data.resize(nodecounts[i] * param_sizes[type]);
+        tml.pdata.resize(nodecounts[i] * dparam_sizes[type]);
+
         int* nodeindices_ = const_cast<int*>(tml.nodeindices.data());
         double* data_ = const_cast<double*>(tml.data.data());
         int* pdata_ = const_cast<int*>(tml.pdata.data());
-        (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[i] > 0 ? i : 0, nodeindices_, data_, pdata_);
+        (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[type] > 0 ? i : 0, nodeindices_, data_, pdata_);
     }
 
     int* output_vindex_ = nullptr;
@@ -702,9 +703,9 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         node_permute(nt._v_parent_index, nt.end, p);
 
 #if DEBUG
-for (int i=0; i < nt.end; ++i) {
-  printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
-}
+        for (int i=0; i < nt.end; ++i) {
+            printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
+        }
 #endif
 
         // specify the ml->_permute and sort the nodeindices
@@ -815,11 +816,10 @@ for (int i=0; i < nt.end; ++i) {
         NrnThreadBAList **ptbl = nt.tbl + i;
         for (auto tml = nt.tml; tml; tml = tml->next) {
             if (bamap[tml->index]) {
-                Memb_list* ml = tml->ml;
                 auto tbl = (NrnThreadBAList*)emalloc(sizeof(NrnThreadBAList));
                 tbl->next = nullptr;
                 tbl->bam = bamap[tml->index];
-                tbl->ml = ml;
+                tbl->ml = tml->ml;
                 *ptbl = tbl;
                 ptbl = &(tbl->next);
             }
@@ -954,16 +954,16 @@ for (int i=0; i < nt.end; ++i) {
         extracon_target_nweight = corenrn.get_pnt_receive_size()[extracon_target_type];
         int j = 0;
         for (int i = 0; i < nrn_setup_extracon; ++i) {
-            int active = 0;
+            bool active = false;
             for (int k = 0; k < nnetcon; ++k) {
                 if (pnttype[j] == extracon_target_type) {
-                    active = 1;
+                    active = true;
                     break;
                 }
                 j = (j + 1) % nnetcon;
             }
             NetCon& nc = nt.netcons[i + nnetcon];
-            nc.active_ = active;
+            nc.active_ = active ? 1 : 0;
             if (active) {
                 nc.target_ = nt.pntprocs + (pnt_offset[extracon_target_type] + pntindex[j]);
             } else {
