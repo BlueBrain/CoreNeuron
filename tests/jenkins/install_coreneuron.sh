@@ -6,6 +6,7 @@ source ${JENKINS_DIR:-.}/_env_setup.sh
 
 # Install reportinglib with spack to run reportinglib tests
 spack install reportinglib%intel
+reportinglib_dir=$(spack cd -i reportinglib%intel && pwd)
 
 CORENRN_TYPE="$1"
 
@@ -67,7 +68,7 @@ elif [ "${CORENRN_TYPE}" = "AoS" ] || [ "${CORENRN_TYPE}" = "SoA" ]; then
       -DCORENRN_ENABLE_SOA=$CORENRN_ENABLE_SOA \
       -DCORENRN_ENABLE_OPENMP=$ENABLE_OPENMP \
       -DCORENRN_ENABLE_REPORTINGLIB=ON \
-      -DCMAKE_PREFIX_PATH=$(spack cd -i reportinglib%intel && pwd) \
+      -DCMAKE_PREFIX_PATH=$reportinglib_dir \
       -DTEST_MPI_EXEC_BIN="mpirun" \
       -DTEST_EXEC_PREFIX="mpirun;-n;2" \
       -DAUTO_TEST_WITH_SLURM=OFF \
