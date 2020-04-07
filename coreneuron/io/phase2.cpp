@@ -143,8 +143,12 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         tmls[i].type = F.read_int();
         int icnt = F.read_int();
         int dcnt = F.read_int();
-        tmls[i].iArray = F.read_vector<int>(icnt);
-        tmls[i].dArray = F.read_vector<double>(dcnt);
+        if (icnt > 0) {
+            tmls[i].iArray = F.read_vector<int>(icnt);
+        }
+        if (dcnt > 0) {
+            tmls[i].dArray = F.read_vector<double>(dcnt);
+        }
     }
 
     int n_vecPlayContinous = F.read_int();
