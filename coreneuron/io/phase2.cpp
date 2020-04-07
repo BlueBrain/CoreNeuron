@@ -119,14 +119,15 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
     for (size_t i = 0; i < n_mech; ++i) {
+        int type = types[i];
         std::vector<int> nodeindices;
-        if (!corenrn.get_is_artificial()[types[i]]) {
+        if (!corenrn.get_is_artificial()[type]) {
             nodeindices = F.read_vector<int>(nodecounts[i]);
         }
-        auto data = F.read_vector<double>(param_sizes[i] * nodecounts[i]);
+        auto data = F.read_vector<double>(param_sizes[type] * nodecounts[i]);
         std::vector<int> pdata;
-        if (dparam_sizes[i] > 0) {
-            pdata = F.read_vector<int>(dparam_sizes[i] * nodecounts[i]);
+        if (dparam_sizes[type] > 0) {
+            pdata = F.read_vector<int>(dparam_sizes[type] * nodecounts[i]);
         }
         tmls.emplace_back(TML{nodeindices, data, pdata, 0, {}, {}});
     }
