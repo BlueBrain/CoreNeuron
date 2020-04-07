@@ -132,7 +132,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         tmls.emplace_back(TML{nodeindices, data, pdata, 0, {}, {}});
     }
     output_vindex = F.read_vector<int>(nt.n_presyn);
-    output_threshold = F.read_vector<double>(nt.ncell);
+    output_threshold = F.read_vector<double>(n_real_output);
     pnttype = F.read_vector<int>(nt.n_netcon - nrn_setup_extracon);
     pntindex = F.read_vector<int>(nt.n_netcon - nrn_setup_extracon);
     weights = F.read_vector<double>(n_weight);
