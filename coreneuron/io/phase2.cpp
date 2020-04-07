@@ -99,8 +99,8 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_node = F.read_int();
     n_diam = F.read_int();
     n_mech = F.read_int();
-    std::vector<int> types(0, n_mech);
-    std::vector<int> nodecounts(0, n_mech);
+    std::vector<int> types(n_mech, 0);
+    std::vector<int> nodecounts(n_mech, 0);
     for (int i = 0; i < n_mech; ++i) {
         types[i] = F.read_int();
         nodecounts[i] = F.read_int();
