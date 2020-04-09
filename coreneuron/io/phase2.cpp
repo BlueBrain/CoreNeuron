@@ -155,14 +155,13 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     }
 
     int n_vecPlayContinous = F.read_int();
-    vecPlayContinuous.resize(n_vecPlayContinous);
+    vecPlayContinuous.reserve(n_vecPlayContinous);
     for (size_t i = 0; i < n_vecPlayContinous; ++i) {
         VecPlayContinuous2 item;
-        int sz;
         item.vtype = F.read_int();
         item.mtype = F.read_int();
         item.ix = F.read_int();
-        sz = F.read_int();
+        int sz = F.read_int();
         item.yvec = F.read_vector<double>(sz);
         item.tvec = F.read_vector<double>(sz);
         vecPlayContinuous.push_back(item);
@@ -1164,7 +1163,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     ntc.vtype = new int[nt.n_vecplay];
     ntc.mtype = new int[nt.n_vecplay];
 #endif
-    for (int i = 0; i < vecPlayContinuous.size(); ++i) {
+    for (int i = 0; i < nt.n_vecplay; ++i) {
         auto& vecPlay = vecPlayContinuous[i];
         nrn_assert(vecPlay.vtype == VecPlayContinuousType);
 #if CHKPNTDEBUG
