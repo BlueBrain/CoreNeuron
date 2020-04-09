@@ -176,7 +176,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
 
     assert(F.read_int() == n_vecPlayContinous);
 
-    for (int i = 0; i < nt.n_vecplay; ++i) {
+    for (int i = 0; i < n_vecPlayContinous; ++i) {
         auto &vecPlay = vecPlayContinuous[i];
         vecPlay.last_index = F.read_int();
         vecPlay.discon_index = F.read_int();
@@ -296,10 +296,10 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         delete[] dArray_;
     }
 
-    int n_vecPlayContinous_;
-    (*nrn2core_get_dat2_vecplay_)(thread_id, n_vecPlayContinous_);
+    int n_vecPlayContinous;
+    (*nrn2core_get_dat2_vecplay_)(thread_id, n_vecPlayContinous);
 
-    for (size_t i = 0; i < n_vecPlayContinous_; ++i) {
+    for (size_t i = 0; i < n_vecPlayContinous; ++i) {
         VecPlayContinuous2 item;
         // yvec_ and tvec_ are not deleted as that space is within
         // NEURON Vector
