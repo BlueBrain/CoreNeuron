@@ -3,6 +3,8 @@
 #include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/io/user_params.hpp"
 
+#include <memory>
+
 namespace coreneuron {
 struct NrnThread;
 struct NrnThreadMembList;
@@ -15,6 +17,49 @@ struct Phase2 {
     void read_file(FileHandler& F, const NrnThread& nt);
     void populate(NrnThread& nt, int imult, const UserParams& userParams);
 
+    std::vector<int> preSynConditionEventFlags;
+
+    // All of this is public for nrn_checkpoint
+    struct EventTypeBase {
+        double te;
+    };
+    struct NetConType_: public EventTypeBase {
+        int ncindex;
+    };
+    struct SelfEventType_: public EventTypeBase {
+        int target_type;
+        int pinstance;
+        int target_instance;
+        double flag;
+        int movable;
+        int weight_index;
+    };
+    struct PreSynType_: public EventTypeBase {
+        int psindex;
+    };
+    struct NetParEvent_: public EventTypeBase {
+    };
+    struct PlayRecordEventType_: public EventTypeBase {
+        int prtype;
+        int vecplay_index;
+    };
+
+    struct VecPlayContinuous2 {
+        int vtype;
+        int mtype;
+        int ix;
+        std::vector<double> yvec;
+        std::vector<double> tvec;
+
+        int last_index;
+        int discon_index;
+        int ubound_index;
+    };
+    std::vector<VecPlayContinuous2> vecPlayContinuous;
+    int pastim_index;
+
+    std::vector<std::pair<int, std::shared_ptr<EventTypeBase>>> events;
+
     private:
     // Internal state
     bool setted = false;
@@ -24,6 +69,7 @@ struct Phase2 {
     NrnThreadMembList* create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt);
     void pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
     void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
+    void save_events(FileHandler& F);
 
     int n_output;
     int n_real_output;
@@ -56,13 +102,5 @@ struct Phase2 {
     std::vector<double> weights;
     std::vector<double> delay;
     int npnt;
-    struct VecPlayContinuous2 {
-        int vtype;
-        int mtype;
-        int ix;
-        std::vector<double> yvec;
-        std::vector<double> tvec;
-    };
-    std::vector<VecPlayContinuous2> vecPlayContinuous;
 };
 }  // namespace coreneuron

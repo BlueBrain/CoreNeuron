@@ -167,6 +167,36 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         item.tvec = F.read_vector<double>(sz);
         vecPlayContinuous.push_back(item);
     }
+
+    // store current checkpoint state to continue reading mapping
+    // The checkpoint numbering in phase 3 is a continuing of phase 2, and so will be restored
+    F.record_checkpoint();
+
+    if (F.eof())
+        return;
+
+    assert(F.read_int() == n_vecPlayContinous);
+
+    for (int i = 0; i < nt.n_vecplay; ++i) {
+        auto &vecPlay = vecPlayContinuous[i];
+        vecPlay.last_index = F.read_int();
+        vecPlay.discon_index = F.read_int();
+        vecPlay.ubound_index = F.read_int();
+    }
+
+    pastim_index = F.read_int();
+
+    assert(F.read_int() == -1);
+
+    for (int i = 0; nt.n_presyn; ++i) {
+        preSynConditionEventFlags.push_back(F.read_int());
+    }
+
+    assert(F.read_int() == -1);
+    save_events(F);
+
+    assert(F.read_int() == -1);
+    save_events(F);
 }
 
 void Phase2::read_direct(int thread_id, const NrnThread& nt) {
@@ -399,6 +429,59 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
             nsb->reallocated = 1;
             nsb->_nsb_t = (double*)ecalloc_align(nsb->_size, sizeof(double));
             nsb->_nsb_flag = (double*)ecalloc_align(nsb->_size, sizeof(double));
+        }
+    }
+}
+void Phase2::save_events(FileHandler& F) {
+    int type;
+    while (type = F.read_int() != 0) {
+        double te;
+        F.read_array(&te, 1);
+        switch (type) {
+            case NetConType: {
+                auto event = std::make_shared<NetConType_>();
+                event->te = te;
+                event->ncindex = F.read_int();
+                events.emplace_back(type, event);
+                break;
+            }
+            case SelfEventType: {
+                auto event = std::make_shared<SelfEventType_>();
+                event->te = te;
+                event->target_type = F.read_int();
+                event->pinstance = F.read_int();
+                event->target_instance = F.read_int();
+                F.read_array(&event->flag, 1);
+                event->movable = F.read_int();
+                event->weight_index = F.read_int();
+                events.emplace_back(type, event);
+                break;
+            }
+            case PreSynType: {
+                auto event = std::make_shared<PreSynType_>();
+                event->te = te;
+                event->psindex = F.read_int();
+                events.emplace_back(type, event);
+                break;
+            }
+            case NetParEventType: {
+                auto event = std::make_shared<NetParEvent_>();
+                event->te = te;
+                events.emplace_back(type, event);
+                break;
+            }
+            case PlayRecordEventType: {
+                auto event = std::make_shared<PlayRecordEventType_>();
+                event->te = te;
+                event->prtype = F.read_int();
+                event->vecplay_index = F.read_int();
+                events.emplace_back(type, event);
+                break;
+            }
+            default: {
+                assert(0);
+                break;
+            }
         }
     }
 }
@@ -1109,16 +1192,8 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         }
         nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
     }
-    if (!direct) {
-        /* FIXME:
-        // store current checkpoint state to continue reading mapping
-        F.record_checkpoint();
-
-        // If not at end of file, then this must be a checkpoint and restore tqueue.
-        if (!F.eof()) {
-            checkpoint_restore_tqueue(nt, F);
-        }
-        */
+    if (!events.empty()) {
+        checkpoint_restore_tqueue(nt, *this);
     }
 
     set_net_send_buffer(nt._ml_list, pnt_offset);

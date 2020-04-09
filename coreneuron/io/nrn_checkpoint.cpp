@@ -28,6 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <memory>
 
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
@@ -698,48 +699,40 @@ static void write_tqueue(TQItem* q, NrnThread& nt, FileHandlerWrap& fh) {
 static int patstim_index;
 static double patstim_te;
 
-static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) {
-    double te;
-    fh.read_array(&te, 1);
+static void checkpoint_restore_tqitem(int type, std::shared_ptr<Phase2::EventTypeBase> event, NrnThread& nt) {
     // printf("restore tqitem type=%d te=%.20g\n", type, te);
 
     switch (type) {
         case NetConType: {
-            int ncindex = fh.read_int();
+            auto e = static_cast<Phase2::NetConType_*>(event.get());
             // printf("  NetCon %d\n", ncindex);
-            NetCon* nc = nt.netcons + ncindex;
-            nc->send(te, net_cvode_instance, &nt);
+            NetCon* nc = nt.netcons + e->ncindex;
+            nc->send(e->te, net_cvode_instance, &nt);
             break;
         }
         case SelfEventType: {
-            int target_type = fh.read_int();  // not really needed (except for assert below)
-            int pinstance = fh.read_int();
-            int target_instance = fh.read_int();
-            double flag;
-            fh.read_array(&flag, 1);
-            int movable = fh.read_int();
-            int weight_index = fh.read_int();
-            if (target_type == patstimtype) {
+            auto e = static_cast<Phase2::SelfEventType_*>(event.get());
+            if (e->target_type == patstimtype) {
                 if (nt.id == 0) {
-                    patstim_te = te;
+                    patstim_te = e->te;
                 }
                 break;
             }
-            Point_process* pnt = nt.pntprocs + pinstance;
+            Point_process* pnt = nt.pntprocs + e->pinstance;
             // printf("  SelfEvent %d %d %d %g %d %d\n", target_type, pinstance, target_instance,
             // flag, movable, weight_index);
-            assert(target_instance == pnt->_i_instance);
-            assert(target_type == pnt->_type);
-            net_send(nt._vdata + movable, weight_index, pnt, te, flag);
+            assert(e->target_instance == pnt->_i_instance);
+            assert(e->target_type == pnt->_type);
+            net_send(nt._vdata + e->movable, e->weight_index, pnt, e->te, e->flag);
             break;
         }
         case PreSynType: {
-            int psindex = fh.read_int();
+            auto e = static_cast<Phase2::PreSynType_*>(event.get());
             // printf("  PreSyn %d\n", psindex);
-            PreSyn* ps = nt.presyns + psindex;
+            PreSyn* ps = nt.presyns + e->psindex;
             int gid = ps->output_index_;
             ps->output_index_ = -1;
-            ps->send(te, net_cvode_instance, &nt);
+            ps->send(e->te, net_cvode_instance, &nt);
             ps->output_index_ = gid;
             break;
         }
@@ -749,10 +742,10 @@ static void checkpoint_restore_tqitem(int type, NrnThread& nt, FileHandler& fh) 
             break;
         }
         case PlayRecordEventType: {
-            int prtype = fh.read_int();
-            if (prtype == VecPlayContinuousType) {
-                VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[fh.read_int()]);
-                vpc->e_->send(te, net_cvode_instance, &nt);
+            auto e = static_cast<Phase2::PlayRecordEventType_*>(event.get());
+            if (e->prtype == VecPlayContinuousType) {
+                VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[e->vecplay_index]);
+                vpc->e_->send(e->te, net_cvode_instance, &nt);
             } else {
                 assert(0);
             }
@@ -817,38 +810,50 @@ static void write_tqueue(NrnThread& nt, FileHandlerWrap& fh) {
 
 static bool checkpoint_restored_ = false;
 
-void checkpoint_restore_tqueue(NrnThread& nt, FileHandler& fh) {
+// Read a tqueue/checkpoint
+// int :: should be equal to the previous n_vecplay
+// n_vecplay:
+//   int: last_index
+//   int: discon_index
+//   int: ubound_index
+// int: pastim_index
+// int: should be -1
+// n_presyn:
+//   int: flags of presyn_helper
+// int: should be -1
+// null terminated:
+//   int: type
+//   array of size 1:
+//     double: te
+//   ... depends of the type
+// int: should be -1
+// null terminated:
+//   int: TO BE DEFINED
+//   ... depends of the type
+void checkpoint_restore_tqueue(NrnThread& nt, const Phase2& p2) {
     int type;
     checkpoint_restored_ = true;
 
-    // VecPlayContinuous
-    assert(fh.read_int() == nt.n_vecplay);  // VecPlayContinuous state
     for (int i = 0; i < nt.n_vecplay; ++i) {
         VecPlayContinuous* vpc = (VecPlayContinuous*)nt._vecplay[i];
-        vpc->last_index_ = fh.read_int();
-        vpc->discon_index_ = fh.read_int();
-        vpc->ubound_index_ = fh.read_int();
+        auto& vec = p2.vecPlayContinuous[i];
+        vpc->last_index_ = vec.last_index;
+        vpc->discon_index_ = vec.discon_index;
+        vpc->ubound_index_ = vec.ubound_index;
     }
 
     // PatternStim
-    patstim_index = fh.read_int();  // PatternStim
+    patstim_index = p2.pastim_index;  // PatternStim
     if (nt.id == 0) {
         patstim_te = -1.0;  // changed if relevant SelfEvent;
     }
 
-    assert(fh.read_int() == -1);  // -1 PreSyn ConditionEvent flags
     for (int i = 0; i < nt.n_presyn; ++i) {
-        nt.presyns_helper[i].flag_ = fh.read_int();
+        nt.presyns_helper[i].flag_ = p2.preSynConditionEventFlags[i];
     }
 
-    assert(fh.read_int() == -1);  // -1 TQItems from atomic_dq
-    while ((type = fh.read_int()) != 0) {
-        checkpoint_restore_tqitem(type, nt, fh);
-    }
-
-    assert(fh.read_int() == -1);  // -1 TQItems from binq_
-    while ((type - fh.read_int()) != 0) {
-        checkpoint_restore_tqitem(type, nt, fh);
+    for (const auto& event: p2.events) {
+        checkpoint_restore_tqitem(event.first, event.second, nt);
     }
 }
 
