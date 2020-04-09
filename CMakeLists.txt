@@ -197,6 +197,8 @@ if(CORENRN_ENABLE_NMODL)
   # set correct arguments for nmodl for cpu/gpu target
   if(CORENRN_ENABLE_GPU)
     set(CORENRN_NMODL_FLAGS "acc --oacc" CACHE STRING "Extra NMODL options such as passes")
+    # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE=1")
   else()
     set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   endif()
