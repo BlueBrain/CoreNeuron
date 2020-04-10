@@ -438,7 +438,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
 }
 void Phase2::save_events(FileHandler& F) {
     int type;
-    while (type = F.read_int() != 0) {
+    while ((type = F.read_int()) != 0) {
         double te;
         F.read_array(&te, 1);
         switch (type) {
