@@ -187,7 +187,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
 
     assert(F.read_int() == -1);
 
-    for (int i = 0; nt.n_presyn; ++i) {
+    for (int i = 0; i < nt.n_presyn; ++i) {
         preSynConditionEventFlags.push_back(F.read_int());
     }
 
