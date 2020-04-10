@@ -108,13 +108,13 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_idata = F.read_int();
     n_vdata = F.read_int();
     int n_weight = F.read_int();
-    auto v_parent_index = F.read_vector<int>(n_node);
-    auto actual_a = F.read_vector<double>(n_node);
-    auto actual_b = F.read_vector<double>(n_node);
-    auto actual_area = F.read_vector<double>(n_node);
-    auto actual_v = F.read_vector<double>(n_node);
+    v_parent_index = F.read_vector<int>(n_node);
+    actual_a = F.read_vector<double>(n_node);
+    actual_b = F.read_vector<double>(n_node);
+    actual_area = F.read_vector<double>(n_node);
+    actual_v = F.read_vector<double>(n_node);
     if (n_diam > 0)
-        auto actual_diam = F.read_vector<double>(n_node);
+        actual_diam = F.read_vector<double>(n_node);
 
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
@@ -1119,6 +1119,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         if (!corenrn.get_bbcore_read()[type]) {
             continue;
         }
+        type = tmls[i].type; // This is not an error, but it has to be fixed I think
         if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
             fprintf(
                 stderr,
