@@ -234,19 +234,23 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
 
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
+    int dsz_inst = 0;
     for (size_t i = 0; i < n_mech; ++i) {
         auto& tml = tmls[i];
-        int type = tml.type;
+        int type = types[i];
 
         tml.nodeindices.resize(nodecounts[i]);
         tml.data.resize(nodecounts[i] * param_sizes[type]);
         tml.pdata.resize(nodecounts[i] * dparam_sizes[type]);
 
-        int* nodeindices_;
+        int* nodeindices_ = nullptr;
         double* data_ = const_cast<double*>(tml.data.data());
         int* pdata_ = const_cast<int*>(tml.pdata.data());
-        (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[type] > 0 ? i : 0, nodeindices_, data_, pdata_);
+        (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[type] > 0 ? dsz_inst : 0, nodeindices_, data_, pdata_);
+        if (dparam_sizes[type] > 0)
+            dsz_inst++;
         std::copy(nodeindices_, nodeindices_ + nodecounts[i], tml.nodeindices.data());
+        free_memory(nodeindices_);
     }
 
     int* output_vindex_ = nullptr;
