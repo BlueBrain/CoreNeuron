@@ -743,12 +743,8 @@ static void checkpoint_restore_tqitem(int type, std::shared_ptr<Phase2::EventTyp
         }
         case PlayRecordEventType: {
             auto e = static_cast<Phase2::PlayRecordEventType_*>(event.get());
-            if (e->prtype == VecPlayContinuousType) {
-                VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[e->vecplay_index]);
-                vpc->e_->send(e->te, net_cvode_instance, &nt);
-            } else {
-                assert(0);
-            }
+            VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[e->vecplay_index]);
+            vpc->e_->send(e->te, net_cvode_instance, &nt);
             break;
         }
         default: {

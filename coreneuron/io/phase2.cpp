@@ -478,8 +478,12 @@ void Phase2::save_events(FileHandler& F) {
                 auto event = std::make_shared<PlayRecordEventType_>();
                 event->te = te;
                 event->prtype = F.read_int();
-                event->vecplay_index = F.read_int();
-                events.emplace_back(type, event);
+                if (event->prtype == VecPlayContinuousType) {
+                    event->vecplay_index = F.read_int();
+                    events.emplace_back(type, event);
+                } else {
+                    assert(0);
+                }
                 break;
             }
             default: {
