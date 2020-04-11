@@ -107,8 +107,9 @@ endif()
 # =============================================================================
 # Build option specific compiler flags
 # =============================================================================
-if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DSWAP_ENDIAN_DISABLE_ASM)
+  add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
 if(CORENRN_ENABLE_ISPC)
@@ -195,12 +196,9 @@ if(CORENRN_ENABLE_NMODL)
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
   # set correct arguments for nmodl for cpu/gpu target
+  set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   if(CORENRN_ENABLE_GPU)
-    set(CORENRN_NMODL_FLAGS "acc --oacc" CACHE STRING "Extra NMODL options such as passes")
-    # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE=1")
-  else()
-    set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
+    string(APPEND CORENRN_NMODL_FLAGS " acc --oacc")
   endif()
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
