@@ -109,6 +109,7 @@ endif()
 # =============================================================================
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DSWAP_ENDIAN_DISABLE_ASM)
+  # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
