@@ -1,8 +1,8 @@
---outpath ./
---datpath @CMAKE_CURRENT_SOURCE_DIR@/ring/
---tstop 10.000000
---dt 0.025000
---forwardskip 0.000000
---prcellgid -1
---report-conf @CMAKE_CURRENT_SOURCE_DIR@/reportinglib/1.report
---cell-permute 0
+outpath = ./
+datpath = @CMAKE_CURRENT_SOURCE_DIR@/ring/
+tstop = 10.000000
+dt = 0.025000
+forwardskip = 0.000000
+prcellgid = -1
+report-conf = @CMAKE_CURRENT_SOURCE_DIR@/reportinglib/1.report
+cell-permute = 0

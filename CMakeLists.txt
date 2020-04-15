@@ -107,8 +107,10 @@ endif()
 # =============================================================================
 # Build option specific compiler flags
 # =============================================================================
-if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DSWAP_ENDIAN_DISABLE_ASM)
+  # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
+  add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
 if(CORENRN_ENABLE_ISPC)
@@ -190,13 +192,14 @@ if(CORENRN_ENABLE_NMODL)
     include(AddNmodlSubmodule)
     set(CORENRN_NMODL_BINARY ${CMAKE_BINARY_DIR}/bin/nmodl${CMAKE_EXECUTABLE_SUFFIX})
     set(CORENRN_NMODL_INCLUDE ${CMAKE_BINARY_DIR}/include)
+    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}")
+    set(CORENRN_NMODL_PYTHONPATH $ENV{PYTHONPATH})
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
   # set correct arguments for nmodl for cpu/gpu target
+  set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
   if(CORENRN_ENABLE_GPU)
-    set(CORENRN_NMODL_FLAGS "acc --oacc" CACHE STRING "Extra NMODL options such as passes")
-  else()
-    set(CORENRN_NMODL_FLAGS "" CACHE STRING "Extra NMODL options such as passes")
+    string(APPEND CORENRN_NMODL_FLAGS " acc --oacc")
   endif()
   separate_arguments(NMODL_EXTRA_FLAGS_LIST UNIX_COMMAND "${CORENRN_NMODL_FLAGS}")
 else()
