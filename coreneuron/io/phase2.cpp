@@ -436,6 +436,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
         }
     }
 }
+
 void Phase2::save_events(FileHandler& F) {
     int type;
     while ((type = F.read_int()) != 0) {
@@ -489,6 +490,31 @@ void Phase2::save_events(FileHandler& F) {
             default: {
                 assert(0);
                 break;
+            }
+        }
+    }
+}
+
+void Phase2::fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func) {
+    /// Fill the BA lists
+    std::vector<BAMech*> bamap(memb_func.size());
+    for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
+        for (size_t ii = 0; ii < memb_func.size(); ++ii) {
+            bamap[ii] = nullptr;
+        }
+        for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
+            bamap[bam->type] = bam;
+        }
+        /* unnecessary but keep in order anyway */
+        NrnThreadBAList **ptbl = nt.tbl + i;
+        for (auto tml = nt.tml; tml; tml = tml->next) {
+            if (bamap[tml->index]) {
+                auto tbl = (NrnThreadBAList*)emalloc(sizeof(NrnThreadBAList));
+                tbl->next = nullptr;
+                tbl->bam = bamap[tml->index];
+                tbl->ml = tml->ml;
+                *ptbl = tbl;
+                ptbl = &(tbl->next);
             }
         }
     }
@@ -902,28 +928,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
     /* free temp dependency array */
     free(mech_deps);
 
-    /// Fill the BA lists
-    std::vector<BAMech*> bamap(memb_func.size());
-    for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
-        for (size_t ii = 0; ii < memb_func.size(); ++ii) {
-            bamap[ii] = nullptr;
-        }
-        for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
-            bamap[bam->type] = bam;
-        }
-        /* unnecessary but keep in order anyway */
-        NrnThreadBAList **ptbl = nt.tbl + i;
-        for (auto tml = nt.tml; tml; tml = tml->next) {
-            if (bamap[tml->index]) {
-                auto tbl = (NrnThreadBAList*)emalloc(sizeof(NrnThreadBAList));
-                tbl->next = nullptr;
-                tbl->bam = bamap[tml->index];
-                tbl->ml = tml->ml;
-                *ptbl = tbl;
-                ptbl = &(tbl->next);
-            }
-        }
-    }
+    fill_ba_lists(nt, memb_func);
 
     // for fast watch statement checking
     // setup a list of types that have WATCH statement

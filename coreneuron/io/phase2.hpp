@@ -70,6 +70,7 @@ struct Phase2 {
     void pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
     void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
     void save_events(FileHandler& F);
+    void fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func);
 
     int n_output;
     int n_real_output;
