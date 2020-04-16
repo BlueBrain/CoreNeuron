@@ -120,10 +120,10 @@ static std::pair<std::vector<int>, std::vector<int>> all2allv_helper(const std::
     int np = nrnmpi_numprocs;
     std::vector<int> c(np, 1);
     std::vector<int> rdispl = newoffset(c);
-    std::vector<int> rcnt = std::vector<int>(np, 0);
+    std::vector<int> rcnt(np, 0);
     nrnmpi_int_alltoallv(scnt.data(), c.data(), rdispl.data(), rcnt.data(), c.data(), rdispl.data());
     rdispl = newoffset(rcnt);
-    return std::make_pair(rcnt, rdispl);
+    return std::make_pair(std::move(rcnt), std::move(rdispl));
 }
 
 #define all2allv_perf 1
@@ -135,10 +135,10 @@ all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std:
 #endif
     int np = nrnmpi_numprocs;
 
-    std::vector<int> r(np, 0);
     std::vector<int> rcnt;
     std::vector<int> rdispl;
     std::tie(rcnt, rdispl) = all2allv_helper(scnt);
+    std::vector<int> r(rdispl[np], 0);
     nrnmpi_int_alltoallv(s.data(), scnt.data(), sdispl.data(), r.data(), rcnt.data(), rdispl.data());
     alltoalldebug(dmes, s, scnt, sdispl, r, rcnt, rdispl);
 
@@ -149,7 +149,7 @@ all2allv_int(const std::vector<int>& s, const std::vector<int>& scnt, const std:
         printf("all2allv_int %s space=%d total=%g time=%g\n", dmes, nb, nrn_mallinfo(), tm);
     }
 #endif
-    return std::make_pair(r, rdispl);
+    return std::make_pair(std::move(r), std::move(rdispl));
 }
 
 class TarList {
