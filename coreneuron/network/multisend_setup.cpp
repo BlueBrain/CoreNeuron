@@ -431,6 +431,10 @@ static std::vector<int> setup_target_lists(bool use_phase2) {
 
         // Now figure out the size of the target list for each distinct gid in r1.
         for (const auto& gid: r1) {
+            if (gid2tarlist.find(gid) == gid2tarlist.end()) {
+                gid2tarlist[gid] = new TarList{};
+                gid2tarlist[gid]->size = 0;
+            }
             auto tar = gid2tarlist[gid];
             ++(tar->size);
         }
