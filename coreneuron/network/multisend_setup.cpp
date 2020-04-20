@@ -414,7 +414,7 @@ static std::vector<int> setup_target_lists(bool use_phase2) {
             ++scnt1[gid % nhost];
         }
 
-        // s are the input gids from target to be sent to the various intermediates
+        // s1 are the input gids from target to be sent to the various intermediates
         const std::vector<int> sdispl1 = newoffset(scnt1);
         // Make an usable copy
         auto sdispl1_ = sdispl1;
