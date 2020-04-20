@@ -407,7 +407,7 @@ static std::vector<int> setup_target_lists(bool use_phase2) {
     // list of target ranks for the gids it gets.
 
     {
-        // scnt is number of input gids from target
+        // scnt1 is number of input gids from target
         std::vector<int> scnt1(nhost, 0);
         for (const auto& g: gid2in) {
             int gid = g.first;
