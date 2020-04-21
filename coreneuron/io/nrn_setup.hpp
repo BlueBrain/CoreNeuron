@@ -109,7 +109,6 @@ inline void read_phase_aux<gap>(FileHandler& F, int imult, NrnThread& nt, const 
 template <phase P>
 inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
     int i = nt->id;
-    char fnamebuf[1000];
     if (i < userParams.ngroup) {
         if (!userParams.do_not_open) {
             const char* data_dir = userParams.path;

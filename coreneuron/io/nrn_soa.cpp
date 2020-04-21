@@ -2,6 +2,7 @@
 
 namespace coreneuron {
 
+/// calculate size after padding for specific memory layout
 int nrn_soa_padded_size(int cnt, int layout) {
     return soa_padded_size<NRN_SOA_PAD>(cnt, layout);
 }

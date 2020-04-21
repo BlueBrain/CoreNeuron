@@ -126,6 +126,7 @@ void Phase1::populate(NrnThread& nt, int imult) {
 
     nt.presyns = new PreSyn[nt.n_presyn];
     PreSyn* ps = nt.presyns;
+    /// go through all presyns
     for (auto& gid: this->output_gids) {
         if (gid == -1) {
             ++ps;
