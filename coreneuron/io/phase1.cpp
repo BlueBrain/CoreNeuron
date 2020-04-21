@@ -16,6 +16,17 @@ namespace coreneuron {
 // maxgid * nrn_setup_multiple < 0x7fffffff
 static int maxgid = 0x7fffffff / nrn_setup_multiple;
 
+void Phase1::read_file(FileHandler& F) {
+    assert(!F.fail());
+    int n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
+    int n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
+
+    this->output_gids = F.read_vector<int>(n_presyn);
+    this->netcon_srcgids = F.read_vector<int>(n_netcon);
+
+    F.close();
+}
+
 void Phase1::read_direct(int thread_id) {
     int* output_gids;
     int* netcon_srcgid;
@@ -31,17 +42,6 @@ void Phase1::read_direct(int thread_id) {
     delete[] output_gids;
     this->netcon_srcgids = std::vector<int>(netcon_srcgid, netcon_srcgid + n_netcon);
     delete[] netcon_srcgid;
-}
-
-void Phase1::read_file(FileHandler& F) {
-    assert(!F.fail());
-    int n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
-    int n_netcon = F.read_int();  /// Number of NetCon-s in NrnThread nt
-
-    this->output_gids = F.read_vector<int>(n_presyn);
-    this->netcon_srcgids = F.read_vector<int>(n_netcon);
-
-    F.close();
 }
 
 void Phase1::shift_gids(int imult) {

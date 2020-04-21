@@ -891,6 +891,14 @@ void delete_trajectory_requests(NrnThread& nt) {
     }
 }
 
+void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
+    Phase1 p1;
+    p1.read_file(F);
+    MUTLOCK // Protect gid2in, gid2out and neg_gid2out
+    p1.populate(nt, imult);
+    MUTUNLOCK
+}
+
 void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams) {
     Phase2 p2;
     if (corenrn_embedded) {
@@ -899,14 +907,6 @@ void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& use
         p2.read_file(F, nt);
     }
     p2.populate(nt, imult, userParams);
-}
-
-void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
-    Phase1 p1;
-    p1.read_file(F);
-    MUTLOCK // Protect gid2in, gid2out and neg_gid2out
-    p1.populate(nt, imult);
-    MUTUNLOCK
 }
 
 /** read mapping information for neurons */

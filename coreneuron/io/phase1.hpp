@@ -10,8 +10,8 @@ struct NrnThread;
 
 class Phase1 {
     public:
-    void read_direct(int thread_id);
     void read_file(FileHandler& F);
+    void read_direct(int thread_id);
     void populate(NrnThread& nt, int imult);
 
     private:
