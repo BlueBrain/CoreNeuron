@@ -110,7 +110,7 @@ template <phase P>
 inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
     int i = nt->id;
     if (i < userParams.ngroup) {
-        if (!userParams.do_not_open) {
+        if (!userParams.in_memory_transfer) {
             const char* data_dir = userParams.path;
             // directory to read could be different for phase 2 if we are restoring
             // all other phases still read from dataset directory because the data
@@ -131,7 +131,7 @@ inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
             }
         }
         read_phase_aux<P>(userParams.file_reader[i], userParams.imult[i], *nt, userParams);
-        if (!userParams.do_not_open) {
+        if (!userParams.in_memory_transfer) {
             userParams.file_reader[i].close();
         }
         if (P == 2) {
@@ -145,11 +145,11 @@ inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
 template <phase P>
 inline static void phase_wrapper(UserParams& userParams, int direct = 0) {
     if (direct) {
-        userParams.do_not_open = true;
+        userParams.in_memory_transfer = true;
     }
     nrn_multithread_job(phase_wrapper_w<P>, userParams);
     if (direct) {
-        userParams.do_not_open = false;
+        userParams.in_memory_transfer = false;
     }
 }
 }  // namespace coreneuron
