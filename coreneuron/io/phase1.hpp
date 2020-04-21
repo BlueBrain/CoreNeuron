@@ -8,7 +8,7 @@ namespace coreneuron {
 
 struct NrnThread;
 
-struct Phase1 {
+class Phase1 {
     public:
     void read_direct(int thread_id);
     void read_file(FileHandler& F);

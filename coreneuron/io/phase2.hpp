@@ -11,7 +11,7 @@ struct NrnThreadMembList;
 struct Memb_func;
 struct Memb_list;
 
-struct Phase2 {
+class Phase2 {
     public:
     void read_direct(int thread_id, const NrnThread& nt);
     void read_file(FileHandler& F, const NrnThread& nt);

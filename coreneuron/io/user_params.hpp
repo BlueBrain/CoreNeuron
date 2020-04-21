@@ -2,6 +2,7 @@
 
 namespace coreneuron {
 struct UserParams {
+    /// direct memory mode with neuron, do not open files
     bool do_not_open;
     /// Number of local cell groups
     int ngroup;

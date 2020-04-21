@@ -6,16 +6,16 @@ int nrn_soa_padded_size(int cnt, int layout) {
     return soa_padded_size<NRN_SOA_PAD>(cnt, layout);
 }
 
-size_t nrn_soa_byte_align(size_t i) {
+size_t nrn_soa_byte_align(size_t size) {
     if (LAYOUT == 0) {
         size_t dbl_align = NRN_SOA_BYTE_ALIGN / sizeof(double);
-        size_t rem = i % dbl_align;
-        if (rem) {
-            i += dbl_align - rem;
+        size_t remainder = size % dbl_align;
+        if (remainder) {
+            size += dbl_align - remainder;
         }
-        assert((i * sizeof(double)) % NRN_SOA_BYTE_ALIGN == 0);
+        assert((size * sizeof(double)) % NRN_SOA_BYTE_ALIGN == 0);
     }
-    return i;
+    return size;
 }
 
 int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
@@ -45,4 +45,3 @@ int nrn_param_layout(int i, int mtype, Memb_list* ml) {
     return nrn_i_layout(i / sz, ml->nodecount, i % sz, sz, layout);
 }
 }  // namespace coreneuron
-
