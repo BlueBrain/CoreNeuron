@@ -1,4 +1,4 @@
-#include "nrn_soa.hpp"
+#include "mem_layout_util.hpp"
 
 namespace coreneuron {
 
@@ -7,6 +7,7 @@ int nrn_soa_padded_size(int cnt, int layout) {
     return soa_padded_size<NRN_SOA_PAD>(cnt, layout);
 }
 
+/// return the new offset considering the byte aligment settings
 size_t nrn_soa_byte_align(size_t size) {
     if (LAYOUT == 0) {
         size_t dbl_align = NRN_SOA_BYTE_ALIGN / sizeof(double);

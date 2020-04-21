@@ -7,7 +7,7 @@
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/utils/vrecitem.h"
-#include "coreneuron/io/nrn_soa.hpp"
+#include "coreneuron/io/mem_layout_util.hpp"
 
 int (*nrn2core_get_dat2_1_)(int tid,
                             int& ngid,

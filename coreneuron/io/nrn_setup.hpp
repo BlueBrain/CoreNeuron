@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/io/user_params.hpp"
-#include "coreneuron/io/nrn_soa.hpp"
+#include "coreneuron/io/mem_layout_util.hpp"
 
 namespace coreneuron {
 static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
