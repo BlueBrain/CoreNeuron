@@ -137,7 +137,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     pntindex = F.read_vector<int>(nt.n_netcon - nrn_setup_extracon);
     weights = F.read_vector<double>(n_weight);
     delay = F.read_vector<double>(nt.n_netcon);
-    npnt = F.read_int();
+    num_point_process = F.read_int();
 
     for (size_t i = 0; i < n_mech; ++i) {
         if (!corenrn.get_bbcore_read()[types[i]]) {
@@ -157,7 +157,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     int n_vecPlayContinous = F.read_int();
     vecPlayContinuous.reserve(n_vecPlayContinous);
     for (size_t i = 0; i < n_vecPlayContinous; ++i) {
-        VecPlayContinuous2 item;
+        VecPlayContinuous_ item;
         item.vtype = F.read_int();
         item.mtype = F.read_int();
         item.ix = F.read_int();
@@ -281,7 +281,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     delay = std::vector<double>(delay_, delay_ + n_netcon);
     delete[] delay_;
 
-    (*nrn2core_get_dat2_corepointer_)(nt.id, npnt);
+    (*nrn2core_get_dat2_corepointer_)(nt.id, num_point_process);
 
     for (size_t i = 0; i < n_mech; ++i) {
         if (!corenrn.get_bbcore_read()[types[i]]) {
@@ -305,7 +305,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     (*nrn2core_get_dat2_vecplay_)(thread_id, n_vecPlayContinous);
 
     for (size_t i = 0; i < n_vecPlayContinous; ++i) {
-        VecPlayContinuous2 item;
+        VecPlayContinuous_ item;
         // yvec_ and tvec_ are not deleted as that space is within
         // NEURON Vector
         double *yvec_, *tvec_;
@@ -626,7 +626,7 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 
     // Memb_list.data points into the nt.data array.
     // Also count the number of Point_process
-    int npnt = 0;
+    int num_point_process = 0;
     for (auto tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         int type = tml->index;
@@ -637,12 +637,12 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
         ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
         offset += nrn_soa_padded_size(n, layout) * sz;
         if (corenrn.get_pnt_map()[type] > 0) {
-            npnt += n;
+            num_point_process += n;
         }
     }
     nt.pntprocs = (Point_process*)ecalloc_align(
-        npnt, sizeof(Point_process));  // includes acell with and without gid
-    nt.n_pntproc = npnt;
+        num_point_process, sizeof(Point_process));  // includes acell with and without gid
+    nt.n_pntproc = num_point_process;
     // printf("offset=%ld\n", offset);
     nt._ndata = offset;
 
@@ -1118,10 +1118,10 @@ void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
 
     // BBCOREPOINTER information
 #if CHKPNTDEBUG
-    ntc.nbcp = npnt;
-    ntc.bcpicnt = new int[npnt];
-    ntc.bcpdcnt = new int[npnt];
-    ntc.bcptype = new int[npnt];
+    ntc.nbcp = num_point_process;
+    ntc.bcpicnt = new int[num_point_process];
+    ntc.bcpdcnt = new int[num_point_process];
+    ntc.bcptype = new int[num_point_process];
 #endif
     for (size_t i = 0; i < n_mech; ++i) {
         int type = types[i];

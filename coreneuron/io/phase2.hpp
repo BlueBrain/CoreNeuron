@@ -44,7 +44,7 @@ class Phase2 {
         int vecplay_index;
     };
 
-    struct VecPlayContinuous2 {
+    struct VecPlayContinuous_ {
         int vtype;
         int mtype;
         int ix;
@@ -55,7 +55,7 @@ class Phase2 {
         int discon_index;
         int ubound_index;
     };
-    std::vector<VecPlayContinuous2> vecPlayContinuous;
+    std::vector<VecPlayContinuous_> vecPlayContinuous;
     int pastim_index;
 
     std::vector<std::pair<int, std::shared_ptr<EventTypeBase>>> events;
@@ -102,6 +102,6 @@ class Phase2 {
     std::vector<int> pntindex;
     std::vector<double> weights;
     std::vector<double> delay;
-    int npnt;
+    int num_point_process;
 };
 }  // namespace coreneuron
