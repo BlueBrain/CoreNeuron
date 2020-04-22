@@ -67,6 +67,10 @@ class Phase2 {
     void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
     void restore_events(FileHandler& F);
     void fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func);
+    void pdata_relocation(const NrnThread& nt, const std::vector<Memb_func>& memb_func);
+    void set_dependencies(const NrnThread& nt, const std::vector<Memb_func>& memb_func);
+    void get_info_from_bbcore(NrnThread& nt, const std::vector<Memb_func>& memb_func);
+    void set_vec_play(NrnThread& nt);
 
     int n_output;
     int n_real_output;

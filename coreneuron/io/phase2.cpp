@@ -514,6 +514,228 @@ void Phase2::fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_fun
     }
 }
 
+void Phase2::pdata_relocation(const NrnThread& nt, const std::vector<Memb_func>& memb_func) {
+    // Some pdata may index into data which has been reordered from AoS to
+    // SoA. The four possibilities are if semantics is -1 (area), -5 (pointer),
+    // -9 (diam), // or 0-999 (ion variables).
+    // Note that pdata has a layout and the // type block in nt.data into which
+    // it indexes, has a layout.
+    for (auto tml = nt.tml; tml; tml = tml->next) {
+        int type = tml->index;
+        int layout = corenrn.get_mech_data_layout()[type];
+        int* pdata = tml->ml->pdata;
+        int cnt = tml->ml->nodecount;
+        int szdp = corenrn.get_prop_dparam_size()[type];
+        int* semantics = memb_func[type].dparam_semantics;
+
+        // compute only for ARTIFICIAL_CELL (has useful area pointer with semantics=-1)
+        if (!corenrn.get_is_artificial()[type]) {
+            if (szdp) {
+                if (!semantics)
+                    continue;  // temporary for HDFReport, Binreport which will be skipped in
+                // bbcore_write of HBPNeuron
+                nrn_assert(semantics);
+            }
+
+            for (int i = 0; i < szdp; ++i) {
+                int s = semantics[i];
+                switch(s) {
+                  case -1: // area
+                    pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  case -9: // diam
+                    pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  case -5: // pointer assumes a pointer to membrane voltage
+                    pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  default:
+                    if (s >= 0 && s < 1000) {  // ion
+                        int etype = s;
+                        /* if ion is SoA, must recalculate pdata values */
+                        /* if ion is AoS, have to deal with offset */
+                        Memb_list* eml = nt._ml_list[etype];
+                        int edata0 = eml->data - nt._data;
+                        int ecnt = eml->nodecount;
+                        int esz = corenrn.get_prop_param_size()[etype];
+                        for (int iml = 0; iml < cnt; ++iml) {
+                            int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
+                            int ix = *pd;  // relative to the ion data
+                            nrn_assert((ix >= 0) && (ix < ecnt * esz));
+                            /* Original pd order assumed ecnt groups of esz */
+                            *pd = edata0 + nrn_param_layout(ix, etype, eml);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Phase2::set_dependencies(const NrnThread& nt, const std::vector<Memb_func>& memb_func) {
+    /* here we setup the mechanism dependencies. if there is a mechanism dependency
+     * then we allocate an array for tml->dependencies otherwise set it to nullptr.
+     * In order to find out the "real" dependencies i.e. dependent mechanism
+     * exist at the same compartment, we compare the nodeindices of mechanisms
+     * returned by nrn_mech_depend.
+     */
+
+    /* temporary array for dependencies */
+    int* mech_deps = (int*)ecalloc(memb_func.size(), sizeof(int));
+
+    for (auto tml = nt.tml; tml; tml = tml->next) {
+        /* initialize to null */
+        tml->dependencies = nullptr;
+        tml->ndependencies = 0;
+
+        /* get dependencies from the models */
+        int deps_cnt = nrn_mech_depend(tml->index, mech_deps);
+
+        /* if dependencies, setup dependency array */
+        if (deps_cnt) {
+            /* store "real" dependencies in the vector */
+            std::vector<int> actual_mech_deps;
+
+            Memb_list* ml = tml->ml;
+            int* nodeindices = ml->nodeindices;
+
+            /* iterate over dependencies */
+            for (int j = 0; j < deps_cnt; j++) {
+                /* memb_list of dependency mechanism */
+                Memb_list* dml = nt._ml_list[mech_deps[j]];
+
+                /* dependency mechanism may not exist in the model */
+                if (!dml)
+                    continue;
+
+                /* take nodeindices for comparison */
+                int* dnodeindices = dml->nodeindices;
+
+                /* set_intersection function needs temp vector to push the common values */
+                std::vector<int> node_intersection;
+
+                /* make sure they have non-zero nodes and find their intersection */
+                if ((ml->nodecount > 0) && (dml->nodecount > 0)) {
+                    std::set_intersection(nodeindices, nodeindices + ml->nodecount, dnodeindices,
+                            dnodeindices + dml->nodecount,
+                            std::back_inserter(node_intersection));
+                }
+
+                /* if they intersect in the nodeindices, it's real dependency */
+                if (!node_intersection.empty()) {
+                    actual_mech_deps.push_back(mech_deps[j]);
+                }
+            }
+
+            /* copy actual_mech_deps to dependencies */
+            if (!actual_mech_deps.empty()) {
+                tml->ndependencies = actual_mech_deps.size();
+                tml->dependencies = (int*)ecalloc(actual_mech_deps.size(), sizeof(int));
+                memcpy(tml->dependencies, &actual_mech_deps[0],
+                        sizeof(int) * actual_mech_deps.size());
+            }
+        }
+    }
+
+    /* free temp dependency array */
+    free(mech_deps);
+}
+
+void Phase2::get_info_from_bbcore(NrnThread& nt, const std::vector<Memb_func>& memb_func) {
+    // BBCOREPOINTER information
+#if CHKPNTDEBUG
+    ntc.nbcp = num_point_process;
+    ntc.bcpicnt = new int[num_point_process];
+    ntc.bcpdcnt = new int[num_point_process];
+    ntc.bcptype = new int[num_point_process];
+#endif
+    for (size_t i = 0; i < n_mech; ++i) {
+        int type = types[i];
+        if (!corenrn.get_bbcore_read()[type]) {
+            continue;
+        }
+        type = tmls[i].type; // This is not an error, but it has to be fixed I think
+        if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
+            fprintf(
+                stderr,
+                "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n",
+                memb_func[type].sym);
+            assert(corenrn.get_bbcore_write()[type]);
+        }
+#if CHKPNTDEBUG
+        ntc.bcptype[i] = type;
+        ntc.bcpicnt[i] = icnt;
+        ntc.bcpdcnt[i] = dcnt;
+#endif
+        int ik = 0;
+        int dk = 0;
+        Memb_list* ml = nt._ml_list[type];
+        int dsz = corenrn.get_prop_param_size()[type];
+        int pdsz = corenrn.get_prop_dparam_size()[type];
+        int cntml = ml->nodecount;
+        int layout = corenrn.get_mech_data_layout()[type];
+        for (int j = 0; j < cntml; ++j) {
+            int jp = j;
+            if (ml->_permute) {
+                jp = ml->_permute[j];
+            }
+            double* d = ml->data;
+            Datum* pd = ml->pdata;
+            d += nrn_i_layout(jp, cntml, 0, dsz, layout);
+            pd += nrn_i_layout(jp, cntml, 0, pdsz, layout);
+            int aln_cntml = nrn_soa_padded_size(cntml, layout);
+            (*corenrn.get_bbcore_read()[type])(tmls[i].dArray.data(), tmls[i].iArray.data(), &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
+                                      &nt, 0.0);
+        }
+        assert(dk == tmls[i].dArray.size());
+        assert(ik == tmls[i].iArray.size());
+    }
+}
+
+void Phase2::set_vec_play(NrnThread& nt) {
+    // VecPlayContinuous instances
+    // No attempt at memory efficiency
+    nt.n_vecplay = vec_play_continuous.size();
+    if (nt.n_vecplay) {
+        nt._vecplay = new void*[nt.n_vecplay];
+    } else {
+        nt._vecplay = nullptr;
+    }
+#if CHKPNTDEBUG
+    ntc.vecplay_ix = new int[nt.n_vecplay];
+    ntc.vtype = new int[nt.n_vecplay];
+    ntc.mtype = new int[nt.n_vecplay];
+#endif
+    for (int i = 0; i < nt.n_vecplay; ++i) {
+        auto& vecPlay = vec_play_continuous[i];
+        nrn_assert(vecPlay.vtype == VecPlayContinuousType);
+#if CHKPNTDEBUG
+        ntc.vtype[i] = vecPlay.vtype;
+#endif
+#if CHKPNTDEBUG
+        ntc.mtype[i] = vecPlay.mtype;
+#endif
+        Memb_list* ml = nt._ml_list[vecPlay.mtype];
+#if CHKPNTDEBUG
+        ntc.vecplay_ix[i] = vecPlay.ix;
+#endif
+        IvocVect* yvec = vector_new(vecPlay.yvec.size());
+        IvocVect* tvec = vector_new(vecPlay.tvec.size());
+        double* py = vector_vec(yvec);
+        double* pt = vector_vec(tvec);
+        for (int j = 0; j < vecPlay.yvec.size(); ++j) {
+            py[j] = vecPlay.yvec[j];
+            pt[j] = vecPlay.tvec[j];
+        }
+
+        vecPlay.ix = nrn_param_layout(vecPlay.ix, vecPlay.mtype, ml);
+        if (ml->_permute) {
+            vecPlay.ix = nrn_index_permute(vecPlay.ix, vecPlay.mtype, ml);
+        }
+        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
+    }
+}
+
 void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     nrn_assert(userParams.imult[nt.id] >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
@@ -740,61 +962,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         nrn_partrans::gap_thread_setup(nt);
     }
 
-    // Some pdata may index into data which has been reordered from AoS to
-    // SoA. The four possibilities are if semantics is -1 (area), -5 (pointer),
-    // -9 (diam), // or 0-999 (ion variables).
-    // Note that pdata has a layout and the // type block in nt.data into which
-    // it indexes, has a layout.
-    for (auto tml = nt.tml; tml; tml = tml->next) {
-        int type = tml->index;
-        int layout = corenrn.get_mech_data_layout()[type];
-        int* pdata = tml->ml->pdata;
-        int cnt = tml->ml->nodecount;
-        int szdp = nrn_prop_dparam_size_[type];
-        int* semantics = memb_func[type].dparam_semantics;
-
-        // compute only for ARTIFICIAL_CELL (has useful area pointer with semantics=-1)
-        if (!corenrn.get_is_artificial()[type]) {
-            if (szdp) {
-                if (!semantics)
-                    continue;  // temporary for HDFReport, Binreport which will be skipped in
-                // bbcore_write of HBPNeuron
-                nrn_assert(semantics);
-            }
-
-            for (int i = 0; i < szdp; ++i) {
-                int s = semantics[i];
-                switch(s) {
-                  case -1: // area
-                    pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-                    break;
-                  case -9: // diam
-                    pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-                    break;
-                  case -5: // pointer assumes a pointer to membrane voltage
-                    pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-                    break;
-                  default:
-                    if (s >= 0 && s < 1000) {  // ion
-                        int etype = s;
-                        /* if ion is SoA, must recalculate pdata values */
-                        /* if ion is AoS, have to deal with offset */
-                        Memb_list* eml = nt._ml_list[etype];
-                        int edata0 = eml->data - nt._data;
-                        int ecnt = eml->nodecount;
-                        int esz = nrn_prop_param_size_[etype];
-                        for (int iml = 0; iml < cnt; ++iml) {
-                            int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                            int ix = *pd;  // relative to the ion data
-                            nrn_assert((ix >= 0) && (ix < ecnt * esz));
-                            /* Original pd order assumed ecnt groups of esz */
-                            *pd = edata0 + nrn_param_layout(ix, etype, eml);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    pdata_relocation(nt, memb_func);
 
     /* if desired, apply the node permutation. This involves permuting
        at least the node parameter arrays for a, b, and area (and diam) and all
@@ -851,72 +1019,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         nrn_partrans::gap_indices_permute(nt);
     }
 
-    /* here we setup the mechanism dependencies. if there is a mechanism dependency
-     * then we allocate an array for tml->dependencies otherwise set it to nullptr.
-     * In order to find out the "real" dependencies i.e. dependent mechanism
-     * exist at the same compartment, we compare the nodeindices of mechanisms
-     * returned by nrn_mech_depend.
-     */
-
-    /* temporary array for dependencies */
-    int* mech_deps = (int*)ecalloc(memb_func.size(), sizeof(int));
-
-    for (auto tml = nt.tml; tml; tml = tml->next) {
-        /* initialize to null */
-        tml->dependencies = nullptr;
-        tml->ndependencies = 0;
-
-        /* get dependencies from the models */
-        int deps_cnt = nrn_mech_depend(tml->index, mech_deps);
-
-        /* if dependencies, setup dependency array */
-        if (deps_cnt) {
-            /* store "real" dependencies in the vector */
-            std::vector<int> actual_mech_deps;
-
-            Memb_list* ml = tml->ml;
-            int* nodeindices = ml->nodeindices;
-
-            /* iterate over dependencies */
-            for (int j = 0; j < deps_cnt; j++) {
-                /* memb_list of dependency mechanism */
-                Memb_list* dml = nt._ml_list[mech_deps[j]];
-
-                /* dependency mechanism may not exist in the model */
-                if (!dml)
-                    continue;
-
-                /* take nodeindices for comparison */
-                int* dnodeindices = dml->nodeindices;
-
-                /* set_intersection function needs temp vector to push the common values */
-                std::vector<int> node_intersection;
-
-                /* make sure they have non-zero nodes and find their intersection */
-                if ((ml->nodecount > 0) && (dml->nodecount > 0)) {
-                    std::set_intersection(nodeindices, nodeindices + ml->nodecount, dnodeindices,
-                                          dnodeindices + dml->nodecount,
-                                          std::back_inserter(node_intersection));
-                }
-
-                /* if they intersect in the nodeindices, it's real dependency */
-                if (!node_intersection.empty()) {
-                    actual_mech_deps.push_back(mech_deps[j]);
-                }
-            }
-
-            /* copy actual_mech_deps to dependencies */
-            if (!actual_mech_deps.empty()) {
-                tml->ndependencies = actual_mech_deps.size();
-                tml->dependencies = (int*)ecalloc(actual_mech_deps.size(), sizeof(int));
-                memcpy(tml->dependencies, &actual_mech_deps[0],
-                       sizeof(int) * actual_mech_deps.size());
-            }
-        }
-    }
-
-    /* free temp dependency array */
-    free(mech_deps);
+    set_dependencies(nt, memb_func);
 
     fill_ba_lists(nt, memb_func);
 
@@ -1106,96 +1209,10 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         }
     }
 
-    // BBCOREPOINTER information
-#if CHKPNTDEBUG
-    ntc.nbcp = num_point_process;
-    ntc.bcpicnt = new int[num_point_process];
-    ntc.bcpdcnt = new int[num_point_process];
-    ntc.bcptype = new int[num_point_process];
-#endif
-    for (size_t i = 0; i < n_mech; ++i) {
-        int type = types[i];
-        if (!corenrn.get_bbcore_read()[type]) {
-            continue;
-        }
-        type = tmls[i].type; // This is not an error, but it has to be fixed I think
-        if (!corenrn.get_bbcore_write()[type] && nrn_checkpoint_arg_exists) {
-            fprintf(
-                stderr,
-                "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write function for %s\n",
-                memb_func[type].sym);
-            assert(corenrn.get_bbcore_write()[type]);
-        }
-#if CHKPNTDEBUG
-        ntc.bcptype[i] = type;
-        ntc.bcpicnt[i] = icnt;
-        ntc.bcpdcnt[i] = dcnt;
-#endif
-        int ik = 0;
-        int dk = 0;
-        Memb_list* ml = nt._ml_list[type];
-        int dsz = nrn_prop_param_size_[type];
-        int pdsz = nrn_prop_dparam_size_[type];
-        int cntml = ml->nodecount;
-        int layout = corenrn.get_mech_data_layout()[type];
-        for (int j = 0; j < cntml; ++j) {
-            int jp = j;
-            if (ml->_permute) {
-                jp = ml->_permute[j];
-            }
-            double* d = ml->data;
-            Datum* pd = ml->pdata;
-            d += nrn_i_layout(jp, cntml, 0, dsz, layout);
-            pd += nrn_i_layout(jp, cntml, 0, pdsz, layout);
-            int aln_cntml = nrn_soa_padded_size(cntml, layout);
-            (*corenrn.get_bbcore_read()[type])(tmls[i].dArray.data(), tmls[i].iArray.data(), &dk, &ik, 0, aln_cntml, d, pd, ml->_thread,
-                                      &nt, 0.0);
-        }
-        assert(dk == tmls[i].dArray.size());
-        assert(ik == tmls[i].iArray.size());
-    }
+    get_info_from_bbcore(nt, memb_func);
 
-    // VecPlayContinuous instances
-    // No attempt at memory efficiency
-    nt.n_vecplay = vec_play_continuous.size();
-    if (nt.n_vecplay) {
-        nt._vecplay = new void*[nt.n_vecplay];
-    } else {
-        nt._vecplay = nullptr;
-    }
-#if CHKPNTDEBUG
-    ntc.vecplay_ix = new int[nt.n_vecplay];
-    ntc.vtype = new int[nt.n_vecplay];
-    ntc.mtype = new int[nt.n_vecplay];
-#endif
-    for (int i = 0; i < nt.n_vecplay; ++i) {
-        auto& vecPlay = vec_play_continuous[i];
-        nrn_assert(vecPlay.vtype == VecPlayContinuousType);
-#if CHKPNTDEBUG
-        ntc.vtype[i] = vecPlay.vtype;
-#endif
-#if CHKPNTDEBUG
-        ntc.mtype[i] = vecPlay.mtype;
-#endif
-        Memb_list* ml = nt._ml_list[vecPlay.mtype];
-#if CHKPNTDEBUG
-        ntc.vecplay_ix[i] = vecPlay.ix;
-#endif
-        IvocVect* yvec = vector_new(vecPlay.yvec.size());
-        IvocVect* tvec = vector_new(vecPlay.tvec.size());
-        double* py = vector_vec(yvec);
-        double* pt = vector_vec(tvec);
-        for (int j = 0; j < vecPlay.yvec.size(); ++j) {
-            py[j] = vecPlay.yvec[j];
-            pt[j] = vecPlay.tvec[j];
-        }
+    set_vec_play(nt);
 
-        vecPlay.ix = nrn_param_layout(vecPlay.ix, vecPlay.mtype, ml);
-        if (ml->_permute) {
-            vecPlay.ix = nrn_index_permute(vecPlay.ix, vecPlay.mtype, ml);
-        }
-        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
-    }
     if (!events.empty()) {
         checkpoint_restore_tqueue(nt, *this);
     }
