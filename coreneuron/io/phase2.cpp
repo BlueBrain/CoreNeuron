@@ -189,10 +189,10 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     }
 
     assert(F.read_int() == -1);
-    save_events(F);
+    restore_events(F);
 
     assert(F.read_int() == -1);
-    save_events(F);
+    restore_events(F);
 }
 
 void Phase2::read_direct(int thread_id, const NrnThread& nt) {
@@ -431,7 +431,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
     }
 }
 
-void Phase2::save_events(FileHandler& F) {
+void Phase2::restore_events(FileHandler& F) {
     int type;
     while ((type = F.read_int()) != 0) {
         double te;
