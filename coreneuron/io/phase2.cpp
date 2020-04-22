@@ -67,7 +67,7 @@ int (*nrn2core_get_dat2_vecplay_inst_)(int tid,
 
 namespace coreneuron {
 template <typename T>
-inline void mech_layout(T* data, int cnt, int sz, int layout) {
+inline void mech_data_layout_transform(T* data, int cnt, int sz, int layout) {
     if (layout == 1) { /* AoS */
         return;
     }
@@ -171,7 +171,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     if (F.eof())
         return;
 
-    assert(F.read_int() == n_vecPlayContinous);
+    nrn_assert(F.read_int() == n_vecPlayContinous);
 
     for (int i = 0; i < n_vecPlayContinous; ++i) {
         auto &vecPlay = vecPlayContinuous[i];
@@ -692,12 +692,12 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         }
 
         std::copy(tmls[itml].data.begin(), tmls[itml].data.end(), ml->data);
-        mech_layout<double>(ml->data, n, szp, layout);
+        mech_data_layout_transform<double>(ml->data, n, szp, layout);
 
         if (szdp) {
             ml->pdata = (int*)ecalloc_align(nrn_soa_padded_size(n, layout) * szdp, sizeof(int));
             std::copy(tmls[itml].pdata.begin(), tmls[itml].pdata.end(), ml->pdata);
-            mech_layout<int>(ml->pdata, n, szdp, layout);
+            mech_data_layout_transform<int>(ml->pdata, n, szdp, layout);
 
 #if CHKPNTDEBUG  // Not substantive. Only for debugging.
             Memb_list_ckpnt* mlc = ntc.mlmap[type];
