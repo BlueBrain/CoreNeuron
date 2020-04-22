@@ -443,14 +443,18 @@ void nrn_setup(const char* filesdat,
                const char* datpath,
                const char* restore_path,
                double* mindelay) {
-    UserParams userParams;
-
-    userParams.path = datpath;
-    userParams.restore_path = strlen(restore_path) == 0 ? datpath : restore_path;
-
     double time = nrn_wtime();
 
-    nrn_read_filesdat(userParams.ngroup, userParams.gidgroups, nrn_setup_multiple, userParams.imult, filesdat);
+    int ngroup;
+    int* gidgroups;
+    int* imult;
+    nrn_read_filesdat(ngroup, gidgroups, nrn_setup_multiple, imult, filesdat);
+    UserParams userParams(ngroup,
+                          gidgroups,
+                          imult,
+                          datpath,
+                          strlen(restore_path) == 0 ? datpath : restore_path);
+   
 
     if (!MUTCONSTRUCTED) {
         MUTCONSTRUCT(1)
@@ -492,8 +496,6 @@ void nrn_setup(const char* filesdat,
     netcon_srcgid.resize(nrn_nthread);
     for (int i = 0; i < nrn_nthread; ++i)
         netcon_srcgid[i] = nullptr;
-
-    userParams.file_reader = new FileHandler[userParams.ngroup];
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -560,8 +562,6 @@ void nrn_setup(const char* filesdat,
     /// which is only executed by StochKV.c.
     nrn_mk_table_check();  // was done in nrn_thread_memblist_setup in multicore.c
 
-    delete[] userParams.file_reader;
-
     model_size();
     delete[] userParams.gidgroups;
     delete[] userParams.imult;
@@ -587,12 +587,13 @@ void setup_ThreadData(NrnThread& nt) {
     }
 }
 
-void read_phasegap(FileHandler& F, int imult, NrnThread& nt) {
-    nrn_assert(imult == 0);
+void read_phasegap(NrnThread& nt, UserParams& userParams) {
+    nrn_assert(userParams.imult[nt.id] == 0);
     nrn_partrans::SetupInfo& si = nrn_partrans::setup_info_[nt.id];
     si.ntar = 0;
     si.nsrc = 0;
 
+    auto& F = userParams.file_reader[nt.id];
     if (F.fail()) {
         return;
     }
@@ -891,29 +892,28 @@ void delete_trajectory_requests(NrnThread& nt) {
     }
 }
 
-void read_phase1(FileHandler& F, int imult, NrnThread& nt) {
+void read_phase1(NrnThread& nt, UserParams& userParams) {
     Phase1 p1;
-    p1.read_file(F);
+    p1.read_file(userParams.file_reader[nt.id]);
     MUTLOCK // Protect gid2in, gid2out and neg_gid2out
-    p1.populate(nt, imult);
+    p1.populate(nt, userParams.imult[nt.id]);
     MUTUNLOCK
 }
 
-void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams) {
+void read_phase2(NrnThread& nt, UserParams& userParams) {
     Phase2 p2;
     if (corenrn_embedded) {
         p2.read_direct(nt.id, nt);
     } else {
-        p2.read_file(F, nt);
+        p2.read_file(userParams.file_reader[nt.id], nt);
     }
-    p2.populate(nt, imult, userParams);
+    p2.populate(nt, userParams);
 }
 
 /** read mapping information for neurons */
-void read_phase3(FileHandler& F, int imult, NrnThread& nt) {
-    (void)imult;
-
+void read_phase3(NrnThread& nt, UserParams& userParams) {
     /** restore checkpoint state (before restoring queue items */
+    auto& F = userParams.file_reader[nt.id];
     F.restore_checkpoint();
 
     /** mapping information for all neurons in single NrnThread */

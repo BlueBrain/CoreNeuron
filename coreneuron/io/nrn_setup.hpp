@@ -37,10 +37,10 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/io/mem_layout_util.hpp"
 
 namespace coreneuron {
-static void read_phase1(FileHandler& F, int imult, NrnThread& nt);
-static void read_phase2(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams);
-static void read_phase3(FileHandler& F, int imult, NrnThread& nt);
-static void read_phasegap(FileHandler& F, int imult, NrnThread& nt);
+static void read_phase1(NrnThread& nt, UserParams& userParams);
+static void read_phase2(NrnThread& nt, UserParams& userParams);
+static void read_phase3(NrnThread& nt, UserParams& userParams);
+static void read_phasegap(NrnThread& nt, UserParams& userParams);
 static void setup_ThreadData(NrnThread& nt);
 
 // Functions to load and clean data;
@@ -83,34 +83,34 @@ inline std::string getPhaseName<gap>() {
 
 /// Reading phase selector.
 template <phase P>
-inline void read_phase_aux(FileHandler& F, int imult, NrnThread& nt, const UserParams&);
+inline void read_phase_aux(NrnThread& nt, UserParams&);
 
 template <>
-inline void read_phase_aux<one>(FileHandler& F, int imult, NrnThread& nt, const UserParams&) {
-    read_phase1(F, imult, nt);
+inline void read_phase_aux<one>(NrnThread& nt, UserParams& userParams) {
+    read_phase1(nt, userParams);
 }
 
 template <>
-inline void read_phase_aux<two>(FileHandler& F, int imult, NrnThread& nt, const UserParams& userParams) {
-    read_phase2(F, imult, nt, userParams);
+inline void read_phase_aux<two>(NrnThread& nt, UserParams& userParams) {
+    read_phase2(nt, userParams);
 }
 
 template <>
-inline void read_phase_aux<three>(FileHandler& F, int imult, NrnThread& nt, const UserParams&) {
-    read_phase3(F, imult, nt);
+inline void read_phase_aux<three>(NrnThread& nt, UserParams& userParams) {
+    read_phase3(nt, userParams);
 }
 
 template <>
-inline void read_phase_aux<gap>(FileHandler& F, int imult, NrnThread& nt, const UserParams&) {
-    read_phasegap(F, imult, nt);
+inline void read_phase_aux<gap>(NrnThread& nt, UserParams& userParams) {
+    read_phasegap(nt, userParams);
 }
 
 /// Reading phase wrapper for each neuron group.
 template <phase P>
-inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
+inline void* phase_wrapper_w(NrnThread* nt, UserParams& userParams, bool in_memory_transfer) {
     int i = nt->id;
     if (i < userParams.ngroup) {
-        if (!userParams.in_memory_transfer) {
+        if (!in_memory_transfer) {
             const char* data_dir = userParams.path;
             // directory to read could be different for phase 2 if we are restoring
             // all other phases still read from dataset directory because the data
@@ -130,8 +130,8 @@ inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
                 userParams.file_reader[i].open(fname.c_str());
             }
         }
-        read_phase_aux<P>(userParams.file_reader[i], userParams.imult[i], *nt, userParams);
-        if (!userParams.in_memory_transfer) {
+        read_phase_aux<P>(*nt, userParams);
+        if (!in_memory_transfer) {
             userParams.file_reader[i].close();
         }
         if (P == 2) {
@@ -144,13 +144,7 @@ inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
 /// Specific phase reading executed by threads.
 template <phase P>
 inline static void phase_wrapper(UserParams& userParams, int direct = 0) {
-    if (direct) {
-        userParams.in_memory_transfer = true;
-    }
-    nrn_multithread_job(phase_wrapper_w<P>, userParams);
-    if (direct) {
-        userParams.in_memory_transfer = false;
-    }
+    nrn_multithread_job(phase_wrapper_w<P>, userParams, direct != 0);
 }
 }  // namespace coreneuron
 }  // namespace coreneuron

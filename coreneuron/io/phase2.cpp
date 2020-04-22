@@ -520,10 +520,10 @@ void Phase2::fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_fun
     }
 }
 
-void Phase2::populate(NrnThread& nt, int imult, const UserParams& userParams) {
+void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     assert(this->setted);
 
-    nrn_assert(imult >= 0);  // avoid imult unused warning
+    nrn_assert(userParams.imult[nt.id] >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = userParams.gidgroups[nt.id];
 

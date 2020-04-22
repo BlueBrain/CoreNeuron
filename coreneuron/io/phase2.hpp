@@ -15,7 +15,7 @@ class Phase2 {
     public:
     void read_file(FileHandler& F, const NrnThread& nt);
     void read_direct(int thread_id, const NrnThread& nt);
-    void populate(NrnThread& nt, int imult, const UserParams& userParams);
+    void populate(NrnThread& nt, const UserParams& userParams);
 
     std::vector<int> preSynConditionEventFlags;
 
