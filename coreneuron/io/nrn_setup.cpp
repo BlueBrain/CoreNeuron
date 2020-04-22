@@ -516,8 +516,7 @@ void nrn_setup(const char* filesdat,
     }
 
     if (!corenrn_embedded) {
-        coreneuron::phase_wrapper<(coreneuron::phase)1>(userParams);  /// If not the xlc compiler, it should
-                                                            /// be coreneuron::phase::one
+        coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
         nrn_multithread_job([](NrnThread* n) {
             Phase1 p1; 
@@ -537,10 +536,10 @@ void nrn_setup(const char* filesdat,
     // read the rest of the gidgroup's data and complete the setup for each
     // thread.
     /* nrn_multithread_job supports serial, pthread, and openmp. */
-    coreneuron::phase_wrapper<(coreneuron::phase)2>(userParams, corenrn_embedded);
+    coreneuron::phase_wrapper<coreneuron::phase::two>(userParams, corenrn_embedded);
 
     if (is_mapping_needed)
-        coreneuron::phase_wrapper<(coreneuron::phase)3>(userParams);
+        coreneuron::phase_wrapper<coreneuron::phase::three>(userParams);
 
     *mindelay = set_mindelay(*mindelay);
 
