@@ -477,12 +477,12 @@ void Phase2::restore_events(FileHandler& F) {
                     event->vecplay_index = F.read_int();
                     events.emplace_back(type, event);
                 } else {
-                    assert(0);
+                    nrn_assert(0);
                 }
                 break;
             }
             default: {
-                assert(0);
+                nrn_assert(0);
                 break;
             }
         }
@@ -753,40 +753,44 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         int szdp = nrn_prop_dparam_size_[type];
         int* semantics = memb_func[type].dparam_semantics;
 
-        // ignore ARTIFICIAL_CELL (has useless area pointer with semantics=-1)
-        if (corenrn.get_is_artificial()[type]) {
-            continue;
-        }
+        // compute only for ARTIFICIAL_CELL (has useful area pointer with semantics=-1)
+        if (!corenrn.get_is_artificial()[type]) {
+            if (szdp) {
+                if (!semantics)
+                    continue;  // temporary for HDFReport, Binreport which will be skipped in
+                // bbcore_write of HBPNeuron
+                nrn_assert(semantics);
+            }
 
-        if (szdp) {
-            if (!semantics)
-                continue;  // temporary for HDFReport, Binreport which will be skipped in
-                           // bbcore_write of HBPNeuron
-            nrn_assert(semantics);
-        }
-
-        for (int i = 0; i < szdp; ++i) {
-            int s = semantics[i];
-            if (s == -1) {  // area
-                pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-            } else if (s == -9) {  // diam
-                pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-            } else if (s == -5) {  // pointer assumes a pointer to membrane voltage
-                pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
-            } else if (s >= 0 && s < 1000) {  // ion
-                int etype = s;
-                /* if ion is SoA, must recalculate pdata values */
-                /* if ion is AoS, have to deal with offset */
-                Memb_list* eml = nt._ml_list[etype];
-                int edata0 = eml->data - nt._data;
-                int ecnt = eml->nodecount;
-                int esz = nrn_prop_param_size_[etype];
-                for (int iml = 0; iml < cnt; ++iml) {
-                    int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
-                    int ix = *pd;  // relative to the ion data
-                    nrn_assert((ix >= 0) && (ix < ecnt * esz));
-                    /* Original pd order assumed ecnt groups of esz */
-                    *pd = edata0 + nrn_param_layout(ix, etype, eml);
+            for (int i = 0; i < szdp; ++i) {
+                int s = semantics[i];
+                switch(s) {
+                  case -1: // area
+                    pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  case -9: // diam
+                    pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  case -5: // pointer assumes a pointer to membrane voltage
+                    pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    break;
+                  default:
+                    if (s >= 0 && s < 1000) {  // ion
+                        int etype = s;
+                        /* if ion is SoA, must recalculate pdata values */
+                        /* if ion is AoS, have to deal with offset */
+                        Memb_list* eml = nt._ml_list[etype];
+                        int edata0 = eml->data - nt._data;
+                        int ecnt = eml->nodecount;
+                        int esz = nrn_prop_param_size_[etype];
+                        for (int iml = 0; iml < cnt; ++iml) {
+                            int* pd = pdata + nrn_i_layout(iml, cnt, i, szdp, layout);
+                            int ix = *pd;  // relative to the ion data
+                            nrn_assert((ix >= 0) && (ix < ecnt * esz));
+                            /* Original pd order assumed ecnt groups of esz */
+                            *pd = edata0 + nrn_param_layout(ix, etype, eml);
+                        }
+                    }
                 }
             }
         }
