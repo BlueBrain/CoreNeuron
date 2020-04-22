@@ -127,7 +127,7 @@ inline void* phase_wrapper_w(NrnThread* nt, const UserParams& userParams) {
                 userParams.file_reader[i].close();
             } else {
                 // if no file failed to open or not opened at all
-                userParams.file_reader[i].open(fname.c_str(), userParams.byte_swap);
+                userParams.file_reader[i].open(fname.c_str());
             }
         }
         read_phase_aux<P>(userParams.file_reader[i], userParams.imult[i], *nt, userParams);

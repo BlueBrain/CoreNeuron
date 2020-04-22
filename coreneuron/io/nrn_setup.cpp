@@ -438,7 +438,7 @@ void nrn_setup_cleanup() {
 
 void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
-               bool byte_swap,
+               bool /* byte_swap */,
                bool run_setup_cleanup,
                const char* datpath,
                const char* restore_path,
@@ -447,7 +447,6 @@ void nrn_setup(const char* filesdat,
 
     userParams.path = datpath;
     userParams.restore_path = strlen(restore_path) == 0 ? datpath : restore_path;
-    userParams.byte_swap = byte_swap;
 
     double time = nrn_wtime();
 

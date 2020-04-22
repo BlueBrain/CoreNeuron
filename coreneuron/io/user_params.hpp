@@ -16,7 +16,5 @@ struct UserParams {
     ///dataset  path from where simulation is being restored
     const char* restore_path;
     FileHandler* file_reader;
-    /// true if byte swapping should be done (little endian <-> big endian) 
-    bool byte_swap;
 };
 }  // namespace coreneuron

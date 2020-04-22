@@ -61,8 +61,8 @@ class FileHandlerWrap {
     std::fstream G;
     FileHandlerWrap(){};
 
-    void open(const char* filename, bool reorder, std::ios::openmode mode = std::ios::in) {
-        F.open(filename, reorder, mode);
+    void open(const char* filename, std::ios::openmode mode = std::ios::in) {
+        F.open(filename, mode);
         std::ostringstream fname;
         fname << filename << ".txt";
         G.open(fname.str().c_str(), mode);
@@ -144,13 +144,12 @@ int patstimtype;
 
 // output directory to for checkpoint
 static const char* output_dir;
-static bool swap_bytes;
 
 static void write_phase2(NrnThread& nt, FileHandlerWrap& file_handle);
 static void write_tqueue(NrnThread& nt, FileHandlerWrap& file_handle);
 static void write_time(const char* dir);
 
-void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_bytes_order) {
+void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir) {
     // empty directory means the option is not enabled
     if (!strlen(dir)) {
         return;
@@ -163,7 +162,6 @@ void write_checkpoint(NrnThread* nt, int nb_threads, const char* dir, bool swap_
 #if NRNMPI
     nrnmpi_barrier();
 #endif
-    swap_bytes = swap_bytes_order;
 
     /**
      * if openmp threading needed:
@@ -190,7 +188,7 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     filename << output_dir << "/" << ntc.file_id << "_2.dat";
 
-    fh.open(filename.str().c_str(), swap_bytes, std::ios::out);
+    fh.open(filename.str().c_str(), std::ios::out);
     fh.checkpoint(2);
 
     int n_outputgid = 0;  // calculate PreSyn with gid >= 0
@@ -606,7 +604,7 @@ static void write_time(const char* output_dir) {
     std::ostringstream filename;
     FileHandler f;
     filename << output_dir << "/time.dat";
-    f.open(filename.str().c_str(), swap_bytes, std::ios::out);
+    f.open(filename.str().c_str(), std::ios::out);
     f.write_array(&t, 1);
     f.close();
 }
@@ -618,7 +616,7 @@ double restore_time(const char* restore_dir) {
         std::ostringstream filename;
         FileHandler f;
         filename << restore_dir << "/time.dat";
-        f.open(filename.str().c_str(), swap_bytes, std::ios::in);
+        f.open(filename.str().c_str(), std::ios::in);
         f.read_array(&rtime, 1);
         f.close();
     }

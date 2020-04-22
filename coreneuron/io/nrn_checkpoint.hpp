@@ -39,8 +39,7 @@ extern bool nrn_checkpoint_arg_exists;
 
 void write_checkpoint(NrnThread* nt,
                       int nb_threads,
-                      const char* dir,
-                      bool swap_bytes_order = false);
+                      const char* dir);
 
 void checkpoint_restore_tqueue(NrnThread&, const Phase2& p2);
 

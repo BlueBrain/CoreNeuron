@@ -31,8 +31,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 
 namespace coreneuron {
-FileHandler::FileHandler(const char* filename, bool reorder) {
-    this->open(filename, reorder);
+FileHandler::FileHandler(const char* filename) {
+    this->open(filename);
     checkpoint(0);
     stored_chkpnt = 0;
 }
@@ -42,9 +42,8 @@ bool FileHandler::file_exist(const char* filename) const {
     return (stat(filename, &buffer) == 0);
 }
 
-void FileHandler::open(const char* filename, bool reorder, std::ios::openmode mode) {
+void FileHandler::open(const char* filename, std::ios::openmode mode) {
     nrn_assert((mode & (std::ios::in | std::ios::out)));
-    reorder_bytes = reorder;
     close();
     F.open(filename, mode | std::ios::binary);
     if (!F.is_open())
