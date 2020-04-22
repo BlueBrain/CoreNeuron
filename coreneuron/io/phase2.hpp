@@ -21,26 +21,26 @@ class Phase2 {
 
     // All of this is public for nrn_checkpoint
     struct EventTypeBase {
-        double te;
+        double time;
     };
     struct NetConType_: public EventTypeBase {
-        int ncindex;
+        int netcon_index;
     };
     struct SelfEventType_: public EventTypeBase {
         int target_type;
-        int pinstance;
+        int point_proc_instance;
         int target_instance;
         double flag;
         int movable;
         int weight_index;
     };
     struct PreSynType_: public EventTypeBase {
-        int psindex;
+        int presyn_index;
     };
     struct NetParEvent_: public EventTypeBase {
     };
     struct PlayRecordEventType_: public EventTypeBase {
-        int prtype;
+        int play_record_type;
         int vecplay_index;
     };
 
@@ -63,7 +63,7 @@ class Phase2 {
     private:
     void check_mechanism();
     NrnThreadMembList* create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt);
-    void pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
+    void transform_int_data(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
     void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
     void restore_events(FileHandler& F);
     void fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func);
@@ -77,7 +77,7 @@ class Phase2 {
     int n_node;
     int n_diam;  // 0 if not needed, else n_node
     int n_mech;
-    std::vector<int> types;
+    std::vector<int> mech_types;
     std::vector<int> nodecounts;
     int n_idata;
     int n_vdata;

@@ -698,39 +698,39 @@ static int patstim_index;
 static double patstim_te;
 
 static void checkpoint_restore_tqitem(int type, std::shared_ptr<Phase2::EventTypeBase> event, NrnThread& nt) {
-    // printf("restore tqitem type=%d te=%.20g\n", type, te);
+    // printf("restore tqitem type=%d time=%.20g\n", type, time);
 
     switch (type) {
         case NetConType: {
             auto e = static_cast<Phase2::NetConType_*>(event.get());
-            // printf("  NetCon %d\n", ncindex);
-            NetCon* nc = nt.netcons + e->ncindex;
-            nc->send(e->te, net_cvode_instance, &nt);
+            // printf("  NetCon %d\n", netcon_index);
+            NetCon* nc = nt.netcons + e->netcon_index;
+            nc->send(e->time, net_cvode_instance, &nt);
             break;
         }
         case SelfEventType: {
             auto e = static_cast<Phase2::SelfEventType_*>(event.get());
             if (e->target_type == patstimtype) {
                 if (nt.id == 0) {
-                    patstim_te = e->te;
+                    patstim_te = e->time;
                 }
                 break;
             }
-            Point_process* pnt = nt.pntprocs + e->pinstance;
-            // printf("  SelfEvent %d %d %d %g %d %d\n", target_type, pinstance, target_instance,
+            Point_process* pnt = nt.pntprocs + e->point_proc_instance;
+            // printf("  SelfEvent %d %d %d %g %d %d\n", target_type, point_proc_instance, target_instance,
             // flag, movable, weight_index);
             nrn_assert(e->target_instance == pnt->_i_instance);
             nrn_assert(e->target_type == pnt->_type);
-            net_send(nt._vdata + e->movable, e->weight_index, pnt, e->te, e->flag);
+            net_send(nt._vdata + e->movable, e->weight_index, pnt, e->time, e->flag);
             break;
         }
         case PreSynType: {
             auto e = static_cast<Phase2::PreSynType_*>(event.get());
-            // printf("  PreSyn %d\n", psindex);
-            PreSyn* ps = nt.presyns + e->psindex;
+            // printf("  PreSyn %d\n", presyn_index);
+            PreSyn* ps = nt.presyns + e->presyn_index;
             int gid = ps->output_index_;
             ps->output_index_ = -1;
-            ps->send(e->te, net_cvode_instance, &nt);
+            ps->send(e->time, net_cvode_instance, &nt);
             ps->output_index_ = gid;
             break;
         }
@@ -742,7 +742,7 @@ static void checkpoint_restore_tqitem(int type, std::shared_ptr<Phase2::EventTyp
         case PlayRecordEventType: {
             auto e = static_cast<Phase2::PlayRecordEventType_*>(event.get());
             VecPlayContinuous* vpc = (VecPlayContinuous*)(nt._vecplay[e->vecplay_index]);
-            vpc->e_->send(e->te, net_cvode_instance, &nt);
+            vpc->e_->send(e->time, net_cvode_instance, &nt);
             break;
         }
         default: {
@@ -818,7 +818,7 @@ static bool checkpoint_restored_ = false;
 // null terminated:
 //   int: type
 //   array of size 1:
-//     double: te
+//     double: time
 //   ... depends of the type
 // int: should be -1
 // null terminated:

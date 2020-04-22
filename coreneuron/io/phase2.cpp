@@ -96,10 +96,10 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_node = F.read_int();
     n_diam = F.read_int();
     n_mech = F.read_int();
-    types = std::vector<int>(n_mech, 0);
+    mech_types = std::vector<int>(n_mech, 0);
     nodecounts = std::vector<int>(n_mech, 0);
     for (int i = 0; i < n_mech; ++i) {
-        types[i] = F.read_int();
+        mech_types[i] = F.read_int();
         nodecounts[i] = F.read_int();
     }
     n_idata = F.read_int();
@@ -116,7 +116,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
     for (size_t i = 0; i < n_mech; ++i) {
-        int type = types[i];
+        int type = mech_types[i];
         std::vector<int> nodeindices;
         if (!corenrn.get_is_artificial()[type]) {
             nodeindices = F.read_vector<int>(nodecounts[i]);
@@ -137,7 +137,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     num_point_process = F.read_int();
 
     for (size_t i = 0; i < n_mech; ++i) {
-        if (!corenrn.get_bbcore_read()[types[i]]) {
+        if (!corenrn.get_bbcore_read()[mech_types[i]]) {
             continue;
         }
         tmls[i].type = F.read_int();
@@ -201,7 +201,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     int n_weight;
     (*nrn2core_get_dat2_1_)(thread_id, n_output, n_real_output, n_node, n_diam, n_mech, types_,
             nodecounts_, n_idata, n_vdata, n_weight);
-    types = std::vector<int>(types_, types_ + n_mech);
+    mech_types = std::vector<int>(types_, types_ + n_mech);
     delete[] types_;
 
     nodecounts = std::vector<int>(nodecounts_, nodecounts_ + n_mech);
@@ -231,7 +231,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     int dsz_inst = 0;
     for (size_t i = 0; i < n_mech; ++i) {
         auto& tml = tmls[i];
-        int type = types[i];
+        int type = mech_types[i];
 
         tml.nodeindices.resize(nodecounts[i]);
         tml.data.resize(nodecounts[i] * param_sizes[type]);
@@ -278,7 +278,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     (*nrn2core_get_dat2_corepointer_)(nt.id, num_point_process);
 
     for (size_t i = 0; i < n_mech; ++i) {
-        if (!corenrn.get_bbcore_read()[types[i]]) {
+        if (!corenrn.get_bbcore_read()[mech_types[i]]) {
             continue; // I don't get this test
         }
         int icnt;
@@ -316,10 +316,10 @@ void Phase2::check_mechanism() {
     for (int i = 0; i < n_mech; ++i) {
         if (std::any_of(corenrn.get_different_mechanism_type().begin(),
                     corenrn.get_different_mechanism_type().end(),
-                    [&](int e) { return e == types[i]; })) {
+                    [&](int e) { return e == mech_types[i]; })) {
             if (nrnmpi_myid == 0) {
                 printf("Error: %s is a different MOD file than used by NEURON!\n",
-                        nrn_get_mechname(types[i]));
+                        nrn_get_mechname(mech_types[i]));
             }
             diff_mech_count++;
         }
@@ -336,7 +336,7 @@ void Phase2::check_mechanism() {
 
 }
 
-void Phase2::pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_) {
+void Phase2::transform_int_data(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_) {
     for (int iml = 0; iml < nodecount; ++iml) {
         int* pd = pdata + nrn_i_layout(iml, nodecount, i, dparam_size, layout);
         int ix = *pd;  // relative to beginning of _actual_*
@@ -348,7 +348,7 @@ void Phase2::pdata_relocation(int elem0, int nodecount, int* pdata, int i, int d
 NrnThreadMembList* Phase2::create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt) {
     auto tml = (NrnThreadMembList*)emalloc_align(sizeof(NrnThreadMembList));
     tml->next = nullptr;
-    tml->index = types[mech_id];
+    tml->index = mech_types[mech_id];
 
     tml->ml = (Memb_list*)ecalloc_align(1, sizeof(Memb_list));
     tml->ml->_net_receive_buffer = nullptr;
@@ -434,21 +434,21 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
 void Phase2::restore_events(FileHandler& F) {
     int type;
     while ((type = F.read_int()) != 0) {
-        double te;
-        F.read_array(&te, 1);
+        double time;
+        F.read_array(&time, 1);
         switch (type) {
             case NetConType: {
                 auto event = std::make_shared<NetConType_>();
-                event->te = te;
-                event->ncindex = F.read_int();
+                event->time = time;
+                event->netcon_index = F.read_int();
                 events.emplace_back(type, event);
                 break;
             }
             case SelfEventType: {
                 auto event = std::make_shared<SelfEventType_>();
-                event->te = te;
+                event->time = time;
                 event->target_type = F.read_int();
-                event->pinstance = F.read_int();
+                event->point_proc_instance = F.read_int();
                 event->target_instance = F.read_int();
                 F.read_array(&event->flag, 1);
                 event->movable = F.read_int();
@@ -458,22 +458,22 @@ void Phase2::restore_events(FileHandler& F) {
             }
             case PreSynType: {
                 auto event = std::make_shared<PreSynType_>();
-                event->te = te;
-                event->psindex = F.read_int();
+                event->time = time;
+                event->presyn_index = F.read_int();
                 events.emplace_back(type, event);
                 break;
             }
             case NetParEventType: {
                 auto event = std::make_shared<NetParEvent_>();
-                event->te = te;
+                event->time = time;
                 events.emplace_back(type, event);
                 break;
             }
             case PlayRecordEventType: {
                 auto event = std::make_shared<PlayRecordEventType_>();
-                event->te = te;
-                event->prtype = F.read_int();
-                if (event->prtype == VecPlayContinuousType) {
+                event->time = time;
+                event->play_record_type = F.read_int();
+                if (event->play_record_type == VecPlayContinuousType) {
                     event->vecplay_index = F.read_int();
                     events.emplace_back(type, event);
                 } else {
@@ -541,13 +541,13 @@ void Phase2::pdata_relocation(const NrnThread& nt, const std::vector<Memb_func>&
                 int s = semantics[i];
                 switch(s) {
                   case -1: // area
-                    pdata_relocation(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    transform_int_data(nt._actual_area - nt._data, cnt, pdata, i, szdp, layout, nt.end);
                     break;
                   case -9: // diam
-                    pdata_relocation(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    transform_int_data(nt._actual_diam - nt._data, cnt, pdata, i, szdp, layout, nt.end);
                     break;
                   case -5: // pointer assumes a pointer to membrane voltage
-                    pdata_relocation(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
+                    transform_int_data(nt._actual_v - nt._data, cnt, pdata, i, szdp, layout, nt.end);
                     break;
                   default:
                     if (s >= 0 && s < 1000) {  // ion
@@ -650,7 +650,7 @@ void Phase2::get_info_from_bbcore(NrnThread& nt, const std::vector<Memb_func>& m
     ntc.bcptype = new int[num_point_process];
 #endif
     for (size_t i = 0; i < n_mech; ++i) {
-        int type = types[i];
+        int type = mech_types[i];
         if (!corenrn.get_bbcore_read()[type]) {
             continue;
         }
@@ -784,7 +784,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     NrnThreadMembList* tml_last = nullptr;
     for (int i = 0; i < n_mech; ++i) {
-        auto tml = create_tml(i, memb_func[types[i]], shadow_rhs_cnt);
+        auto tml = create_tml(i, memb_func[mech_types[i]], shadow_rhs_cnt);
 
         nt._ml_list[tml->index] = tml->ml;
 
