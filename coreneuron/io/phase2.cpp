@@ -833,12 +833,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         for (auto tml = nt.tml; tml; tml = tml->next) {
             if (tml->ml->nodeindices) {  // not artificial
                 permute_nodeindices(tml->ml, p);
-            }
-        }
-
-        // permute mechanism data, pdata (and values)
-        for (auto tml = nt.tml; tml; tml = tml->next) {
-            if (tml->ml->nodeindices) {  // not artificial
                 permute_ml(tml->ml, tml->index, nt);
             }
         }
