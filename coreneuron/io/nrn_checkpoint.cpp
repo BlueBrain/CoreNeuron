@@ -721,8 +721,8 @@ static void checkpoint_restore_tqitem(int type, std::shared_ptr<Phase2::EventTyp
             Point_process* pnt = nt.pntprocs + e->pinstance;
             // printf("  SelfEvent %d %d %d %g %d %d\n", target_type, pinstance, target_instance,
             // flag, movable, weight_index);
-            assert(e->target_instance == pnt->_i_instance);
-            assert(e->target_type == pnt->_type);
+            nrn_assert(e->target_instance == pnt->_i_instance);
+            nrn_assert(e->target_type == pnt->_type);
             net_send(nt._vdata + e->movable, e->weight_index, pnt, e->te, e->flag);
             break;
         }

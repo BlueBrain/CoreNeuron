@@ -522,7 +522,8 @@ void nrn_setup(const char* filesdat,
             Phase1 p1; 
             p1.read_direct(n->id);
             NrnThread& nt = *n;
-            MUTLOCK p1.populate(nt, 0);
+            MUTLOCK
+            p1.populate(nt, 0);
             MUTUNLOCK
         });
     }
