@@ -45,21 +45,21 @@ void Phase1::read_direct(int thread_id) {
 }
 
 void Phase1::shift_gids(int imult) {
-    int zz = imult * maxgid;  // offset for each gid
+    int new_maxgid = imult * maxgid;  // offset for each gid
 
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
     for (auto& gid: this->output_gids) {
         if (gid >= 0) {
             nrn_assert(gid < maxgid);
-            gid += zz;
+            gid += new_maxgid;
         }
     }
 
     for (auto& srcgid: this->netcon_srcgids) {
         if (srcgid >= 0) {
             nrn_assert(srcgid < maxgid);
-            srcgid += zz;
+            srcgid += new_maxgid;
         }
     }
 }
