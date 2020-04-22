@@ -61,10 +61,6 @@ class Phase2 {
     std::vector<std::pair<int, std::shared_ptr<EventTypeBase>>> events;
 
     private:
-    // Internal state
-    bool model_loaded = false;
-    bool direct;
-
     void check_mechanism();
     NrnThreadMembList* create_tml(int mech_id, Memb_func& memb_func, int& shadow_rhs_cnt);
     void pdata_relocation(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
