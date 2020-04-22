@@ -123,11 +123,11 @@ inline void* phase_wrapper_w(NrnThread* nt, UserParams& userParams, bool in_memo
 
             // Avoid trying to open the gid_gap.dat file if it doesn't exist when there are no
             // gap junctions in this gid
-            if (P == gap && !userParams.file_reader[i].file_exist(fname.c_str())) {
+            if (P == gap && !userParams.file_reader[i].file_exist(fname)) {
                 userParams.file_reader[i].close();
             } else {
                 // if no file failed to open or not opened at all
-                userParams.file_reader[i].open(fname.c_str());
+                userParams.file_reader[i].open(fname);
             }
         }
         read_phase_aux<P>(*nt, userParams);

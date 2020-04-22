@@ -71,17 +71,17 @@ class FileHandler {
     FileHandler() : chkpnt(0), stored_chkpnt(0) {
     }
 
-    explicit FileHandler(const char* filename);
+    explicit FileHandler(const std::string& filename);
 
     /** Preserving chkpnt state, move to a new file. */
-    void open(const char* filename, std::ios::openmode mode = std::ios::in);
+    void open(const std::string& filename, std::ios::openmode mode = std::ios::in);
 
     /** Is the file not open */
     bool fail() const {
         return F.fail();
     }
 
-    bool file_exist(const char* filename) const;
+    bool file_exist(const std::string& filename) const;
 
     /** nothing more to read */
     bool eof();

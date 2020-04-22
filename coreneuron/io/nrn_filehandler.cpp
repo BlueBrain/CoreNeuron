@@ -31,23 +31,23 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrnconf.h"
 
 namespace coreneuron {
-FileHandler::FileHandler(const char* filename) {
+FileHandler::FileHandler(const std::string& filename)
+    : chkpnt(0), stored_chkpnt(0) {
     this->open(filename);
-    checkpoint(0);
-    stored_chkpnt = 0;
 }
 
-bool FileHandler::file_exist(const char* filename) const {
+bool FileHandler::file_exist(const std::string& filename) const {
     struct stat buffer;
-    return (stat(filename, &buffer) == 0);
+    return (stat(filename.c_str(), &buffer) == 0);
 }
 
-void FileHandler::open(const char* filename, std::ios::openmode mode) {
+void FileHandler::open(const std::string& filename, std::ios::openmode mode) {
     nrn_assert((mode & (std::ios::in | std::ios::out)));
     close();
     F.open(filename, mode | std::ios::binary);
-    if (!F.is_open())
-        fprintf(stderr, "cannot open file %s\n", filename);
+    if (!F.is_open()) {
+        std::cerr << "cannot open file '" << filename << "'" << std::endl;
+    }
     nrn_assert(F.is_open());
     current_mode = mode;
     char version[256];
