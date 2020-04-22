@@ -91,7 +91,6 @@ inline void mech_data_layout_transform(T* data, int cnt, int sz, int layout) {
 
 void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_output = F.read_int();
-    nrn_assert(n_output > 0);  // avoid n_output unused warning
     n_real_output = F.read_int();
     n_node = F.read_int();
     n_diam = F.read_int();
@@ -110,8 +109,9 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     actual_b = F.read_vector<double>(n_node);
     actual_area = F.read_vector<double>(n_node);
     actual_v = F.read_vector<double>(n_node);
-    if (n_diam > 0)
+    if (n_diam > 0) {
         actual_diam = F.read_vector<double>(n_node);
+    }
 
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
@@ -311,6 +311,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     }
 }
 
+/// Check if MOD file used between NEURON and CoreNEURON is same
 void Phase2::check_mechanism() {
     int diff_mech_count = 0;
     for (int i = 0; i < n_mech; ++i) {
@@ -336,6 +337,7 @@ void Phase2::check_mechanism() {
 
 }
 
+/// Perform in memory transformation between AoS<>SoA for integer data
 void Phase2::transform_int_data(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_) {
     for (int iml = 0; iml < nodecount; ++iml) {
         int* pd = pdata + nrn_i_layout(iml, nodecount, i, dparam_size, layout);
@@ -370,9 +372,6 @@ NrnThreadMembList* Phase2::create_tml(int mech_id, Memb_func& memb_func, int& sh
             shadow_rhs_cnt = tml->ml->nodecount;
         }
     }
-
-    // printf("index=%d nodecount=%d membfunc=%s\n", tml->index, tml->ml->nodecount,
-    // memb_func.sym?memb_func.sym:"None");
 
     return tml;
 }
@@ -489,23 +488,23 @@ void Phase2::restore_events(FileHandler& F) {
     }
 }
 
-void Phase2::fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func) {
+void Phase2::fill_before_after_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func) {
     /// Fill the BA lists
-    std::vector<BAMech*> bamap(memb_func.size());
+    std::vector<BAMech*> before_after_map(memb_func.size());
     for (int i = 0; i < BEFORE_AFTER_SIZE; ++i) {
         for (size_t ii = 0; ii < memb_func.size(); ++ii) {
-            bamap[ii] = nullptr;
+            before_after_map[ii] = nullptr;
         }
         for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
-            bamap[bam->type] = bam;
+            before_after_map[bam->type] = bam;
         }
         /* unnecessary but keep in order anyway */
         NrnThreadBAList **ptbl = nt.tbl + i;
         for (auto tml = nt.tml; tml; tml = tml->next) {
-            if (bamap[tml->index]) {
+            if (before_after_map[tml->index]) {
                 auto tbl = (NrnThreadBAList*)emalloc(sizeof(NrnThreadBAList));
                 tbl->next = nullptr;
-                tbl->bam = bamap[tml->index];
+                tbl->bam = before_after_map[tml->index];
                 tbl->ml = tml->ml;
                 *ptbl = tbl;
                 ptbl = &(tbl->next);
@@ -631,8 +630,7 @@ void Phase2::set_dependencies(const NrnThread& nt, const std::vector<Memb_func>&
             if (!actual_mech_deps.empty()) {
                 tml->ndependencies = actual_mech_deps.size();
                 tml->dependencies = (int*)ecalloc(actual_mech_deps.size(), sizeof(int));
-                memcpy(tml->dependencies, &actual_mech_deps[0],
-                        sizeof(int) * actual_mech_deps.size());
+                std::copy(actual_mech_deps.begin(), actual_mech_deps.end(), tml->dependencies);
             }
         }
     }
@@ -753,8 +751,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     /// Checkpoint in coreneuron is defined for both phase 1 and phase 2 since they are written
     /// together
-    // printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, n_mech);
-    // printf("nart=%d\n", nart);
     nt._ml_list = (Memb_list**)ecalloc_align(corenrn.get_memb_funcs().size(), sizeof(Memb_list*));
 
     auto& memb_func = corenrn.get_memb_funcs();
@@ -824,7 +820,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         nt._vdata = (void**)ecalloc_align(nt._nvdata + extra_nv, sizeof(void*));
     else
         nt._vdata = nullptr;
-    // printf("_nidata=%d _nvdata=%d\n", nt._nidata, nt._nvdata);
 
     // The data format begins with the matrix data
     int ne = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
@@ -857,7 +852,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     nt.pntprocs = (Point_process*)ecalloc_align(
         num_point_process, sizeof(Point_process));  // includes acell with and without gid
     nt.n_pntproc = num_point_process;
-    // printf("offset=%ld\n", offset);
     nt._ndata = offset;
 
     // now that we know the effect of padding, we can allocate data space,
@@ -908,10 +902,8 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         int szdp = nrn_prop_dparam_size_[type];
         int layout = corenrn.get_mech_data_layout()[type];
 
-        if (!corenrn.get_is_artificial()[type]) {
-            ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
-            std::copy(tmls[itml].nodeindices.begin(), tmls[itml].nodeindices.end(), ml->nodeindices);
-        }
+        ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
+        std::copy(tmls[itml].nodeindices.begin(), tmls[itml].nodeindices.end(), ml->nodeindices);
 
         std::copy(tmls[itml].data.begin(), tmls[itml].data.end(), ml->data);
         mech_data_layout_transform<double>(ml->data, n, szp, layout);
@@ -1021,7 +1013,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     set_dependencies(nt, memb_func);
 
-    fill_ba_lists(nt, memb_func);
+    fill_before_after_lists(nt, memb_func);
 
     // for fast watch statement checking
     // setup a list of types that have WATCH statement
@@ -1116,7 +1108,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     // is not directly in the file
     int nnetcon = nt.n_netcon - nrn_setup_extracon;
 
-    // printf("nnetcon=%d nweight=%d\n", nnetcon, nweight);
     // it may happen that Point_process structures will be made unnecessary
     // by factoring into NetCon.
 

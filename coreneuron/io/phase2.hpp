@@ -66,7 +66,7 @@ class Phase2 {
     void transform_int_data(int elem0, int nodecount, int* pdata, int i, int dparam_size, int layout, int n_node_);
     void set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pnt_offset);
     void restore_events(FileHandler& F);
-    void fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func);
+    void fill_before_after_lists(NrnThread& nt, const std::vector<Memb_func>& memb_func);
     void pdata_relocation(const NrnThread& nt, const std::vector<Memb_func>& memb_func);
     void set_dependencies(const NrnThread& nt, const std::vector<Memb_func>& memb_func);
     void get_info_from_bbcore(NrnThread& nt, const std::vector<Memb_func>& memb_func);
