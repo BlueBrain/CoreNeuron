@@ -810,7 +810,7 @@ static bool checkpoint_restored_ = false;
 //   int: last_index
 //   int: discon_index
 //   int: ubound_index
-// int: pastim_index
+// int: patstim_index
 // int: should be -1
 // n_presyn:
 //   int: flags of presyn_helper
@@ -837,7 +837,7 @@ void checkpoint_restore_tqueue(NrnThread& nt, const Phase2& p2) {
     }
 
     // PatternStim
-    patstim_index = p2.pastim_index;  // PatternStim
+    patstim_index = p2.patstim_index;  // PatternStim
     if (nt.id == 0) {
         patstim_te = -1.0;  // changed if relevant SelfEvent;
     }

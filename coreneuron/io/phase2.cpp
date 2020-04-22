@@ -180,7 +180,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         vecPlay.ubound_index = F.read_int();
     }
 
-    pastim_index = F.read_int();
+    patstim_index = F.read_int();
 
     assert(F.read_int() == -1);
 
