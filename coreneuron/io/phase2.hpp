@@ -62,7 +62,7 @@ class Phase2 {
 
     private:
     // Internal state
-    bool setted = false;
+    bool model_loaded = false;
     bool direct;
 
     void check_mechanism();

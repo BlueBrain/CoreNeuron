@@ -90,9 +90,6 @@ inline void mech_layout(T* data, int cnt, int sz, int layout) {
 }
 
 void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
-    assert(!setted);
-    this->setted = true;
-    this->direct = false;
     n_output = F.read_int();
     nrn_assert(n_output > 0);  // avoid n_output unused warning
     n_real_output = F.read_int();
@@ -199,9 +196,6 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
 }
 
 void Phase2::read_direct(int thread_id, const NrnThread& nt) {
-    assert(!this->setted);
-    this->setted = true;
-    this->direct = true;
     int* types_ = nullptr;
     int* nodecounts_ = nullptr;
     int n_weight;
@@ -521,8 +515,6 @@ void Phase2::fill_ba_lists(NrnThread& nt, const std::vector<Memb_func>& memb_fun
 }
 
 void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
-    assert(this->setted);
-
     nrn_assert(userParams.imult[nt.id] >= 0);  // avoid imult unused warning
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
     ntc.file_id = userParams.gidgroups[nt.id];
