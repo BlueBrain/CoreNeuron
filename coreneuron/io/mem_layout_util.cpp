@@ -3,31 +3,34 @@
 namespace coreneuron {
 
 /// calculate size after padding for specific memory layout
+// Warning: this function is declared extern in nrniv_decl.h
 int nrn_soa_padded_size(int cnt, int layout) {
     return soa_padded_size<NRN_SOA_PAD>(cnt, layout);
 }
 
 /// return the new offset considering the byte aligment settings
 size_t nrn_soa_byte_align(size_t size) {
-    if (LAYOUT == 0) {
+    if (LAYOUT == Layout::SoA) {
         size_t dbl_align = NRN_SOA_BYTE_ALIGN / sizeof(double);
         size_t remainder = size % dbl_align;
         if (remainder) {
             size += dbl_align - remainder;
         }
-        assert((size * sizeof(double)) % NRN_SOA_BYTE_ALIGN == 0);
+        nrn_assert((size * sizeof(double)) % NRN_SOA_BYTE_ALIGN == 0);
     }
     return size;
 }
 
 int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
-    if (layout == 1) {
+    switch(layout) {
+      case Layout::AoS:
         return icnt * sz + isz;
-    } else if (layout == 0) {
+      case Layout::SoA:
         int padded_cnt = nrn_soa_padded_size(cnt, layout);  // may want to factor out to save time
         return icnt + isz * padded_cnt;
     }
-    assert(0);
+
+    nrn_assert(false);
     return 0;
 }
 
@@ -39,11 +42,15 @@ int nrn_i_layout(int icnt, int cnt, int isz, int sz, int layout) {
 
 int nrn_param_layout(int i, int mtype, Memb_list* ml) {
     int layout = corenrn.get_mech_data_layout()[mtype];
-    if (layout == 1) {
+    switch(layout) {
+      case Layout::AoS:
         return i;
+      case Layout::SoA:
+        nrn_assert(layout == Layout::SoA);
+        int sz = corenrn.get_prop_param_size()[mtype];
+        return nrn_i_layout(i / sz, ml->nodecount, i % sz, sz, layout);
     }
-    assert(layout == 0);
-    int sz = corenrn.get_prop_param_size()[mtype];
-    return nrn_i_layout(i / sz, ml->nodecount, i % sz, sz, layout);
+    nrn_assert(false);
+    return 0;
 }
 }  // namespace coreneuron
