@@ -1,4 +1,5 @@
 #include <cassert>
+#include <mutex>
 
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/sim/multicore.hpp"
@@ -111,7 +112,11 @@ void Phase1::add_extracon(NrnThread& nt, int imult) {
     nt.n_netcon += nrn_setup_extracon;
 }
 
+#ifdef _OPENMP
+void Phase1::populate(NrnThread& nt, int imult, OMP_Mutex& mut) {
+#else
 void Phase1::populate(NrnThread& nt, int imult) {
+#endif
     nt.n_presyn = this->output_gids.size();
     nt.n_netcon = this->netcon_srcgids.size();
 
@@ -133,34 +138,39 @@ void Phase1::populate(NrnThread& nt, int imult) {
             continue;
         }
 
-        // Note that the negative (type, index)
-        // coded information goes into the neg_gid2out[tid] hash table.
-        // See netpar.cpp for the netpar_tid_... function implementations.
-        // Both that table and the process wide gid2out table can be deleted
-        // before the end of setup
+        {
+#ifdef _OPENMP
+            const std::lock_guard<OMP_Mutex> lock(mut);
+#endif
+            // Note that the negative (type, index)
+            // coded information goes into the neg_gid2out[tid] hash table.
+            // See netpar.cpp for the netpar_tid_... function implementations.
+            // Both that table and the process wide gid2out table can be deleted
+            // before the end of setup
 
-        /// Put gid into the gid2out hash table with correspondent output PreSyn
-        /// Or to the negative PreSyn map
-        if (gid >= 0) {
-            char m[200];
-            if (gid2in.find(gid) != gid2in.end()) {
-                sprintf(m, "gid=%d already exists as an input port", gid);
-                hoc_execerror(
-                    m,
-                    "Setup all the output ports on this process before using them as input ports.");
+            /// Put gid into the gid2out hash table with correspondent output PreSyn
+            /// Or to the negative PreSyn map
+            if (gid >= 0) {
+                char m[200];
+                if (gid2in.find(gid) != gid2in.end()) {
+                    sprintf(m, "gid=%d already exists as an input port", gid);
+                    hoc_execerror(
+                        m,
+                        "Setup all the output ports on this process before using them as input ports.");
+                }
+                if (gid2out.find(gid) != gid2out.end()) {
+                    sprintf(m, "gid=%d already exists on this process as an output port", gid);
+                    hoc_execerror(m, 0);
+                }
+                ps->gid_ = gid;
+                ps->output_index_ = gid;
+                gid2out[gid] = ps;
+            } else {
+                nrn_assert(neg_gid2out[nt.id].find(gid) == neg_gid2out[nt.id].end());
+                ps->output_index_ = -1;
+                neg_gid2out[nt.id][gid] = ps;
             }
-            if (gid2out.find(gid) != gid2out.end()) {
-                sprintf(m, "gid=%d already exists on this process as an output port", gid);
-                hoc_execerror(m, 0);
-            }
-            ps->gid_ = gid;
-            ps->output_index_ = gid;
-            gid2out[gid] = ps;
-        } else {
-            nrn_assert(neg_gid2out[nt.id].find(gid) == neg_gid2out[nt.id].end());
-            ps->output_index_ = -1;
-            neg_gid2out[nt.id][gid] = ps;
-        }
+        } // end of the mutex
 
         ++ps;
     }

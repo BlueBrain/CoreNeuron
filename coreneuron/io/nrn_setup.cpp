@@ -30,6 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <map>
 #include <cstring>
+#include <mutex>
 
 #include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/nrnconf.h"
@@ -189,7 +190,7 @@ int nrn_setup_extracon = 0; /* default */
 // determine_inputpresyn().
 
 #ifdef _OPENMP
-static MUTDEC
+static OMP_Mutex mut;
 #endif
 
 static size_t model_size(void);
@@ -456,9 +457,6 @@ void nrn_setup(const char* filesdat,
                           strlen(restore_path) == 0 ? datpath : restore_path);
    
 
-    if (!MUTCONSTRUCTED) {
-        MUTCONSTRUCT(1)
-    }
     // temporary bug work around. If any process has multiple threads, no
     // process can have a single thread. So, for now, if one thread, make two.
     // Fortunately, empty threads work fine.
@@ -522,9 +520,13 @@ void nrn_setup(const char* filesdat,
             Phase1 p1; 
             p1.read_direct(n->id);
             NrnThread& nt = *n;
-            MUTLOCK
-            p1.populate(nt, 0);
-            MUTUNLOCK
+            {
+#ifdef _OPENMP
+                p1.populate(nt, 0, mut);
+#else
+                p1.populate(nt, 0);
+#endif
+            }
         });
     }
 
@@ -577,8 +579,12 @@ void setup_ThreadData(NrnThread& nt) {
         if (mf.thread_size_) {
             ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
             if (mf.thread_mem_init_) {
-                MUTLOCK (*mf.thread_mem_init_)(ml->_thread);
-                MUTUNLOCK
+                {
+#ifdef _OPENMP
+                    const std::lock_guard<OMP_Mutex> lock(mut);
+#endif
+                    (*mf.thread_mem_init_)(ml->_thread);
+                }
             }
         } else {
             ml->_thread = nullptr;
@@ -894,9 +900,14 @@ void delete_trajectory_requests(NrnThread& nt) {
 void read_phase1(NrnThread& nt, UserParams& userParams) {
     Phase1 p1;
     p1.read_file(userParams.file_reader[nt.id]);
-    MUTLOCK // Protect gid2in, gid2out and neg_gid2out
-    p1.populate(nt, userParams.imult[nt.id]);
-    MUTUNLOCK
+    
+    { // Protect gid2in, gid2out and neg_gid2out
+#ifdef _OPENMP
+        p1.populate(nt, userParams.imult[nt.id], mut);
+#else
+        p1.populate(nt, userParams.imult[nt.id]);
+#endif
+    }
 }
 
 void read_phase2(NrnThread& nt, UserParams& userParams) {
