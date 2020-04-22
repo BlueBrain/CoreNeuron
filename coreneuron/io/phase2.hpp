@@ -55,7 +55,7 @@ class Phase2 {
         int discon_index;
         int ubound_index;
     };
-    std::vector<VecPlayContinuous_> vecPlayContinuous;
+    std::vector<VecPlayContinuous_> vec_play_continuous;
     int patstim_index;
 
     std::vector<std::pair<int, std::shared_ptr<EventTypeBase>>> events;

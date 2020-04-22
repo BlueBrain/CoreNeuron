@@ -830,7 +830,7 @@ void checkpoint_restore_tqueue(NrnThread& nt, const Phase2& p2) {
 
     for (int i = 0; i < nt.n_vecplay; ++i) {
         VecPlayContinuous* vpc = (VecPlayContinuous*)nt._vecplay[i];
-        auto& vec = p2.vecPlayContinuous[i];
+        auto& vec = p2.vec_play_continuous[i];
         vpc->last_index_ = vec.last_index;
         vpc->discon_index_ = vec.discon_index;
         vpc->ubound_index_ = vec.ubound_index;

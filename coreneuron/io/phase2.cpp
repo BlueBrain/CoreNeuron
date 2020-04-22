@@ -151,9 +151,9 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         }
     }
 
-    int n_vecPlayContinous = F.read_int();
-    vecPlayContinuous.reserve(n_vecPlayContinous);
-    for (size_t i = 0; i < n_vecPlayContinous; ++i) {
+    int n_vec_play_continuous = F.read_int();
+    vec_play_continuous.reserve(n_vec_play_continuous);
+    for (size_t i = 0; i < n_vec_play_continuous; ++i) {
         VecPlayContinuous_ item;
         item.vtype = F.read_int();
         item.mtype = F.read_int();
@@ -161,7 +161,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         int sz = F.read_int();
         item.yvec = F.read_vector<double>(sz);
         item.tvec = F.read_vector<double>(sz);
-        vecPlayContinuous.push_back(item);
+        vec_play_continuous.push_back(item);
     }
 
     // store current checkpoint state to continue reading mapping
@@ -171,10 +171,10 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     if (F.eof())
         return;
 
-    nrn_assert(F.read_int() == n_vecPlayContinous);
+    nrn_assert(F.read_int() == n_vec_play_continuous);
 
-    for (int i = 0; i < n_vecPlayContinous; ++i) {
-        auto &vecPlay = vecPlayContinuous[i];
+    for (int i = 0; i < n_vec_play_continuous; ++i) {
+        auto &vecPlay = vec_play_continuous[i];
         vecPlay.last_index = F.read_int();
         vecPlay.discon_index = F.read_int();
         vecPlay.ubound_index = F.read_int();
@@ -182,7 +182,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
 
     patstim_index = F.read_int();
 
-    assert(F.read_int() == -1);
+    nrn_assert(F.read_int() == -1);
 
     for (int i = 0; i < nt.n_presyn; ++i) {
         preSynConditionEventFlags.push_back(F.read_int());
@@ -295,10 +295,10 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         delete[] dArray_;
     }
 
-    int n_vecPlayContinous;
-    (*nrn2core_get_dat2_vecplay_)(thread_id, n_vecPlayContinous);
+    int n_vec_play_continuous;
+    (*nrn2core_get_dat2_vecplay_)(thread_id, n_vec_play_continuous);
 
-    for (size_t i = 0; i < n_vecPlayContinous; ++i) {
+    for (size_t i = 0; i < n_vec_play_continuous; ++i) {
         VecPlayContinuous_ item;
         // yvec_ and tvec_ are not deleted as that space is within
         // NEURON Vector
@@ -307,7 +307,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         (*nrn2core_get_dat2_vecplay_inst_)(thread_id, i, item.vtype, item.mtype, item.ix, sz, yvec_, tvec_);
         item.yvec = std::vector<double>(yvec_, yvec_ + sz);
         item.tvec = std::vector<double>(tvec_, tvec_ + sz);
-        vecPlayContinuous.push_back(item);
+        vec_play_continuous.push_back(item);
     }
 }
 
@@ -1159,7 +1159,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     // VecPlayContinuous instances
     // No attempt at memory efficiency
-    nt.n_vecplay = vecPlayContinuous.size();
+    nt.n_vecplay = vec_play_continuous.size();
     if (nt.n_vecplay) {
         nt._vecplay = new void*[nt.n_vecplay];
     } else {
@@ -1171,7 +1171,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     ntc.mtype = new int[nt.n_vecplay];
 #endif
     for (int i = 0; i < nt.n_vecplay; ++i) {
-        auto& vecPlay = vecPlayContinuous[i];
+        auto& vecPlay = vec_play_continuous[i];
         nrn_assert(vecPlay.vtype == VecPlayContinuousType);
 #if CHKPNTDEBUG
         ntc.vtype[i] = vecPlay.vtype;
