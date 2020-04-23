@@ -895,15 +895,15 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         nt._vdata = nullptr;
 
     // The data format begins with the matrix data
-    int ne = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
-    size_t offset = 6 * ne;
+    int n_data_padded = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
+    size_t offset = 6 * n_data_padded;
 
     if (n_diam) {
         // in the rare case that a mechanism has dparam with diam semantics
         // then actual_diam array added after matrix in nt._data
         // Generally wasteful since only a few diam are pointed to.
         // Probably better to move the diam semantics to the p array of the mechanism
-        offset += ne;
+        offset += n_data_padded;
     }
 
     // Memb_list.data points into the nt.data array.
@@ -930,13 +930,13 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     // now that we know the effect of padding, we can allocate data space,
     // fill matrix, and adjust Memb_list data pointers
     nt._data = (double*)ecalloc_align(nt._ndata, sizeof(double));
-    nt._actual_rhs = nt._data + 0 * ne;
-    nt._actual_d = nt._data + 1 * ne;
-    nt._actual_a = nt._data + 2 * ne;
-    nt._actual_b = nt._data + 3 * ne;
-    nt._actual_v = nt._data + 4 * ne;
-    nt._actual_area = nt._data + 5 * ne;
-    nt._actual_diam = n_diam ? nt._data + 6 * ne : nullptr;
+    nt._actual_rhs = nt._data + 0 * n_data_padded;
+    nt._actual_d = nt._data + 1 * n_data_padded;
+    nt._actual_a = nt._data + 2 * n_data_padded;
+    nt._actual_b = nt._data + 3 * n_data_padded;
+    nt._actual_v = nt._data + 4 * n_data_padded;
+    nt._actual_area = nt._data + 5 * n_data_padded;
+    nt._actual_diam = n_diam ? nt._data + 6 * n_data_padded : nullptr;
     for (auto tml = nt.tml; tml; tml = tml->next) {
         Memb_list* ml = tml->ml;
         ml->data = nt._data + (ml->data - (double*)0);
