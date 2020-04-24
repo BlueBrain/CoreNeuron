@@ -65,7 +65,7 @@ file(COPY
      "${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer/")
 
 # Configure test scripts
-foreach(args_line ${TEST_CASES})
+foreach(args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!"
                  ";"
                  string_line
