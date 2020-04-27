@@ -83,11 +83,14 @@ class Phase2 {
     int n_idata;
     int n_vdata;
     std::vector<int> v_parent_index;
+    /* TO DO: when this is fixed use it like that
     std::vector<double> actual_a;
     std::vector<double> actual_b;
     std::vector<double> actual_area;
     std::vector<double> actual_v;
     std::vector<double> actual_diam;
+    */
+    double* _data;
     struct TML {
         std::vector<int> nodeindices;
         std::vector<double> data;

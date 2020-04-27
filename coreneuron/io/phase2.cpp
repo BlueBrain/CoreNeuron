@@ -104,12 +104,29 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_vdata = F.read_int();
     int n_weight = F.read_int();
     v_parent_index = F.read_vector<int>(n_node);
-    actual_a = F.read_vector<double>(n_node);
-    actual_b = F.read_vector<double>(n_node);
-    actual_area = F.read_vector<double>(n_node);
-    actual_v = F.read_vector<double>(n_node);
-    if (n_diam > 0) {
-        actual_diam = F.read_vector<double>(n_node);
+
+    // TODO: fix it in the future
+    {
+        int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
+        int n_data = 6 * n_data_padded;
+        if (n_diam > 0) {
+            n_data += n_data_padded;
+        }
+        for (int i = 0; i < n_mech; ++i) {
+            int layout = corenrn.get_mech_data_layout()[mech_types[i]];
+            int n = nodecounts[i];
+            int sz = corenrn.get_prop_param_size()[mech_types[i]];
+            n_data = nrn_soa_byte_align(n_data);
+            n_data += nrn_soa_padded_size(n, layout) * sz;
+        }
+        _data = (double*)ecalloc_align(n_data, sizeof(double));
+        F.read_array<double>(_data + 2 * n_data_padded, n_node);
+        F.read_array<double>(_data + 3 * n_data_padded, n_node);
+        F.read_array<double>(_data + 5 * n_data_padded, n_node);
+        F.read_array<double>(_data + 4 * n_data_padded, n_node);
+        if (n_diam > 0) {
+            F.read_array<double>(_data + 6 * n_data_padded, n_node);
+        }
     }
 
     auto& param_sizes = corenrn.get_prop_param_size();
@@ -206,22 +223,30 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     nodecounts = std::vector<int>(nodecounts_, nodecounts_ + n_mech);
     delete[] nodecounts_;
 
-    v_parent_index.resize(n_node);
-    actual_a.resize(n_node);
-    actual_b.resize(n_node);
-    actual_area.resize(n_node);
-    actual_v.resize(n_node);
+
+    // TODO: fix it in the future
+    int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
+    int n_data = 6 * n_data_padded;
     if (n_diam > 0) {
-        actual_diam.resize(n_node);
+        n_data += n_data_padded;
     }
+    for (int i = 0; i < n_mech; ++i) {
+        int layout = corenrn.get_mech_data_layout()[mech_types[i]];
+        int n = nodecounts[i];
+        int sz = corenrn.get_prop_param_size()[mech_types[i]];
+        n_data = nrn_soa_byte_align(n_data);
+        n_data += nrn_soa_padded_size(n, layout) * sz;
+    }
+    _data = (double*)ecalloc_align(n_data, sizeof(double));
+
+    v_parent_index.resize(n_node);
     int* v_parent_index_ = const_cast<int*>(v_parent_index.data());
-    double* actual_a_ = const_cast<double*>(actual_a.data());
-    double* actual_b_ = const_cast<double*>(actual_b.data());
-    double* actual_area_ = const_cast<double*>(actual_area.data());
-    double* actual_v_ = const_cast<double*>(actual_v.data());
-    double* actual_diam_ = const_cast<double*>(actual_diam.data());
-    (*nrn2core_get_dat2_2_)(thread_id, v_parent_index_, actual_a_, actual_b_,
-            actual_area_, actual_v_, actual_diam_);
+    double* actual_a = _data + 2 * n_data_padded;
+    double* actual_b = _data + 3 * n_data_padded;
+    double* actual_v = _data + 4 * n_data_padded;
+    double* actual_area = _data + 5 * n_data_padded;
+    double* actual_diam = n_diam > 0 ? _data + 6 * n_data_padded : nullptr;
+    (*nrn2core_get_dat2_2_)(thread_id, v_parent_index_, actual_a, actual_b, actual_area, actual_v, actual_diam);
 
     tmls.resize(n_mech);
 
@@ -929,7 +954,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     // now that we know the effect of padding, we can allocate data space,
     // fill matrix, and adjust Memb_list data pointers
-    nt._data = (double*)ecalloc_align(nt._ndata, sizeof(double));
+    nt._data = _data;
     nt._actual_rhs = nt._data + 0 * n_data_padded;
     nt._actual_d = nt._data + 1 * n_data_padded;
     nt._actual_a = nt._data + 2 * n_data_padded;
@@ -945,13 +970,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     // matrix info
     nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
     std::copy(v_parent_index.begin(), v_parent_index.end(), nt._v_parent_index);
-    std::copy(actual_a.begin(), actual_a.end(), nt._actual_a);
-    std::copy(actual_b.begin(), actual_b.end(), nt._actual_b);
-    std::copy(actual_area.begin(), actual_area.end(), nt._actual_area);
-    std::copy(actual_v.begin(), actual_v.end(), nt._actual_v);
-    if (n_diam) {
-        std::copy(actual_diam.begin(), actual_diam.end(), nt._actual_diam);
-    }
 
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];
