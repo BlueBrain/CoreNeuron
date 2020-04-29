@@ -129,20 +129,28 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         }
     }
 
-    auto& param_sizes = corenrn.get_prop_param_size();
-    auto& dparam_sizes = corenrn.get_prop_dparam_size();
+    int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
+    size_t offset = 6 * n_data_padded;
+    if (n_diam > 0) {
+        offset += n_data_padded;
+    }
     for (size_t i = 0; i < n_mech; ++i) {
-        int type = mech_types[i];
+        int layout = corenrn.get_mech_data_layout()[mech_types[i]];
+        int n = nodecounts[i];
+        int sz = corenrn.get_prop_param_size()[mech_types[i]];
+        int dsz = corenrn.get_prop_dparam_size()[mech_types[i]];
+        offset = nrn_soa_byte_align(offset);
+        offset += nrn_soa_padded_size(n, layout) * sz;
         std::vector<int> nodeindices;
-        if (!corenrn.get_is_artificial()[type]) {
-            nodeindices = F.read_vector<int>(nodecounts[i]);
+        if (!corenrn.get_is_artificial()[mech_types[i]]) {
+            nodeindices = F.read_vector<int>(n);
         }
-        auto data = F.read_vector<double>(param_sizes[type] * nodecounts[i]);
+        F.read_array<double>(_data + offset, sz * n);
         std::vector<int> pdata;
-        if (dparam_sizes[type] > 0) {
-            pdata = F.read_vector<int>(dparam_sizes[type] * nodecounts[i]);
+        if (dsz > 0) {
+            pdata = F.read_vector<int>(dsz * n);
         }
-        tmls.emplace_back(TML{nodeindices, data, pdata, 0, {}, {}});
+        tmls.emplace_back(TML{nodeindices, pdata, 0, {}, {}});
     }
     output_vindex = F.read_vector<int>(nt.n_presyn);
     output_threshold = F.read_vector<double>(n_real_output);
@@ -253,16 +261,20 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     auto& param_sizes = corenrn.get_prop_param_size();
     auto& dparam_sizes = corenrn.get_prop_dparam_size();
     int dsz_inst = 0;
+    size_t offset = 6 * n_data_padded;
+    if (n_diam > 0) offset += n_data_padded;
     for (size_t i = 0; i < n_mech; ++i) {
         auto& tml = tmls[i];
         int type = mech_types[i];
+        int layout = corenrn.get_mech_data_layout()[type];
+        offset = nrn_soa_byte_align(offset);
+        offset += nrn_soa_padded_size(nodecounts[i], layout) * param_sizes[type];
 
         tml.nodeindices.resize(nodecounts[i]);
-        tml.data.resize(nodecounts[i] * param_sizes[type]);
         tml.pdata.resize(nodecounts[i] * dparam_sizes[type]);
 
         int* nodeindices_ = nullptr;
-        double* data_ = const_cast<double*>(tml.data.data());
+        double* data_ = _data + offset;
         int* pdata_ = const_cast<int*>(tml.pdata.data());
         (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[type] > 0 ? dsz_inst : 0, nodeindices_, data_, pdata_);
         if (dparam_sizes[type] > 0)
@@ -903,7 +915,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         nt.shadow_rhs_cnt = shadow_rhs_cnt;
     }
 
-    nt._data = nullptr;    // allocated below after padding
     nt.mapping = nullptr;  // section segment mapping
 
     nt._nidata = n_idata;
@@ -921,8 +932,16 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     // The data format begins with the matrix data
     int n_data_padded = nrn_soa_padded_size(nt.end, MATRIX_LAYOUT);
-    size_t offset = 6 * n_data_padded;
+    nt._data = _data;
+    nt._actual_rhs = nt._data + 0 * n_data_padded;
+    nt._actual_d = nt._data + 1 * n_data_padded;
+    nt._actual_a = nt._data + 2 * n_data_padded;
+    nt._actual_b = nt._data + 3 * n_data_padded;
+    nt._actual_v = nt._data + 4 * n_data_padded;
+    nt._actual_area = nt._data + 5 * n_data_padded;
+    nt._actual_diam = n_diam ? nt._data + 6 * n_data_padded : nullptr;
 
+    size_t offset = 6 * n_data_padded;
     if (n_diam) {
         // in the rare case that a mechanism has dparam with diam semantics
         // then actual_diam array added after matrix in nt._data
@@ -931,7 +950,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         offset += n_data_padded;
     }
 
-    // Memb_list.data points into the nt.data array.
+    // Memb_list.data points into the nt._data array.
     // Also count the number of Point_process
     int num_point_process = 0;
     for (auto tml = nt.tml; tml; tml = tml->next) {
@@ -941,7 +960,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         int n = ml->nodecount;
         int sz = nrn_prop_param_size_[type];
         offset = nrn_soa_byte_align(offset);
-        ml->data = (double*)0 + offset;  // adjust below since nt._data not allocated
+        ml->data = nt._data + offset;
         offset += nrn_soa_padded_size(n, layout) * sz;
         if (corenrn.get_pnt_map()[type] > 0) {
             num_point_process += n;
@@ -952,20 +971,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
     nt.n_pntproc = num_point_process;
     nt._ndata = offset;
 
-    // now that we know the effect of padding, we can allocate data space,
-    // fill matrix, and adjust Memb_list data pointers
-    nt._data = _data;
-    nt._actual_rhs = nt._data + 0 * n_data_padded;
-    nt._actual_d = nt._data + 1 * n_data_padded;
-    nt._actual_a = nt._data + 2 * n_data_padded;
-    nt._actual_b = nt._data + 3 * n_data_padded;
-    nt._actual_v = nt._data + 4 * n_data_padded;
-    nt._actual_area = nt._data + 5 * n_data_padded;
-    nt._actual_diam = n_diam ? nt._data + 6 * n_data_padded : nullptr;
-    for (auto tml = nt.tml; tml; tml = tml->next) {
-        Memb_list* ml = tml->ml;
-        ml->data = nt._data + (ml->data - (double*)0);
-    }
 
     // matrix info
     nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
@@ -996,7 +1001,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         ml->nodeindices = (int*)ecalloc_align(ml->nodecount, sizeof(int));
         std::copy(tmls[itml].nodeindices.begin(), tmls[itml].nodeindices.end(), ml->nodeindices);
 
-        std::copy(tmls[itml].data.begin(), tmls[itml].data.end(), ml->data);
         mech_data_layout_transform<double>(ml->data, n, szp, layout);
 
         if (szdp) {

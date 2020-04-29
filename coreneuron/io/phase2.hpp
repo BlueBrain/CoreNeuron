@@ -93,7 +93,6 @@ class Phase2 {
     double* _data;
     struct TML {
         std::vector<int> nodeindices;
-        std::vector<double> data;
         std::vector<int> pdata;
         int type;
         std::vector<int> iArray;
