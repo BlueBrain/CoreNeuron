@@ -13,10 +13,6 @@ int (*nrn2core_get_dat1_)(int tid,
                           int*& netcon_srcgid);
 
 namespace coreneuron {
-// no gid in any file can be greater than maxgid. maxgid will be set so that
-// maxgid * nrn_setup_multiple < 0x7fffffff
-static int maxgid = 0x7fffffff / nrn_setup_multiple;
-
 void Phase1::read_file(FileHandler& F) {
     assert(!F.fail());
     int n_presyn = F.read_int();  /// Number of PreSyn-s in NrnThread nt
@@ -46,26 +42,31 @@ void Phase1::read_direct(int thread_id) {
 }
 
 void Phase1::shift_gids(int imult) {
-    int new_maxgid = imult * maxgid;  // offset for each gid
+    // maxgid is the maxgid to have the different multiple in the same gid space.
+    int maxgid = 0x7fffffff / nrn_setup_multiple;
+    // this value is the beginning of the new cluster of gids.
+    // the correct cluster is choose with imult.
+    int offset_gids = imult * maxgid;  // offset for each gid
 
     // offset the (non-negative) gids according to multiple
     // make sure everything fits into gid space.
     for (auto& gid: this->output_gids) {
         if (gid >= 0) {
             nrn_assert(gid < maxgid);
-            gid += new_maxgid;
+            gid += offset_gids;
         }
     }
 
     for (auto& srcgid: this->netcon_srcgids) {
         if (srcgid >= 0) {
             nrn_assert(srcgid < maxgid);
-            srcgid += new_maxgid;
+            srcgid += offset_gids;
         }
     }
 }
 
 void Phase1::add_extracon(NrnThread& nt, int imult) {
+    int maxgid = 0x7fffffff / nrn_setup_multiple;
     if (nrn_setup_extracon <= 0) {
         return;
     }
