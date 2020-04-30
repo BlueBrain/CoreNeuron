@@ -105,21 +105,22 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     int n_weight = F.read_int();
     v_parent_index = F.read_vector<int>(n_node);
 
-    // TODO: fix it in the future
+    int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
     {
-        int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
-        int n_data = 6 * n_data_padded;
-        if (n_diam > 0) {
-            n_data += n_data_padded;
+        { // Compute size of _data and allocate
+            int n_data = 6 * n_data_padded;
+            if (n_diam > 0) {
+                n_data += n_data_padded;
+            }
+            for (size_t i = 0; i < n_mech; ++i) {
+                int layout = corenrn.get_mech_data_layout()[mech_types[i]];
+                int n = nodecounts[i];
+                int sz = corenrn.get_prop_param_size()[mech_types[i]];
+                n_data = nrn_soa_byte_align(n_data);
+                n_data += nrn_soa_padded_size(n, layout) * sz;
+            }
+            _data = (double*)ecalloc_align(n_data, sizeof(double));
         }
-        for (int i = 0; i < n_mech; ++i) {
-            int layout = corenrn.get_mech_data_layout()[mech_types[i]];
-            int n = nodecounts[i];
-            int sz = corenrn.get_prop_param_size()[mech_types[i]];
-            n_data = nrn_soa_byte_align(n_data);
-            n_data += nrn_soa_padded_size(n, layout) * sz;
-        }
-        _data = (double*)ecalloc_align(n_data, sizeof(double));
         F.read_array<double>(_data + 2 * n_data_padded, n_node);
         F.read_array<double>(_data + 3 * n_data_padded, n_node);
         F.read_array<double>(_data + 5 * n_data_padded, n_node);
@@ -129,7 +130,6 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         }
     }
 
-    int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
     size_t offset = 6 * n_data_padded;
     if (n_diam > 0) {
         offset += n_data_padded;
@@ -140,12 +140,12 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         int sz = corenrn.get_prop_param_size()[mech_types[i]];
         int dsz = corenrn.get_prop_dparam_size()[mech_types[i]];
         offset = nrn_soa_byte_align(offset);
-        offset += nrn_soa_padded_size(n, layout) * sz;
         std::vector<int> nodeindices;
         if (!corenrn.get_is_artificial()[mech_types[i]]) {
             nodeindices = F.read_vector<int>(n);
         }
         F.read_array<double>(_data + offset, sz * n);
+        offset += nrn_soa_padded_size(n, layout) * sz;
         std::vector<int> pdata;
         if (dsz > 0) {
             pdata = F.read_vector<int>(dsz * n);
