@@ -268,7 +268,6 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         int type = mech_types[i];
         int layout = corenrn.get_mech_data_layout()[type];
         offset = nrn_soa_byte_align(offset);
-        offset += nrn_soa_padded_size(nodecounts[i], layout) * param_sizes[type];
 
         tml.nodeindices.resize(nodecounts[i]);
         tml.pdata.resize(nodecounts[i] * dparam_sizes[type]);
@@ -279,6 +278,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         (*nrn2core_get_dat2_mech_)(thread_id, i, dparam_sizes[type] > 0 ? dsz_inst : 0, nodeindices_, data_, pdata_);
         if (dparam_sizes[type] > 0)
             dsz_inst++;
+        offset += nrn_soa_padded_size(nodecounts[i], layout) * param_sizes[type];
         std::copy(nodeindices_, nodeindices_ + nodecounts[i], tml.nodeindices.data());
         free_memory(nodeindices_);
     }
