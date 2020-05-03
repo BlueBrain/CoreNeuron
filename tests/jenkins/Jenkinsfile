@@ -62,35 +62,35 @@ pipeline {
                     }
                 }
 
-                stage('GPU-non-unified'){
-                    stages{
-                        stage('build'){
-                            steps {
-                                sh 'sh tests/jenkins/install_coreneuron.sh GPU-non-unified'
-                            }
-                        }
-                        stage('unit & ring tests'){
-                            steps{
-                                sh 'sh tests/jenkins/ringtest.sh GPU-non-unified'
-                            }
-                        }
-                    }
-                }
+                // stage('GPU-non-unified'){
+                //     stages{
+                //         stage('build'){
+                //             steps {
+                //                 sh 'sh tests/jenkins/install_coreneuron.sh GPU-non-unified'
+                //             }
+                //         }
+                //         stage('unit & ring tests'){
+                //             steps{
+                //                 sh 'sh tests/jenkins/ringtest.sh GPU-non-unified'
+                //             }
+                //         }
+                //     }
+                // }
 
-                stage('GPU-unified'){
-                    stages{
-                        stage('build'){
-                            steps {
-                                sh 'sh tests/jenkins/install_coreneuron.sh GPU-unified'
-                            }
-                        }
-                        stage('unit & ring tests'){
-                            steps{
-                                sh 'sh tests/jenkins/ringtest.sh GPU-unified'
-                            }
-                        }
-                    }
-                }
+                // stage('GPU-unified'){
+                //     stages{
+                //         stage('build'){
+                //             steps {
+                //                 sh 'sh tests/jenkins/install_coreneuron.sh GPU-unified'
+                //             }
+                //         }
+                //         stage('unit & ring tests'){
+                //             steps{
+                //                 sh 'sh tests/jenkins/ringtest.sh GPU-unified'
+                //             }
+                //         }
+                //     }
+                // }
             }
         }
 
