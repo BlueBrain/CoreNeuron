@@ -183,8 +183,10 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         item.mtype = F.read_int();
         item.ix = F.read_int();
         int sz = F.read_int();
-        item.yvec = F.read_vector<double>(sz);
-        item.tvec = F.read_vector<double>(sz);
+        item.yvec = IvocVect(sz);
+        item.tvec = IvocVect(sz);
+        F.read_array<double>(item.yvec.data(), sz);
+        F.read_array<double>(item.tvec.data(), sz);
         vec_play_continuous.push_back(item);
     }
 
@@ -341,8 +343,10 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         double *yvec_, *tvec_;
         int sz;
         (*nrn2core_get_dat2_vecplay_inst_)(thread_id, i, item.vtype, item.mtype, item.ix, sz, yvec_, tvec_);
-        item.yvec = std::vector<double>(yvec_, yvec_ + sz);
-        item.tvec = std::vector<double>(tvec_, tvec_ + sz);
+        item.yvec = IvocVect(sz);
+        item.tvec = IvocVect(sz);
+        std::copy(yvec_, yvec_ + sz, item.yvec.data());
+        std::copy(yvec_, yvec_ + sz, item.tvec.data());
         vec_play_continuous.push_back(item);
     }
 }
@@ -827,20 +831,12 @@ void Phase2::set_vec_play(NrnThread& nt) {
 #if CHKPNTDEBUG
         ntc.vecplay_ix[i] = vecPlay.ix;
 #endif
-        IvocVect* yvec = vector_new(vecPlay.yvec.size());
-        IvocVect* tvec = vector_new(vecPlay.tvec.size());
-        double* py = vector_vec(yvec);
-        double* pt = vector_vec(tvec);
-        for (int j = 0; j < vecPlay.yvec.size(); ++j) {
-            py[j] = vecPlay.yvec[j];
-            pt[j] = vecPlay.tvec[j];
-        }
 
         vecPlay.ix = nrn_param_layout(vecPlay.ix, vecPlay.mtype, ml);
         if (ml->_permute) {
             vecPlay.ix = nrn_index_permute(vecPlay.ix, vecPlay.mtype, ml);
         }
-        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, yvec, tvec, nullptr, nt.id);
+        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, &vecPlay.yvec, &vecPlay.tvec, nullptr, nt.id);
     }
 }
 

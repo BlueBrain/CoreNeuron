@@ -2,6 +2,7 @@
 
 #include "coreneuron/io/nrn_filehandler.hpp"
 #include "coreneuron/io/user_params.hpp"
+#include "coreneuron/utils/ivocvect.hpp"
 
 #include <memory>
 
@@ -48,8 +49,8 @@ class Phase2 {
         int vtype;
         int mtype;
         int ix;
-        std::vector<double> yvec;
-        std::vector<double> tvec;
+        IvocVect yvec;
+        IvocVect tvec;
 
         int last_index;
         int discon_index;

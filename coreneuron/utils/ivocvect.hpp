@@ -40,6 +40,9 @@ class fixed_vector {
 
   public:
     T* data_; /*making public for openacc copying */
+
+    fixed_vector() = default;
+
     fixed_vector(size_t n) : n_(n) {
         data_ = new T[n_];
     }
