@@ -103,7 +103,8 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
     n_idata = F.read_int();
     n_vdata = F.read_int();
     int n_weight = F.read_int();
-    v_parent_index = F.read_vector<int>(n_node);
+    v_parent_index = (int*)ecalloc_align(n_node, sizeof(int));
+    F.read_array<int>(v_parent_index, n_node);
 
     int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
     {
@@ -249,14 +250,13 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     }
     _data = (double*)ecalloc_align(n_data, sizeof(double));
 
-    v_parent_index.resize(n_node);
-    int* v_parent_index_ = const_cast<int*>(v_parent_index.data());
+    v_parent_index = (int*)ecalloc_align(n_node, sizeof(int));
     double* actual_a = _data + 2 * n_data_padded;
     double* actual_b = _data + 3 * n_data_padded;
     double* actual_v = _data + 4 * n_data_padded;
     double* actual_area = _data + 5 * n_data_padded;
     double* actual_diam = n_diam > 0 ? _data + 6 * n_data_padded : nullptr;
-    (*nrn2core_get_dat2_2_)(thread_id, v_parent_index_, actual_a, actual_b, actual_area, actual_v, actual_diam);
+    (*nrn2core_get_dat2_2_)(thread_id, v_parent_index, actual_a, actual_b, actual_area, actual_v, actual_diam);
 
     tmls.resize(n_mech);
 
@@ -969,8 +969,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
 
     // matrix info
-    nt._v_parent_index = (int*)ecalloc_align(nt.end, sizeof(int));
-    std::copy(v_parent_index.begin(), v_parent_index.end(), nt._v_parent_index);
+    nt._v_parent_index = v_parent_index;
 
 #if CHKPNTDEBUG
     ntc.parent = new int[nt.end];

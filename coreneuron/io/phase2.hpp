@@ -83,7 +83,7 @@ class Phase2 {
     std::vector<int> nodecounts;
     int n_idata;
     int n_vdata;
-    std::vector<int> v_parent_index;
+    int* v_parent_index;
     /* TO DO: when this is fixed use it like that
     std::vector<double> actual_a;
     std::vector<double> actual_b;
