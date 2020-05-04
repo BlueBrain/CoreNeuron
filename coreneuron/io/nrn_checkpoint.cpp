@@ -579,10 +579,10 @@ static void write_phase2(NrnThread& nt, FileHandlerWrap& fh) {
 #endif
         if (vtype == VecPlayContinuousType) {
             VecPlayContinuous* vpc = (VecPlayContinuous*)pr;
-            int sz = vector_capacity(vpc->y_);
+            int sz = vpc->y_.size();
             fh << sz << "\n";
-            fh.write_array<double>(vector_vec(vpc->y_), sz);
-            fh.write_array<double>(vector_vec(vpc->t_), sz);
+            fh.write_array<double>(vpc->y_.data(), sz);
+            fh.write_array<double>(vpc->t_.data(), sz);
         } else {
             std::cerr << "Error checkpointing vecplay type" << std::endl;
             assert(0);

@@ -188,7 +188,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         item.tvec = IvocVect(sz);
         F.read_array<double>(item.yvec.data(), sz);
         F.read_array<double>(item.tvec.data(), sz);
-        vec_play_continuous.push_back(item);
+        vec_play_continuous.push_back(std::move(item));
     }
 
     // store current checkpoint state to continue reading mapping
@@ -347,7 +347,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         item.tvec = IvocVect(sz);
         std::copy(yvec_, yvec_ + sz, item.yvec.data());
         std::copy(yvec_, yvec_ + sz, item.tvec.data());
-        vec_play_continuous.push_back(item);
+        vec_play_continuous.push_back(std::move(item));
     }
 }
 
@@ -836,7 +836,7 @@ void Phase2::set_vec_play(NrnThread& nt) {
         if (ml->_permute) {
             vecPlay.ix = nrn_index_permute(vecPlay.ix, vecPlay.mtype, ml);
         }
-        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, &vecPlay.yvec, &vecPlay.tvec, nullptr, nt.id);
+        nt._vecplay[i] = new VecPlayContinuous(ml->data + vecPlay.ix, std::move(vecPlay.yvec), std::move(vecPlay.tvec), nullptr, nt.id);
     }
 }
 
