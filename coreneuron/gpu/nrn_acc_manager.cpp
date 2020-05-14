@@ -1002,9 +1002,9 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
         VecPlayContinuous* d_vecplay_instance = (VecPlayContinuous*)d_p;
 
         /** copy y_, t_ and discon_indices_ */
-        copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
-        copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
-        copy_ivoc_vect_to_device(vecplay_instance->discon_indices_,
+        copy_ivoc_vect_to_device(&(vecplay_instance->y_), d_vecplay_instance->y_);
+        copy_ivoc_vect_to_device(&(vecplay_instance->t_), d_vecplay_instance->t_);
+        copy_ivoc_vect_to_device(&(vecplay_instance->discon_indices_),
                                  d_vecplay_instance->discon_indices_);
 
         /** copy PlayRecordEvent : todo: verify this */
