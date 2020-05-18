@@ -346,7 +346,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         item.yvec = IvocVect(sz);
         item.tvec = IvocVect(sz);
         std::copy(yvec_, yvec_ + sz, item.yvec.data());
-        std::copy(yvec_, yvec_ + sz, item.tvec.data());
+        std::copy(tvec_, tvec_ + sz, item.tvec.data());
         vec_play_continuous.push_back(std::move(item));
     }
 }
