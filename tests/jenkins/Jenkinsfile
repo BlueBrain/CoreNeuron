@@ -132,6 +132,13 @@ pipeline {
                         }
                     }
                 }
+                stage('nrntraub'){
+                    steps{
+                        dir('nrntraub'){
+                            git branch: 'icei', url: 'https://github.com/pramodk/nrntraub.git'
+                        }
+                    }
+                }
             }
         }
 
@@ -150,6 +157,11 @@ pipeline {
                 stage('nrnivmodl tqperf'){
                     steps{
                         sh 'sh tests/jenkins/nrnivmodl.sh tqperf'
+                    }
+                }
+                stage('nrnivmodl nrntraub'){
+                    steps{
+                        sh 'sh tests/jenkins/nrnivmodl.sh nrntraub'
                     }
                 }
                 stage('nrnivmodl-core testcorenrn AoS'){
@@ -180,6 +192,16 @@ pipeline {
                 stage('nrnivmodl-core tqperf SoA'){
                     steps{
                         sh 'sh tests/jenkins/nrnivmodl-core.sh tqperf SoA'
+                    }
+                }
+                stage('nrnivmodl-core nrntraub AoS'){
+                    steps{
+                        sh 'sh tests/jenkins/nrnivmodl-core.sh nrntraub AoS'
+                    }
+                }
+                stage('nrnivmodl-core nrntraub SoA'){
+                    steps{
+                        sh 'sh tests/jenkins/nrnivmodl-core.sh nrntraub SoA'
                     }
                 }
             }
@@ -388,6 +410,25 @@ pipeline {
                         stage('corenrn SoA'){
                             steps{
                                 sh 'sh tests/jenkins/run_corenrn.sh tqperf SoA tqperf 6'
+                            }
+                        }
+                    }
+                }
+                stage('nrntraub'){
+                    stages{
+                        stage('neuron'){
+                            steps{
+                                sh 'sh tests/jenkins/run_neuron.sh nrntraub nrntraub 4 9'
+                            }
+                        }
+                        stage('corenrn AoS'){
+                            steps{
+                                sh 'sh tests/jenkins/run_nrntraub.sh AoS 4 9'
+                            }
+                        }
+                        stage('corenrn SoA'){
+                            steps{
+                                sh 'sh tests/jenkins/run_nrntraub.sh SoA 4 9'
                             }
                         }
                     }
