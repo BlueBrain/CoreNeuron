@@ -271,6 +271,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         int layout = corenrn.get_mech_data_layout()[type];
         offset = nrn_soa_byte_align(offset);
 
+        tml.type = type;
         tml.nodeindices.resize(nodecounts[i]);
         tml.pdata.resize(nodecounts[i] * dparam_sizes[type]);
 
