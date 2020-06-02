@@ -100,6 +100,10 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         mech_types[i] = F.read_int();
         nodecounts[i] = F.read_int();
     }
+
+    // check mechanism compatibility before reading data
+    check_mechanism();
+
     n_idata = F.read_int();
     n_vdata = F.read_int();
     int n_weight = F.read_int();
@@ -848,8 +852,6 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     nt.ncell = n_real_output;
     nt.end = n_node;
-
-    check_mechanism();
 
 #if CHKPNTDEBUG
     ntc.n_outputgids = n_output;
