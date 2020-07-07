@@ -32,7 +32,7 @@ matrix:
     - os: linux
       dist: xenial
       env:
-        - cmake_option='-DCORENRN_ENABLE_NMODL=ON -DCORENRN_NMODL_FLAGS="sympy --analytic"'
+        - cmake_option="-DCORENRN_ENABLE_NMODL=ON -DCORENRN_NMODL_FLAGS=\"sympy --analytic\""
         - PYTHON_VERSION=3.6.7  # for nmodl pip3 install
         - USE_NMODL=ON
     - os: osx
