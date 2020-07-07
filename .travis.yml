@@ -16,46 +16,43 @@ matrix:
     - os: linux
       dist: xenial
       env:
-        - cmake_options=(-DCORENRN_ENABLE_MPI=ON)
+        - cmake_option="-DCORENRN_ENABLE_MPI=ON"
     - os: linux
       dist: xenial
       env:
-        - cmake_options=(-DCORENRN_ENABLE_MPI=OFF)
+        - cmake_option="-DCORENRN_ENABLE_MPI=OFF"
     - os: linux
       dist: xenial
       env:
-        - cmake_options=(-DCORENRN_ENABLE_SOA=ON)
+        - cmake_option="-DCORENRN_ENABLE_SOA=ON"
     - os: linux
       dist: xenial
       env:
-        - cmake_options=(-DCORENRN_ENABLE_SOA=OFF)
+        - cmake_option="-DCORENRN_ENABLE_SOA=OFF"
     - os: linux
       dist: xenial
       env:
-        - nmodl_flags=(sympy\ --analytic)
-        - cmake_options=(-DCORENRN_ENABLE_NMODL=ON\ -DCORENRN_NMODL_FLAGS="${nmodl_flags[@]}")
         - PYTHON_VERSION=3.6.7  # for nmodl pip3 install
         - USE_NMODL=ON
     - os: osx
       osx_image: xcode10.2
       env:
-        - cmake_options=(-DCORENRN_ENABLE_MPI=ON)
+        - cmake_option="-DCORENRN_ENABLE_MPI=ON"
     - os: osx
       osx_image: xcode10.2
       env:
-        - cmake_options=(-DCORENRN_ENABLE_MPI=OFF)
+        - cmake_option="-DCORENRN_ENABLE_MPI=OFF"
     - os: osx
       osx_image: xcode10.2
       env:
-        - cmake_options=(-DCORENRN_ENABLE_SOA=ON)
+        - cmake_option="-DCORENRN_ENABLE_SOA=ON"
     - os: osx
       osx_image: xcode10.2
       env:
-        - cmake_options=(-DCORENRN_ENABLE_SOA=OFF)
+        - cmake_option="-DCORENRN_ENABLE_SOA=OFF"
     - os: osx
       osx_image: xcode10.2
       env:
-        - cmake_options=(-DCORENRN_ENABLE_NMODL=ON)
         - USE_NMODL=ON
     - os: linux
       dist: xenial
@@ -149,8 +146,11 @@ script:
   - if [[ "$USE_ISPC" == "ON" ]]; then
         cmake -DCORENRN_ENABLE_ISPC=ON -DCMAKE_ISPC_COMPILER=../ispc/bin/ispc
               -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron -DPYTHON_EXECUTABLE=$(which python3) ..;
+    elif [[ "$USE_NMODL" == "ON" ]]; then
+        cmake -DCORENRN_ENABLE_NMODL=ON -DCORENRN_NMODL_FLAGS="sympy --analytic"
+              -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron -DPYTHON_EXECUTABLE=$(which python3) ..;
     else
-        cmake "${cmake_options[@]}" -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron -DPYTHON_EXECUTABLE=$(which python3) ..;
+        cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron -DPYTHON_EXECUTABLE=$(which python3) ..;
     fi
   - cmake --build .
   - ctest --output-on-failure
