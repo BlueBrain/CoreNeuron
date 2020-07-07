@@ -32,7 +32,7 @@ matrix:
     - os: linux
       dist: xenial
       env:
-        - cmake_option="-DCORENRN_ENABLE_NMODL=ON"
+        - cmake_option='-DCORENRN_ENABLE_NMODL=ON -DCORENRN_NMODL_FLAGS="sympy --analytic"'
         - PYTHON_VERSION=3.6.7  # for nmodl pip3 install
         - USE_NMODL=ON
     - os: osx
@@ -119,7 +119,7 @@ before_install:
     fi
   # install NMODL dependencies
   - if [[ "$USE_NMODL" == "ON" || "$USE_ISPC" == "ON" ]]; then
-        pip3 install jinja2 pyyaml pytest sympy;
+        pip3 install jinja2 pyyaml pytest "sympy<1.6";
     fi
   - if [ -n "$GCC_VERSION" ]; then
         export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}";
