@@ -58,7 +58,8 @@ void parse_filter_string(char* filter, ReportConfiguration& config) {
 }
 
 std::vector<ReportConfiguration> create_report_configurations(const char* conf_file,
-                                                              const char* output_dir) {
+                                                              const char* output_dir,
+                                                              char* spikes_population_name) {
     std::vector<ReportConfiguration> reports;
     int num_reports = 0;
     char report_on[REPORT_MAX_NAME_LEN] = "";
@@ -75,6 +76,8 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
 
     fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
     sscanf(raw_line, "%d\n", &num_reports);
+    fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
+    sscanf(raw_line, "%s\n", spikes_population_name);
     for (int i = 0; i < num_reports; i++) {
         reports.push_back(ReportConfiguration());
         ReportConfiguration& report = reports[reports.size() - 1];
@@ -82,10 +85,10 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
         report.mech_id = -1;
         report.buffer_size = 4;  // default size to 4 Mb
         fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
-        sscanf(raw_line, "\n%s %s %s %s %s %s %d %lf %lf %lf %d %d\n", report.name,
+        sscanf(raw_line, "\n%s %s %s %s %s %s %d %lf %lf %lf %d %d %s\n", report.name,
                report.target_name, report.type_str, report_on, report.unit, report.format, &is_soma,
                &report.report_dt, &report.start, &report.stop, &report.num_gids,
-               &report.buffer_size);
+               &report.buffer_size, report.population_name);
         for (int i = 0; i < REPORT_MAX_NAME_LEN; i++) {
             report.type_str[i] = tolower(report.type_str[i]);
         }
