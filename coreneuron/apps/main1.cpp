@@ -428,10 +428,20 @@ using namespace coreneuron;
 
 extern "C" void mk_mech_init(int argc, char** argv) {
 #if NRNMPI
-    nrnmpi_init(1, &argc, &argv);
+    for(int i = 0; i < argc; ++i) {
+        if(argv[i] == "--mpi") {
+            nrnmpi_init(1, &argc, &argv);
+            break;
+        }
+    }
 #endif
 #ifdef _OPENACC
-    init_gpu();
+    for(int i = 0; i < argc; ++i) {
+        if(argv[i] == "--gpu") {
+            init_gpu();
+            break;
+        }
+    }
 #endif
     // read command line parameters and parameter config files
 
