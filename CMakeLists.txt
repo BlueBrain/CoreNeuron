@@ -118,7 +118,9 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
-if(CORENRN_ENABLE_SHARED)
+# OpenACC needs to build static library in order to have global/routines
+# working. See https://www.pgroup.com/userforum/viewtopic.php?t=5350
+if(CORENRN_ENABLE_SHARED AND NOT CORENRN_ENABLE_GPU)
   set(COMPILE_LIBRARY_TYPE "SHARED")
 else()
   set(COMPILE_LIBRARY_TYPE "STATIC")
