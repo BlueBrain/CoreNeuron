@@ -470,11 +470,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
             if (nrnmpi_myid == 0)
                 printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
         } else {
-            char population[256];
             configs = create_report_configurations(corenrn_param.reportfilepath.c_str(),
                                                    corenrn_param.outpath.c_str(),
-                                                   population);
-            spikes_population_name = population;
+                                                   spikes_population_name);
             reports_needs_finalize = configs.size();
         }
     }

@@ -76,7 +76,7 @@ struct ReportConfiguration {
 void setup_report_engine(double dt_report, double mindelay);
 std::vector<ReportConfiguration> create_report_configurations(const char* filename,
                                                               const char* output_dir,
-                                                              char* spikes_population_name);
+                                                              std::string& spikes_population_name);
 void finalize_report();
 void nrn_flush_reports(double t);
 void set_report_buffer_size(int n);

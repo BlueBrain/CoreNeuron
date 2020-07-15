@@ -59,11 +59,12 @@ void parse_filter_string(char* filter, ReportConfiguration& config) {
 
 std::vector<ReportConfiguration> create_report_configurations(const char* conf_file,
                                                               const char* output_dir,
-                                                              char* spikes_population_name) {
+                                                              std::string& spikes_population_name) {
     std::vector<ReportConfiguration> reports;
     int num_reports = 0;
     char report_on[REPORT_MAX_NAME_LEN] = "";
     char raw_line[REPORT_MAX_FILEPATH_LEN] = "";
+    char spikes_population[REPORT_MAX_NAME_LEN] = "";
     int is_soma;
     int* gids;
 
@@ -76,8 +77,6 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
 
     fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
     sscanf(raw_line, "%d\n", &num_reports);
-    fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
-    sscanf(raw_line, "%s\n", spikes_population_name);
     for (int i = 0; i < num_reports; i++) {
         reports.push_back(ReportConfiguration());
         ReportConfiguration& report = reports[reports.size() - 1];
@@ -122,6 +121,9 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
             free(gids);
         }
     }
+    fgets(raw_line, REPORT_MAX_NAME_LEN, fp);
+    sscanf(raw_line, "%s\n", spikes_population);
+    spikes_population_name = spikes_population;
     fclose(fp);
     return reports;
 }
