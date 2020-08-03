@@ -36,6 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/utils/nrnmutdec.h"
@@ -45,6 +46,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef ENABLE_SONATA_REPORTS
 #include "bbp/sonata/reports.h"
 #endif  // ENABLE_SONATA_REPORTS
+
+static void all_spikes_return(std::vector<double>& spiketvec, std::vector<int>& spikegidvec) {
+    if (nrn2core_all_spike_vectors_return_) {
+        (*nrn2core_all_spike_vectors_return_)(spiketvec, spikegidvec);
+    }
+}
 
 namespace coreneuron {
 
@@ -168,6 +175,9 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
     sonata_write_spikes(population_name.data(), spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(),
                         spikevec_gid.size(), outpath);
 #endif  // ENABLE_SONATA_REPORTS
+    // transfer spikes to NRN
+    all_spikes_return(spikevec_time, spikevec_gid);
+
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 
@@ -226,6 +236,10 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
 #endif
 
 void output_spikes_serial(const char* outpath) {
+
+    // transfer spikes to NRN
+    all_spikes_return(spikevec_time, spikevec_gid);
+
     std::stringstream ss;
     ss << outpath << "/out.dat";
     std::string fname = ss.str();
