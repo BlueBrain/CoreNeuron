@@ -47,10 +47,16 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "bbp/sonata/reports.h"
 #endif  // ENABLE_SONATA_REPORTS
 
-static void all_spikes_return(std::vector<double>& spiketvec, std::vector<int>& spikegidvec) {
-    if (nrn2core_all_spike_vectors_return_) {
-        (*nrn2core_all_spike_vectors_return_)(spiketvec, spikegidvec);
-    }
+/**
+ * @brief Return all spike vectors to NEURON
+ *
+ * @param spiketvec - vector of spikes at the end of CORENEURON simulation
+ * @param spikegidvec - vector of gids at the end of CORENEURON simulation
+ * @return true if we are in embedded_run and NEURON has successfully retrieved the vectors
+ */
+static bool all_spikes_return(std::vector<double>& spiketvec, std::vector<int>& spikegidvec) {
+    return corenrn_embedded && nrn2core_all_spike_vectors_return_ &&
+            (*nrn2core_all_spike_vectors_return_)(spiketvec, spikegidvec);
 }
 
 namespace coreneuron {
@@ -175,8 +181,10 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
     sonata_write_spikes(population_name.data(), spikevec_time.data(), spikevec_time.size(), spikevec_gid.data(),
                         spikevec_gid.size(), outpath);
 #endif  // ENABLE_SONATA_REPORTS
-    // transfer spikes to NRN
-    all_spikes_return(spikevec_time, spikevec_gid);
+
+    // try to transfer spikes to NRN. If successful, don't write out.dat
+    if (all_spikes_return(spikevec_time, spikevec_gid))
+        return;
 
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
@@ -237,8 +245,9 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
 
 void output_spikes_serial(const char* outpath) {
 
-    // transfer spikes to NRN
-    all_spikes_return(spikevec_time, spikevec_gid);
+    // try to transfer spikes to. If successfull, don't write out.dat
+    if (all_spikes_return(spikevec_time, spikevec_gid))
+        return;
 
     std::stringstream ss;
     ss << outpath << "/out.dat";
