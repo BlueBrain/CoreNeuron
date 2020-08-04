@@ -182,10 +182,6 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
                         spikevec_gid.size(), outpath);
 #endif  // ENABLE_SONATA_REPORTS
 
-    // try to transfer spikes to NRN. If successful, don't write out.dat
-    if (all_spikes_return(spikevec_time, spikevec_gid))
-        return;
-
     sort_spikes(spikevec_time, spikevec_gid);
     nrnmpi_barrier();
 
@@ -245,10 +241,6 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
 
 void output_spikes_serial(const char* outpath) {
 
-    // try to transfer spikes to. If successfull, don't write out.dat
-    if (all_spikes_return(spikevec_time, spikevec_gid))
-        return;
-
     std::stringstream ss;
     ss << outpath << "/out.dat";
     std::string fname = ss.str();
@@ -275,6 +267,9 @@ void output_spikes_serial(const char* outpath) {
 }
 
 void output_spikes(const char* outpath, const std::string& population_name) {
+    // try to transfer spikes to NEURON. If successfull, don't write out.dat
+    if (all_spikes_return(spikevec_time, spikevec_gid))
+        return;
 #if NRNMPI
     if (nrnmpi_initialized()) {
         output_spikes_parallel(outpath, population_name);
