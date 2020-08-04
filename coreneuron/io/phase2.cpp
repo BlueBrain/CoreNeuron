@@ -376,8 +376,8 @@ void Phase2::check_mechanism() {
             printf(
                     "Error : NEURON and CoreNEURON must use same mod files for compatibility, %d different mod file(s) found. Re-compile special and special-core!\n",
                     diff_mech_count);
+            nrn_abort(1);
         }
-        nrn_abort(1);
     }
 
 }
