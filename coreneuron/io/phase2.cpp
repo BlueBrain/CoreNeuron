@@ -286,8 +286,13 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         if (dparam_sizes[type] > 0)
             dsz_inst++;
         offset += nrn_soa_padded_size(nodecounts[i], layout) * param_sizes[type];
-        std::copy(nodeindices_, nodeindices_ + nodecounts[i], tml.nodeindices.data());
-        free_memory(nodeindices_);
+        if (nodeindices_) {
+            std::copy(nodeindices_, nodeindices_ + nodecounts[i], tml.nodeindices.data());
+            free_memory(nodeindices_);
+        }
+        if (corenrn.get_is_artificial()[type]) {
+            assert(nodeindices_ ==  nullptr);
+        }
     }
 
     int* output_vindex_ = nullptr;
