@@ -35,44 +35,6 @@ namespace coreneuron {
 
 /**
    If FOR_NETCON in use, setup NrnThread fornetcon related info.
-
-   i.e NrnThread._fornetcon_perm_indices, NrnThread._fornetcon_weight_perm,
-   and the relevant dparam element of each mechanism instance that uses
-   a FOR_NETCON statement.
-
-   Makes use of nrn_fornetcon_cnt_, nrn_fornetcon_type_,
-   and nrn_fornetcon_index_ that were specified during registration of
-   mechanisms that use FOR_NETCON.
-
-   nrn_fornetcon_cnt_ is the number of mechanisms that use FOR_NETCON,
-   nrn_fornetcon_type_ is an int array of size nrn_fornetcon_cnt, that specifies
-   the mechanism type.
-   nrn_fornetcon_index_ is an int array of size nrn_fornetcon_cnt, that
-   specifies the index into an instance's dparam int array having the
-   fornetcon semantics.
-
-   FOR_NETCON (args) means to loop over all NetCon connecting to this
-   target instance and args are the names of the items of each NetCon's
-   weight vector (same as the enclosing NET_RECEIVE but possible different
-   local names).
-
-   NrnThread._weights is a vector of weight groups where the number of groups
-   is the number of NetCon in this thread and each group has a size
-   equal to the number of args in the target NET_RECEIVE block. The order
-   of these groups is the NetCon Object order in HOC (the construction order).
-   So the weight vector indices for the NetCons in the FOR_NETCON loop
-   are not adjacent.
-
-   NrnThread._fornetcon_weight_perm is an index vector into the
-   NrnThread._weight vector such that the list of NetCon that targets a
-   mechanism instance are adjacent.
-   NrnThread._fornetcon_perm_indices is an index vector into the
-   NrnThread._fornetcon_weight_perm to the first of the list of NetCon weights
-   that target the instance. The index of _fornetcon_perm_indices
-   containing this first in the list is stored in the mechanism instances
-   dparam at the dparam's semantic fornetcon slot. (Note that the next index
-   points to the first index of the next target instance.)
-   
 **/
 
 void setup_fornetcon_info(NrnThread& nt);
