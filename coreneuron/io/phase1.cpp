@@ -29,6 +29,8 @@ void Phase1::read_direct(int thread_id) {
     int* netcon_srcgid;
     int n_presyn;
     int n_netcon;
+
+    // TODO : check error codes for NEURON - CoreNEURON communication
     int valid =
         (*nrn2core_get_dat1_)(thread_id, n_presyn, n_netcon, output_gids, netcon_srcgid);
     if (!valid) {

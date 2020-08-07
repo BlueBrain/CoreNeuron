@@ -80,7 +80,7 @@ inline void mech_data_layout_transform(T* data, int cnt, int sz, int layout) {
             d[i * sz + j] = data[i * sz + j];
         }
     }
-    // transpose matrix
+    // transform memory layout
     for (int i = 0; i < cnt; ++i) {
         for (int j = 0; j < sz; ++j) {
             data[i + j * align_cnt] = d[i * sz + j];
@@ -326,8 +326,9 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     (*nrn2core_get_dat2_corepointer_)(nt.id, num_point_process);
 
     for (size_t i = 0; i < n_mech; ++i) {
+        // not all mod files have BBCOREPOINTER data to read
         if (!corenrn.get_bbcore_read()[mech_types[i]]) {
-            continue; // I don't get this test
+            continue;
         }
         int icnt;
         int* iArray_ = nullptr;
