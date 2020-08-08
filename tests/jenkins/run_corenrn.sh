@@ -28,21 +28,21 @@ elif [ "${TEST}" = "patstim_save_restore" ]; then
 
     # run test with checkpoint : part 1
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d testpatstimdat -o ${TEST} --checkpoint checkpoint
-    mv out.dat out.1.dat
+    mv ${TEST}/out.dat ${TEST}/out.1.dat
 
     # run test with restore : part 2
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d testpatstimdat -o ${TEST} --restore checkpoint
-    mv out.dat out.2.dat
+    mv ${TEST}/out.dat ${TEST}/out.2.dat
 
     # run additional restore by providing full patternstim : part 3
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST} --restore checkpoint
-    mv out.dat out.3.dat
+    mv ${TEST}/out.dat ${TEST}/out.3.dat
 
     # part 2 and part 3 should be same (part 3 ignore extra events)
-    diff -w out.2.dat out.3.dat
+    diff -w ${TEST}/out.2.dat ${TEST}/out.3.dat
 
     # combine spikes
-    cat out.1.dat out.2.dat > out.dat
+    cat ${TEST}/out.1.dat ${TEST}/out.2.dat > ${TEST}/out.dat
 elif [ "${TEST}" = "ringtest" ]; then
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 -d coredat -o ${TEST}
 elif [ "${TEST}" = "tqperf" ]; then
