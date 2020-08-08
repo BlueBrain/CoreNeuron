@@ -18,8 +18,9 @@ else
 fi
 
 if [ "${TEST}" = "patstim" ]; then
+    # first run full run
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST}
-elif [ "${TEST}" = "patstim_save_restore" ]; then
+
     # split patternstim file into two parts : total 2000 events, split at line no 1000 (i.e. 50 msec)
     echo 1000 > patstim.1.spk
     sed -n 2,1001p patstim.spk  >> patstim.1.spk
@@ -27,22 +28,21 @@ elif [ "${TEST}" = "patstim_save_restore" ]; then
     sed -n 1002,2001p patstim.spk  >> patstim.2.spk
 
     # run test with checkpoint : part 1
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d testpatstimdat -o ${TEST} --checkpoint checkpoint
-    mv ${TEST}/out.dat ${TEST}/out.1.dat
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d testpatstimdat -o ${TEST}_part1 --checkpoint checkpoint
 
     # run test with restore : part 2
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d testpatstimdat -o ${TEST} --restore checkpoint
-    mv ${TEST}/out.dat ${TEST}/out.2.dat
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d testpatstimdat -o ${TEST}_part2 --restore checkpoint
 
-    # run additional restore by providing full patternstim : part 3
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST} --restore checkpoint
-    mv ${TEST}/out.dat ${TEST}/out.3.dat
+    # run additional restore by providing full patternstim in part 2 : part 3
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST}_part3 --restore checkpoint
 
-    # part 2 and part 3 should be same (part 3 ignore extra events)
-    diff -w ${TEST}/out.2.dat ${TEST}/out.3.dat
+    # part 2 and part 3 should be same (part 3 ignore extra events in pattern stim)
+    diff -w  ${TEST}_part2/out.dat  ${TEST}_part3/out.dat
 
-    # combine spikes
-    cat ${TEST}/out.1.dat ${TEST}/out.2.dat > ${TEST}/out.dat
+    # combine spikes from part1 and part2 should be same as full run
+    cat ${TEST}_part1/out.dat  ${TEST}_part2/out.dat > ${TEST}/out.saverestore.dat
+    diff -w ${TEST}/out.dat ${TEST}/out.saverestore.dat
+
 elif [ "${TEST}" = "ringtest" ]; then
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 -d coredat -o ${TEST}
 elif [ "${TEST}" = "tqperf" ]; then

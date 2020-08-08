@@ -320,7 +320,7 @@ pipeline {
                         }
                     }
                 }
-                stage('patstim'){
+                stage('patstim save restore'){
                     stages{
                         stage('neuron'){
                             steps{
@@ -337,12 +337,6 @@ pipeline {
                                 sh 'sh tests/jenkins/run_corenrn.sh testcorenrn SoA patstim 6'
                             }
                         }
-                        stage('corenrn save-restore'){
-                            steps{
-                                sh 'sh tests/jenkins/run_corenrn.sh testcorenrn SoA patstim_save_restore 6'
-                            }
-                        }
-
                     }
                 }
                 stage('ringtest parallel'){
