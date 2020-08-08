@@ -211,9 +211,5 @@ void report_cell_stats(void) {
         nrnmpi_barrier();
     }
 #endif
-    if (nrnmpi_myid == 0) {
-        printf("\n\n");
-        fflush(stdout);
-    }
 }
 }  // namespace coreneuron
