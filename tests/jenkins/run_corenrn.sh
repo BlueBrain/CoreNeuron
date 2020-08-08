@@ -19,6 +19,21 @@ fi
 
 if [ "${TEST}" = "patstim" ]; then
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d test${TEST}dat -o ${TEST}
+elif [ "${TEST}" = "patstim_save_restore" ]; then
+    # split patternstim file into two parts : total 2000 events, split at line no 1000 (i.e. 50 msec)
+    echo 1000 > patstim.1.spk
+    sed -n 2,1001p patstim.spk  >> patstim.1.spk
+    echo 1000 > patstim.2.spk
+    sed -n 1002,2001p patstim.spk  >> patstim.2.spk
+
+    # run test with checkpoint restore
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d test${TEST}dat -o ${TEST} --checkpoint checkpoint
+    mv out.dat out.1.dat
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d test${TEST}dat -o ${TEST} --restore checkpoint
+    mv out.dat out.2.dat
+
+    # combine spikes
+    cat out.1.dat out.2.dat > out.dat
 elif [ "${TEST}" = "ringtest" ]; then
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 -d coredat -o ${TEST}
 elif [ "${TEST}" = "tqperf" ]; then
