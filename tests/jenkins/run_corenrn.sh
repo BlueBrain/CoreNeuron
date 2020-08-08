@@ -18,7 +18,7 @@ else
 fi
 
 if [ "${TEST}" = "patstim" ]; then
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d test${TEST}dat -o ${TEST}
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST}
 elif [ "${TEST}" = "patstim_save_restore" ]; then
     # split patternstim file into two parts : total 2000 events, split at line no 1000 (i.e. 50 msec)
     echo 1000 > patstim.1.spk
@@ -27,15 +27,15 @@ elif [ "${TEST}" = "patstim_save_restore" ]; then
     sed -n 1002,2001p patstim.spk  >> patstim.2.spk
 
     # run test with checkpoint : part 1
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d test${TEST}dat -o ${TEST} --checkpoint checkpoint
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d testpatstimdat -o ${TEST} --checkpoint checkpoint
     mv out.dat out.1.dat
 
     # run test with restore : part 2
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d test${TEST}dat -o ${TEST} --restore checkpoint
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d testpatstimdat -o ${TEST} --restore checkpoint
     mv out.dat out.2.dat
 
     # run additional restore by providing full patternstim : part 3
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d test${TEST}dat -o ${TEST} --restore checkpoint
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST} --restore checkpoint
     mv out.dat out.3.dat
 
     # part 2 and part 3 should be same (part 3 ignore extra events)
