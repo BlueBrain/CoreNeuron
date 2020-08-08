@@ -100,7 +100,6 @@ addons:
       - openmpi
       - boost
       - python@3
-    update: true
 
 #=============================================================================
 # Set up environments
