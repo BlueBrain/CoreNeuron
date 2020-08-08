@@ -21,14 +21,14 @@ if [ "${TEST}" = "patstim" ]; then
     # first run full run
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.spk -d testpatstimdat -o ${TEST}
 
-    # split patternstim file into two parts : total 2000 events, split at line no 1000 (i.e. 50 msec)
+    # split patternstim file into two parts : total 2000 events, split at line no 1001 i.e. before events for 50 msec
     echo 1000 > patstim.1.spk
     sed -n 2,1001p patstim.spk  >> patstim.1.spk
     echo 1000 > patstim.2.spk
     sed -n 1002,2001p patstim.spk  >> patstim.2.spk
 
     # run test with checkpoint : part 1
-    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 50 --pattern patstim.1.spk -d testpatstimdat -o ${TEST}_part1 --checkpoint checkpoint
+    mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 49 --pattern patstim.1.spk -d testpatstimdat -o ${TEST}_part1 --checkpoint checkpoint
 
     # run test with restore : part 2
     mpirun -n ${MPI_RANKS} ./${CORENRN_TYPE}/special-core --mpi -e 100 --pattern patstim.2.spk -d testpatstimdat -o ${TEST}_part2 --restore checkpoint
