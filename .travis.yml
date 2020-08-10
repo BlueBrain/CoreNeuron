@@ -192,5 +192,5 @@ deploy:
   local_dir: $TRAVIS_BUILD_DIR/build/docs
   target_branch: gh-pages
   on:
-    branch: master
+    branch: docs
     condition: $BUILD_DOCUMENTATION = ON && $TRAVIS_OS_NAME = linux
