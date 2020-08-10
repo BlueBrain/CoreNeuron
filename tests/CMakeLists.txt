@@ -13,11 +13,7 @@ if(NOT Boost_USE_STATIC_LIBS)
 endif()
 
 set(Boost_NO_BOOST_CMAKE TRUE)
-find_package(Boost 1.41.0 QUIET
-             COMPONENTS filesystem
-                        system
-                        atomic
-                        unit_test_framework)
+find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
 if(Boost_FOUND)
   if(CORENRN_ENABLE_UNIT_TESTS)

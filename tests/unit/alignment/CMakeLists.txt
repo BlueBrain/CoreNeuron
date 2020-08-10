@@ -14,5 +14,5 @@ if(CORENRN_ENABLE_GPU)
   target_link_libraries(alignment_test_bin ${link_cudacoreneuron} ${CUDA_LIBRARIES})
 endif()
 
-add_test(NAME alignment_test
-         COMMAND ${TEST_EXEC_PREFIX} ${CMAKE_CURRENT_BINARY_DIR}/alignment_test_bin)
+add_test(NAME alignment_test COMMAND ${TEST_EXEC_PREFIX}
+                                     ${CMAKE_CURRENT_BINARY_DIR}/alignment_test_bin)

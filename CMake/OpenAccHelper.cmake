@@ -13,7 +13,9 @@ if(CORENRN_ENABLE_GPU)
   # if user don't specify host compiler, use gcc from $PATH
   if(NOT CUDA_HOST_COMPILER)
     find_program(GCC_BIN gcc)
-    set(CUDA_HOST_COMPILER ${GCC_BIN} CACHE FILEPATH "" FORCE)
+    set(CUDA_HOST_COMPILER
+        ${GCC_BIN}
+        CACHE FILEPATH "" FORCE)
   endif()
 
   # various flags for PGI compiler with GPU build
@@ -29,8 +31,8 @@ if(CORENRN_ENABLE_GPU)
     set(CMAKE_C_FLAGS "${ACC_FLAGS} ${CMAKE_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${ACC_FLAGS} ${CMAKE_CXX_FLAGS} ${PGI_DIAG_FLAGS}")
     # avoid PGI adding standard compliant "-A" flags
-    set(CMAKE_CXX11_STANDARD_COMPILE_OPTION  --c++11)
-    set(CMAKE_CXX14_STANDARD_COMPILE_OPTION  --c++14)
+    set(CMAKE_CXX11_STANDARD_COMPILE_OPTION --c++11)
+    set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
   else()
     message(WARNING "Non-PGI compiler : make sure to add required compiler flags to enable OpenACC")
   endif()

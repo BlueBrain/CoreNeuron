@@ -6,11 +6,10 @@
 
 # Find the compiler
 find_program(
-    CMAKE_ISPC_COMPILER
-        NAMES $ENV{ISPC} ispc
-        PATHS ENV PATH
-        DOC "ISPC compiler"
-)
+  CMAKE_ISPC_COMPILER
+  NAMES $ENV{ISPC} ispc
+  PATHS ENV PATH
+  DOC "ISPC compiler")
 mark_as_advanced(CMAKE_ISPC_COMPILER)
 
 set(CMAKE_ISPC_SOURCE_FILE_EXTENSIONS ispc)
