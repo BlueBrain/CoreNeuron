@@ -1,4 +1,4 @@
-## CORENEURON Documentation
+## CoreNEURON Documentation
 
 ### Local build
 

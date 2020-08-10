@@ -1,4 +1,4 @@
-Welcome to CORENEURON's documentation!
+Welcome to CoreNEURON's documentation!
 ==================================
 
 .. toctree::
@@ -12,7 +12,7 @@ Welcome to CORENEURON's documentation!
    :caption: Developer documentation:
 
    doxygen
-   
+
 Indices and tables
 ==================
 

@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'CORENEURON'
+project = 'CoreNEURON'
 copyright = 'Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020'
 author = 'Michael Hines and the BlueBrain Project'
 
