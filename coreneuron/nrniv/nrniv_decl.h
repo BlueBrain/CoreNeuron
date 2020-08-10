@@ -32,7 +32,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <map>
 #include "coreneuron/network/netcon.hpp"
-#include "coreneuron/utils/endianness.hpp"
 namespace coreneuron {
 
 /// Mechanism type to be used from stdindex2ptr and nrn_dblpntr2nrncore (in Neuron)
@@ -58,7 +57,7 @@ extern void mk_netcvode(void);
 extern void nrn_p_construct(void);
 extern void nrn_setup(const char* filesdat,
                       bool is_mapping_needed,
-                      bool byte_swap,
+                      bool byte_swap, // We keep it for backward API compatibility but it is not used
                       bool run_setup_cleanup = true,
                       const char* datapath = "",
                       const char* restore_path = "",
@@ -70,7 +69,7 @@ extern int nrn_setup_extracon;
 extern void nrn_cleanup();
 extern void nrn_cleanup_ion_map();
 extern void BBS_netpar_solve(double);
-extern void nrn_mkPatternStim(const char* filename);
+extern void nrn_mkPatternStim(const char* filename, double tstop);
 extern int nrn_extra_thread0_vdata;
 extern void nrn_set_extra_thread0_vdata(void);
 extern Point_process* nrn_artcell_instantiate(const char* mechname);
