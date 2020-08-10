@@ -20,7 +20,6 @@ set(TEST_CASES_WITH_ARGS
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
     "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer --spikebuf 1"
-    "ring_duplicate!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_duplicate --multiple 3"
     "ring_permute1!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
     "ring_permute2!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
     "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
@@ -51,7 +50,7 @@ foreach(data_dir "ring" "ring_gap")
 endforeach()
 
 # base tests : ring, ring with gap and ring duplication
-foreach(data_dir "ring" "ring_gap" "ring_duplicate")
+foreach(data_dir "ring" "ring_gap")
   file(COPY
          "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
          DESTINATION

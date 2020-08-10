@@ -65,7 +65,6 @@ extern void nrn_setup(const char* filesdat,
 extern double* stdindex2ptr(int mtype, int index, NrnThread&);
 extern void delete_trajectory_requests(NrnThread&);
 extern int nrn_setup_multiple;
-extern int nrn_setup_extracon;
 extern void nrn_cleanup();
 extern void nrn_cleanup_ion_map();
 extern void BBS_netpar_solve(double);
