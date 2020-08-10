@@ -52,7 +52,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #undef weights
 #undef weight_index_
 
-#undef type
 #undef id
 
 #endif
