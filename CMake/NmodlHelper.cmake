@@ -1,21 +1,23 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
-# Macro sets up build rule for .cpp files from .mod files. Parameters: KEY name               : An
-# arbitrary name to keep track of output .c files MODFILE input          : The path to the mod file
+# ~~~
+# Macro sets up build rule for .cpp files from .mod files. Parameters:
+# KEY name               : An arbitrary name to keep track of output .c files
+# MODFILE input          : The path to the mod file
 # OUTTYPE <SERIAL|ISPC>  : The output type (optional, defaults to serial)
 #
-# Because nmodl/mod2c_core wants to write the .cpp file in the same directory as the mod file, we
-# copy the mod file to the binary directory first
+# Because nmodl/mod2c_core wants to write the .cpp file in the same directory as the mod file,
+# we copy the mod file to the binary directory first
 #
-# The macro appends the names of the output files to NMODL_${name}_OUTPUTS and the names of the mod
-# files (without directories) to NMODL_${name}_MODS
+# The macro appends the names of the output files to NMODL_${name}_OUTPUTS and the names of the
+# mod files (without directories) to NMODL_${name}_MODS
+# ~~~
 
 macro(nmodl_to_cpp_target)
-
   # first parse the arguments
   set(options)
   set(oneValueArgs TARGET MODFILE KEY)

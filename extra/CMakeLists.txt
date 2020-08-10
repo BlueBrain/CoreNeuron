@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -17,8 +17,10 @@ if(CORENRN_COMPILE_FLAGS)
   endforeach()
 endif()
 
-# find_cuda uses FindThreads that adds below imported target we shouldn't add imported target to
-# link line
+# ~~~
+# find_cuda uses FindThreads that adds below imported target we shouldn't add
+# imported target to link line
+# ~~~
 list(REMOVE_ITEM CORENRN_LINK_LIBS "Threads::Threads")
 
 # replicate CMake magic to transform system libs to -l<libname>

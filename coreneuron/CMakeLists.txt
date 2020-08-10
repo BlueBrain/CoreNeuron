@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -42,8 +42,10 @@ set(ENGINEMECH_CODE_FILE "mechanism/mech/enginemech.cpp")
 # for external mod files we need to generate modl_ref function in mod_func.c
 set(MODFUNC_PERL_SCRIPT "mechanism/mech/mod_func.c.pl")
 
-# as openacc limits passing function pointers as arguments, mod2c translated files depend on a
-# _kinderiv.h file that is constructed by kinderiv.py
+# ~~~
+# as openacc limits passing function pointers as arguments, mod2c translated files
+# depend on a _kinderiv.h file that is constructed by kinderiv.py
+# ~~~
 set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
@@ -94,8 +96,10 @@ endif()
 # coreneuron GPU library
 # =============================================================================
 if(CORENRN_ENABLE_GPU)
-  # artificial cells and some other cpp files (using Random123) should be compiled without OpenACC
-  # to avoid use of GPU Random123 streams
+  # ~~~
+  # artificial cells and some other cpp files (using Random123) should be compiled
+  # without OpenACC to avoid use of GPU Random123 streams
+  # ~~~
   set(OPENACC_EXCLUDED_FILES
       ${CMAKE_CURRENT_BINARY_DIR}/netstim.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/netstim_inhpoisson.cpp
@@ -234,15 +238,19 @@ file(
   GLOB_RECURSE main_headers
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
   *.h *.hpp *.ispc)
+
 foreach(header ${main_headers})
   configure_file("${header}" "${CMAKE_BINARY_DIR}/include/coreneuron/${header}" COPYONLY)
 endforeach()
+
 configure_file("utils/profile/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h COPYONLY)
 
 if(NOT CORENRN_ENABLE_NMODL)
-  # MOD2C puts UNITS_FILE in share, but we need to see it in share/mod2c We create a link since we
-  # know neither the source location nor when its copied
+  # ~~~
+  # MOD2C puts UNITS_FILE in share, but we need to see it in share/mod2c We create
+  # a link since we know neither the source location nor when its copied
+  # ~~~
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/mod2c/")
   add_custom_target(link_units ALL COMMAND ${CMAKE_COMMAND} -E create_symlink "${NMODL_UNITS_FILE}"
                                            "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
@@ -250,6 +258,7 @@ endif()
 
 # main program required for building special-core
 file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
+
 
 # =============================================================================
 # Install main targets

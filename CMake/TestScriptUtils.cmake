@@ -1,31 +1,44 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
-# Utility functions for manipulating test labels and producing tests from scripts:
+# ~~~
+# Utility functions for manipulating test labels and producing
+# tests from scripts:
 #
 # 1. add_test_class(label [label2 ...])
 #
-# Create a target with name test-label (or test-label-label2 etc.) which runs only those tests
-# possessing all of the supplied labels.
+#    Create a target with name test-label (or test-label-label2 etc.)
+#    which runs only those tests possessing all of the supplied labels.
 #
-# 1. add_test_label(name label ...)
 #
-# Add the given labels to the test 'name'.
+# 2. add_test_label(name label ...)
 #
-# 1. add_test_script(name script interp)
+#    Add the given labels to the test 'name'.
 #
-# Add a test 'name' that runs the given script, using the interpreter 'interp'. If no interpreter is
-# supplied, the script will be run with /bin/sh.
 #
-# Uses the following variables to customize the new test: * TEST_LABEL, ${NAME}_TEST_LABEL If
-# defined, apply the label(s) in these variable to the new test. * TEST_ARGS, ${NAME}_TEST_ARGS
-# Additional arguments to pass to the script. ${NAME}_TEST_ARGS takes priority over TEST_ARGS. *
-# TEST_ENVIRONMENT Additional environment variables to define for the test; added to test
-# properties. * TEST_PREFIX, ${NAME}_TEST_PREFIX If defined, preface the interpreter with this
-# prefix. ${NAME}_TEST_PREFIX takes priority over TEST_PREFIX.
+# 3. add_test_script(name script interp)
+#
+#    Add a test 'name' that runs the given script, using the
+#    interpreter 'interp'. If no interpreter is supplied,
+#    the script will be run with /bin/sh.
+#
+#    Uses the following variables to customize the new test:
+#    * TEST_LABEL, ${NAME}_TEST_LABEL
+#          If defined, apply the label(s) in these variable to the
+#          new test.
+#    * TEST_ARGS, ${NAME}_TEST_ARGS
+#          Additional arguments to pass to the script.
+#          ${NAME}_TEST_ARGS takes priority over TEST_ARGS.
+#    * TEST_ENVIRONMENT
+#          Additional environment variables to define for the test;
+#          added to test properties.
+#    * TEST_PREFIX, ${NAME}_TEST_PREFIX
+#          If defined, preface the interpreter with this prefix.
+#          ${NAME}_TEST_PREFIX takes priority over TEST_PREFIX.
+# ~~~
 
 function(add_test_label NAME)
   set_property(

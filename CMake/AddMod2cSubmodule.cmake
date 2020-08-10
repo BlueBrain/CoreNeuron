@@ -1,16 +1,17 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
 include(ExternalProject)
-
 find_package(FindPkgConfig QUIET)
+
 find_path(
   MOD2C_PROJ
   NAMES CMakeLists.txt
   PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/mod2c")
+
 find_package_handle_standard_args(MOD2C REQUIRED_VARS MOD2C_PROJ)
 
 if(NOT MOD2C_FOUND)

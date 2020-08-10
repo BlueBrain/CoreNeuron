@@ -1,6 +1,8 @@
 if(CMAKE_ISPC_COMPILER_FORCED)
-  # The compiler configuration was forced by the user. Assume the user has configured all compiler
-  # information.
+  # ~~~
+  # The compiler configuration was forced by the user. Assume the user has
+  # configured all compiler information.
+  # ~~~
   set(CMAKE_ISPC_COMPILER_WORKS TRUE)
   return()
 endif()
@@ -13,9 +15,11 @@ set(CMAKE_ISPC_COMPILER_WORKS
 # CMakeISPCCompiler.cmake.
 unset(CMAKE_ISPC_COMPILER_WORKS CACHE)
 
-# This file is used by EnableLanguage in cmGlobalGenerator to determine that the selected ispc
-# compiler can actually compile and the most basic program. If not, a fatal error is set and cmake
-# stops processing commands and will not generate any makefiles or projects.
+# ~~~
+# This file is used by EnableLanguage in cmGlobalGenerator to determine that the selected
+# ispc compiler can actually compile and the most basic program. If not, a fatal error is
+# set and cmake stops processing commands and will not generate any makefiles or projects.
+# ~~~
 if(NOT CMAKE_ISPC_COMPILER_WORKS)
   printtestcompilerstatus("ISPC" "")
   file(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/kernel.ispc
@@ -39,6 +43,7 @@ if(NOT CMAKE_ISPC_COMPILER_WORKS)
   set(ISPC_TEST_WAS_RUN 1)
 endif()
 
+# Print compiler status
 if(NOT CMAKE_ISPC_COMPILER_WORKS)
   printtestcompilerstatus("ISPC" " -- broken")
   file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log

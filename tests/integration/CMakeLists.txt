@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -34,7 +34,7 @@ set(NEGATIVE_TEST_CASES_WITH_ARGS
     "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456"
 )
 
-# There are no directories for permute and multisend related tests, create them and copy ref spikes
+# There are no directories for permute and multisend related tests, create them and copy reference spikes
 foreach(data_dir "ring" "ring_gap")
   foreach(
     test_suffix

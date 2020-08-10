@@ -1,16 +1,21 @@
 # enable @rpath in the install name for any shared library being built
 set(CMAKE_MACOSX_RPATH 1)
 
-# On platforms like bgq, xlc didn't like rpath with static build Similar issue was seen on Cray
+# ~~~
+# On platforms like bgq, xlc didn't like rpath with static build and similar
+# issue was seen on Cray
+# ~~~
 if(NOT CRAY_SYSTEM)
   # use, i.e. don't skip the full RPATH for the build tree
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
 
-  # when building, don't use the install RPATH already # (but later on when installing)
+  # when building, don't use the install RPATH already but later on when installing
   set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-  # add the automatically determined parts of the RPATH which point to directories outside the build
-  # tree to the install RPATH
+  # ~~~
+  # add the automatically determined parts of the RPATH which point to directories
+  # outside the build tree to the install RPATH
+  # ~~~
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
   set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")

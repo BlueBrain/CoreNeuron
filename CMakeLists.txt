@@ -1,14 +1,16 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-project(coreneuron VERSION 0.18.0)
+project(coreneuron VERSION 0.21.0)
 
-# It is a bad idea having floating point versions, since macros cant handle them We therefore, have
-# version as an int, which is pretty much standard
+# ~~~
+# It is a bad idea having floating point versions, since macros cant handle them
+# We therefore, have version as an int, which is pretty much standard
+# ~~~
 math(EXPR CORENEURON_VERSION_COMBINED
      "${coreneuron_VERSION_MAJOR} * 100 + ${coreneuron_VERSION_MINOR}")
 
@@ -137,8 +139,10 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
 
-# OpenACC needs to build static library in order to have global/routines working. See
-# https://www.pgroup.com/userforum/viewtopic.php?t=5350
+# ~~~
+# OpenACC needs to build static library in order to have global/routines working.
+# See https://www.pgroup.com/userforum/viewtopic.php?t=5350
+# ~~~
 if(CORENRN_ENABLE_SHARED AND NOT CORENRN_ENABLE_GPU)
   set(COMPILE_LIBRARY_TYPE "SHARED")
 else()

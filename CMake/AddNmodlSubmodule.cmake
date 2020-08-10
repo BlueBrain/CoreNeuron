@@ -1,14 +1,16 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
 find_package(FindPkgConfig QUIET)
+
 find_path(
   NMODL_PROJ
   NAMES CMakeLists.txt
   PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/nmodl")
+
 find_package_handle_standard_args(NMODL REQUIRED_VARS NMODL_PROJ)
 
 if(NOT NMODL_FOUND)

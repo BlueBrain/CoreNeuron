@@ -1,15 +1,17 @@
 # =============================================================================
-# Copyright (C) 2020 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
 include(FindPackageHandleStandardArgs)
 find_package(FindPkgConfig QUIET)
+
 find_path(
   CLI11_PROJ
   NAMES CMakeLists.txt
   PATHS "${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11")
+
 find_package_handle_standard_args(CLI11 REQUIRED_VARS CLI11_PROJ)
 
 if(NOT CLI11_FOUND)

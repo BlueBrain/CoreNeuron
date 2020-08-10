@@ -1,11 +1,10 @@
 # =============================================================================
-# Copyright (C) 2016-2019 Blue Brain Project
+# Copyright (C) 2016-2020 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 
 # CompilerFlagsHelpers.cmake
-#
 # set of Convenience functions for portable compiler flags
 
 set(SUPPORTED_COMPILER_LANGUAGE_LIST "C;CXX")
@@ -25,11 +24,9 @@ foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
   elseif(CMAKE_${COMPILER_LANGUAGE}_COMPILER_ID STREQUAL "Cray")
     set(CMAKE_${COMPILER_LANGUAGE}_COMPILER_IS_CRAY ON)
   endif()
-
 endforeach()
 
 foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
-
   # XLC compiler
   if(CMAKE_${COMPILER_LANGUAGE}_COMPILER_IS_XLC)
 
@@ -125,6 +122,7 @@ foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
       # Intel O3 is extreme
       set(CMAKE_${COMPILER_LANGUAGE}_OPT_AGGRESSIVE "-O2")
     endif()
+
     if(CMAKE_${COMPILER_LANGUAGE}_COMPILER_ID STREQUAL "PGI")
       set(CMAKE_${COMPILER_LANGUAGE}_WARNING_ALL "")
     endif()
