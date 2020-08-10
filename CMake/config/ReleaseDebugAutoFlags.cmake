@@ -4,8 +4,10 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
+# ~~~
 # ReleaseDebugAutoFlags.cmake
 # Release / Debug configuration helper
+# ~~~
 
 # default configuration
 if(NOT CMAKE_BUILD_TYPE AND (NOT CMAKE_CONFIGURATION_TYPES))

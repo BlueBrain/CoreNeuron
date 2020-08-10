@@ -259,7 +259,6 @@ endif()
 # main program required for building special-core
 file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
-
 # =============================================================================
 # Install main targets
 # =============================================================================

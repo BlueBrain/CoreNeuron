@@ -4,8 +4,10 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
+# ~~~
 # CompilerFlagsHelpers.cmake
 # set of Convenience functions for portable compiler flags
+# ~~~
 
 set(SUPPORTED_COMPILER_LANGUAGE_LIST "C;CXX")
 
@@ -29,9 +31,10 @@ endforeach()
 foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
   # XLC compiler
   if(CMAKE_${COMPILER_LANGUAGE}_COMPILER_IS_XLC)
-
-    # XLC -qinfo=all is awfully verbose on any platforms that use the GNU STL Enable by default only
-    # the relevant one
+    # ~~~
+    # XLC -qinfo=all is awfully verbose on any platforms that use the GNU STL
+    # Enable by default only the relevant one
+    # ~~~
     set(CMAKE_${COMPILER_LANGUAGE}_WARNING_ALL "-qformat=all -qinfo=lan:trx:ret:zea:cmp:ret")
 
     set(CMAKE_${COMPILER_LANGUAGE}_DEBUGINFO_FLAGS "-g")

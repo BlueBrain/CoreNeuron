@@ -4,8 +4,10 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
+# ~~~
 # TestHelpers.cmake
 # set of Convenience functions for unit testing with cmake
+# ~~~
 
 # enable or disable detection of SLURM and MPIEXEC
 option(AUTO_TEST_WITH_SLURM "Add srun as test prefix in a SLURM environment" TRUE)

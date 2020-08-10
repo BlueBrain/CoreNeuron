@@ -309,11 +309,11 @@ if(DOXYGEN_FOUND)
   # generate Doxyfile with correct source paths
   configure_file(${PROJECT_SOURCE_DIR}/docs/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile)
   add_custom_target(
-          doxygen
-          COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
-          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-          COMMENT "Generating API documentation with Doxygen"
-          VERBATIM)
+    doxygen
+    COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM)
 endif()
 
 # =============================================================================
@@ -325,12 +325,10 @@ if(SPHINX_FOUND)
   set(SPHINX_BUILD ${PROJECT_BINARY_DIR}/docs/)
 
   add_custom_target(
-          sphinx
-          COMMAND ${SPHINX_EXECUTABLE} -b html
-          ${SPHINX_SOURCE} ${SPHINX_BUILD}
-          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-          COMMENT "Generating documentation with Sphinx"
-  )
+    sphinx
+    COMMAND ${SPHINX_EXECUTABLE} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Generating documentation with Sphinx")
 endif()
 
 # =============================================================================
@@ -338,21 +336,18 @@ endif()
 # =============================================================================
 if(DOXYGEN_FOUND AND SPHINX_FOUND)
   add_custom_target(
-          docs
-          COMMAND make doxygen
-          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-          COMMAND make sphinx
-          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-          COMMENT "Generating full documentation"
-  )
+    docs
+    COMMAND make doxygen
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMAND make sphinx
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Generating full documentation")
 else()
   add_custom_target(
-          docs
-          VERBATIM COMMAND echo "Please install docs requirements (see docs/README.md)!"
-          COMMENT "Documentation generation not possible!"
-  )
+    docs VERBATIM
+    COMMAND echo "Please install docs requirements (see docs/README.md)!"
+    COMMENT "Documentation generation not possible!")
 endif()
-
 
 # =============================================================================
 # Build status
