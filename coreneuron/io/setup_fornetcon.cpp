@@ -29,6 +29,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/io/setup_fornetcon.hpp"
 #include "coreneuron/network/netcon.hpp"
+#include "coreneuron/nrniv/nrniv_decl.h"
 #include <map>
 
 namespace coreneuron {
@@ -83,10 +84,35 @@ static int* fornetcon_slot(int mtype, int instance, int fnslot, NrnThread& nt) {
   if (layout == 1) { /* AoS */
     fn = ml->pdata + (instance*sz + fnslot);
   }else if (layout == 0) { /* SoA */
-    fn = ml->pdata + (fnslot*ml->nodecount + instance);
+    int padded_cnt = nrn_soa_padded_size(ml->nodecount, layout);
+    fn = ml->pdata + (fnslot*padded_cnt + instance);
   }
   return fn;
 }
+
+#if 0 // for debugging
+static void print_fornetcon_slot(const char* s, std::map<int, int> type_to_slot, NrnThread& nt) {
+  std::cout << s << std::endl;
+  for (auto it = type_to_slot.begin(); it != type_to_slot.end(); ++it) {
+    std::cout << it->first << " type_to_slot " << it->second << std::endl;
+    int mtype = it->first;
+    int fnslot = it->second;
+    int nodecount = nt._ml_list[mtype]->nodecount;
+    std::cout << "nodecount " << nodecount << std::endl;
+    for (int i=0; i < nodecount; ++i) {
+      int* fn = fornetcon_slot(mtype, i, fnslot, nt);
+      std::cout << "i=" << i << " *fn=" << *fn << std::endl;
+    }
+  }
+}
+
+static void print_vector(const char* s, std::vector<size_t>& v) {
+  std::cout << s << " size " << v.size() << std::endl;
+  for (size_t i = 0; i < v.size(); ++i) {
+    std::cout << i << " " << v[i] << std::endl;
+  }
+}
+#endif // for debugging
 
 void setup_fornetcon_info(NrnThread& nt) {
 
@@ -172,7 +198,7 @@ void setup_fornetcon_info(NrnThread& nt) {
       int i_instance = nc.target_->_i_instance;
       int* fn = fornetcon_slot(mtype, i_instance, search->second, nt);
       size_t nc_w_index = size_t(nc.u.weight_index_);
-      nt._fornetcon_weight_perm[size_t(*fn)];
+      nt._fornetcon_weight_perm[size_t(*fn)] = nc_w_index;
       *fn += 1; // next item conceptually adjacent
     }
   }
@@ -185,11 +211,10 @@ void setup_fornetcon_info(NrnThread& nt) {
     int nodecount = nt._ml_list[mtype]->nodecount;
     for (int i=0; i < nodecount; ++i) {
       int* fn = fornetcon_slot(mtype, i, fnslot, nt);
-      *fn = int(nt._fornetcon_perm_indices[i_perm_indices]);
+      *fn = int(i_perm_indices);
       i_perm_indices += 1;
     }
   }
-
 }
 
 }  // namespace coreneuron
