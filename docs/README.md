@@ -17,7 +17,7 @@ pip3 install --user -r docs/docs_requirements.txt --upgrade
 
 Then in your CMake build folder:
 ```
-make corenrn_docs
+make docs
 ```  
 That will build everything in the `build/docs` folder and you can then open `index.html` locally.
 
