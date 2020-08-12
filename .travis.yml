@@ -183,7 +183,7 @@ after_success:
   - if [ "$BUILD_DOCUMENTATION" = "ON" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then
       echo "------- Build Doxygen Documentation -------";
       pushd $TRAVIS_BUILD_DIR/build;
-      make docs;
+      make corenrn_docs;
       echo "-------- Disable jekyll --------";
       pushd $TRAVIS_BUILD_DIR/build/docs;
       touch .nojekyll;
