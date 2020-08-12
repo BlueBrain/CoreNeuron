@@ -709,8 +709,8 @@ void Phase2::handle_weights(NrnThread& nt, int n_netcon) {
     }
     assert(iw == nt.n_weight);
 
-        // Nontrivial if FOR_NETCON in use by some mechanisms
-        setup_fornetcon_info(nt);
+    // Nontrivial if FOR_NETCON in use by some mechanisms
+    setup_fornetcon_info(nt);
 
 
 #if CHKPNTDEBUG
