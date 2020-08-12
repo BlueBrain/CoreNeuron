@@ -1,0 +1,6 @@
+additional_commands:
+  cuda_add_library:
+    pargs: '*'
+    flags: ["STATIC", "SHARED", "MODULE", "EXCLUDE_FROM_ALL"]
+    kwargs:
+      OPTIONS: '*'

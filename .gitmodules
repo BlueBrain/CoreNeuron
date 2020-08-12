@@ -10,3 +10,6 @@
 [submodule "external/Random123"]
 	path = external/Random123
 	url = https://github.com/BlueBrain/Random123.git
+[submodule "CMake/hpc-coding-conventions"]
+	path = CMake/hpc-coding-conventions
+	url = https://github.com/BlueBrain/hpc-coding-conventions.git
