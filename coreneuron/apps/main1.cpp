@@ -603,10 +603,10 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     // copy weights back to NEURON NetCon
     if (nrn2core_all_weights_return_) {
-        std::vector<double*> weights;
+        std::vector<double*> weights(nrn_nthread, NULL);
         // could be one thread more (empty) than in NEURON but does not matter
         for (int i=0; i < nrn_nthread; ++i) {
-          weights.push_back(nrn_threads[i].weights);
+          weights[i] = nrn_threads[i].weights;
         }
         (*nrn2core_all_weights_return_)(weights);
     }
