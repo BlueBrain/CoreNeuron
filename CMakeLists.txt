@@ -315,7 +315,7 @@ endif()
 # =============================================================================
 if(DOXYGEN_FOUND AND SPHINX_FOUND)
   add_custom_target(
-          docs
+          corenrn_docs
           COMMAND make doxygen
           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
           COMMAND make sphinx
@@ -324,7 +324,7 @@ if(DOXYGEN_FOUND AND SPHINX_FOUND)
   )
 else()
   add_custom_target(
-          docs
+          corenrn_docs
           VERBATIM COMMAND echo "Please install docs requirements (see docs/README.md)!"
           COMMENT "Documentation generation not possible!"
   )
