@@ -76,7 +76,9 @@ namespace coreneuron {
 
 **/
 
-static int* fornetcon_slot(int mtype, int instance, int fnslot, NrnThread& nt) {
+static int* fornetcon_slot(const int mtype, const int instance,
+  const int fnslot, const NrnThread& nt)
+{
   int layout = corenrn.get_mech_data_layout()[mtype];
   int sz = corenrn.get_prop_dparam_size()[mtype];
   Memb_list* ml = nt._ml_list[mtype];
@@ -90,30 +92,6 @@ static int* fornetcon_slot(int mtype, int instance, int fnslot, NrnThread& nt) {
   return fn;
 }
 
-#if 0 // for debugging
-static void print_fornetcon_slot(const char* s, std::map<int, int> type_to_slot, NrnThread& nt) {
-  std::cout << s << std::endl;
-  for (auto it = type_to_slot.begin(); it != type_to_slot.end(); ++it) {
-    std::cout << it->first << " type_to_slot " << it->second << std::endl;
-    int mtype = it->first;
-    int fnslot = it->second;
-    int nodecount = nt._ml_list[mtype]->nodecount;
-    std::cout << "nodecount " << nodecount << std::endl;
-    for (int i=0; i < nodecount; ++i) {
-      int* fn = fornetcon_slot(mtype, i, fnslot, nt);
-      std::cout << "i=" << i << " *fn=" << *fn << std::endl;
-    }
-  }
-}
-
-static void print_vector(const char* s, std::vector<size_t>& v) {
-  std::cout << s << " size " << v.size() << std::endl;
-  for (size_t i = 0; i < v.size(); ++i) {
-    std::cout << i << " " << v[i] << std::endl;
-  }
-}
-#endif // for debugging
-
 void setup_fornetcon_info(NrnThread& nt) {
 
   if (nrn_fornetcon_cnt_ == 0) { return; }
@@ -126,7 +104,7 @@ void setup_fornetcon_info(NrnThread& nt) {
     int type = nrn_fornetcon_type_[i];
     Memb_list* ml = nt._ml_list[type];
     if (ml && ml->nodecount) {
-      type_to_slot.insert(std::pair<int, int>(type, nrn_fornetcon_index_[i]));
+      type_to_slot[type] = nrn_fornetcon_index_[i];
     }
   }
   if (type_to_slot.empty()) {
@@ -139,9 +117,9 @@ void setup_fornetcon_info(NrnThread& nt) {
 
   // zero the dparam fornetcon slot for counting and count number of slots.
   size_t n_perm_indices = 0;
-  for (auto it = type_to_slot.begin(); it != type_to_slot.end(); ++it) {
-    int mtype = it->first;
-    int fnslot = it->second;
+  for (const auto& kv: type_to_slot) {
+    int mtype = kv.first;
+    int fnslot = kv.second;
     int nodecount = nt._ml_list[mtype]->nodecount;
     for (int i=0; i < nodecount; ++i) {
       int* fn = fornetcon_slot(mtype, i, fnslot, nt);
@@ -174,9 +152,9 @@ void setup_fornetcon_info(NrnThread& nt) {
   // to allow later filling the _fornetcon_weight_perm.
   size_t i_perm_indices = 0;
   nt._fornetcon_perm_indices[0] = 0;
-  for (auto it = type_to_slot.begin(); it != type_to_slot.end(); ++it) {
-    int mtype = it->first;
-    int fnslot = it->second;
+  for (const auto& kv: type_to_slot) {
+    int mtype = kv.first;
+    int fnslot = kv.second;
     int nodecount = nt._ml_list[mtype]->nodecount;
     for (int i=0; i < nodecount; ++i) {
       int* fn = fornetcon_slot(mtype, i, fnslot, nt);
@@ -205,9 +183,9 @@ void setup_fornetcon_info(NrnThread& nt) {
 
   // Put back the proper values into the dparam fornetcon slot
   i_perm_indices = 0;
-  for (auto it = type_to_slot.begin(); it != type_to_slot.end(); ++it) {
-    int mtype = it->first;
-    int fnslot = it->second;
+  for (const auto& kv: type_to_slot) {
+    int mtype = kv.first;
+    int fnslot = kv.second;
     int nodecount = nt._ml_list[mtype]->nodecount;
     for (int i=0; i < nodecount; ++i) {
       int* fn = fornetcon_slot(mtype, i, fnslot, nt);
