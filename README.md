@@ -3,7 +3,7 @@
 # CoreNEURON
 > Optimised simulator engine for [NEURON](https://www.neuron.yale.edu/neuron/)
 
-CoreNEURON is a compute engine for the [NEURON](https://www.neuron.yale.edu/neuron/) simulator optimised for both memory usage and computational speed. Its goal is to simulate large cell networks with smaller memory footprint and optimal performance.
+CoreNEURON is a compute engine for the [NEURON](https://www.neuron.yale.edu/neuron/) simulator optimised for both memory usage and computational speed. Its goal is to simulate large cell networks with small memory footprint and optimal performance.
 
 ## Features / Compatibility
 
@@ -308,12 +308,24 @@ make cmake-format
 make clang-format
 ```
 
+### Citation
+
+If you would like to know more about the the CoreNEURON or would like to cite it then use following paper:
+
+* Pramod Kumbhar, Michael Hines, Jeremy Fouriaux, Aleksandr Ovcharenko, James King, Fabien Delalondre and Felix Schürmann. CoreNEURON : An Optimized Compute Engine for the NEURON Simulator ([doi.org/10.3389/fninf.2019.00063](https://doi.org/10.3389/fninf.2019.00063))
+
+
+### Support / Contribuition
+
+If you see any issue, feel free to [raise a ticket](https://github.com/BlueBrain/CoreNeuron/issues/new). If you would like to improve this library, see [open issues](https://github.com/BlueBrain/CoreNeuron/issues).
+
+You can see current [contributors here](https://github.com/BlueBrain/CoreNeuron/graphs/contributors).
+
+
 ## License
 * See LICENSE.txt
 * See [NEURON](https://www.neuron.yale.edu/neuron/)
 
-## Contributors
-See [contributors](https://github.com/BlueBrain/CoreNeuron/graphs/contributors).
 
 ## Funding
 
