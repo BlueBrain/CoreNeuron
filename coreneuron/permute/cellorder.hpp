@@ -1,6 +1,7 @@
 #ifndef cellorder_h
 #define cellorder_h
 
+#include "coreneuron/utils/memory.h"
 #include <algorithm>
 namespace coreneuron {
 int* interleave_order(int ith, int ncell, int nnode, int* parent);
@@ -50,6 +51,13 @@ int* node_order(int ncell,
 template <typename T>
 void copy_array(T*& dest, T* src, size_t n) {
     dest = new T[n];
+    std::copy(src, src + n, dest);
+}
+
+// copy src array to dest with NRN_SOA_BYTE_ALIGN ecalloc_align allocation
+template <typename T>
+void copy_align_array(T*& dest, T* src, size_t n) {
+    dest = (T*)ecalloc_align(n, sizeof(T));
     std::copy(src, src + n, dest);
 }
 
