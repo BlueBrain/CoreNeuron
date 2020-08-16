@@ -19,6 +19,7 @@ CoreNEURON is designed as library within NEURON simulator and can transparently 
 * [PGI OpenACC Compiler >=19.0](https://www.pgroup.com/resources/accel.htm) [Optional, for GPU support]
 * [CUDA Toolkit >=6.0](https://developer.nvidia.com/cuda-toolkit-60) [Optional, for GPU support]
 
+In addition to this, you will need other [NEURON dependencies](https://github.com/neuronsimulator/nrn) like Python, Flex, Bison etc.
 
 ## Installation
 
