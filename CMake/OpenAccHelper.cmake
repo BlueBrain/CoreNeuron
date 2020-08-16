@@ -38,8 +38,12 @@ if(CORENRN_ENABLE_GPU)
   endif()
 
   # set property for neuron to link with coreneuron libraries
-  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
-                "-acc -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive ${CUDA_cudart_static_LIBRARY}")
+  set_property(
+    GLOBAL
+    PROPERTY
+      CORENEURON_LIB_LINK_FLAGS
+      "-acc -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive ${CUDA_cudart_static_LIBRARY}"
+  )
 
   # find_cuda produce verbose messages : use new behavior to use _ROOT variables
   if(POLICY CMP0074)
@@ -53,5 +57,6 @@ else(CORENRN_ENABLE_GPU)
   # OpenACC pragmas are not guarded, disable all unknown pragm warnings
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
-  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech")
+  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
+                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech")
 endif(CORENRN_ENABLE_GPU)
