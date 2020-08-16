@@ -3,7 +3,7 @@
 # CoreNEURON
 > Optimised simulator engine for [NEURON](https://www.neuron.yale.edu/neuron/)
 
-CoreNEURON is a compute engine for the [NEURON](https://www.neuron.yale.edu/neuron/) simulator optimised for both memory usage and computational speed. Its goal is to simulate large cell networks with small memory footprint and optimal performance.
+CoreNEURON is a compute engine for the [NEURON](https://www.neuron.yale.edu/neuron/) simulator optimised for both memory usage and computational speed. Its goal is to simulate large cell networks with smaller memory footprint and optimal performance.
 
 ## Features / Compatibility
 
