@@ -11,7 +11,7 @@ transfer `POINTER` data automatically to CoreNEURON. Furtheremore, in many cases
 is no need to transfer the data between the two instances. In some cases, however, the
 programmer would like to transfer certain user-defined data into CoreNEURON. The most
 prominent example are random123 RNG stream parameters used in synapse mechanisms. To
-support this use-case the `BBCOREPOINTER` type. Variables that are declared as
+support this use-case the `BBCOREPOINTER` type was introduced. Variables that are declared as
 `BBCOREPOINTER` behave exactly the same as `POINTER` but are additionally taken into account
 when NEURON is serializing mechanism data (for file writing or direct-memory transfer).
 For NEURON to be able to write (and indeed CoreNEURON to be able to read) `BBCOREPOINTER`
