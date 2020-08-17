@@ -90,12 +90,12 @@ In order to enable CoreNEURON support, we have to use `-coreneuron` flag:
 nrnivmodl -coreneuron mod_directory
 ```
 
-If you see any compilation error then one of the mod file might be incompatible with CoreNEURON. Please [open an issue](https://github.com/BlueBrain/CoreNeuron/issues) with an example and we can help to fix it.
+If you see any compilation error then one of the mod files might be incompatible with CoreNEURON. Please [open an issue](https://github.com/BlueBrain/CoreNeuron/issues) with an example and we can help to fix it.
 
 
 ## Running Simulations
 
-With CoreNEURON, existing NEURON models can be run with minimal. If you have existing NEURON model, we typically need to make following changes:
+With CoreNEURON, existing NEURON models can be run with minimal changes. If you have existing NEURON model, we typically need to make following changes:
 
 1. Enable cache effficiency : `h.cvode.cache_efficient(1)`
 2. Enable CoreNEURON :
@@ -111,7 +111,7 @@ With CoreNEURON, existing NEURON models can be run with minimal. If you have exi
 	pc.psolve(h.tstop)
 	```
 
-Here is a simple example of model that run with NEURON first followed by CoreNEURON and compares results between NEURON and CoreNEURON execution:
+Here is a simple example model that runs with NEURON first, followed by CoreNEURON and compares results between NEURON and CoreNEURON execution:
 
 
 ```python
@@ -311,7 +311,7 @@ make clang-format
 
 ### Citation
 
-If you would like to know more about the the CoreNEURON or would like to cite it then use following paper:
+If you would like to know more about the CoreNEURON or would like to cite it then use following paper:
 
 * Pramod Kumbhar, Michael Hines, Jeremy Fouriaux, Aleksandr Ovcharenko, James King, Fabien Delalondre and Felix Schürmann. CoreNEURON : An Optimized Compute Engine for the NEURON Simulator ([doi.org/10.3389/fninf.2019.00063](https://doi.org/10.3389/fninf.2019.00063))
 
