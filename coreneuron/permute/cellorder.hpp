@@ -13,8 +13,8 @@ extern void solve_interleaved(int ith);
 class InterleaveInfo {
   public:
     InterleaveInfo() = default;
-    InterleaveInfo(const InterleaveInfo&) = delete;
-    InterleaveInfo& operator=(const InterleaveInfo&) = delete;
+    InterleaveInfo(const InterleaveInfo&);
+    InterleaveInfo& operator=(const InterleaveInfo&);
     virtual ~InterleaveInfo();
     int nwarp = 0;  // used only by interleave2
     int nstride = 0;
@@ -30,6 +30,9 @@ class InterleaveInfo {
     size_t* idle = nullptr;
     size_t* cache_access = nullptr;
     size_t* child_race = nullptr;
+
+  private:
+    void swap(InterleaveInfo& info);
 };
 
 // interleaved from cellorder2.cpp
@@ -43,6 +46,20 @@ int* node_order(int ncell,
                 int*& lastnode,
                 int*& cellsize,
                 int*& stridedispl);
+
+// copy src array to dest with new allocation
+template <typename T>
+void copy_array(T*& dest, T* src, size_t n) {
+    dest = new T[n];
+    std::copy(src, src + n, dest);
+}
+
+// copy src array to dest with NRN_SOA_BYTE_ALIGN ecalloc_align allocation
+template <typename T>
+void copy_align_array(T*& dest, T* src, size_t n) {
+    dest = (T*)ecalloc_align(n, sizeof(T));
+    std::copy(src, src + n, dest);
+}
 
 #define INTERLEAVE_DEBUG 0
 
