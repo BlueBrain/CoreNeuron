@@ -15,7 +15,7 @@ class InterleaveInfo {
     InterleaveInfo() = default;
     InterleaveInfo(const InterleaveInfo&);
     InterleaveInfo& operator=(const InterleaveInfo&);
-    virtual ~InterleaveInfo();
+    ~InterleaveInfo();
     int nwarp = 0;  // used only by interleave2
     int nstride = 0;
     int* stridedispl = nullptr;  // interleave2: nwarp+1
