@@ -11,7 +11,7 @@ CoreNEURON is designed as library within NEURON simulator and can transparently 
 
 * MOD files should be THREADSAFE
 * MOD files must use Random123 random number generator (instead of MCellRan4)
-* POINTER variables in MOD files need special handling. Please [open an issue](https://github.com/BlueBrain/CoreNeuron/issues) with an example of MOD file. We will add documentation about this in near future.
+* POINTER variable needs to be converted to BBCOREPOINTER ([details here](http://bluebrain.github.io/CoreNeuron/index.html))
 
 ## Dependencies
 * [CMake 3.7+](https://cmake.org)
