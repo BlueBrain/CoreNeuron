@@ -39,12 +39,17 @@ CoreNEURON is now integrated into development version of NEURON simulator. If yo
   cd build
   ```
 
-3. Load modules : Currently CoreNEURON version rely on compiler auto-vectorisation and hence we advise to use Intel/Cray/PGI compiler to get better performance. This constraint will be removed in near future with the integration of [NMODL](https://github.com/BlueBrain/nmodl) project. Load necessary modules on your system, e.g.
+3. Load software dependencies
+
+	Currently CoreNEURON rely on compiler auto-vectorisation and hence we advise to use Intel/Cray/PGI compiler to generate vectorised code. This constraint will be removed in near future with the integration of [NMODL](https://github.com/BlueBrain/nmodl) project.
+
+	HPC systems often use a module system to select software. For example, you can load compiler, cmake, python dependencies using module as:
+
 
 	```
 	module load intel intel-mpi python cmake
 	```
-If you are building on Cray system with GNU toolchain, set following environmental variable:
+Note that if you are building on Cray system with GNU toolchain, you have to following environmental variable:
 
 	```bash
 	export CRAYPE_LINK_TYPE=dynamic
@@ -65,8 +70,7 @@ If you would like to enable GPU support with OpenACC, make sure to use `-DCORENR
 4. Build and Install :  once configure step is done, you can build and install project as:
 
 	```bash
-	make -j
-	make install
+	make -j install
 	```
 
 ## Building Model
@@ -187,9 +191,9 @@ You can find [HOC example](https://github.com/neuronsimulator/nrn/blob/master/te
 
 #### What results are returned by CoreNEURON?
 
-At the end of simulation, CoreNEURON can transfers spikes, voltages, state variables and NetCon weights to NEURON. These variables can be recorded using regular NEURON API (e.g. [Vector.record](https://www.neuron.yale.edu/neuron/static/py_doc/programming/math/vector.html#Vector.record) or [spike_record](https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#ParallelContext.spike_record)).
+At the end of simulation CoreNEURON transfers by default : spikes, voltages, state variables, NetCon weights, all Vector.record, and most GUI trajectories to NEURON. These variables can be recorded using regular NEURON API (e.g. [Vector.record](https://www.neuron.yale.edu/neuron/static/py_doc/programming/math/vector.html#Vector.record) or [spike_record](https://www.neuron.yale.edu/neuron/static/new_doc/modelspec/programmatic/network/parcon.html#ParallelContext.spike_record)).
 
-#### How can I poass additional flags to build?
+#### How can I pass additional flags to build?
 
 One can specify C/C++ optimization flags specific to the compiler with `-DCMAKE_CXX_FLAGS` and `-DCMAKE_C_FLAGS` options to the CMake command. For example:
 
@@ -238,7 +242,7 @@ make test
 
 ##### Compiling MOD files
 
-In order to compiler mod files, one can use **nrnivmodl-core** as:
+In order to compile mod files, one can use **nrnivmodl-core** as:
 
 ```bash
 /install-path/bin/nrnivmodl-core mod-dir
@@ -299,7 +303,7 @@ In order to format code with `cmake-format` and `clang-format` tools, before cre
 
 ```
 cmake .. -DCORENRN_CLANG_FORMAT=ON -DCORENRN_CMAKE_FORMAT=ON
-make -j
+make -j install
 ```
 
 and now you can use `cmake-format` or `clang-format` targets:
