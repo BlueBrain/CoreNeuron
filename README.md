@@ -41,7 +41,7 @@ CoreNEURON is now integrated into development version of NEURON simulator. If yo
 
 3. Load software dependencies
 
-	Currently CoreNEURON rely on compiler auto-vectorisation and hence we advise to use Intel/Cray/PGI compiler to generate vectorised code. This constraint will be removed in near future with the integration of [NMODL](https://github.com/BlueBrain/nmodl) project.
+	Currently CoreNEURON relies on compiler auto-vectorisation and hence we advise to use Intel/Cray/PGI compilers to generate vectorised code. This constraint will be removed in the near future with the integration of [NMODL](https://github.com/BlueBrain/nmodl) project.
 
 	HPC systems often use a module system to select software. For example, you can load compiler, cmake, python dependencies using module as:
 
@@ -49,7 +49,7 @@ CoreNEURON is now integrated into development version of NEURON simulator. If yo
 	```
 	module load intel intel-mpi python cmake
 	```
-Note that if you are building on Cray system with GNU toolchain, you have to following environmental variable:
+Note that if you are building on Cray system with GNU toolchain, you have to set the following environment variable:
 
 	```bash
 	export CRAYPE_LINK_TYPE=dynamic
@@ -99,7 +99,7 @@ If you see any compilation error then one of the mod files might be incompatible
 
 ## Running Simulations
 
-With CoreNEURON, existing NEURON models can be run with minimal changes. If you have existing NEURON model, we typically need to make following changes:
+With CoreNEURON, existing NEURON models can be run with minimal changes. For a given NEURON model, we typically need to adjust as follows:
 
 1. Enable cache effficiency : `h.cvode.cache_efficient(1)`
 2. Enable CoreNEURON :
@@ -207,7 +207,7 @@ By default, OpenMP threading is enabled. You can disable it with `-DCORENRN_ENAB
 
 #### GPU enabled build is failing with inlining related errors, what to do?
 
-If there are large functions / procedures in MOD file that are not inlined by compiler, you may need to pass additional C++ flags to PGI compiler. You can try:
+If there are large functions / procedures in the MOD file that are not inlined by the compiler, you may need to pass additional C++ flags to PGI compiler. You can try:
 
 ```
 cmake .. -DCMAKE_CXX_FLAGS="-O2 -Minline=size:1000,levels:100,totalsize:40000,maxsize:4000" \
@@ -315,7 +315,7 @@ make clang-format
 
 ### Citation
 
-If you would like to know more about the CoreNEURON or would like to cite it then use following paper:
+If you would like to know more about CoreNEURON or would like to cite it, then use the following paper:
 
 * Pramod Kumbhar, Michael Hines, Jeremy Fouriaux, Aleksandr Ovcharenko, James King, Fabien Delalondre and Felix Schürmann. CoreNEURON : An Optimized Compute Engine for the NEURON Simulator ([doi.org/10.3389/fninf.2019.00063](https://doi.org/10.3389/fninf.2019.00063))
 
