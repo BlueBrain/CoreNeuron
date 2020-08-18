@@ -203,7 +203,7 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
     char spike_entry[SPIKE_RECORD_LEN];
     unsigned spike_data_offset = 0;
     for (unsigned i = 0; i < num_spikes; i++) {
-        int spike_entry_chars = snprintf(spike_entry, 64, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
+        int spike_entry_chars = snprintf(spike_entry, 64, "%.7f %d\n", spikevec_time[i], spikevec_gid[i]);
         spike_data_offset = strcat_at_pos(spike_data, spike_data_offset, spike_entry, spike_entry_chars);
     }
 
@@ -269,6 +269,7 @@ void output_spikes_serial(const char* outpath) {
 void output_spikes(const char* outpath, const std::string& population_name) {
     // try to transfer spikes to NEURON. If successfull, don't write out.dat
     if (all_spikes_return(spikevec_time, spikevec_gid))
+        clear_spike_vectors();
         return;
 #if NRNMPI
     if (nrnmpi_initialized()) {
@@ -279,6 +280,7 @@ void output_spikes(const char* outpath, const std::string& population_name) {
 #else
     output_spikes_serial(outpath);
 #endif
+    clear_spike_vectors();
 }
 
 void clear_spike_vectors() {
