@@ -32,11 +32,21 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/io/core2nrn_data_return.hpp"
 
+/** @brief, Information from NEURON to help with copying data to NEURON.
+ *  Info for copying voltage, i_membrane_, and mechanism data.
+ *  See implementaton in
+ *  nrn/src/nrniv/nrnbbcore_write.cpp:nrnthreads_type_return.
+ *  Return is size of either the returned data pointer or the number
+ *  of pointers in mdata. tid is the thread index.
+ */
 size_t (*nrn2core_type_return_)(int type, int tid,
   double*& data, double**& mdata);
 
 namespace coreneuron {
 
+/** @brief permuted array copied to unpermuted array
+ *  If permute is NULL then just a copy
+ */
 static void inverse_permute_copy(size_t n, double* permuted_src, double* dest,
                                  int* permute)
 {
@@ -49,6 +59,12 @@ static void inverse_permute_copy(size_t n, double* permuted_src, double* dest,
   }
 }
 
+/** @brief SoA permuted mechanism data copied to unpermuted AoS data.
+ *  dest is an array of n pointers to the beginning of each sz length array.
+ *  src is a contiguous array of sz segments of size stride. The stride
+ *  may be slightly greater than n for purposes of alignment.
+ *  Each of the sz segments of src are permuted.
+ */
 static void soa2aos_inverse_permute_copy(size_t n, int sz, int stride,
   double* src, double** dest, int* permute)
 {
@@ -62,7 +78,14 @@ static void soa2aos_inverse_permute_copy(size_t n, int sz, int stride,
   }
 }
 
-static void soa2aos_inverse_copy(size_t n, int sz, int stride,
+/** @brief SoA unpermuted mechanism data copied to unpermuted AoS data.
+ *  dest is an array of n pointers to the beginning of each sz length array.
+ *  src is a contiguous array of sz segments of size stride. The stride
+ *  may be slightly greater than n for purposes of alignment.
+ *  Each of the sz segments of src have the same order as the n pointers
+ *  of dest.
+ */
+static void soa2aos_unpermuted_copy(size_t n, int sz, int stride,
   double* src, double** dest)
 {
   // src is soa and permuted. dest is n pointers to sz doubles (aos).
@@ -75,6 +98,21 @@ static void soa2aos_inverse_copy(size_t n, int sz, int stride,
   }
 }
 
+/** @brief AoS mechanism data copied to AoS data.
+ *  dest is an array of n pointers to the beginning of each sz length array.
+ *  src is a contiguous array of n segments of size sz.
+ */
+static void aos2aos_copy(size_t n, int sz, double* src, double** dest) {
+  for (size_t instance = 0; instance < n; ++instance) {
+    double* d = dest[instance];
+    double* s = src + (instance*sz);
+    std::copy(s, s + sz, d);
+  }
+}
+      
+/** @brief copy data back to NEURON.
+ *  Copies voltage, i_membrane_ if it used, and mechanism param data.
+ */
 void core2nrn_data_return() {
   if (!nrn2core_type_return_) {
     return;
@@ -119,11 +157,10 @@ void core2nrn_data_return() {
         if (permute) {
           soa2aos_inverse_permute_copy(n, sz, stride, cndat, mdata, permute);
         } else {
-          soa2aos_inverse_copy(n, sz, stride, cndat, mdata);
+          soa2aos_unpermuted_copy(n, sz, stride, cndat, mdata);
         }
       } else { /* AoS */
-        printf("%s is AoS\n", corenrn.get_memb_func(mtype).sym);
-        assert(0);
+        aos2aos_copy(n, sz, cndat, mdata);
       }
     }
   }
