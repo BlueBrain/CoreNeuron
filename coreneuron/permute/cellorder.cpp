@@ -40,11 +40,11 @@ InterleaveInfo::InterleaveInfo(const InterleaveInfo& info) {
     nwarp = info.nwarp;
     nstride = info.nstride;
 
-    copy_array(stridedispl, info.stridedispl, nwarp + 1);
-    copy_array(stride, info.stride, nstride);
-    copy_array(firstnode, info.firstnode, nwarp + 1);
-    copy_array(lastnode, info.lastnode, nwarp + 1);
-    copy_array(cellsize, info.cellsize, nwarp);
+    copy_align_array(stridedispl, info.stridedispl, nwarp + 1);
+    copy_align_array(stride, info.stride, nstride);
+    copy_align_array(firstnode, info.firstnode, nwarp + 1);
+    copy_align_array(lastnode, info.lastnode, nwarp + 1);
+    copy_align_array(cellsize, info.cellsize, nwarp);
 
     copy_array(nnode, info.nnode, nwarp);
     copy_array(ncycle, info.ncycle, nwarp);
@@ -280,7 +280,8 @@ int* interleave_order(int ith, int ncell, int nnode, int* parent) {
         }
     }
 
-    int nwarp, nstride, *stride, *firstnode, *lastnode, *cellsize, *stridedispl;
+    int nwarp = 0, nstride=0, *stride=nullptr, *firstnode=nullptr;
+    int *lastnode=nullptr, *cellsize=nullptr, *stridedispl=nullptr;
 
     int* order = node_order(ncell, nnode, parent, nwarp, nstride, stride, firstnode, lastnode,
                             cellsize, stridedispl);

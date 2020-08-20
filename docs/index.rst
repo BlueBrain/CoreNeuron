@@ -6,6 +6,7 @@ Welcome to CoreNEURON's documentation!
    :caption: User documentation:
 
    userdoc/BinaryFormat/BinaryFormat.md
+   userdoc/MemoryManagement/bbcorepointer.md
 
 .. toctree::
    :maxdepth: 2
