@@ -28,8 +28,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdio>
 #include <cstdlib>
-#include <vector>
 #include <map>
+#include <mutex>
+#include <vector>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/apps/corenrn_parameters.hpp"
@@ -92,9 +93,7 @@ static std::vector<NetParEvent> npe_;  // nrn_nthread of them
 
 #if NRNMPI
 // for combination of threads and mpi.
-#if defined(_OPENMP)
 static OMP_Mutex mut;
-#endif
 #endif
 
     /// Allocate space for spikes: 200 structs of {int gid; double time}
@@ -234,7 +233,7 @@ static bool nrn_need_npe() {
     } else {
         if (!npe_.empty()) {
             npe_.clear();
-            npe_.shrint_to_fit();
+            npe_.shrink_to_fit();
         }
         return false;
     }
@@ -279,7 +278,7 @@ void nrn_spike_exchange_init() {
     if (npe_.size() != nrn_nthread) {
         if (!npe_.empty()) {
             npe_.clear();
-            npe_.shrint_to_fit();
+            npe_.shrink_to_fit();
         }
         npe_.resize(nrn_nthread);
     }
