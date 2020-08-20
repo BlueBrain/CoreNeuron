@@ -73,13 +73,6 @@ bool nrn_use_localgid_;
 void nrn_outputevent(unsigned char localgid, double firetime);
 std::vector<std::map<int, InputPreSyn*> > localmaps;
 
-#define NRNSTAT 1
-static int nsend_, nsendmax_, nrecv_, nrecv_useful_;
-#if NRNSTAT
-/// Needs further allocation if desired to collect the histogram statistics
-static IvocVect* max_histogram_;
-#endif
-
 static int ocapacity_;  // for spikeout_
 // require it to be smaller than  min_interprocessor_delay.
 static double wt_;   // wait time for nrnmpi_spike_exchange
@@ -311,7 +304,6 @@ void nrn_spike_exchange_init() {
 #endif
     }
     nout_ = 0;
-    nsend_ = nsendmax_ = nrecv_ = nrecv_useful_ = 0;
 #endif  // NRNMPI
         // if (nrnmpi_myid == 0){printf("usable_mindelay_ = %g\n", usable_mindelay_);}
 }
@@ -335,12 +327,6 @@ void nrn_spike_exchange(NrnThread* nt) {
     nrnmpi_barrier();
 #endif
 
-#if NRNSTAT
-    nsend_ += nout_;
-    if (nsendmax_ < nout_) {
-        nsendmax_ = nout_;
-    }
-#endif
 #if nrn_spikebuf_size > 0
     spbufout_->nspike = nout_;
 #endif
@@ -361,35 +347,8 @@ void nrn_spike_exchange(NrnThread* nt) {
     //}
     nout_ = 0;
     if (n == 0) {
-#if NRNSTAT
-        if (max_histogram_) {
-            vector_vec(max_histogram_)[0] += 1.;
-        }
-#endif
         return;
     }
-#if NRNSTAT
-    nrecv_ += n;
-    if (max_histogram_) {
-        int mx = 0;
-        if (n > 0) {
-            for (int i = nrnmpi_numprocs - 1; i >= 0; --i) {
-#if nrn_spikebuf_size == 0
-                if (mx < nin_[i]) {
-                    mx = nin_[i];
-                }
-#else
-                if (mx < spbufin_[i].nspike) {
-                    mx = spbufin_[i].nspike;
-                }
-#endif
-            }
-        }
-        int ms = vector_capacity(max_histogram_) - 1;
-        mx = (mx < ms) ? mx : ms;
-        vector_vec(max_histogram_)[mx] += 1.;
-    }
-#endif  // NRNSTAT
 #if nrn_spikebuf_size > 0
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
         int nn = spbufin_[i].nspike;
@@ -401,9 +360,6 @@ void nrn_spike_exchange(NrnThread* nt) {
             if (gid2in_it != gid2in.end()) {
                 InputPreSyn* ps = gid2in_it->second;
                 ps->send(spbufin_[i].spiketime[j], net_cvode_instance, nt);
-#if NRNSTAT
-                ++nrecv_useful_;
-#endif
             }
         }
     }
@@ -414,9 +370,6 @@ void nrn_spike_exchange(NrnThread* nt) {
         if (gid2in_it != gid2in.end()) {
             InputPreSyn* ps = gid2in_it->second;
             ps->send(spikein_[i].spiketime, net_cvode_instance, nt);
-#if NRNSTAT
-            ++nrecv_useful_;
-#endif
         }
     }
     wt1_ = nrn_wtime() - wt;
@@ -430,12 +383,6 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     nrnmpi_barrier();
 #endif
 
-#if NRNSTAT
-    nsend_ += nout_;
-    if (nsendmax_ < nout_) {
-        nsendmax_ = nout_;
-    }
-#endif
     assert(nout_ < 0x10000);
     spfixout_[1] = (unsigned char)(nout_ & 0xff);
     spfixout_[0] = (unsigned char)(nout_ >> 8);
@@ -455,30 +402,9 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     nout_ = 0;
     idxout_ = 2;
     if (n == 0) {
-#if NRNSTAT
-        if (max_histogram_) {
-            vector_vec(max_histogram_)[0] += 1.;
-        }
-#endif
         t_exchange_ = nrn_threads->_t;
         return;
     }
-#if NRNSTAT
-    nrecv_ += n;
-    if (max_histogram_) {
-        int mx = 0;
-        if (n > 0) {
-            for (int i = nrnmpi_numprocs - 1; i >= 0; --i) {
-                if (mx < nin_[i]) {
-                    mx = nin_[i];
-                }
-            }
-        }
-        int ms = vector_capacity(max_histogram_) - 1;
-        mx = (mx < ms) ? mx : ms;
-        vector_vec(max_histogram_)[mx] += 1.;
-    }
-#endif  // NRNSTAT
     if (nrn_use_localgid_) {
         int idxov = 0;
         for (int i = 0; i < nrnmpi_numprocs; ++i) {
@@ -507,9 +433,6 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                     if (gid2in_it != gps.end()) {
                         InputPreSyn* ps = gid2in_it->second;
                         ps->send(firetime + 1e-10, net_cvode_instance, nt);
-#if NRNSTAT
-                        ++nrecv_useful_;
-#endif
                     }
                 }
                 for (; j < nn; ++j) {
@@ -520,9 +443,6 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                     if (gid2in_it != gps.end()) {
                         InputPreSyn* ps = gid2in_it->second;
                         ps->send(firetime + 1e-10, net_cvode_instance, nt);
-#if NRNSTAT
-                        ++nrecv_useful_;
-#endif
                     }
                 }
             }
@@ -543,9 +463,6 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                 if (gid2in_it != gid2in.end()) {
                     InputPreSyn* ps = gid2in_it->second;
                     ps->send(firetime + 1e-10, net_cvode_instance, nt);
-#if NRNSTAT
-                    ++nrecv_useful_;
-#endif
                 }
             }
         }
@@ -559,9 +476,6 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
             if (gid2in_it != gid2in.end()) {
                 InputPreSyn* ps = gid2in_it->second;
                 ps->send(firetime + 1e-10, net_cvode_instance, nt);
-#if NRNSTAT
-                ++nrecv_useful_;
-#endif
             }
         }
     }
@@ -653,9 +567,6 @@ void nrn_fake_fire(int gid, double spiketime, int fake_out) {
         assert(psi);
         // printf("nrn_fake_fire %d %g\n", gid, spiketime);
         psi->send(spiketime, net_cvode_instance, nrn_threads);
-#if NRNSTAT
-        ++nrecv_useful_;
-#endif
     } else if (fake_out) {
         std::map<int, PreSyn*>::iterator gid2out_it;
         gid2out_it = gid2out.find(gid);
@@ -664,9 +575,6 @@ void nrn_fake_fire(int gid, double spiketime, int fake_out) {
             assert(ps);
             // printf("nrn_fake_fire fake_out %d %g\n", gid, spiketime);
             ps->send(spiketime, net_cvode_instance, nrn_threads);
-#if NRNSTAT
-            ++nrecv_useful_;
-#endif
         }
     }
 }
@@ -776,15 +684,6 @@ double set_mindelay(double maxdelay) {
     mindelay_ = mindelay;
 #endif  // NRNMPI
     return mindelay_;
-}
-
-void BBS_netpar_spanning_statistics(int* nsend, int* nsendmax, int* nrecv, int* nrecv_useful) {
-#if NRNMPI
-    *nsend = nsend_;
-    *nsendmax = nsendmax_;
-    *nrecv = nrecv_;
-    *nrecv_useful = nrecv_useful_;
-#endif
 }
 
 /*  08-Nov-2010
