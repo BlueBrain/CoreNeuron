@@ -174,10 +174,10 @@ class NetParEvent : public DiscreteEvent {
     double wx_, ws_;  // exchange time and "spikes to Presyn" time
 
     NetParEvent();
-    virtual ~NetParEvent();
+    virtual ~NetParEvent() = default;
     virtual void send(double, NetCvode*, NrnThread*);
     virtual void deliver(double, NetCvode*, NrnThread*);
-    virtual int type() {
+    virtual int type() const {
         return NetParEventType;
     }
 
