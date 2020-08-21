@@ -52,7 +52,7 @@ static void inverse_permute_copy(size_t n, double* permuted_src, double* dest,
 {
   if (permute) {
     for (size_t i = 0; i < n; ++i) {
-      dest[permute[i]] = permuted_src[i];
+      dest[i] = permuted_src[permute[i]];
     }
   }else{
     std::copy(permuted_src, permuted_src + n, dest);
@@ -70,8 +70,8 @@ static void soa2aos_inverse_permute_copy(size_t n, int sz, int stride,
 {
   // src is soa and permuted. dest is n pointers to sz doubles (aos).
   for (size_t instance = 0; instance < n; ++instance) {
-    double* d = dest[permute[instance]];
-    double* s = src + instance;
+    double* d = dest[instance];
+    double* s = src + permute[instance];
     for (int i = 0; i < sz; ++i) {
       d[i] = s[i*stride];
     }
@@ -111,7 +111,7 @@ static void aos2aos_copy(size_t n, int sz, double* src, double** dest) {
 }
       
 /** @brief copy data back to NEURON.
- *  Copies voltage, i_membrane_ if it used, and mechanism param data.
+ *  Copies t, voltage, i_membrane_ if it used, and mechanism param data.
  */
 void core2nrn_data_return() {
   if (!nrn2core_type_return_) {
@@ -122,6 +122,11 @@ void core2nrn_data_return() {
     double* data = nullptr;
     double** mdata = nullptr;
     NrnThread& nt = nrn_threads[tid];
+
+    n = (*nrn2core_type_return_)(0, tid, data, mdata); // 0 means time
+    if (n) { // not the empty thread
+      data[0] = nt._t;
+    }
 
     if (nt.end) { // transfer voltage and possibly i_membrane_
       n = (*nrn2core_type_return_)(voltage, tid, data, mdata);
