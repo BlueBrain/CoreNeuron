@@ -50,6 +50,7 @@ set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
+if(FALSE)
 set(INBUILT_MOD_PATH "mechanism/mech/modfile")
 set(INBUILT_MOD_FILES
     expsyn.mod
@@ -90,6 +91,10 @@ if(CORENRN_ENABLE_ISPC)
   set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
   set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES COMPILE_FLAGS
                               "-I${CORENRN_NMODL_INCLUDE} --pic")
+endif()
+
+else()
+    file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile DESTINATION ${CMAKE_BINARY_DIR}/share)
 endif()
 
 # =============================================================================
@@ -154,7 +159,7 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # main coreneuron library
 add_library(
-  coreneuron ${COMPILE_LIBRARY_TYPE} ${CORENEURON_HEADER_FILES} ${CORENEURON_TEMPLATE_FILES}
+    coreneuron STATIC ${CORENEURON_HEADER_FILES} ${CORENEURON_TEMPLATE_FILES}
              ${CORENEURON_CODE_FILES} ${cudacorenrn_objs} ${NMODL_INBUILT_MOD_OUTPUTS})
 
 # need to have _kinderiv.h for mod2c generated files
@@ -164,7 +169,7 @@ add_dependencies(coreneuron kin_deriv_header)
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
 # minimal main and dimplic file for nrnivmodl-core workflow
-add_library(corenrnmech ${COMPILE_LIBRARY_TYPE} ${CORENEURON_HEADER_FILES} ${ENGINEMECH_CODE_FILE}
+add_library(corenrnmech STATIC ${CORENEURON_HEADER_FILES} ${ENGINEMECH_CODE_FILE}
                         ${DIMPLIC_CODE_FILE})
 
 target_link_libraries(
@@ -192,25 +197,28 @@ set_target_properties(
 # =============================================================================
 # create special-core with halfgap.mod for tests
 # =============================================================================
-add_custom_command(
-  TARGET coreneuron POST_BUILD
+add_custom_target(
+  coreneuronx ALL
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
           ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_dependencies(coreneuron scopmath)
+add_dependencies(coreneuronx scopmath coreneuron)
 
+include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
+
+if(FALSE)
 # =============================================================================
 # create nrnivmodl-core
 # =============================================================================
 # coreneuron executable
-include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 add_executable(nrniv-core "apps/coreneuron.cpp")
 
 target_link_libraries(nrniv-core corenrnmech ${reportinglib_LIBRARY} ${sonatareport_LIBRARY})
 
 set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
 
 # =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
@@ -297,7 +305,7 @@ if(NOT CORENRN_ENABLE_NMODL)
 endif()
 
 # install nrniv-core app
-install(TARGETS nrniv-core DESTINATION bin)
+#install(TARGETS nrniv-core DESTINATION bin)
 install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)
 
 # install random123 and nmodl headers

@@ -122,13 +122,13 @@ C_GREEN := \033[32m
 
 # Take the main and link with nrnmech.
 # RPATH is set for DESTDIR_RPATH and coreneuron lib
-$(special): $(coremech_lib)
+$(special): coremech_lib_target
 	@printf " => $(C_GREEN)LINKING$(C_RESET) executable $(special)\n"
 	$(CXX_LINK_EXE) $(INCFLAGS) -I $(incdir) $(datadir)/coreneuron.cpp -o $(special) \
 	  -L $(OUTPUT) -l$(coremech_libname) $(CORENRNLIB_FLAGS) -Wl,-rpath,'$(DESTDIR_RPATH)' -Wl,-rpath,$(libdir) $(LDFLAGS)
 
 
-$(coremech_lib): $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) build_always
+coremech_lib_target: $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) build_always
 	@printf " => $(C_GREEN)LINKING$(C_RESET) library $(coremech_lib) Mod files: $(mod_files)\n"
 	@rm -f ${coremech_lib}
 	$(CXXCOMPILE) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c -DADDITIONAL_MECHS $(datadir)/enginemech.cpp

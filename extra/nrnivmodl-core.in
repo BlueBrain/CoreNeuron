@@ -81,6 +81,10 @@ fi
 mkdir -p "$(dirname "$SAVE_FILE")"
 echo "# nrnivmodl-core options. Mods location: $params_MODS_PATH" > $SAVE_FILE
 
+mkdir -p @CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods/
+cp ${ROOTDIR}/share/modfile/* @CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods/
+cp $params_MODS_PATH/* @CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods/
+params_MODS_PATH=@CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods/
 
 # Build params to make command (and save them to file)
 make_params=("ROOT=${ROOTDIR}")
