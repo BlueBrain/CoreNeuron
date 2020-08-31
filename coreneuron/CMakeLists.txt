@@ -52,7 +52,8 @@ set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
 
 # copy inbuilt mod files to share
-file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile DESTINATION ${CMAKE_BINARY_DIR}/share)
+file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile
+     DESTINATION ${CMAKE_BINARY_DIR}/share)
 
 # =============================================================================
 # coreneuron GPU library
@@ -116,8 +117,8 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # main coreneuron library
 add_library(
-    coreneuron STATIC ${CORENEURON_HEADER_FILES} ${CORENEURON_TEMPLATE_FILES}
-             ${CORENEURON_CODE_FILES} ${cudacorenrn_objs} ${NMODL_INBUILT_MOD_OUTPUTS})
+  coreneuron STATIC ${CORENEURON_HEADER_FILES} ${CORENEURON_TEMPLATE_FILES}
+                    ${CORENEURON_CODE_FILES} ${cudacorenrn_objs} ${NMODL_INBUILT_MOD_OUTPUTS})
 
 # need to have _kinderiv.h for mod2c generated files
 add_dependencies(coreneuron kin_deriv_header)
@@ -152,8 +153,10 @@ add_custom_target(
   coreneuron_test ALL
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
           ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-  BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
+  WORKING_DIRECTORY
+    ${CMAKE_BINARY_DIR}/bin
+    BYPRODUCTS
+    ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_dependencies(coreneuron_test scopmath coreneuron)
 
@@ -244,12 +247,18 @@ if(NOT CORENRN_ENABLE_NMODL)
 endif()
 
 # install nrniv-core app
-install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/special-core DESTINATION bin RENAME nrniv-core)
+install(
+  PROGRAMS ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/special-core
+  DESTINATION bin
+  RENAME nrniv-core)
 install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)
 
 # TODO : need to copy mechanism library into bin for now
 if(CORENRN_ENABLE_SHARED)
-  install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION bin)
+  install(
+    PROGRAMS
+      ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}
+    DESTINATION bin)
 endif()
 
 # install random123 and nmodl headers
