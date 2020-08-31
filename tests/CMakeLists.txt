@@ -13,7 +13,11 @@ if(NOT Boost_USE_STATIC_LIBS)
 endif()
 
 # mechanism library path
-link_directories(${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR})
+if(CORENRN_ENABLE_SHARED)
+  set(corenrn_mech_lib "${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}")
+else()
+  set(corenrn_mech_lib "${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
 
 set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
