@@ -12,6 +12,9 @@ if(NOT Boost_USE_STATIC_LIBS)
   add_definitions(-DBOOST_TEST_DYN_LINK=TRUE)
 endif()
 
+# mechanism library path
+link_directories(${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR})
+
 set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)
 
