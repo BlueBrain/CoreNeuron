@@ -50,52 +50,9 @@ set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
-if(FALSE)
-set(INBUILT_MOD_PATH "mechanism/mech/modfile")
-set(INBUILT_MOD_FILES
-    expsyn.mod
-    exp2syn.mod
-    hh.mod
-    netstim.mod
-    passive.mod
-    pattern.mod
-    stim.mod)
 
-# Has helper macro for generating cpp file from mod2c
-include(NmodlHelper)
-
-# =============================================================================
-# Command for MOD to CPP conversion
-# =============================================================================
-set(CORENRN_NMODL_COMMAND env "MODLUNIT=${NMODL_UNITS_FILE}"
-                          "PYTHONPATH=${CORENRN_NMODL_PYTHONPATH}" ${CORENRN_NMODL_BINARY})
-
-if(${CORENRN_ENABLE_ISPC})
-  set(NMODL_CODEGEN_TARGET ispc)
-else()
-  set(NMODL_CODEGEN_TARGET serial)
-endif()
-
-# configure every mod file to configure with mod2c/nmodl
-foreach(MOD ${INBUILT_MOD_FILES})
-  nmodl_to_cpp_target(KEY INBUILT_MOD MODFILE "${INBUILT_MOD_PATH}/${MOD}" TARGET
-                      ${NMODL_CODEGEN_TARGET})
-endforeach()
-
-set_source_files_properties(${NMODL_INBUILT_MOD_OUTPUTS} PROPERTIES GENERATED TRUE)
-
-# for ispc generated files, we need add extra compilation flags
-if(CORENRN_ENABLE_ISPC)
-  set(NMODL_ISPC_INBUILT_MOD_OUTPUTS ${NMODL_INBUILT_MOD_OUTPUTS})
-  list(FILTER NMODL_ISPC_INBUILT_MOD_OUTPUTS INCLUDE REGEX ".*\.ispc$")
-  set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES LANGUAGE ISPC)
-  set_source_files_properties(${NMODL_ISPC_INBUILT_MOD_OUTPUTS} PROPERTIES COMPILE_FLAGS
-                              "-I${CORENRN_NMODL_INCLUDE} --pic")
-endif()
-
-else()
-    file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile DESTINATION ${CMAKE_BINARY_DIR}/share)
-endif()
+# copy inbuilt mod files to share
+file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile DESTINATION ${CMAKE_BINARY_DIR}/share)
 
 # =============================================================================
 # coreneuron GPU library
