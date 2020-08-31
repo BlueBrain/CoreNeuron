@@ -263,3 +263,6 @@ endif()
 
 # install random123 and nmodl headers
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include)
+
+# install mod files
+install(DIRECTORY ${CMAKE_BINARY_DIR}/share/modfile DESTINATION share)
