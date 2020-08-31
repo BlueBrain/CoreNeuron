@@ -125,10 +125,6 @@ add_dependencies(coreneuron kin_deriv_header)
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
-# minimal main and dimplic file for nrnivmodl-core workflow
-add_library(corenrnmech STATIC ${CORENEURON_HEADER_FILES} ${ENGINEMECH_CODE_FILE}
-                        ${DIMPLIC_CODE_FILE})
-
 target_link_libraries(
   coreneuron
   ${MPI_C_LIBRARIES}
@@ -144,10 +140,8 @@ target_include_directories(coreneuron SYSTEM
 target_include_directories(coreneuron SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 
-target_link_libraries(corenrnmech scopmath coreneuron)
-
 set_target_properties(
-  coreneuron corenrnmech scopmath ${link_cudacoreneuron}
+  coreneuron scopmath ${link_cudacoreneuron}
   PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib LIBRARY_OUTPUT_DIRECTORY
              ${CMAKE_BINARY_DIR}/lib POSITION_INDEPENDENT_CODE ON)
 
@@ -155,27 +149,15 @@ set_target_properties(
 # create special-core with halfgap.mod for tests
 # =============================================================================
 add_custom_target(
-  coreneuronx ALL
+  coreneuron_test ALL
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
           ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_dependencies(coreneuronx scopmath coreneuron)
+add_dependencies(coreneuron_test scopmath coreneuron)
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
-
-if(FALSE)
-# =============================================================================
-# create nrnivmodl-core
-# =============================================================================
-# coreneuron executable
-add_executable(nrniv-core "apps/coreneuron.cpp")
-
-target_link_libraries(nrniv-core corenrnmech ${reportinglib_LIBRARY} ${sonatareport_LIBRARY})
-
-set_target_properties(nrniv-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-endif()
 
 # =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
@@ -231,7 +213,7 @@ file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
 # coreneuron main libraries
 install(
-  TARGETS coreneuron corenrnmech ${link_cudacoreneuron}
+  TARGETS coreneuron ${link_cudacoreneuron}
   EXPORT coreneuron
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -262,8 +244,13 @@ if(NOT CORENRN_ENABLE_NMODL)
 endif()
 
 # install nrniv-core app
-#install(TARGETS nrniv-core DESTINATION bin)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/special-core DESTINATION bin RENAME nrniv-core)
 install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)
+
+# TODO : need to copy mechanism library into bin for now
+if(CORENRN_ENABLE_SHARED)
+  install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION bin)
+endif()
 
 # install random123 and nmodl headers
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include)
