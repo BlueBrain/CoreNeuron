@@ -61,20 +61,17 @@ endif
 # Variables used in the "ARTIFICIAL_CELL" detection
 mod_c_srcs_path =
 mod_ispc_srcs_path =
-mod_c_srcs_names =
 mod_ispc_srcs_names =
 define check_file
 	ifeq (@CORENRN_ENABLE_ISPC@, ON)
 		ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
 			mod_c_srcs_path += $(MODC_DIR)/$(notdir $(1))
-			mod_c_srcs_names += $(notdir $(1))
 		else
 			mod_ispc_srcs_path += $(MODC_DIR)/$(notdir $(1))
 			mod_ispc_srcs_names += $(notdir $(1))
 		endif
 	else
 		mod_c_srcs_path += $(MODC_DIR)/$(notdir $(1))
-		mod_c_srcs_names += $(notdir $(1))
 	endif
 endef
 
@@ -172,9 +169,9 @@ $(mod_c_files): $(MODC_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MODC_DIR)
 # If .mod doesnt exist attempt from previously built opt mods in shared/
 $(MODC_DIR)/%.cpp: $(datadir_mod2c)/%.cpp | $(MODC_DIR)
 	ln -s $< $@
+
 $(MODC_DIR)/%.ispc: $(datadir_mod2c)/%.ispc | $(MODC_DIR)
 	ln -s $< $@
-
 
 # Mod registration. Compiled by generic rule. Dont overwrite if not changed
 $(mod_func_c): build_always | $(MODC_DIR)
@@ -196,16 +193,9 @@ $(kinderiv_h): $(mod_all_cpp_files) build_always | $(MODC_DIR)
 $(dimplic_c): $(dimplic_src) | $(MODC_DIR)
 	ln -s $(dimplic_src) $(dimplic_c)
 
-
-install: $(special) $(coremech_lib)
-	install -d $(DESTDIR)/bin $(DESTDIR)/lib
-	install $(coremech_lib) $(DESTDIR)/lib
-	install $(special) $(DESTDIR)/bin
-
-
-# == INIT ==
 $(MODC_DIR):
 	mkdir -p $(MODC_DIR)
+
 $(OBJS_DIR):
 	mkdir -p $(OBJS_DIR)
 
