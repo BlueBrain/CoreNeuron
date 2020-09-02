@@ -113,6 +113,7 @@ include(OpenAccHelper)
 # Common dependencies
 # =============================================================================
 find_package(PythonInterp REQUIRED)
+find_package(Perl REQUIRED)
 
 # =============================================================================
 # ISPC should compile with --pic by default

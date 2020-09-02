@@ -5,14 +5,21 @@
 # -----------------------------------------------------------------------------
 set -e
 
+# name of the script
 APP_NAME=$(basename $0)
-_PARENT="$(dirname $BASH_SOURCE)/.."
-ROOTDIR=$(perl -e "use Cwd 'abs_path'; print abs_path('$_PARENT')")
-MAKE_OPTIONS="MECH_NAME NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
-PARALLELISM=4
+
+# directory of this script
+PARENT_DIR="$(dirname $BASH_SOURCE)/.."
+ROOT_DIR=$(@PERL_EXECUTABLE@ -e "use Cwd 'abs_path'; print abs_path('$PARENT_DIR')")
+
+# default arguments
+PARALLEL_BUILDS=4
 params_MODS_PATH="."
 
-# Parse args (overriding)
+# prefix for common options. make sure to rename this if options are changed.
+MAKE_OPTIONS="MECH_NAME NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
+
+# parse CLI args
 while getopts "n:m:v:d:i:l:p:hV" OPT; do
     case "$OPT" in
     n)
@@ -26,7 +33,7 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
     V)
         params_VERBOSE=1;;
     p)
-        PARALLELISM="$OPTARG";;
+        PARALLEL_BUILDS="$OPTARG";;
     h)
         echo "$APP_NAME [options, ...] [mods_path]"
         echo "Options:"
@@ -35,7 +42,7 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
         echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
         echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
         echo "  -V              Verbose: show commands executed by make"
-        echo "  -p <n_procs>    Make parallelism. Default: 4"
+        echo "  -p <n_procs>    Number of parallel builds (Default: $PARALLEL_BUILDS)"
         exit 0;;
     ?)
         exit 1;;
@@ -44,35 +51,40 @@ done
 
 shift $(($OPTIND - 1))
 
+# only one mod files directory is supported in neuron and coreneuron
 if [ $# -gt 1 ]; then
     echo "[ERROR] $APP_NAME expects at most one mod dir. See syntax: '$APP_NAME -h' "
     exit 1
 fi
 
-# If defined mods dir be in $1
+# if defined mods dir be in $1
 if [ $# -eq 1 ]; then
     # Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
     params_MODS_PATH=$1
 fi
 
+# warn if no mod files provided
 if [ -d $params_MODS_PATH ]; then
-    # warn if no mod files provided
-    ls $params_MODS_PATH/*.mod &>/dev/null || echo "WARNING: No mods found!"
+    ls $params_MODS_PATH/*.mod &>/dev/null || echo "WARNING: No mod files found, compiling default ones only!"
 else
     echo "FATAL: Invalid mods directory: '$params_MODS_PATH'"
     exit 1
 fi
 
-target_mod_dir=@CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods/
-mkdir -p $target_mod_dir
+# temporary directory where mod files will be copied
+temp_mod_dir=@CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods
+mkdir -p $temp_mod_dir
 
+# copy mod files with include files. note that ${ROOT_DIR}/share
+# has inbuilt mod files and user provided ones in $params_MODS_PATH.
 set +e
-for mod_dir in ${ROOTDIR}/share/modfile $params_MODS_PATH;
+for mod_dir in ${ROOT_DIR}/share/modfile $params_MODS_PATH;
 do
     files=`ls $mod_dir/*.mod $mod_dir/*.inc 2>/dev/null`
     for f in $files;
     do
-        target_file_path=$target_mod_dir/`basename $f`
+        target_file_path=$temp_mod_dir/`basename $f`
+        # copy mod files only if it's changed to avoid rebuild
         if ! diff -q $f $target_file_path &>/dev/null;  then
             cp $f $target_file_path
         fi
@@ -80,10 +92,11 @@ do
 done
 set -e
 
-params_MODS_PATH=@CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods
+# use new mod files directory for compilation
+params_MODS_PATH=$temp_mod_dir
 
-# Build params to make command
-make_params=("ROOT=${ROOTDIR}")
+# build params to make command
+make_params=("ROOT=${ROOT_DIR}")
 for param in $MAKE_OPTIONS; do
     var="params_${param}"
     if [ "${!var+x}" ]; then
@@ -91,7 +104,8 @@ for param in $MAKE_OPTIONS; do
     fi
 done
 
+# run makefile
 echo "[INFO] Running make with params: ${make_params[@]}"
-VERBOSE=1 make -j$PARALLELISM -f "${ROOTDIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+make -j$PARALLEL_BUILDS -f "${ROOT_DIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
 
-echo "[INFO] mods built successfully."
+echo "[INFO] mod files built successfully for CoreNEURON."
