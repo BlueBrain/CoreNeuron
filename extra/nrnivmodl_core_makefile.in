@@ -1,6 +1,6 @@
 #
 # This makefile has the rules necessary for making the custom version of coreneuron
-# executable called "special_exe-core" from various mod files.
+# executable called "SPECIAL_EXE-core" from various mod files.
 # Mod files are looked up in the cwd, unless MODS_PATH is set
 
 # build system OS
@@ -61,6 +61,10 @@ MOD_FUNC_CPP = $(MOD_TO_CPP_DIR)/_mod_func.cpp
 MOD_FUNC_OBJ = $(MOD_OBJS_DIR)/_mod_func.o
 DIMPLIC_CPP  = $(MOD_TO_CPP_DIR)/_dimplic.cpp
 DIMPLIC_OBJ  = $(MOD_OBJS_DIR)/_dimplic.o
+ENGINEMECH_OBJ = $(MOD_OBJS_DIR)/enginemech.o
+
+# name of the binary
+SPECIAL_EXE  = $(OUTPUT_DIR)/special-core
 
 ifeq (@COMPILE_LIBRARY_TYPE@, STATIC)
     LIB_SUFFIX = @CMAKE_STATIC_LIBRARY_SUFFIX@
@@ -81,39 +85,36 @@ endif
 
 # mod files with full path, without path and without mod extension
 mod_files_paths = $(sort $(wildcard $(MODS_PATH)/*.mod))
-mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
-mod_files_no_ext = $(mod_files:.mod=)
+mod_files_names = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
+mod_files_no_ext = $(mod_files_names:.mod=)
 
-# Variables used in the "ARTIFICIAL_CELL" detection
-mod_c_srcs_path =
-mod_ispc_srcs_path =
-mod_ispc_srcs_names =
-
+# artificial and non-artificial cells
 define check_file
 	ifeq (@CORENRN_ENABLE_ISPC@, ON)
 		ifeq ($(shell grep -q $(2) $(1); echo $$?), 0)
-			mod_c_srcs_path += $(MOD_TO_CPP_DIR)/$(notdir $(1))
+			mod_art_files += $(MOD_TO_CPP_DIR)/$(notdir $(1))
 		else
-			mod_ispc_srcs_path += $(MOD_TO_CPP_DIR)/$(notdir $(1))
+			mod_non_art_files += $(MOD_TO_CPP_DIR)/$(notdir $(1))
 		endif
-	else
-		mod_c_srcs_path += $(MOD_TO_CPP_DIR)/$(notdir $(1))
 	endif
 endef
 
 $(foreach mod_file, $(mod_files_paths), $(eval $(call check_file, $(mod_file), ARTIFICIAL_CELL)))
 
-mod_all_cpp_files = $(addprefix $(MOD_TO_CPP_DIR)/,$(addsuffix .cpp,$(mod_files_no_ext)))
-mod_c_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .o,$(basename $(mod_files_no_ext)))) $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .o,$(basename $(filter %.cpp, $(OPTMODS_OUTPUT_DIRS)))))
-mod_ispc_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .obj,$(basename $(mod_ispc_srcs_names)))) $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .obj,$(basename $(filter %.ispc, $(OPTMODS_OUTPUT_DIRS)))))
+# with ispc, we use only non-artificial cells
+ifeq (@CORENRN_ENABLE_ISPC@, ON)
+	mod_files_for_cpp_backend = $(mod_art_files)
+else
+	mod_files_for_cpp_backend = $(mod_art_files) $(mod_non_art_files)
+endif
 
-mod_c_files = $(patsubst %.mod,%.cpp,$(mod_c_srcs_path))
-mod_ispc_srcs_names = $(notdir $(mod_ispc_srcs_path))
-mod_ispc_files = $(patsubst %.mod,%.ispc,$(mod_ispc_srcs_path))
-mod_ispc_c_files = $(patsubst %.mod,%.cpp,$(mod_ispc_srcs_path))
+mod_cpp_files = $(patsubst %.mod,%.cpp,$(mod_files_for_cpp_backend))
+mod_cpp_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .o,$(basename $(mod_files_no_ext))))
 
-# name of binary
-special_exe  = $(OUTPUT_DIR)/special-core
+mod_ispc_srcs_names = $(notdir $(mod_non_art_files))
+mod_ispc_files = $(patsubst %.mod,%.ispc,$(mod_non_art_files))
+mod_ispc_cpp_files = $(patsubst %.mod,%.cpp,$(mod_non_art_files))
+mod_ispc_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .obj,$(basename $(mod_ispc_srcs_names))))
 
 # name of library, with suffix if provided
 coremech_libname = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
@@ -123,43 +124,42 @@ coremech_lib = $(OUTPUT_DIR)/lib$(coremech_libname)$(LIB_SUFFIX)
 LIB_RPATH := $(if $(filter Darwin,$(OS_NAME)),@loader_path,$$ORIGIN)
 SONAME_OPTION := -Wl,$(if $(filter Darwin,$(OS_NAME)),-install_name${COMMA_OP}@rpath/,-soname${COMMA_OP})$(notdir ${coremech_lib})
 
+ALL_OBJS = $(MOD_FUNC_OBJ) $(DIMPLIC_OBJ) $(mod_cpp_objs) $(mod_ispc_objs)
+
 C_RESET := \033[0m
 C_GREEN := \033[32m
-
-all_object_files = $(MOD_FUNC_OBJ) $(DIMPLIC_OBJ) $(mod_c_objs) $(mod_ispc_objs)
-
-current_dir = $(shell pwd)
 
 
 # ======== MAIN BUILD RULES ============
 
 
 # main target to build binary
-$(special_exe): coremech_lib
-	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(special_exe)\n"
-	$(CXX_LINK_EXE_CMD) -o $(special_exe) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
+$(SPECIAL_EXE): coremech_lib_target
+	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
+	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) $(LDFLAGS) $(CORENRNLIB_FLAGS) -l$(coremech_libname) \
 	  -Wl,-rpath,$(LIB_RPATH) -Wl,-rpath,$(INSTALL_LIB_DIR)
 
-coremech_lib: enginemech_object $(corenrnmech_lib_target)
+coremech_lib_target: enginemech_object $(corenrnmech_lib_target)
 	rm -rf $(OUTPUT_DIR)/.libs; \
 	mkdir -p $(OUTPUT_DIR)/.libs; \
 	ln -s $(OUTPUT_DIR)/${coremech_lib} $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX)
 
 enginemech_object:
-	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(INSTALL_SHARE_CORENRN_DIR)/enginemech.cpp
+	mkdir -p $(MOD_OBJS_DIR)
+	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(INSTALL_SHARE_CORENRN_DIR)/enginemech.cpp -o $(ENGINEMECH_OBJ)
 
-coremech_lib_shared: $(all_object_files) build_always
-	$(CXX_SHARED_LIB_CMD) enginemech.o -o ${coremech_lib} $(all_object_files) \
+coremech_lib_shared: $(ALL_OBJS) build_always
+	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${coremech_lib} $(ALL_OBJS) \
 	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
 	  $(LDFLAGS) $(INSTALL_LIB_DIR)/libscopmath.a \
 	  ${SONAME_OPTION} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(INSTALL_LIB_DIR);
 
-coremech_lib_static: $(all_object_files) build_always
+coremech_lib_static: $(ALL_OBJS) build_always
 	mkdir -p $(MOD_OBJS_DIR)/scopmath; \
 	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
-	ar cq ${coremech_lib} enginemech.o $(all_object_files) $(MOD_OBJS_DIR)/scopmath/*.o;
+	ar cq ${coremech_lib} $(ENGINEMECH_OBJ) $(ALL_OBJS) $(MOD_OBJS_DIR)/scopmath/*.o;
 
 # generic build cpp->.o Need PIC for shared lib
 $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp $(KINDERIV_H_PATH) | $(MOD_OBJS_DIR)
@@ -174,20 +174,20 @@ $(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_D
 	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@
 
 # static pattern to set up the dependencies for the previous recipe.
-$(mod_ispc_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
+$(mod_ispc_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
 
 # build cpp files with mod2c/nmodl
-$(mod_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
+$(mod_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
 	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@
 
 # generate mod registration function. Dont overwrite if not changed
 $(MOD_FUNC_CPP): build_always | $(MOD_TO_CPP_DIR)
-	@PERL_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files) > $(MOD_FUNC_CPP).tmp
+	@PERL_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files_names) > $(MOD_FUNC_CPP).tmp
 	diff -q $(MOD_FUNC_CPP).tmp $(MOD_FUNC_CPP) || \
 	mv $(MOD_FUNC_CPP).tmp $(MOD_FUNC_CPP)
 
 # header to avoid function callbacks using function pointers
-$(KINDERIV_H_PATH): $(mod_all_cpp_files) build_always | $(MOD_TO_CPP_DIR)
+$(KINDERIV_H_PATH): $(mod_cpp_files) build_always | $(MOD_TO_CPP_DIR)
 	cd $(MOD_TO_CPP_DIR); \
 	@PYTHON_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/kinderiv.py;
 
