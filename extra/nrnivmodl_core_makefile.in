@@ -43,13 +43,14 @@ ISPC = @CMAKE_ISPC_COMPILER@
 ISPC_FLAGS = @CMAKE_ISPC_FLAGS@
 ISPC_COMPILE_CMD = $(ISPC) $(ISPC_FLAGS) -I$(INSTALL_INC_DIR)
 
-dimplic_cpp_src= $(INSTALL_SHARE_CORENRN_DIR)/dimplic.cpp
-kinderiv_h = $(MOD_TO_CPP_DIR)/_kinderiv.h
-mod_func_o = $(MOD_OBJS_DIR)/_mod_func.o
-mod_func_cpp = $(MOD_TO_CPP_DIR)/_mod_func.cpp
-dimplic_cpp  = $(MOD_TO_CPP_DIR)/_dimplic.cpp
-dimplic_o  = $(MOD_OBJS_DIR)/_dimplic.o
+# file provided by coreneuron
+DERIVIMPLICIT_CPP_FILE = $(INSTALL_SHARE_CORENRN_DIR)/dimplic.cpp
 
+ifeq (@COMPILE_LIBRARY_TYPE@, STATIC)
+    LIB_SUFFIX = @CMAKE_STATIC_LIBRARY_SUFFIX@
+else
+    LIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
+endif
 
 # build system OS
 OS_NAME := $(shell uname)
@@ -57,23 +58,28 @@ OS_NAME := $(shell uname)
 # ","" is argument separator, never as a literal
 COMMA_OP =,
 
+
+kinderiv_h = $(MOD_TO_CPP_DIR)/_kinderiv.h
+
+mod_func_o = $(MOD_OBJS_DIR)/_mod_func.o
+mod_func_cpp = $(MOD_TO_CPP_DIR)/_mod_func.cpp
+
+dimplic_cpp  = $(MOD_TO_CPP_DIR)/_dimplic.cpp
+dimplic_o  = $(MOD_OBJS_DIR)/_dimplic.o
+
 # Binary of MOD2C/NMODL depending on which was activated
 ifeq (@nmodl_FOUND@, TRUE)
-    nmodl_binary_path = $(if $(NMODL_BINARY),$(NMODL_BINARY), @CORENRN_NMODL_BINARY@)
-else
-    nmodl_binary_path = $(if $(NMODL_BINARY),$(NMODL_BINARY), $(INSTALL_BIN_DIR)/@nmodl_binary_name@)
-endif
-
-ifeq (@nmodl_FOUND@, TRUE)
+    NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), @CORENRN_NMODL_BINARY@)
     INCLUDES += -I@CORENRN_NMODL_INCLUDE@
     ISPC_COMPILE_CMD += -I@CORENRN_NMODL_INCLUDE@
+else
+    NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), $(INSTALL_BIN_DIR)/@nmodl_binary_name@)
 endif
 
 # mod files with full path, without path and without mod extension
 mod_files_paths = $(sort $(wildcard $(MODS_PATH)/*.mod))
 mod_files = $(sort $(notdir $(wildcard $(MODS_PATH)/*.mod)))
 mod_files_no_ext = $(mod_files:.mod=)
-
 
 # Variables used in the "ARTIFICIAL_CELL" detection
 mod_c_srcs_path =
@@ -98,29 +104,21 @@ mod_all_cpp_files = $(addprefix $(MOD_TO_CPP_DIR)/,$(addsuffix .cpp,$(mod_files_
 mod_c_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .o,$(basename $(mod_files_no_ext)))) $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .o,$(basename $(filter %.cpp, $(OPTMODS_OUTPUT_DIRS)))))
 mod_ispc_objs = $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .obj,$(basename $(mod_ispc_srcs_names)))) $(addprefix $(MOD_OBJS_DIR)/,$(addsuffix .obj,$(basename $(filter %.ispc, $(OPTMODS_OUTPUT_DIRS)))))
 
-$(warning  mod_ispc_objs is $(mod_ispc_objs))
-
-
 mod_c_files = $(patsubst %.mod,%.cpp,$(mod_c_srcs_path))
 mod_ispc_srcs_names = $(notdir $(mod_ispc_srcs_path))
 mod_ispc_files = $(patsubst %.mod,%.ispc,$(mod_ispc_srcs_path))
 mod_ispc_c_files = $(patsubst %.mod,%.cpp,$(mod_ispc_srcs_path))
 
-$(warning  mod_ispc_objs is $(mod_ispc_objs))
-
+# name of binary
 special_exe  = $(OUTPUT_DIR)/special-core
-coremech_libname = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
-ifeq (@COMPILE_LIBRARY_TYPE@, STATIC)
-    library_suffix = @CMAKE_STATIC_LIBRARY_SUFFIX@
-else
-    library_suffix = @CMAKE_SHARED_LIBRARY_SUFFIX@
-endif
-coremech_lib = $(OUTPUT_DIR)/lib$(coremech_libname)$(library_suffix)
 
-# If no DESTDIR (we are probably just building) we use $ORIGIN (@loader_path in OSX)
-_ORIGIN := $(if $(filter Darwin,$(OS_NAME)),@loader_path,$$ORIGIN)
+# name of library, with suffix if provided
+coremech_libname = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
+coremech_lib = $(OUTPUT_DIR)/lib$(coremech_libname)$(LIB_SUFFIX)
+
+# we use $ORIGIN (@loader_path in OSX)
+LIB_RPATH := $(if $(filter Darwin,$(OS_NAME)),@loader_path,$$ORIGIN)
 _SONAME := -Wl,$(if $(filter Darwin,$(OS_NAME)),-install_name${COMMA_OP}@rpath/,-soname${COMMA_OP})$(notdir ${coremech_lib})
-DESTDIR_RPATH = $(if $(DESTDIR),$(DESTDIR)/lib,$(_ORIGIN))
 
 C_RESET := \033[0m
 C_GREEN := \033[32m
@@ -128,11 +126,11 @@ C_GREEN := \033[32m
 # ======== MAIN BUILD RULES ============
 
 # Take the main and link with nrnmech.
-# RPATH is set for DESTDIR_RPATH and coreneuron lib
+# RPATH is set for coreneuron lib
 $(special_exe): coremech_lib_target
 	@printf " => $(C_GREEN)LINKING$(C_RESET) executable $(special_exe)\n"
 	$(CXX_LINK_EXE_CMD) $(INCFLAGS) -I $(INSTALL_INC_DIR) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp -o $(special_exe) \
-	  -L $(OUTPUT_DIR) -l$(coremech_libname) $(CORENRNLIB_FLAGS) -Wl,-rpath,'$(DESTDIR_RPATH)' -Wl,-rpath,$(INSTALL_LIB_DIR) $(LDFLAGS)
+	  -L $(OUTPUT_DIR) -l$(coremech_libname) $(CORENRNLIB_FLAGS) -Wl,-rpath,$(LIB_RPATH) -Wl,-rpath,$(INSTALL_LIB_DIR) $(LDFLAGS)
 
 
 coremech_lib_target: $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) build_always
@@ -146,63 +144,55 @@ coremech_lib_target: $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) b
 		mkdir -p $(MOD_OBJS_DIR)/scopmath_obj && cd $(MOD_OBJS_DIR)/scopmath_obj && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
 		ar cq ${coremech_lib} enginemech.o $(mod_func_o) $(dimplic_o) $(MOD_OBJS_DIR)/scopmath_obj/*.o $(mod_c_objs) $(mod_ispc_objs);\
 	fi
-	(rm -f $(OUTPUT_DIR)/.libs/libcorenrnmech$(library_suffix) ; mkdir -p $(OUTPUT_DIR)/.libs ; ln -s ../../${coremech_lib} $(OUTPUT_DIR)/.libs/libcorenrnmech$(library_suffix))
+	(rm -f $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX) ; mkdir -p $(OUTPUT_DIR)/.libs ; ln -s ../../${coremech_lib} $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX))
 
 
-# Generic build cpp->.o Need PIC for shared lib
+# generic build cpp->.o Need PIC for shared lib
 $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp $(kinderiv_h) | $(MOD_OBJS_DIR)
 	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\n"
 	$(CXX_COMPILE_CMD) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c $< -o $@
 
-# Generic build ispc->.obj Need PIC for shared lib
+# generic build ispc->.obj Need PIC for shared lib
 $(MOD_OBJS_DIR)/%.obj: $(MOD_TO_CPP_DIR)/%.ispc | $(MOD_OBJS_DIR)
 	@printf " -> $(C_GREEN)Compiling with ISPC$(C_RESET) $<\n"
 	$(ISPC_COMPILE_CMD) @CMAKE_ISPC_COMPILE_OPTIONS_PIC@ $< -o $@
 
-# Build ispc files with mod2c/nmodl
+# build ispc files with mod2c/nmodl
 $(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
 	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
 	PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python \
 	MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib \
-	  $(nmodl_binary_path) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@
+	  $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@
 
-# Static pattern to set up the dependencies for the previous recipe.
+# static pattern to set up the dependencies for the previous recipe.
 $(mod_ispc_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
 
-# Build cpp files with mod2c/nmodl
+# build cpp files with mod2c/nmodl
 $(mod_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
-	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
+	@printf " -> $(C_GREEN)Converting MOD file to CPP$(C_RESET) $<\n"
 	PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python \
 	MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib \
-	  $(nmodl_binary_path) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@
+	  $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@
 
-# If .mod doesnt exist attempt from previously built opt mods in shared/
+# generate mod registration function. Dont overwrite if not changed
+$(mod_func_cpp): build_always | $(MOD_TO_CPP_DIR)
+	@PERL_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files) > $(mod_func_cpp).tmp
+	diff -q $(mod_func_cpp).tmp $(mod_func_cpp) || \
+	mv $(mod_func_cpp).tmp $(mod_func_cpp)
+
+# header to avoid function callbacks using function pointers
+$(kinderiv_h): $(mod_all_cpp_files) build_always | $(MOD_TO_CPP_DIR)
+	cd $(MOD_TO_CPP_DIR) && \
+	@PYTHON_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/kinderiv.py
+
+# symlink to cpp files provided by coreneuron
 $(MOD_TO_CPP_DIR)/%.cpp: $(INSTALL_SHARE_MOD2C_DIR)/%.cpp | $(MOD_TO_CPP_DIR)
 	ln -s $< $@
 
-$(MOD_TO_CPP_DIR)/%.ispc: $(INSTALL_SHARE_MOD2C_DIR)/%.ispc | $(MOD_TO_CPP_DIR)
-	ln -s $< $@
+$(dimplic_cpp): $(DERIVIMPLICIT_CPP_FILE) | $(MOD_TO_CPP_DIR)
+	ln -s $(DERIVIMPLICIT_CPP_FILE) $(dimplic_cpp)
 
-# Mod registration. Compiled by generic rule. Dont overwrite if not changed
-$(mod_func_cpp): build_always | $(MOD_TO_CPP_DIR)
-	@printf " -> $(C_GREEN)Generating$(C_RESET) $(mod_func_cpp)\n"
-	perl $(INSTALL_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files) > $(mod_func_cpp).tmp
-	diff -q $(mod_func_cpp).tmp $(mod_func_cpp) || { echo "Replacing mod_func.c"; mv $(mod_func_cpp).tmp $(mod_func_cpp); }
-
-
-# Header to avoid function callbacks using function pointers
-# Move all mods to temp and bring back only those required
-$(kinderiv_h): $(mod_all_cpp_files) build_always | $(MOD_TO_CPP_DIR)
-	@printf " -> $(C_GREEN)Generating$(C_RESET) $(kinderiv_h)\n"
-	cd $(MOD_TO_CPP_DIR) && mkdir -p _tmp &&	mv [^_]*.cpp _tmp/ && \
-	  mv $(addprefix _tmp/,$(notdir $(mod_all_cpp_files))) ./ || true
-	rm -rf $(MOD_TO_CPP_DIR)/_tmp
-	cd $(MOD_TO_CPP_DIR) && @PYTHON_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/kinderiv.py
-
-
-$(dimplic_cpp): $(dimplic_cpp_src) | $(MOD_TO_CPP_DIR)
-	ln -s $(dimplic_cpp_src) $(dimplic_cpp)
-
+# create directories needed
 $(MOD_TO_CPP_DIR):
 	mkdir -p $(MOD_TO_CPP_DIR)
 
