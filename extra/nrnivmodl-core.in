@@ -17,13 +17,13 @@ PARALLEL_BUILDS=4
 params_MODS_PATH="."
 
 # prefix for common options. make sure to rename this if options are changed.
-MAKE_OPTIONS="MECH_NAME NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
+MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
 
 # parse CLI args
 while getopts "n:m:v:d:i:l:p:hV" OPT; do
     case "$OPT" in
     n)
-        params_MECH_NAME="$OPTARG";;
+        params_MECHLIB_SUFFIX="$OPTARG";;
     m)
         params_NMODL_BINARY="$OPTARG";;
     i)
