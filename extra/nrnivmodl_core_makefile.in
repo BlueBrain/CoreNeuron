@@ -34,7 +34,7 @@ INCLUDES += $(if @reportinglib_INCLUDE_DIR@, -I$(subst ;, -I,@reportinglib_INCLU
 # Various C++ compiler related commands
 CXX = @CMAKE_CXX_COMPILER@
 CXXFLAGS = @BUILD_TYPE_CXX_FLAGS@ @CMAKE_CXX_FLAGS@ @CXX14_STANDARD_COMPILE_OPTION@ @PGI_INLINE_FLAGS@
-CXX_COMPILE_CMD = $(CXX) $(CXXFLAGS) @CORENRN_COMPILE_DEFS@ $(INCLUDES)
+CXX_COMPILE_CMD = $(CXX) $(CXXFLAGS) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ @CORENRN_COMPILE_DEFS@ $(INCLUDES)
 CXX_LINK_EXE_CMD = $(CXX) $(CXXFLAGS) @CMAKE_EXE_LINKER_FLAGS@
 CXX_SHARED_LIB_CMD = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ @CMAKE_SHARED_LIBRARY_CXX_FLAGS@ @CMAKE_SHARED_LINKER_FLAGS@
 
@@ -46,10 +46,15 @@ ISPC_COMPILE_CMD = $(ISPC) $(ISPC_FLAGS) -I$(INSTALL_INC_DIR)
 # file provided by coreneuron
 DERIVIMPLICIT_CPP_FILE = $(INSTALL_SHARE_CORENRN_DIR)/dimplic.cpp
 
+# env variables
+NMODL_ENV_VAR = PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib
+
 ifeq (@COMPILE_LIBRARY_TYPE@, STATIC)
     LIB_SUFFIX = @CMAKE_STATIC_LIBRARY_SUFFIX@
+    corenrnmech_lib_target = coremech_lib_static
 else
     LIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
+    corenrnmech_lib_target = coremech_lib_shared
 endif
 
 # build system OS
@@ -123,56 +128,57 @@ _SONAME := -Wl,$(if $(filter Darwin,$(OS_NAME)),-install_name${COMMA_OP}@rpath/,
 C_RESET := \033[0m
 C_GREEN := \033[32m
 
+all_object_files = $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs)
+
+
 # ======== MAIN BUILD RULES ============
 
-# Take the main and link with nrnmech.
-# RPATH is set for coreneuron lib
-$(special_exe): coremech_lib_target
-	@printf " => $(C_GREEN)LINKING$(C_RESET) executable $(special_exe)\n"
-	$(CXX_LINK_EXE_CMD) $(INCFLAGS) -I $(INSTALL_INC_DIR) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp -o $(special_exe) \
-	  -L $(OUTPUT_DIR) -l$(coremech_libname) $(CORENRNLIB_FLAGS) -Wl,-rpath,$(LIB_RPATH) -Wl,-rpath,$(INSTALL_LIB_DIR) $(LDFLAGS)
 
+# main target to build binary
+$(special_exe): coremech_lib
+	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(special_exe)\n"
+	$(CXX_LINK_EXE_CMD) -o $(special_exe) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
+	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
+	  -L$(OUTPUT_DIR) $(LDFLAGS) $(CORENRNLIB_FLAGS) -l$(coremech_libname) \
+	  -Wl,-rpath,$(LIB_RPATH) -Wl,-rpath,$(INSTALL_LIB_DIR)
 
-coremech_lib_target: $(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) build_always
-	@printf " => $(C_GREEN)LINKING$(C_RESET) library $(coremech_lib) Mod files: $(mod_files)\n"
-	@rm -f ${coremech_lib}
-	$(CXX_COMPILE_CMD) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c -DADDITIONAL_MECHS $(INSTALL_SHARE_CORENRN_DIR)/enginemech.cpp
-	@if [ "@COMPILE_LIBRARY_TYPE@" = "SHARED" ]; then\
-		$(CXX_SHARED_LIB_CMD) $(INCFLAGS) -I $(INSTALL_INC_DIR) enginemech.o -o ${coremech_lib} ${_SONAME} \
-			$(mod_func_o) $(dimplic_o) $(mod_c_objs) $(mod_ispc_objs) $(INSTALL_LIB_DIR)/libscopmath.a $(CORENRNLIB_FLAGS) -Wl,-rpath,$(INSTALL_LIB_DIR) $(LDFLAGS);\
-	else\
-		mkdir -p $(MOD_OBJS_DIR)/scopmath_obj && cd $(MOD_OBJS_DIR)/scopmath_obj && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
-		ar cq ${coremech_lib} enginemech.o $(mod_func_o) $(dimplic_o) $(MOD_OBJS_DIR)/scopmath_obj/*.o $(mod_c_objs) $(mod_ispc_objs);\
-	fi
-	(rm -f $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX) ; mkdir -p $(OUTPUT_DIR)/.libs ; ln -s ../../${coremech_lib} $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX))
+coremech_lib: enginemech_object $(corenrnmech_lib_target)
+	rm -f $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX); \
+	mkdir -p $(OUTPUT_DIR)/.libs; \
+	ln -s ../../${coremech_lib} $(OUTPUT_DIR)/.libs/libcorenrnmech$(LIB_SUFFIX)
 
+enginemech_object:
+	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(INSTALL_SHARE_CORENRN_DIR)/enginemech.cpp
+
+coremech_lib_shared: $(all_object_files) build_always
+	$(CXX_SHARED_LIB_CMD) enginemech.o -o ${coremech_lib} $(all_object_files) \
+	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
+	  $(LDFLAGS) $(INSTALL_LIB_DIR)/libscopmath.a \
+	  ${_SONAME} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(INSTALL_LIB_DIR);
+
+coremech_lib_static: $(all_object_files) build_always
+	mkdir -p $(MOD_OBJS_DIR)/scopmath; \
+	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
+	ar cq ${coremech_lib} enginemech.o $(all_object_files) $(MOD_OBJS_DIR)/scopmath/*.o;
 
 # generic build cpp->.o Need PIC for shared lib
 $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp $(kinderiv_h) | $(MOD_OBJS_DIR)
-	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\n"
-	$(CXX_COMPILE_CMD) @CMAKE_CXX_COMPILE_OPTIONS_PIC@ -c $< -o $@
+	$(CXX_COMPILE_CMD) -c $< -o $@
 
 # generic build ispc->.obj Need PIC for shared lib
 $(MOD_OBJS_DIR)/%.obj: $(MOD_TO_CPP_DIR)/%.ispc | $(MOD_OBJS_DIR)
-	@printf " -> $(C_GREEN)Compiling with ISPC$(C_RESET) $<\n"
 	$(ISPC_COMPILE_CMD) @CMAKE_ISPC_COMPILE_OPTIONS_PIC@ $< -o $@
 
 # build ispc files with mod2c/nmodl
 $(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
-	@printf " -> $(C_GREEN)MOD2C$(C_RESET) $<\n"
-	PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python \
-	MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib \
-	  $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@
+	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@
 
 # static pattern to set up the dependencies for the previous recipe.
 $(mod_ispc_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
 
 # build cpp files with mod2c/nmodl
 $(mod_c_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
-	@printf " -> $(C_GREEN)Converting MOD file to CPP$(C_RESET) $<\n"
-	PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python \
-	MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib \
-	  $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@
+	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@
 
 # generate mod registration function. Dont overwrite if not changed
 $(mod_func_cpp): build_always | $(MOD_TO_CPP_DIR)
