@@ -141,7 +141,7 @@ $(SPECIAL_EXE): coremech_lib_target
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) $(LDFLAGS) $(CORENRNLIB_FLAGS) -l$(coremech_libname) \
-	  -Wl,-rpath,$(LIB_RPATH) -Wl,-rpath,$(INSTALL_LIB_DIR)
+	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(INSTALL_LIB_DIR)
 
 coremech_lib_target: enginemech_object $(corenrnmech_lib_target)
 	rm -rf $(OUTPUT_DIR)/.libs; \
