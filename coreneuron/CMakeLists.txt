@@ -205,6 +205,7 @@ if(NOT CORENRN_ENABLE_NMODL)
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/mod2c/")
   add_custom_target(link_units ALL COMMAND ${CMAKE_COMMAND} -E create_symlink "${NMODL_UNITS_FILE}"
                                            "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
+  add_dependencies(coreneuron_test link_units)
 endif()
 
 # main program required for building special-core
