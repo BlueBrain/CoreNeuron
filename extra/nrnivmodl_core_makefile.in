@@ -140,7 +140,7 @@ $(SPECIAL_EXE): coremech_lib_target
 	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
-	  -L$(OUTPUT_DIR) $(LDFLAGS) $(CORENRNLIB_FLAGS) -l$(coremech_libname) \
+	  -L$(OUTPUT_DIR) -l$(coremech_libname) $(CORENRNLIB_FLAGS) $(LDFLAGS) \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(INSTALL_LIB_DIR)
 
 coremech_lib_target: enginemech_object $(corenrnmech_lib_target)
@@ -161,6 +161,7 @@ coremech_lib_shared: $(ALL_OBJS) build_always
 coremech_lib_static: $(ALL_OBJS) build_always
 	mkdir -p $(MOD_OBJS_DIR)/scopmath; \
 	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
+	rm -f ${coremech_lib}; \
 	ar cq ${coremech_lib} $(ENGINEMECH_OBJ) $(ALL_OBJS) $(MOD_OBJS_DIR)/scopmath/*.o;
 
 # generic build cpp->.o Need PIC for shared lib
