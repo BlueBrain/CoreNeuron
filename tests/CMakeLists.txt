@@ -12,6 +12,8 @@ if(NOT Boost_USE_STATIC_LIBS)
   add_definitions(-DBOOST_TEST_DYN_LINK=TRUE)
 endif()
 
+set(CMAKE_BUILD_RPATH ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR})
+
 # mechanism library path
 if(CORENRN_ENABLE_SHARED)
   set(corenrn_mech_lib "${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}")
@@ -30,6 +32,7 @@ if(Boost_FOUND)
     add_subdirectory(unit/alignment)
     add_subdirectory(unit/queueing)
   endif()
+  message(STATUS "Boost found, unit tests enabled")
 else()
   message(STATUS "Boost not found, unit tests disabled")
 endif()
