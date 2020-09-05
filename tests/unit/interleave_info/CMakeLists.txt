@@ -8,7 +8,7 @@ file(GLOB interleave_info_src "*.cpp")
 
 add_executable(interleave_info_bin ${interleave_info_src})
 target_link_libraries(interleave_info_bin ${MPI_CXX_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-                      coreneuron ${corenrn_mech_lib} ${reportinglib_LIBRARY} ${sonatareport_LIBRARY})
+                      ${corenrn_mech_lib} ${reportinglib_LIBRARY} ${sonatareport_LIBRARY})
 add_dependencies(interleave_info_bin coreneuron_test)
 
 add_test(NAME interleave_info_constructor_test
