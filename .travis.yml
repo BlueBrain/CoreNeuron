@@ -171,7 +171,7 @@ script:
     else
         cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$HOME/CoreNeuron -DPYTHON_EXECUTABLE=$(which python3) ..;
     fi
-  - make VERBOSE=1 -j
+  - make -j 2
   - ctest --output-on-failure
   - make install
 
