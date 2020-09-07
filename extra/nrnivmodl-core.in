@@ -1,38 +1,46 @@
 #!/bin/bash
+
 # -----------------------------------------------------------------------------
-# nrnivmodl-core uses make to compile additonal mod files for coreneuron
-# Copyright 2019 Blue Brain Project
+# Copyright 2020 Blue Brain Project
+# nrnivmodl-core is used to compile mod files for coreneuron
 # -----------------------------------------------------------------------------
+
 set -e
 
 # name of the script
 APP_NAME=$(basename $0)
 
-# directory of this script
+# directory and parent directory of this script
 PARENT_DIR="$(dirname $BASH_SOURCE)/.."
 ROOT_DIR=$(@PERL_EXECUTABLE@ -e "use Cwd 'abs_path'; print abs_path('$PARENT_DIR')")
 
-# default arguments
+# default arguments : number of parallel builds and default mod file path
 PARALLEL_BUILDS=4
 params_MODS_PATH="."
 
-# prefix for common options. make sure to rename this if options are changed.
+# prefix for common options : make sure to rename these if options are changed.
 MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
 
 # parse CLI args
 while getopts "n:m:v:d:i:l:p:hV" OPT; do
     case "$OPT" in
     n)
+        # suffix for mechanism library
         params_MECHLIB_SUFFIX="$OPTARG";;
     m)
+        # nmodl or mod2c binary to use
         params_NMODL_BINARY="$OPTARG";;
     i)
+        # extra include flags
         params_INCFLAGS="$OPTARG";;
     l)
+        # extra link flags
         params_LINKFLAGS="$OPTARG";;
     V)
+        # make with verbose
         params_VERBOSE=1;;
     p)
+        # option for parallel build (with -j)
         PARALLEL_BUILDS="$OPTARG";;
     h)
         echo "$APP_NAME [options, ...] [mods_path]"
@@ -49,6 +57,7 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
     esac
 done
 
+# consume an option
 shift $(($OPTIND - 1))
 
 # only one mod files directory is supported in neuron and coreneuron
@@ -76,15 +85,16 @@ temp_mod_dir=@CMAKE_HOST_SYSTEM_PROCESSOR@/core/mods
 mkdir -p $temp_mod_dir
 
 # copy mod files with include files. note that ${ROOT_DIR}/share
-# has inbuilt mod files and user provided ones in $params_MODS_PATH.
+# has inbuilt mod files and user provided mod files are in $params_MODS_PATH.
 set +e
 for mod_dir in ${ROOT_DIR}/share/modfile $params_MODS_PATH;
 do
+    # copy mod files and include files
     files=`ls $mod_dir/*.mod $mod_dir/*.inc 2>/dev/null`
     for f in $files;
     do
+        # copy mod files only if it's changed (to avoid rebuild)
         target_file_path=$temp_mod_dir/`basename $f`
-        # copy mod files only if it's changed to avoid rebuild
         if ! diff -q $f $target_file_path &>/dev/null;  then
             cp $f $target_file_path
         fi
@@ -106,6 +116,6 @@ done
 
 # run makefile
 echo "[INFO] Running make with params: ${make_params[@]}"
-VERBOSE=1 make -j$PARALLEL_BUILDS -f "${ROOT_DIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
+make -j$PARALLEL_BUILDS -f "${ROOT_DIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
 
-echo "[INFO] mod files built successfully for CoreNEURON."
+echo "[INFO] MOD files built successfully for CoreNEURON"
