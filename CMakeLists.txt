@@ -252,6 +252,7 @@ if(CORENRN_ENABLE_NMODL)
     set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}")
     set(nmodl_PYTHONPATH "${CMAKE_BINARY_DIR}/lib")
     set(CORENRN_NMODL_PYTHONPATH "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
+    set(NMODL_TARGET_TO_DEPEND nmodl)
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
   # set correct arguments for nmodl for cpu/gpu target

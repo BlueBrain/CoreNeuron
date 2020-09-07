@@ -158,7 +158,7 @@ add_custom_target(
     BYPRODUCTS
     ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_dependencies(coreneuron_test scopmath coreneuron)
+add_dependencies(coreneuron_test scopmath coreneuron ${NMODL_TARGET_TO_DEPEND})
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 
