@@ -150,7 +150,7 @@ set_target_properties(
 # create special-core with halfgap.mod for tests
 # =============================================================================
 add_custom_target(
-  coreneuron_test ALL
+  nrniv-core ALL
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
           ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
   WORKING_DIRECTORY
@@ -158,7 +158,7 @@ add_custom_target(
     BYPRODUCTS
     ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_dependencies(coreneuron_test scopmath coreneuron ${NMODL_TARGET_TO_DEPEND})
+add_dependencies(nrniv-core scopmath coreneuron ${NMODL_TARGET_TO_DEPEND})
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 
@@ -205,7 +205,7 @@ if(NOT CORENRN_ENABLE_NMODL)
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/mod2c/")
   add_custom_target(link_units ALL COMMAND ${CMAKE_COMMAND} -E create_symlink "${NMODL_UNITS_FILE}"
                                            "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
-  add_dependencies(coreneuron_test link_units)
+  add_dependencies(nrniv-core link_units)
 endif()
 
 # main program required for building special-core
