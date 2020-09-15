@@ -117,17 +117,20 @@ void corenrn_parameters::parse (int argc, char** argv) {
             nrn_nobanner_ = 1;
         }
     } catch (const CLI::ExtrasError &e) {
-        std::cerr << "Single-dash arguments such as -mpi are deleted, please check ./coreneuron_exec --help for more information. \n" << std::endl;
+        // in case of parsing errors, show message with exception
+        std::cerr << "CLI parsing error, see nrniv-core --help for more information. \n" << std::endl;
         app.exit(e);
         throw e;
 
     } catch (const CLI::ParseError &e) {
+        // use --help is also ParseError; in this case exit by showing all options
         app.exit(e);
-        throw e;
+        exit(0);
     }
 
+    // is user has asked for version info, print it and exit
     if (show_version) {
-        std::cout << cnrn_version() << std::endl;
+        std::cout << "CoreNEURON Version : " << cnrn_version() << std::endl;
         exit(0);
     }
 };

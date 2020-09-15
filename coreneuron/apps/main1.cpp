@@ -429,12 +429,7 @@ using namespace coreneuron;
 
 extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
-    try {
-        corenrn_param.parse(argc, argv);
-    }
-    catch (...) {
-        nrn_abort(1);
-    }
+    corenrn_param.parse(argc, argv);
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
