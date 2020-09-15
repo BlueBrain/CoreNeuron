@@ -19,7 +19,7 @@ PARALLEL_BUILDS=4
 params_MODS_PATH="."
 
 # prefix for common options : make sure to rename these if options are changed.
-MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
+MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY DEST_DIR INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
 
 # parse CLI args
 while getopts "n:m:v:d:i:l:p:hV" OPT; do
@@ -30,6 +30,9 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
     m)
         # nmodl or mod2c binary to use
         params_NMODL_BINARY="$OPTARG";;
+    d)
+        # destination install directory
+        params_DEST_DIR="$OPTARG";;
     i)
         # extra include flags
         params_INCFLAGS="$OPTARG";;
@@ -49,6 +52,7 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
         echo "  -m <mod2c_bin>  NMODL code generation compiler path"
         echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
         echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
+        echo "  -d <dest_dir>   Install to dest_dir. Default: Off."
         echo "  -V              Verbose: show commands executed by make"
         echo "  -p <n_procs>    Number of parallel builds (Default: $PARALLEL_BUILDS)"
         exit 0;;
@@ -113,6 +117,11 @@ for param in $MAKE_OPTIONS; do
         make_params+=("$param=${!var}")
     fi
 done
+
+# if -d (deploy) provided, call "make install"
+if [ "$params_DEST_DIR" ]; then
+    make_params+=("install")
+fi
 
 # run makefile
 echo "[INFO] Running make with params: ${make_params[@]}"
