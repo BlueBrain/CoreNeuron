@@ -14,14 +14,14 @@ MODS_PATH = .
 OUTPUT_DIR = @CMAKE_HOST_SYSTEM_PROCESSOR@
 
 # CoreNEURON installation directories
-INSTALL_BIN_DIR := $(ROOT)/bin
-INSTALL_LIB_DIR := $(ROOT)/lib
-INSTALL_INC_DIR := $(ROOT)/include
-INSTALL_SHARE_CORENRN_DIR:= $(ROOT)/share/coreneuron
-INSTALL_SHARE_MOD2C_DIR := $(ROOT)/share/mod2c
+CORENRN_BIN_DIR := $(ROOT)/bin
+CORENRN_LIB_DIR := $(ROOT)/lib
+CORENRN_INC_DIR := $(ROOT)/include
+CORENRN_SHARE_CORENRN_DIR:= $(ROOT)/share/coreneuron
+CORENRN_SHARE_MOD2C_DIR := $(ROOT)/share/mod2c
 
 # file provided by coreneuron for solver
-DERIVIMPLICIT_CPP_FILE = $(INSTALL_SHARE_CORENRN_DIR)/dimplic.cpp
+DERIVIMPLICIT_CPP_FILE = $(CORENRN_SHARE_CORENRN_DIR)/dimplic.cpp
 
 # name of the CoreNEURON binary
 SPECIAL_EXE  = $(OUTPUT_DIR)/special-core
@@ -34,12 +34,12 @@ MOD_OBJS_DIR = $(OUTPUT_DIR)/core/build
 
 # Linked libraries gathered by CMake
 LDFLAGS = $(LINKFLAGS) @CORENRN_LINK_DEFS@
-CORENRNLIB_FLAGS = -L$(INSTALL_LIB_DIR) -lcoreneuron
+CORENRNLIB_FLAGS = -L$(CORENRN_LIB_DIR) -lcoreneuron
 CORENRNLIB_FLAGS += $(if @reportinglib_LIB_DIR@, -W$(subst ;, -W,l,-rpath,@reportinglib_LIB_DIR@),)
 CORENRNLIB_FLAGS += $(if @sonatareport_LIB_DIR@, -W$(subst ;, -W,l,-rpath,@sonatareport_LIB_DIR@),)
 
 # Includes paths gathered by CMake
-INCLUDES = $(INCFLAGS) -I$(INSTALL_INC_DIR) -I$(INSTALL_INC_DIR)/coreneuron/utils/randoms
+INCLUDES = $(INCFLAGS) -I$(CORENRN_INC_DIR) -I$(CORENRN_INC_DIR)/coreneuron/utils/randoms
 INCLUDES += $(if @MPI_C_INCLUDE_PATH@, -I$(subst ;, -I,@MPI_C_INCLUDE_PATH@),)
 INCLUDES += $(if @reportinglib_INCLUDE_DIR@, -I$(subst ;, -I,@reportinglib_INCLUDE_DIR@),)
 
@@ -52,11 +52,10 @@ CXX_SHARED_LIB_CMD = $(CXX) $(CXXFLAGS) @CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS@ 
 
 # ISPC compilation and link commands
 ISPC = @CMAKE_ISPC_COMPILER@
-ISPC_FLAGS = @CMAKE_ISPC_FLAGS@
-ISPC_COMPILE_CMD = $(ISPC) $(ISPC_FLAGS) -I$(INSTALL_INC_DIR)
+ISPC_COMPILE_CMD = $(ISPC) @CMAKE_ISPC_FLAGS@ -I$(CORENRN_INC_DIR)
 
 # env variables required for mod2c or nmodl
-NMODL_ENV_VAR = PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${INSTALL_LIB_DIR}/python MODLUNIT=$(INSTALL_SHARE_MOD2C_DIR)/nrnunits.lib
+NMODL_ENV_VAR = PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${CORENRN_LIB_DIR}/python MODLUNIT=$(CORENRN_SHARE_MOD2C_DIR)/nrnunits.lib
 
 # name of the mechanism library with suffix if provided
 COREMECH_LIB_NAME = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
@@ -85,7 +84,7 @@ ifeq (@nmodl_FOUND@, TRUE)
     INCLUDES += -I@CORENRN_NMODL_INCLUDE@
     ISPC_COMPILE_CMD += -I@CORENRN_NMODL_INCLUDE@
 else
-    NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), $(INSTALL_BIN_DIR)/@nmodl_binary_name@)
+    NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), $(CORENRN_BIN_DIR)/@nmodl_binary_name@)
 endif
 
 # MOD files with full path, without path and names without .mod extension
@@ -146,10 +145,10 @@ C_GREEN := \033[32m
 # main target to build binary
 $(SPECIAL_EXE): coremech_lib_target
 	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
-	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(INSTALL_SHARE_CORENRN_DIR)/coreneuron.cpp \
-	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
+	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
+	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) $(CORENRNLIB_FLAGS) $(LDFLAGS) \
-	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(INSTALL_LIB_DIR)
+	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR)
 
 coremech_lib_target: enginemech_object $(corenrnmech_lib_target)
 	rm -rf $(OUTPUT_DIR)/.libs; \
@@ -158,19 +157,19 @@ coremech_lib_target: enginemech_object $(corenrnmech_lib_target)
 
 enginemech_object:
 	mkdir -p $(MOD_OBJS_DIR)
-	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(INSTALL_SHARE_CORENRN_DIR)/enginemech.cpp -o $(ENGINEMECH_OBJ)
+	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp -o $(ENGINEMECH_OBJ)
 
 # build shared library of mechanisms
 coremech_lib_shared: $(ALL_OBJS) build_always
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
-	  -I$(INSTALL_INC_DIR) $(INCFLAGS) \
-	  $(LDFLAGS) $(INSTALL_LIB_DIR)/libscopmath.a \
-	  ${SONAME_OPTION} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(INSTALL_LIB_DIR);
+	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
+	  $(LDFLAGS) $(CORENRN_LIB_DIR)/libscopmath.a \
+	  ${SONAME_OPTION} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR);
 
 # build static library of mechanisms
 coremech_lib_static: $(ALL_OBJS) build_always
 	mkdir -p $(MOD_OBJS_DIR)/scopmath; \
-	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(INSTALL_LIB_DIR)/libscopmath.a && cd -;\
+	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(CORENRN_LIB_DIR)/libscopmath.a && cd -;\
 	rm -f ${COREMECH_LIB_PATH}; \
 	ar cq ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS) $(MOD_OBJS_DIR)/scopmath/*.o;
 
@@ -195,20 +194,20 @@ $(mod_ispc_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
 
 # generate mod registration function. Dont overwrite if it's not changed
 $(MOD_FUNC_CPP): build_always | $(MOD_TO_CPP_DIR)
-	@PERL_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files_names) > $(MOD_FUNC_CPP).tmp
+	@PERL_EXECUTABLE@ $(CORENRN_SHARE_CORENRN_DIR)/mod_func.c.pl $(mod_files_names) > $(MOD_FUNC_CPP).tmp
 	diff -q $(MOD_FUNC_CPP).tmp $(MOD_FUNC_CPP) || \
 	mv $(MOD_FUNC_CPP).tmp $(MOD_FUNC_CPP)
 
 # header to avoid function callbacks using function pointers
 $(KINDERIV_H_PATH): $(mod_cpp_files) build_always | $(MOD_TO_CPP_DIR)
 	cd $(MOD_TO_CPP_DIR); \
-	@PYTHON_EXECUTABLE@ $(INSTALL_SHARE_CORENRN_DIR)/kinderiv.py;
+	@PYTHON_EXECUTABLE@ $(CORENRN_SHARE_CORENRN_DIR)/kinderiv.py;
 
 # symlink to cpp files provided by coreneuron
-$(MOD_TO_CPP_DIR)/%.cpp: $(INSTALL_SHARE_MOD2C_DIR)/%.cpp | $(MOD_TO_CPP_DIR)
+$(MOD_TO_CPP_DIR)/%.cpp: $(CORENRN_SHARE_MOD2C_DIR)/%.cpp | $(MOD_TO_CPP_DIR)
 	ln -s $< $@
 
-# recompile DIMPLIC_CPP for solvers
+# to recompile dimplic.cpp for solvers
 $(DIMPLIC_CPP): $(DERIVIMPLICIT_CPP_FILE) | $(MOD_TO_CPP_DIR)
 	ln -s $(DERIVIMPLICIT_CPP_FILE) $(DIMPLIC_CPP)
 
