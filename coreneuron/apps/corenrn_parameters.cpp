@@ -28,7 +28,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
+
 namespace coreneuron {
+
+extern std::string cnrn_version();
+
 corenrn_parameters::corenrn_parameters(){
 
     app.set_config("--read-config", "", "Read parameters from ini file", false)
@@ -100,6 +104,8 @@ corenrn_parameters::corenrn_parameters(){
     sub_output -> add_option("-o, --outpath", this->outpath, "Path to place output data files.", true);
     sub_output -> add_option("--checkpoint", this->checkpointpath, "Enable checkpoint and specify directory to store related files.");
 
+    app.add_flag("-v, --version", this->show_version, "Show version information and quit.");
+
     CLI::retire_option(app, "--show");
 };
 
@@ -118,6 +124,11 @@ void corenrn_parameters::parse (int argc, char** argv) {
     } catch (const CLI::ParseError &e) {
         app.exit(e);
         throw e;
+    }
+
+    if (show_version) {
+        std::cout << cnrn_version() << std::endl;
+        exit(0);
     }
 };
 
