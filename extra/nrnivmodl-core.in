@@ -17,12 +17,13 @@ ROOT_DIR=$(@PERL_EXECUTABLE@ -e "use Cwd 'abs_path'; print abs_path('$PARENT_DIR
 # default arguments : number of parallel builds and default mod file path
 PARALLEL_BUILDS=4
 params_MODS_PATH="."
+params_BUILD_TYPE="@COMPILE_LIBRARY_TYPE@"
 
 # prefix for common options : make sure to rename these if options are changed.
-MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY DEST_DIR INCFLAGS LINKFLAGS MODS_PATH VERBOSE"
+MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY DEST_DIR INCFLAGS LINKFLAGS MODS_PATH VERBOSE BUILD_TYPE"
 
 # parse CLI args
-while getopts "n:m:v:d:i:l:p:hV" OPT; do
+while getopts "n:m:v:d:i:l:p:b:hV" OPT; do
     case "$OPT" in
     n)
         # suffix for mechanism library
@@ -45,16 +46,20 @@ while getopts "n:m:v:d:i:l:p:hV" OPT; do
     p)
         # option for parallel build (with -j)
         PARALLEL_BUILDS="$OPTARG";;
+    b)
+        # make with verbose
+        params_BUILD_TYPE="$OPTARG";;
     h)
         echo "$APP_NAME [options, ...] [mods_path]"
         echo "Options:"
-        echo "  -n <name>       The model name, used as a suffix in the shared library"
-        echo "  -m <mod2c_bin>  NMODL code generation compiler path"
-        echo "  -i <incl_flags> Definitions passed to the compiler, typically '-I dir..'"
-        echo "  -l <link_flags> Definitions passed to the linker, typically '-Lx -lylib..'"
-        echo "  -d <dest_dir>   Install to dest_dir. Default: Off."
-        echo "  -V              Verbose: show commands executed by make"
-        echo "  -p <n_procs>    Number of parallel builds (Default: $PARALLEL_BUILDS)"
+        echo "  -n <name>          The model name, used as a suffix in the shared library"
+        echo "  -m <mod2c_bin>     NMODL code generation compiler path"
+        echo "  -i <incl_flags>    Definitions passed to the compiler, typically '-I dir..'"
+        echo "  -l <link_flags>    Definitions passed to the linker, typically '-Lx -lylib..'"
+        echo "  -d <dest_dir>      Install to dest_dir. Default: Off."
+        echo "  -V                 Verbose: show commands executed by make"
+        echo "  -p <n_procs>       Number of parallel builds (Default: $PARALLEL_BUILDS)"
+        echo "  -b <STATIC|SHARED> libcorenrnmech library type"
         exit 0;;
     ?)
         exit 1;;
@@ -125,6 +130,6 @@ fi
 
 # run makefile
 echo "[INFO] Running make with params: ${make_params[@]}"
-make -j$PARALLEL_BUILDS -f "${ROOT_DIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}" "TARGET_LIB_TYPE=STATIC"
+make -j$PARALLEL_BUILDS -f "${ROOT_DIR}/share/coreneuron/nrnivmodl_core_makefile" "${make_params[@]}"
 
 echo "[INFO] MOD files built successfully for CoreNEURON"
