@@ -48,7 +48,7 @@ class PlayRecordEvent : public DiscreteEvent {
     PlayRecord* plr_;
     static unsigned long playrecord_send_;
     static unsigned long playrecord_deliver_;
-    virtual int type() {
+    virtual int type() const {
         return PlayRecordEventType;
     }
 };
