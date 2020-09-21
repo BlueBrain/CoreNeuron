@@ -254,14 +254,6 @@ install(
   RENAME nrniv-core)
 install(FILES apps/coreneuron.cpp DESTINATION share/coreneuron)
 
-# TODO : need to copy mechanism library into bin for now
-if(CORENRN_ENABLE_SHARED)
-  install(
-    PROGRAMS
-      ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}
-    DESTINATION bin)
-endif()
-
 # install random123 and nmodl headers
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ DESTINATION include)
 
