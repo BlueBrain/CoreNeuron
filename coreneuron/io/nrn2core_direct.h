@@ -30,7 +30,8 @@ extern int (*nrn2core_get_dat1_)(int tid,
                                  int& n_presyn,
                                  int& n_netcon,
                                  int*& output_gid,
-                                 int*& netcon_srcgid);
+                                 int*& netcon_srcgid,
+                                 std::vector<int>& netcon_negsrcgid_tid);
 
 extern int (*nrn2core_get_dat2_1_)(int tid,
                                    int& ngid,
@@ -113,6 +114,9 @@ extern int (*nrn2core_all_spike_vectors_return_)(std::vector<double>& spikevec, 
 /* send all weights to NEURON */
 extern void (*nrn2core_all_weights_return_)(std::vector<double*>& weights);
 
+/* get data array pointer from NEURON to copy into. */
+extern size_t (*nrn2core_type_return_)(int type, int tid, double*& data,
+                                       double**& mdata);
 } // extern "C"
 
 #endif /* nrn2core_direct_h */

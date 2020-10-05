@@ -54,10 +54,8 @@ endforeach()
 
 # base tests : ring, ring with gap and ring duplication
 foreach(data_dir "ring" "ring_gap")
-  file(COPY
-         "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
-         DESTINATION
-         "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}/")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
+       DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}/")
 endforeach()
 
 # test for small spike buffer

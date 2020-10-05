@@ -63,6 +63,7 @@ include(SetRpath)
 include(CTest)
 include(AddRandom123Submodule)
 include(AddCLI11Submodule)
+include(GitRevision)
 
 add_subdirectory(${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11)
 
@@ -105,6 +106,15 @@ if(CORENEURON_AS_SUBPROJECT)
 endif()
 
 # =============================================================================
+# Project version from git and project directories
+# =============================================================================
+set(CN_PROJECT_VERSION ${PROJECT_VERSION})
+
+# generate file with version number from git and nrnunits.lib file path
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/coreneuron/config/config.cpp.in
+               ${PROJECT_BINARY_DIR}/coreneuron/config/config.cpp @ONLY)
+
+# =============================================================================
 # Include cmake modules after cmake options
 # =============================================================================
 include(OpenAccHelper)
@@ -113,6 +123,7 @@ include(OpenAccHelper)
 # Common dependencies
 # =============================================================================
 find_package(PythonInterp REQUIRED)
+find_package(Perl REQUIRED)
 
 # =============================================================================
 # ISPC should compile with --pic by default
@@ -144,7 +155,11 @@ endif()
 # OpenACC needs to build static library in order to have global/routines working.
 # See https://www.pgroup.com/userforum/viewtopic.php?t=5350
 # ~~~
-if(CORENRN_ENABLE_SHARED AND NOT CORENRN_ENABLE_GPU)
+if(CORENRN_ENABLE_GPU)
+  set(CORENRN_ENABLE_SHARED OFF)
+endif()
+
+if(CORENRN_ENABLE_SHARED)
   set(COMPILE_LIBRARY_TYPE "SHARED")
 else()
   set(COMPILE_LIBRARY_TYPE "STATIC")
@@ -247,6 +262,7 @@ if(CORENRN_ENABLE_NMODL)
     set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}")
     set(nmodl_PYTHONPATH "${CMAKE_BINARY_DIR}/lib")
     set(CORENRN_NMODL_PYTHONPATH "${nmodl_PYTHONPATH}:$ENV{PYTHONPATH}")
+    set(NMODL_TARGET_TO_DEPEND nmodl)
   endif()
   include_directories(${CORENRN_NMODL_INCLUDE})
   # set correct arguments for nmodl for cpu/gpu target

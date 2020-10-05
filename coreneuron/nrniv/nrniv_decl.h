@@ -48,8 +48,11 @@ extern std::map<int, InputPreSyn*> gid2in;
 
 /// InputPreSyn.nc_index_ to + InputPreSyn.nc_cnt_ give the NetCon*
 extern std::vector<NetCon*> netcon_in_presyn_order_;
-/// Only for setup vector of netcon source gids
-extern std::vector<int*> netcon_srcgid;
+/// Only for setup vector of netcon source gids and mindelay determination
+extern std::vector<int*> nrnthreads_netcon_srcgid;
+/// Companion to nrnthreads_netcon_srcgid when src gid is negative to allow
+/// determination of the NrnThread of the source PreSyn.
+extern std::vector<std::vector<int> > nrnthreads_netcon_negsrcgid_tid;
 
 extern void mk_mech(const char* path);
 extern void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_value);
@@ -57,7 +60,6 @@ extern void mk_netcvode(void);
 extern void nrn_p_construct(void);
 extern void nrn_setup(const char* filesdat,
                       bool is_mapping_needed,
-                      bool byte_swap, // We keep it for backward API compatibility but it is not used
                       bool run_setup_cleanup = true,
                       const char* datapath = "",
                       const char* restore_path = "",
@@ -73,7 +75,6 @@ extern void nrn_set_extra_thread0_vdata(void);
 extern Point_process* nrn_artcell_instantiate(const char* mechname);
 extern int nrnmpi_spike_compress(int nspike, bool gidcompress, int xchng);
 extern bool nrn_use_bin_queue_;
-extern bool nrn_need_byteswap;
 
 extern void nrn_outputevent(unsigned char, double);
 extern void ncs2nrn_integrate(double tstop);

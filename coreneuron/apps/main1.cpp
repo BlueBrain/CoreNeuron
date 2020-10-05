@@ -37,6 +37,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 
+#include "coreneuron/config/config.h"
 #include "coreneuron/engine.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
@@ -62,6 +63,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/io/core2nrn_data_return.hpp"
 
 extern "C" {
 const char* corenrn_version() {
@@ -248,7 +250,7 @@ void nrn_init_and_load_data(int argc,
     use_phase2_ = (corenrn_param.ms_phases == 2) ? 1 : 0;
 
     // reading *.dat files and setting up the data structures, setting mindelay
-    nrn_setup(filesdat.c_str(), is_mapping_needed, nrn_need_byteswap, run_setup_cleanup,
+    nrn_setup(filesdat.c_str(), is_mapping_needed, run_setup_cleanup,
               corenrn_param.datpath.c_str(), restore_path.c_str(), &corenrn_param.mindelay);
 
     // Allgather spike compression and  bin queuing.
@@ -338,12 +340,12 @@ void handle_forward_skip(double forwardskip, int prcellgid) {
     t = savet;
     dt2thread(-1.);
 
-    // clear spikes generated during forward skip (with negative time) 
+    // clear spikes generated during forward skip (with negative time)
     clear_spike_vectors();
 }
 
-const char* nrn_version(int) {
-    return "version id unimplemented";
+std::string cnrn_version() {
+    return coreneuron::version::to_string();
 }
 
 // bsize = 0 then per step transfer
@@ -427,12 +429,7 @@ using namespace coreneuron;
 
 extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
-    try {
-        corenrn_param.parse(argc, argv);
-    }
-    catch (...) {
-        nrn_abort(1);
-    }
+    corenrn_param.parse(argc, argv);
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
@@ -608,6 +605,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
         (*nrn2core_all_weights_return_)(weights);
     }
+
+    core2nrn_data_return();
 
     {
         Instrumentor::phase p("checkpoint");

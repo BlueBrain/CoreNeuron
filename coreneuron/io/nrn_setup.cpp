@@ -113,6 +113,14 @@ void (*nrn2core_all_weights_return_)(std::vector<double*>& weights);
 // encode the thread number into the negative gid
 // (i.e -ith - nth*(type +1000*index)) failed due to not large enough
 // integer domain size.
+// Note that for file transfer it is an error if a negative srcgid is
+// not in the same thread as the target. This is because there it may
+// not be the case that threads in a NEURON process end up on same process
+// in CoreNEURON. NEURON will raise an error if this
+// is the case. However, for direct memory transfer, it is allowed that
+// a negative srcgid may be in a different thread than the target. So
+// nrn2core_get_dat1 has a last arg netcon_negsrcgid_tid that specifies
+// for the negative gids in netcon_srcgid (in that order) the source thread.
 //
 // <firstgid>_2.dat
 // n_output n_real_output, nnode
@@ -164,9 +172,7 @@ void (*nrn2core_all_weights_return_)(std::vector<double*>& weights);
 namespace coreneuron {
 extern corenrn_parameters corenrn_param;
 
-#ifdef _OPENMP
 static OMP_Mutex mut;
-#endif
 
 static size_t model_size(void);
 
@@ -180,7 +186,11 @@ std::map<int, InputPreSyn*> gid2in;
 std::vector<NetCon*> netcon_in_presyn_order_;
 
 /// Only for setup vector of netcon source gids
-std::vector<int*> netcon_srcgid;
+std::vector<int*> nrnthreads_netcon_srcgid;
+
+/// If a nrnthreads_netcon_srcgid is negative, need to determine the thread when
+/// in order to use the correct neg_gid2out[tid] map
+std::vector<std::vector<int> > nrnthreads_netcon_negsrcgid_tid;
 
 /* read files.dat file and distribute cellgroups to all mpi ranks */
 void nrn_read_filesdat(int& ngrp, int*& grp, const char* filesdat) {
@@ -277,8 +287,11 @@ void determine_inputpresyn() {
         NrnThread& nt = nrn_threads[ith];
         // associate gid with InputPreSyn and increase PreSyn and InputPreSyn count
         nt.n_input_presyn = 0;
+        // if single thread or file transfer then definitely empty.
+        std::vector<int>& negsrcgid_tid = nrnthreads_netcon_negsrcgid_tid[ith];
+        size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
-            int gid = netcon_srcgid[ith][i];
+            int gid = nrnthreads_netcon_srcgid[ith][i];
             if (gid >= 0) {
                 /// If PreSyn or InputPreSyn is already in the map
                 auto gid2out_it = gid2out.find(gid);
@@ -301,8 +314,12 @@ void determine_inputpresyn() {
                 inputpresyn_.push_back(psi);
                 ++nt.n_input_presyn;
             } else {
-                auto gid2out_it = neg_gid2out[nt.id].find(gid);
-                if (gid2out_it != neg_gid2out[nt.id].end()) {
+                int tid = nt.id;
+                if (!negsrcgid_tid.empty()) {
+                    tid = negsrcgid_tid[i_tid++];
+                }
+                auto gid2out_it = neg_gid2out[tid].find(gid);
+                if (gid2out_it != neg_gid2out[tid].end()) {
                     /// Increase negative PreSyn count
                     ++gid2out_it->second->nc_cnt_;
                 }
@@ -363,16 +380,23 @@ void determine_inputpresyn() {
 
     // fill the netcon_in_presyn_order and recompute nc_cnt_
     // note that not all netcon_in_presyn will be filled if there are netcon
-    // with no presyn (ie. netcon_srcgid[nt.id][i] = -1) but that is ok since they are
+    // with no presyn (ie. nrnthreads_netcon_srcgid[nt.id][i] = -1) but that is ok since they are
     // only used via ps.nc_index_ and ps.nc_cnt_;
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& nt = nrn_threads[ith];
+        // if single thread or file transfer then definitely empty.
+        std::vector<int>& negsrcgid_tid = nrnthreads_netcon_negsrcgid_tid[ith];
+        size_t i_tid = 0;
         for (int i = 0; i < nt.n_netcon; ++i) {
             NetCon* nc = nt.netcons + i;
-            int gid = netcon_srcgid[ith][i];
+            int gid = nrnthreads_netcon_srcgid[ith][i];
+            int tid = ith;
+            if (!negsrcgid_tid.empty() && gid < -1) {
+              tid = negsrcgid_tid[i_tid++];
+            }
             PreSyn* ps;
             InputPreSyn* psi;
-            netpar_tid_gid2ps(ith, gid, &ps, &psi);
+            netpar_tid_gid2ps(tid, gid, &ps, &psi);
             if (ps) {
                 netcon_in_presyn_order_[ps->nc_index_ + ps->nc_cnt_] = nc;
                 ++ps->nc_cnt_;
@@ -392,16 +416,16 @@ void determine_inputpresyn() {
 /// Clean up
 void nrn_setup_cleanup() {
     for (int ith = 0; ith < nrn_nthread; ++ith) {
-        if (netcon_srcgid[ith])
-            delete[] netcon_srcgid[ith];
+        if (nrnthreads_netcon_srcgid[ith])
+            delete[] nrnthreads_netcon_srcgid[ith];
     }
-    netcon_srcgid.clear();
+    nrnthreads_netcon_srcgid.clear();
+    nrnthreads_netcon_negsrcgid_tid.clear();
     neg_gid2out.clear();
 }
 
 void nrn_setup(const char* filesdat,
                bool is_mapping_needed,
-               bool /* byte_swap */,
                bool run_setup_cleanup,
                const char* datpath,
                const char* restore_path,
@@ -451,9 +475,9 @@ void nrn_setup(const char* filesdat,
     /// std::map<int, PreSyn*> gid2out;
     gid2out.clear();
 
-    netcon_srcgid.resize(nrn_nthread);
+    nrnthreads_netcon_srcgid.resize(nrn_nthread);
     for (int i = 0; i < nrn_nthread; ++i)
-        netcon_srcgid[i] = nullptr;
+        nrnthreads_netcon_srcgid[i] = nullptr;
 
     // gap junctions
     if (nrn_have_gaps) {
@@ -472,6 +496,7 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::gap_mpi_setup(userParams.ngroup);
     }
 
+    nrnthreads_netcon_negsrcgid_tid.resize(nrn_nthread);
     if (!corenrn_embedded) {
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
@@ -479,17 +504,11 @@ void nrn_setup(const char* filesdat,
             Phase1 p1; 
             p1.read_direct(n->id);
             NrnThread& nt = *n;
-            {
-#ifdef _OPENMP
-                p1.populate(nt, mut);
-#else
-                p1.populate(nt);
-#endif
-            }
+            p1.populate(nt, mut);
         });
     }
 
-    // from the gid2out map and the netcon_srcgid array,
+    // from the gid2out map and the nrnthreads_netcon_srcgid array,
     // fill the gid2in, and from the number of entries,
     // allocate the process wide InputPreSyn array
     determine_inputpresyn();
@@ -538,9 +557,7 @@ void setup_ThreadData(NrnThread& nt) {
             ml->_thread = (ThreadDatum*)ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
             if (mf.thread_mem_init_) {
                 {
-#ifdef _OPENMP
                     const std::lock_guard<OMP_Mutex> lock(mut);
-#endif
                     (*mf.thread_mem_init_)(ml->_thread);
                 }
             }
@@ -715,15 +732,7 @@ void nrn_cleanup() {
 
             NetSendBuffer_t* nsb = ml->_net_send_buffer;
             if (nsb) {
-                if (nsb->_size) {
-                    free_memory(nsb->_sendtype);
-                    free_memory(nsb->_vdata_index);
-                    free_memory(nsb->_pnt_index);
-                    free_memory(nsb->_weight_index);
-                    free_memory(nsb->_nsb_t);
-                    free_memory(nsb->_nsb_flag);
-                }
-                free_memory(nsb);
+                delete nsb;
             }
 
             if (tml->dependencies)
@@ -860,13 +869,8 @@ void read_phase1(NrnThread& nt, UserParams& userParams) {
     Phase1 p1;
     p1.read_file(userParams.file_reader[nt.id]);
     
-    { // Protect gid2in, gid2out and neg_gid2out
-#ifdef _OPENMP
-        p1.populate(nt, mut);
-#else
-        p1.populate(nt);
-#endif
-    }
+    // Protect gid2in, gid2out and neg_gid2out
+    p1.populate(nt, mut);
 }
 
 void read_phase2(NrnThread& nt, UserParams& userParams) {
