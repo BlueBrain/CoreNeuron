@@ -20,7 +20,7 @@ params_MODS_PATH="."
 params_BUILD_TYPE="@COMPILE_LIBRARY_TYPE@"
 
 # prefix for common options : make sure to rename these if options are changed.
-MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY NMODL_FLAGS_RUNTIME DEST_DIR INCFLAGS LINKFLAGS MODS_PATH VERBOSE BUILD_TYPE"
+MAKE_OPTIONS="MECHLIB_SUFFIX NMODL_BINARY NMODL_RUNTIME_FLAGS DEST_DIR INCFLAGS LINKFLAGS MODS_PATH VERBOSE BUILD_TYPE"
 
 # parse CLI args
 while getopts "n:m:a:d:i:l:V:p:b:h" OPT; do
@@ -33,7 +33,7 @@ while getopts "n:m:a:d:i:l:V:p:b:h" OPT; do
         params_NMODL_BINARY="$OPTARG";;
     a)
         # additional nmodl flags to be used
-        params_NMODL_FLAGS_RUNTIME="$OPTARG";;
+        params_NMODL_RUNTIME_FLAGS="$OPTARG";;
     d)
         # destination install directory
         params_DEST_DIR="$OPTARG";;
@@ -56,8 +56,8 @@ while getopts "n:m:a:d:i:l:V:p:b:h" OPT; do
         echo "$APP_NAME [options, ...] [mods_path]"
         echo "Options:"
         echo "  -n <name>                 The model name, used as a suffix in the shared library"
-        echo "  -m <mod2c_bin>            NMODL code generation compiler path"
-        echo "  -a <nmodl_flags_runtime>  Runtime NMODL flags"
+        echo "  -m <nmodl_bin>            NMODL/mod2c code generation compiler path"
+        echo "  -a <nmodl_runtime_flags>  Runtime flags for NMODL/mod2c"
         echo "  -i <incl_flags>           Definitions passed to the compiler, typically '-I dir..'"
         echo "  -l <link_flags>           Definitions passed to the linker, typically '-Lx -lylib..'"
         echo "  -d <dest_dir>             Install to dest_dir. Default: Off."

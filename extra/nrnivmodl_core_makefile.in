@@ -85,8 +85,6 @@ ifeq (@nmodl_FOUND@, TRUE)
     NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), @CORENRN_NMODL_BINARY@)
     INCLUDES += -I@CORENRN_NMODL_INCLUDE@
     ISPC_COMPILE_CMD += -I@CORENRN_NMODL_INCLUDE@
-    nmodl_arguments_c += @NMODL_FLAGS2@
-    nmodl_arguments_ispc += @NMODL_FLAGS2@
 else
     NMODL_BINARY_PATH = $(if $(NMODL_BINARY),$(NMODL_BINARY), $(CORENRN_BIN_DIR)/@nmodl_binary_name@)
 endif
@@ -188,11 +186,11 @@ $(MOD_OBJS_DIR)/%.obj: $(MOD_TO_CPP_DIR)/%.ispc | $(MOD_OBJS_DIR)
 
 # translate MOD files to ISPC using NMODL
 $(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
-	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@ $(NMODL_FLAGS_RUNTIME)
+	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_ispc@ $(NMODL_RUNTIME_FLAGS)
 
 # translate MOD files to CPP using mod2c/NMODL
 $(mod_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
-	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@ $(NMODL_FLAGS_RUNTIME)
+	$(NMODL_ENV_VAR) $(NMODL_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ @nmodl_arguments_c@ $(NMODL_RUNTIME_FLAGS)
 
 # static pattern to set up the dependencies for the previous recipe
 $(mod_ispc_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MOD_TO_CPP_DIR)/%.ispc
