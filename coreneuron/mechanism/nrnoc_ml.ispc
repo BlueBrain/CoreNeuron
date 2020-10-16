@@ -168,6 +168,8 @@ struct NrnThread {
 
 extern uniform double ispc_celsius;
 
+// Duplicated the implementation from "coreneuron/network/cvodestb.cpp"
+// for the ISPC backend.
 static inline int at_time(uniform NrnThread* nt, varying double te) {
     varying double x = te - 1e-11;
     if (x <= nt->_t && x > (nt->_t - nt->_dt)) {
