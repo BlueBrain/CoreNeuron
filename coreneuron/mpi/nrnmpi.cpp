@@ -30,6 +30,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/time.h>
 
 #include "coreneuron/nrnconf.h"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi_def_cinc.h"
@@ -73,7 +74,7 @@ void nrnmpi_init(int nrnmpi_under_nrncontrol, int* pargc, char*** pargv) {
                 b = true;
                 break;
             }
-            if (strcmp("--mpi", (*pargv)[i]) == 0) {
+            if (corenrn_param.mpi_enable) {
                 b = true;
                 break;
             }
