@@ -30,7 +30,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/time.h>
 
 #include "coreneuron/nrnconf.h"
-#include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi_def_cinc.h"
