@@ -153,6 +153,7 @@ set_target_properties(
 add_custom_target(
   nrniv-core ALL
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC
+          -m ${CORENRN_NMODL_BINARY}
           ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
   WORKING_DIRECTORY
     ${CMAKE_BINARY_DIR}/bin
@@ -197,17 +198,6 @@ endforeach()
 
 configure_file("utils/profile/profiler_interface.h"
                ${CMAKE_BINARY_DIR}/include/coreneuron/nrniv/profiler_interface.h COPYONLY)
-
-if(NOT CORENRN_ENABLE_NMODL)
-  # ~~~
-  # MOD2C puts UNITS_FILE in share, but we need to see it in share/mod2c We create
-  # a link since we know neither the source location nor when its copied
-  # ~~~
-  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/mod2c/")
-  add_custom_target(link_units ALL COMMAND ${CMAKE_COMMAND} -E create_symlink "${NMODL_UNITS_FILE}"
-                                           "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
-  add_dependencies(nrniv-core link_units)
-endif()
 
 # main program required for building special-core
 file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
