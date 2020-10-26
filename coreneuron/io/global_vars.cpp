@@ -9,6 +9,7 @@
 #include "coreneuron/mechanism/membfunc.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/io/nrn2core_direct.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 
 void* (*nrn2core_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
 int (*nrn2core_get_global_int_item_)(const char* name);
@@ -29,6 +30,16 @@ void hoc_register_var(DoubScal* ds, DoubVec* dv, VoidFunc*) {
     }
     for (size_t i = 0; dv[i].name; ++i) {
         (*n2v)[dv[i].name] = PSD(dv[i].index1, ds[i].pdoub);
+    }
+}
+
+// Only checked here in file mode. Already checked via corenrn_units_use_legacy
+// in direct mode since in the latter case we do not want to abort if
+// inconsistent.
+static void chk_nrnunit_consist(int b) {
+    if (b != CORENRN_LegacyFR) {
+        hoc_execerror("CORENRN_ENABLE_LEGACY_UNITS not consistent with"
+           " NEURON value of nrnunit_use_legacy()", NULL);
     }
 }
 
@@ -121,6 +132,8 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                     secondorder = n;
                 } else if (strcmp(name, "Random123_globalindex") == 0) {
                     nrnran123_set_globalindex((uint32_t)n);
+                } else if (strcmp(name, "_nrnunit_use_legacy_") == 0) {
+                    chk_nrnunit_consist(n);
                 }
             }
         }
