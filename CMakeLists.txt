@@ -86,6 +86,7 @@ option(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY "Enable CUDA unified memory support" O
 option(CORENRN_ENABLE_UNIT_TESTS "Enable unit tests execution" ON)
 option(CORENRN_ENABLE_GPU "Enable GPU support using OpenACC" OFF)
 option(CORENRN_ENABLE_SHARED "Enable shared library build" ON)
+option(CORENRN_ENABLE_LEGACY_UNITS "Enable legacy FARADAY, R, etc" OFF)
 
 set(CORENRN_NMODL_DIR
     ""
@@ -238,6 +239,12 @@ if(CORENRN_ENABLE_REPORTING)
   endif()
   include_directories(${reportinglib_INCLUDE_DIR})
   include_directories(${sonatareport_INCLUDE_DIR})
+endif()
+
+if(CORENRN_ENABLE_LEGACY_UNITS)
+  set(CORENRN_LegacyFR 1)
+else()
+  set(CORENRN_LegacyFR 0)
 endif()
 
 if(MINGW)
@@ -398,6 +405,7 @@ if(cmake_generator_tolower MATCHES "makefile")
     message(STATUS "  INC               | ${MPI_C_INCLUDE_PATH}")
   endif()
   message(STATUS "OpenMP              | ${CORENRN_ENABLE_OPENMP}")
+  message(STATUS "Use legacy units    | ${CORENRN_ENABLE_LEGACY_UNITS}")
   message(STATUS "NMODL               | ${CORENRN_ENABLE_NMODL}")
   if(CORENRN_ENABLE_NMODL)
     message(STATUS "  PATH              | ${CORENRN_NMODL_BINARY}")

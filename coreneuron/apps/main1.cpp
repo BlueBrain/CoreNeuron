@@ -70,6 +70,11 @@ const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
 }
 
+// the CORENRN_LegacyFR determined by CORENRN_ENABLE_LEGACY_UNITS
+int corenrn_units_use_legacy() {
+    return CORENRN_LegacyFR;
+}
+
 void (*nrn2core_part2_clean_)();
 
 #ifdef ISPC_INTEROP

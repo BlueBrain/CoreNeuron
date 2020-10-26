@@ -56,6 +56,11 @@ set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile
      DESTINATION ${CMAKE_BINARY_DIR}/share)
 
+# eion.cpp depends on CORENRN_LegacyFR
+set(LegacyFR_FILES mechanism/eion.c apps/main1.cpp io/global_vars.cpp)
+set_source_files_properties(${LegacyFR_FILES} PROPERTIES COMPILE_FLAGS
+                              "-DCORENRN_LegacyFR=${CORENRN_LegacyFR}")
+
 # =============================================================================
 # coreneuron GPU library
 # =============================================================================
