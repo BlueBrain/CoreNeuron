@@ -242,9 +242,9 @@ if(CORENRN_ENABLE_REPORTING)
 endif()
 
 if(CORENRN_ENABLE_LEGACY_UNITS)
-  set(CORENRN_LegacyFR 1)
+  set(CORENRN_UseLegacyUnits 1)
 else()
-  set(CORENRN_LegacyFR 0)
+  set(CORENRN_UseLegacyUnits 0)
 endif()
 
 if(MINGW)

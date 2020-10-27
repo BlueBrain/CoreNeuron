@@ -37,7 +37,7 @@ void hoc_register_var(DoubScal* ds, DoubVec* dv, VoidFunc*) {
 // in direct mode since in the latter case we do not want to abort if
 // inconsistent.
 static void chk_nrnunit_consist(int b) {
-    if (b != CORENRN_LegacyFR) {
+    if (b != CORENRN_UseLegacyUnits) {
         hoc_execerror("CORENRN_ENABLE_LEGACY_UNITS not consistent with"
            " NEURON value of nrnunit_use_legacy()", NULL);
     }
