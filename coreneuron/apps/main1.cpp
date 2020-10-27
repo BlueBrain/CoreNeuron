@@ -70,9 +70,9 @@ const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
 }
 
-// the CORENRN_LegacyFR determined by CORENRN_ENABLE_LEGACY_UNITS
-int corenrn_units_use_legacy() {
-    return CORENRN_LegacyFR;
+// the CORENRN_UseLegacyUnits determined by CORENRN_ENABLE_LEGACY_UNITS
+bool corenrn_units_use_legacy() {
+    return CORENRN_UseLegacyUnits;
 }
 
 void (*nrn2core_part2_clean_)();

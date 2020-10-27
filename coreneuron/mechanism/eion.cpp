@@ -181,11 +181,11 @@ the USEION statement of any model using this ion\n",
     }
 }
 
-#ifndef CORENRN_LegacyFR
-#define CORENRN_LegacyFR 0
+#ifndef CORENRN_UseLegacyUnits
+#define CORENRN_UseLegacyUnits 0
 #endif
 
-#if CORENRN_LegacyFR == 1
+#if CORENRN_UseLegacyUnits == 1
 #define FARADAY 96485.309
 #define gasconstant 8.3134
 #else
