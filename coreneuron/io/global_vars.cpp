@@ -33,16 +33,6 @@ void hoc_register_var(DoubScal* ds, DoubVec* dv, VoidFunc*) {
     }
 }
 
-// Only checked here in file mode. Already checked via corenrn_units_use_legacy
-// in direct mode since in the latter case we do not want to abort if
-// inconsistent.
-static void chk_nrnunit_consist(int b) {
-    if (b != CORENRN_UseLegacyUnits) {
-        hoc_execerror("CORENRN_ENABLE_LEGACY_UNITS not consistent with"
-           " NEURON value of nrnunit_use_legacy()", NULL);
-    }
-}
-
 void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_value) {
     if (!n2v) {
         n2v = new N2V();
@@ -133,7 +123,11 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                 } else if (strcmp(name, "Random123_globalindex") == 0) {
                     nrnran123_set_globalindex((uint32_t)n);
                 } else if (strcmp(name, "_nrnunit_use_legacy_") == 0) {
-                    chk_nrnunit_consist(n);
+                    if (n != CORENRN_UseLegacyUnits) {
+                        hoc_execerror("CORENRN_ENABLE_LEGACY_UNITS not"
+                            " consistent with NEURON value of"
+                            " nrnunit_use_legacy()", NULL);
+                    }
                 }
             }
         }
