@@ -50,7 +50,7 @@ set(MODFUNC_PERL_SCRIPT "mechanism/mech/mod_func.c.pl")
 set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
 set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
-set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/nrnunits.lib")
+set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
 
 # copy inbuilt mod files to share
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile
