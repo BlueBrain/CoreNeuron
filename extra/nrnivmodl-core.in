@@ -7,6 +7,9 @@
 
 set -e
 
+# tell slurm that we don't want to use MPI with mod2c_core
+unset PMI_RANK
+
 # name of the script
 APP_NAME=$(basename $0)
 
