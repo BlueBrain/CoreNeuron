@@ -56,10 +56,10 @@ set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile
      DESTINATION ${CMAKE_BINARY_DIR}/share)
 
-# eion.cpp depends on CORENRN_UseLegacyUnits
+# eion.cpp depends on CORENRN_USE_LEGACY_UNITS
 set(LegacyFR_FILES mechanism/eion.cpp apps/main1.cpp io/global_vars.cpp)
 set_source_files_properties(${LegacyFR_FILES} PROPERTIES COMPILE_FLAGS
-                              "-DCORENRN_UseLegacyUnits=${CORENRN_UseLegacyUnits}")
+                              "-DCORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS}")
 
 # =============================================================================
 # coreneuron GPU library
@@ -106,7 +106,7 @@ else()
 endif()
 
 # =============================================================================
-# eion.cpp depends on CORENRN_UseLegacyUnits
+# eion.cpp depends on CORENRN_USE_LEGACY_UNITS
 # =============================================================================
 set(LegacyFR_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/mechanism/eion.cpp
@@ -114,7 +114,7 @@ set(LegacyFR_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
 
 set_property(SOURCE ${LegacyFR_FILES} APPEND PROPERTY COMPILE_OPTIONS
-                              "-DCORENRN_UseLegacyUnits=${CORENRN_UseLegacyUnits}")
+                              "-DCORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS}")
 
 # =============================================================================
 # run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
