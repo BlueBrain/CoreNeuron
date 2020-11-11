@@ -5,7 +5,7 @@ set -x
 
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
-reportinglib_dir=$(spack location -i --latest reportinglib%intel)
+reportinglib_dir=$(spack location --install-dir --latest reportinglib%intel)
 
 CORENRN_TYPE="$1"
 
