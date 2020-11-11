@@ -42,6 +42,7 @@ if [ "${CORENRN_TYPE}" = "GPU-non-unified" ]; then
         -DTEST_EXEC_PREFIX="srun;-n;6;--account=proj16;--partition=$SALLOC_PARTITION;--constraint=volta;--gres=gpu:2;--mem;0;-t;00:05:00" \
         -DAUTO_TEST_WITH_SLURM=OFF \
         -DAUTO_TEST_WITH_MPIEXEC=OFF \
+        -DCORENRN_ENABLE_LEGACY_UNITS=ON \
         $WORKSPACE/
 elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
     cmake \
@@ -52,6 +53,7 @@ elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
         -DTEST_EXEC_PREFIX="srun;-n;6;--account=proj16;--partition=$SALLOC_PARTITION;--constraint=volta;--gres=gpu:2;--mem;0;-t;00:05:00" \
         -DAUTO_TEST_WITH_SLURM=OFF \
         -DAUTO_TEST_WITH_MPIEXEC=OFF \
+        -DCORENRN_ENABLE_LEGACY_UNITS=ON \
         $WORKSPACE/
 elif [ "${CORENRN_TYPE}" = "AoS" ] || [ "${CORENRN_TYPE}" = "SoA" ]; then
     CORENRN_ENABLE_SOA=ON
@@ -72,6 +74,7 @@ elif [ "${CORENRN_TYPE}" = "AoS" ] || [ "${CORENRN_TYPE}" = "SoA" ]; then
       -DTEST_EXEC_PREFIX="mpirun;-n;2" \
       -DAUTO_TEST_WITH_SLURM=OFF \
       -DAUTO_TEST_WITH_MPIEXEC=OFF \
+      -DCORENRN_ENABLE_LEGACY_UNITS=ON \
       $WORKSPACE/
 else
     echo "Not a valid CORENRN_TYPE"
