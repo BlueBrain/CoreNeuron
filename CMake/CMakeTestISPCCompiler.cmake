@@ -22,7 +22,7 @@ unset(CMAKE_ISPC_COMPILER_WORKS CACHE)
 # set and cmake stops processing commands and will not generate any makefiles or projects.
 # ~~~
 if(NOT CMAKE_ISPC_COMPILER_WORKS)
-  PrintTestCompilerStatus("ISPC")
+  printtestcompilerstatus("ISPC" "")
   file(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/kernel.ispc
        "export uniform int kernel(uniform int){return 0;}\n")
 
@@ -46,7 +46,7 @@ endif()
 
 # Print compiler status
 if(NOT CMAKE_ISPC_COMPILER_WORKS)
-  PrintTestCompilerResult(CHECK_FAIL "broken")
+  printtestcompilerstatus("ISPC" " -- broken")
   file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
        "Determining if the ISPC compiler works failed with "
        "the following output:\n${__CMAKE_ISPC_COMPILER_OUTPUT}\n\n")
@@ -60,7 +60,7 @@ if(NOT CMAKE_ISPC_COMPILER_WORKS)
       "CMake will not be able to correctly generate this project.")
 else()
   if(ISPC_TEST_WAS_RUN)
-    PrintTestCompilerResult(CHECK_PASS "works")
+    printtestcompilerstatus("ISPC" " -- works")
     file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
          "Determining if the ISPC compiler works passed with "
          "the following output:\n${__CMAKE_ISPC_COMPILER_OUTPUT}\n\n")
