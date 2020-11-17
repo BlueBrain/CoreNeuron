@@ -39,14 +39,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                                 nt.nrn_fast_imem->nrn_sav_rhs);
                 register_compartment_report(nt, m_report_config, vars_to_report);
                 break;
-            case AxonReport:
-            case DendriteReport:
-            case ApicalReport:
-            case AxonCompReport:
-            case DendriteCompReport:
-            case ApicalCompReport:
+            case SectionReport:
                 vars_to_report = get_section_vars_to_report(nt, m_report_config.target, nt._actual_v,
-                                                            m_report_config.type);
+                                                            m_report_config.section_type,
+                                                            m_report_config.section_all_compartments);
                 register_compartment_report(nt, m_report_config, vars_to_report);
                 break;
             default:
@@ -165,11 +161,24 @@ VarsToReport ReportHandler::get_compartment_vars_to_report(const NrnThread& nt,
     return vars_to_report;
 }
 
+std::string getSectionTypeStr(SectionType type) {
+    switch (type) {
+        case Axon:
+            return "axon";
+        case Dendrite:
+            return "dend";
+        default:
+            return "apic";
+    }
+}
+
 VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
                                                        const std::set<int>& target,
                                                        double* report_variable,
-                                                       ReportType type) const {
+                                                       SectionType section_type,
+                                                       bool all_compartments) const {
     VarsToReport vars_to_report;
+    const auto section_type_str = getSectionTypeStr(section_type);
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
         std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
@@ -189,40 +198,23 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
             }
             std::vector<VarWithMapping> to_report;
             to_report.reserve(cell_mapping->size());
-
-            std::string name;
-            switch (type) {
-                case AxonReport:
-                case AxonCompReport:
-                    name = "axon";
-                    break;
-                case DendriteReport:
-                case DendriteCompReport:
-                    name = "dend";
-                    break;
-                case ApicalReport:
-                case ApicalCompReport:
-                    name = "apic";
-                    break;
-                default:
-                    name = "soma";
-            }
             
-            /** get  section list mapping for the type, if available */
-            if (cell_mapping->get_seclist_section_count(name) > 0) {
-                SecMapping* s = cell_mapping->get_seclist_mapping(name);
-                for (auto& sm : s->secmap) {
+            /** get section list mapping for the type, if available */
+            if (cell_mapping->get_seclist_section_count(section_type_str) > 0) {
+                SecMapping* s = cell_mapping->get_seclist_mapping(section_type_str);
+                for (const auto& sm : s->secmap) {
                     int compartment_id = sm.first;
-                    auto& vec = sm.second;
+                    const auto& vec = sm.second;
 
-                    // Get all the compartment values (otherwise, just middle point)
-                    if (type >= AxonCompReport) {
+                    /** get all compartment values (otherwise, just middle point) */
+                    if (all_compartments) {
                         for (const auto& idx : vec) {
                             /** corresponding voltage in coreneuron voltage array */
                             double* variable = report_variable + idx;
                             to_report.push_back(VarWithMapping(compartment_id, variable));
                         }
                     } else {
+                        assert(vec.size() % 2);
                         /** corresponding voltage in coreneuron voltage array */
                         const auto idx = vec[vec.size() / 2];
                         double* variable = report_variable + idx;

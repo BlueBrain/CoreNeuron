@@ -41,7 +41,8 @@ namespace coreneuron {
 
 /*
  * Defines the type of target, as per the following syntax:
- * 0=Compartment, 1=Cell/Soma, Section { 2=Axon, 3=Dendrite, 4=Apical }
+ *   0=Compartment, 1=Cell/Soma, Section { 2=Axon, 3=Dendrite, 4=Apical }
+ * The "Comp" variations are compartment-based (all values, not middle only)
  */
 enum class TargetType
 {
@@ -52,7 +53,7 @@ enum class TargetType
     Apical = 4,
     AxonComp = 5,
     DendriteComp = 6,
-    ApicalComp = 7
+    ApicalComp = 7,
 };
 
 /*
@@ -118,22 +119,34 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
                         report.type = SomaReport;
                         break;
                     case TargetType::Axon:
-                        report.type = AxonReport;
-                        break;
-                    case TargetType::Dendrite:
-                        report.type = DendriteReport;
-                        break;
-                    case TargetType::Apical:
-                        report.type = ApicalReport;
+                        report.type = SectionReport;
+                        report.section_type = Axon;
+                        report.section_all_compartments = false;
                         break;
                     case TargetType::AxonComp:
-                        report.type = AxonCompReport;
+                        report.type = SectionReport;
+                        report.section_type = Axon;
+                        report.section_all_compartments = true;
+                        break;
+                    case TargetType::Dendrite:
+                        report.type = SectionReport;
+                        report.section_type = Dendrite;
+                        report.section_all_compartments = false;
                         break;
                     case TargetType::DendriteComp:
-                        report.type = DendriteCompReport;
+                        report.type = SectionReport;
+                        report.section_type = Dendrite;
+                        report.section_all_compartments = true;
+                        break;
+                    case TargetType::Apical:
+                        report.type = SectionReport;
+                        report.section_type = Apical;
+                        report.section_all_compartments = false;
                         break;
                     case TargetType::ApicalComp:
-                        report.type = ApicalCompReport;
+                        report.type = SectionReport;
+                        report.section_type = Apical;
+                        report.section_all_compartments = true;
                         break;
                     default:
                         report.type = CompartmentReport;
