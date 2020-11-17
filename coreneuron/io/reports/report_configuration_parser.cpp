@@ -42,7 +42,7 @@ namespace coreneuron {
 /*
  * Defines the type of target, as per the following syntax:
  *   0=Compartment, 1=Cell/Soma, Section { 2=Axon, 3=Dendrite, 4=Apical }
- * The "Comp" variations are compartment-based (all values, not middle only)
+ * The "Comp" variations are compartment-based (all segments, not middle only)
  */
 enum class TargetType
 {
