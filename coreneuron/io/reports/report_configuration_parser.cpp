@@ -118,6 +118,9 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
                     case TargetType::Soma:
                         report.type = SomaReport;
                         break;
+                    case TargetType::Compartment:
+                        report.type = CompartmentReport;
+                        break;
                     case TargetType::Axon:
                         report.type = SectionReport;
                         report.section_type = Axon;
@@ -149,13 +152,14 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
                         report.section_all_compartments = true;
                         break;
                     default:
-                        report.type = CompartmentReport;
+                        std::cerr << "Report error: unsupported target type" << std::endl;
+                        abort();
                 }
             }
         } else if (strcmp(report.type_str, "synapse") == 0) {
             report.type = SynapseReport;
         } else {
-            std::cerr << "Report error: unsupported type " << report.type_str << "\n";
+            std::cerr << "Report error: unsupported type " << report.type_str << std::endl;
             abort();
         }
 

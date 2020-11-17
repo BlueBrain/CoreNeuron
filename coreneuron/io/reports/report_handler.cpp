@@ -169,7 +169,7 @@ std::string getSectionTypeStr(SectionType type) {
             return "dend";
         case Apical:
             return "apic";
-        default:        
+        default:
             std::cerr << "SectionType not handled in getSectionTypeStr" << std::endl;
             nrn_abort(1);
     }
