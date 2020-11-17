@@ -36,6 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 // data to it.
 
 #include <algorithm>
+#include <fstream>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
@@ -125,12 +126,12 @@ static bool spike_comparator(const spike_type& l, const spike_type& r) {
 
 
 size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double tstop) {
-    FILE* f = fopen(fname, "r");
+    std::ifstream f(fname);
     nrn_assert(f);
 
     // skip first line containing "scatter" string
     char dummy[100];
-    nrn_assert(fgets(dummy, 100, f));
+    nrn_assert(f.getline(dummy, 100));
 
     std::vector<spike_type> spikes;
     spikes.reserve(10000);
@@ -138,13 +139,13 @@ size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double t
     double stime;
     int gid;
 
-    while (fscanf(f, "%lf %d\n", &stime, &gid) == 2) {
-        if ( stime >= t && stime <= tstop) {
-            spikes.push_back(std::make_pair(stime, gid));
+    while (f >> stime >> gid) {
+        if (stime >= t && stime <= tstop) {
+            spikes.emplace_back(stime, gid);
         }
     }
 
-    fclose(f);
+    f.close();
 
     // pattern.mod expects sorted spike raster (this is to avoid
     // injecting all events at the begining of the simulation).

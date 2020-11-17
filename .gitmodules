@@ -13,3 +13,6 @@
 [submodule "CMake/hpc-coding-conventions"]
 	path = CMake/hpc-coding-conventions
 	url = https://github.com/BlueBrain/hpc-coding-conventions.git
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt.git

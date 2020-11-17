@@ -29,6 +29,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <map>
 
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/io/nrn_setup.hpp"
@@ -69,7 +72,7 @@ static int ml_permute(int i, Memb_list* ml) {
 
 // Note: cellnodes array is in unpermuted order.
 
-static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE* f) {
+static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, std::ostream& f) {
     int is_art = corenrn.get_is_artificial()[type];
     if (is_art)
         return;
@@ -87,10 +90,10 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
         if (cix >= 0) {
             if (!header_printed) {
                 header_printed = 1;
-                fprintf(f, "type=%d %s size=%d\n", type, corenrn.get_memb_func(type).sym, size);
+                fmt::print(f, "type=%d %s size=%d\n", type, corenrn.get_memb_func(type).sym, size);
             }
             if (receives_events) {
-                fprintf(f, "%d nri %d\n", cix, pntindex);
+                fmt::print(f, "%d nri %d\n", cix, pntindex);
                 int k = nrn_i_layout(i, cnt, 1, psize, layout);
                 Point_process* pp = (Point_process*)nt._vdata[ml->pdata[k]];
                 pnt2index[pp] = pntindex;
@@ -98,13 +101,13 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
             }
             for (int j = 0; j < size; ++j) {
                 int k = nrn_i_layout(i, cnt, j, size, layout);
-                fprintf(f, " %d %d %.*g\n", cix, j, precision, ml->data[k]);
+                fmt::print(f, " %d %d %.*g\n", cix, j, precision, ml->data[k]);
             }
         }
     }
 }
 
-static void pr_netcon(NrnThread& nt, FILE* f) {
+static void pr_netcon(NrnThread& nt, std::ostream& f) {
     if (pntindex == 0) {
         return;
     }
@@ -126,8 +129,8 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
             ++nc_cnt;
         }
     }
-    fprintf(f, "netcons %d\n", nc_cnt);
-    fprintf(f, " pntindex srcgid active delay weights\n");
+    fmt::print(f, "netcons %d\n", nc_cnt);
+    fmt::print(f, " pntindex srcgid active delay weights\n");
 
     /// Fill the NetCon <-> DiscreteEvent map with PreSyn-s
     DiscreteEvent* de;
@@ -179,34 +182,34 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
                     Point_process* pnt = ps->pntsrc_;
                     if (srcgid < 0 && pnt) {
                         int type = pnt->_type;
-                        fprintf(f, "%d %s %d %.*g", i, corenrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
+                        fmt::print(f, "%d %s %d %.*g", i, corenrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
                                 precision, nc->delay_);
                     } else if (srcgid < 0 && ps->thvar_index_ > 0) {
-                        fprintf(f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision,
+                        fmt::print(f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision,
                                 nc->delay_);
                     } else {
-                        fprintf(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision,
+                        fmt::print(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision,
                                 nc->delay_);
                     }
                 } else {
-                    fprintf(f, "%d %d %d %.*g", i, map_nc2gid[nc], nc->active_ ? 1 : 0, precision,
+                    fmt::print(f, "%d %d %d %.*g", i, map_nc2gid[nc], nc->active_ ? 1 : 0, precision,
                             nc->delay_);
                 }
             } else {
-                fprintf(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision, nc->delay_);
+                fmt::print(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision, nc->delay_);
             }
             int wcnt = corenrn.get_pnt_receive_size()[nc->target_->_type];
             for (int k = 0; k < wcnt; ++k) {
-                fprintf(f, " %.*g", precision, nt.weights[nc->u.weight_index_ + k]);
+                fmt::print(f, " %.*g", precision, nt.weights[nc->u.weight_index_ + k]);
             }
-            fprintf(f, "\n");
+            fmt::print(f, "\n");
         }
     }
     // cleanup
     nclist.clear();
 }
 
-static void pr_realcell(PreSyn& ps, NrnThread& nt, FILE* f) {
+static void pr_realcell(PreSyn& ps, NrnThread& nt, std::ostream& f) {
     // for associating NetCons with Point_process identifiers
 
     pntindex = 0;
@@ -238,21 +241,21 @@ static void pr_realcell(PreSyn& ps, NrnThread& nt, FILE* f) {
             cellnodes[i] = cnt++;
         }
     }
-    fprintf(f, "%d nodes  %d is the threshold node\n", cnt, cellnodes[inv_permute(inode, nt)] - 1);
-    fprintf(f, " threshold %.*g\n", precision, ps.threshold_);
-    fprintf(f, "inode parent area a b\n");
+    fmt::print(f, "%d nodes  %d is the threshold node\n", cnt, cellnodes[inv_permute(inode, nt)] - 1);
+    fmt::print(f, " threshold %.*g\n", precision, ps.threshold_);
+    fmt::print(f, "inode parent area a b\n");
     for (int iorig = 0; iorig < nt.end; ++iorig)
         if (cellnodes[iorig] >= 0) {
             int i = permute(iorig, nt);
             int ip = nt._v_parent_index[i];
-            fprintf(f, "%d %d %.*g %.*g %.*g\n", cellnodes[iorig],
-                    ip >= 0 ? cellnodes[inv_permute(ip, nt)] : -1, precision, nt._actual_area[i],
-                    precision, nt._actual_a[i], precision, nt._actual_b[i]);
+            fmt::print(f, "%d %d %.*g %.*g %.*g\n", cellnodes[iorig],
+                       ip >= 0 ? cellnodes[inv_permute(ip, nt)] : -1, precision, nt._actual_area[i],
+                       precision, nt._actual_a[i], precision, nt._actual_b[i]);
         }
-    fprintf(f, "inode v\n");
+    fmt::print(f, "inode v\n");
     for (int i = 0; i < nt.end; ++i)
         if (cellnodes[i] >= 0) {
-            fprintf(f, "%d %.*g\n", cellnodes[i], precision, nt._actual_v[permute(i, nt)]);
+            fmt::print(f, "%d %.*g\n", cellnodes[i], precision, nt._actual_v[permute(i, nt)]);
         }
 
     // each mechanism
@@ -281,15 +284,15 @@ int prcellstate(int gid, const char* suffix) {
                 // found it so create a <gid>_<suffix>.corenrn file
                 char buf[200];
                 std::string filename = std::to_string(gid) + "_" + suffix + ".corenrn";
-                FILE* f = fopen(filename.c_str(), "w");
+                std::ofstream f(filename);
                 assert(f);
-                fprintf(f, "gid = %d\n", gid);
-                fprintf(f, "t = %.*g\n", precision, nt._t);
-                fprintf(f, "celsius = %.*g\n", precision, celsius);
+                fmt::print(f, "gid = %d\n", gid);
+                fmt::print(f, "t = %.*g\n", precision, nt._t);
+                fmt::print(f, "celsius = %.*g\n", precision, celsius);
                 if (ps.thvar_index_ >= 0) {
                     pr_realcell(ps, nt, f);
                 }
-                fclose(f);
+                f.close();
                 return 1;
             }
         }

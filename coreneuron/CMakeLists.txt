@@ -151,11 +151,11 @@ target_link_libraries(
   ${CUDA_LIBRARIES}
   ${CALIPER_LIB}
   ${CALIPER_MPI_LIB}
-  ${likwid_LIBRARIES})
+  ${likwid_LIBRARIES}
+  fmt)
 target_include_directories(coreneuron SYSTEM
-                           PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
-target_include_directories(coreneuron SYSTEM
-                           PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
+                           PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include
+                                   ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
 
 set_target_properties(
   coreneuron scopmath ${link_cudacoreneuron}
@@ -222,14 +222,14 @@ file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 # =============================================================================
 
 # coreneuron main libraries
-install(
-  TARGETS coreneuron ${link_cudacoreneuron}
-  EXPORT coreneuron
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION $<INSTALL_INTERFACE:include>)
+#install(
+#  TARGETS coreneuron ${link_cudacoreneuron}
+#  EXPORT coreneuron
+#  LIBRARY DESTINATION lib
+#  ARCHIVE DESTINATION lib
+#  INCLUDES DESTINATION $<INSTALL_INTERFACE:include>)
 
-# scopemath into share for nrnivmodl-core
+# scopmath into share for nrnivmodl-core
 install(
   TARGETS scopmath
   EXPORT coreneuron

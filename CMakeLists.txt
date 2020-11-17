@@ -63,9 +63,8 @@ include(SetRpath)
 include(CTest)
 include(AddRandom123Submodule)
 include(AddCLI11Submodule)
+include(AddFmtSubmodule)
 include(GitRevision)
-
-add_subdirectory(${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11)
 
 # =============================================================================
 # Build options
