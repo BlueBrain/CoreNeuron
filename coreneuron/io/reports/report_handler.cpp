@@ -167,8 +167,11 @@ std::string getSectionTypeStr(SectionType type) {
             return "axon";
         case Dendrite:
             return "dend";
-        default:
+        case Apical:
             return "apic";
+        default:        
+            std::cerr << "SectionType not handled in getSectionTypeStr" << std::endl;
+            nrn_abort(1);
     }
 }
 
