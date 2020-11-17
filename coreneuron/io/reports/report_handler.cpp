@@ -181,7 +181,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
                                                        SectionType section_type,
                                                        bool all_compartments) const {
     VarsToReport vars_to_report;
-    const auto section_type_str = getSectionTypeStr(section_type);
+    const auto& section_type_str = getSectionTypeStr(section_type);
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
         std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
