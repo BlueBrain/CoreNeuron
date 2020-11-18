@@ -63,13 +63,13 @@ void parse_filter_string(char* filter, ReportConfiguration& config) {
     char* token = strtok(filter, ".");
     if (!token) {
         std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
-        abort();
+        nrn_abort(1);
     }
     strcpy(config.mech_name, token);
     token = strtok(nullptr, "\n");
     if (!token) {
         std::cerr << "Error : Invalid report variable, should be mch_name.var_name" << std::endl;
-        abort();
+        nrn_abort(1);
     }
     strcpy(config.var_name, token);
 }
@@ -89,7 +89,7 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
     if (!fp) {
         std::cerr << "Cannot open configuration file: " << conf_file << ", aborting execution"
                   << std::endl;
-        abort();
+        nrn_abort(1);
     }
 
     fgets(raw_line, REPORT_MAX_FILEPATH_LEN, fp);
@@ -153,14 +153,14 @@ std::vector<ReportConfiguration> create_report_configurations(const char* conf_f
                         break;
                     default:
                         std::cerr << "Report error: unsupported target type" << std::endl;
-                        abort();
+                        nrn_abort(1);
                 }
             }
         } else if (strcmp(report.type_str, "synapse") == 0) {
             report.type = SynapseReport;
         } else {
             std::cerr << "Report error: unsupported type " << report.type_str << std::endl;
-            abort();
+            nrn_abort(1);
         }
 
         if (report.type == SynapseReport)
