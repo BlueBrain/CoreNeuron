@@ -217,7 +217,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
                             to_report.push_back(VarWithMapping(compartment_id, variable));
                         }
                     } else {
-                       nrn_assert(vec.size() % 2);
+                        nrn_assert(vec.size() % 2);
                         /** corresponding voltage in coreneuron voltage array */
                         const auto idx = vec[vec.size() / 2];
                         double* variable = report_variable + idx;
@@ -264,7 +264,7 @@ VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
                     get_var_location_from_var_name(report.mech_id, report.var_name, ml, j);
                 const auto synapse_id = static_cast<int>(
                     *get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j));
-                assert(synapse_id && var_value);
+                nrn_assert(synapse_id && var_value);
                 to_report.emplace_back(synapse_id, var_value);
             }
         }
