@@ -217,7 +217,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
                             to_report.push_back(VarWithMapping(compartment_id, variable));
                         }
                     } else {
-                        assert(vec.size() % 2);
+                       nrn_assert(vec.size() % 2);
                         /** corresponding voltage in coreneuron voltage array */
                         const auto idx = vec[vec.size() / 2];
                         double* variable = report_variable + idx;
