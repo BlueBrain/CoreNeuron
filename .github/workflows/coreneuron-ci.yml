@@ -1,0 +1,162 @@
+name: CoreNEURON CI
+
+on:
+  push:
+    branches: 
+      - master
+      - live-debug*
+  pull_request:
+    branches:
+      - master
+
+env:
+  BUILD_TYPE: Release
+  DEVELOPER_DIR: /Applications/Xcode_11.3.1.app/Contents/Developer
+  DEFAULT_PY_VERSION: 3.8
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+
+    name: ${{ matrix.os }} - ${{ toJson(matrix.config) }})
+
+    env:
+      INSTALL_DIR: install
+      SDK_ROOT: $(xcrun --sdk macosx --show-sdk-path)
+
+    strategy:
+      matrix:
+        os: [ ubuntu-16.04, macOS-10.15 ]
+        config:
+          - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON }
+          - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
+          - {cmake_option: "-DCORENRN_ENABLE_SOA=ON"}
+          - {cmake_option: "-DCORENRN_ENABLE_SOA=OFF"}
+          - {use_nmodl: ON, py_version: 3.6.7}
+          - {use_nmodl: ON}
+          - {use_ispc: ON, py_version: 3.6.7}
+          - {gcc_version: 9}
+      fail-fast: false
+
+    steps:
+
+      - name: Install homebrew packages
+        if: startsWith(matrix.os, 'macOS')
+        run: |
+          brew install coreutils bison flex boost openmpi
+        shell: bash
+
+      - name: Install apt packages
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get install doxygen bison flex libboost-all-dev libopenmpi-dev openmpi-bin python3-dev python3-pip
+        shell: bash
+
+      - name: Install specific apt packages
+        if: startsWith(matrix.os, 'ubuntu') && matrix.config.gcc_version
+        run: |
+          sudo apt-get install g++-${GCC_VERSION}
+        shell: bash
+        env: 
+          GCC_VERSION: ${{ matrix.config.gcc_version }} 
+
+      - name: Set up Python3
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+        env:
+          PYTHON_VERSION:  ${{ matrix.config.py_version || env.DEFAULT_PY_VERSION }}
+
+      - name: Install ISPC
+        if: ${{ matrix.config.use_ispc == 'ON' }}
+        working-directory: ${{runner.workspace}}
+        run: |
+          ispc_version="v1.12.0";
+          if [ "${{ startsWith(matrix.os, 'ubuntu') }}" == "true" ]; then
+            url_os="linux";
+            ispc_version_suffix="b";
+          else
+            url_os="macOS";
+            ispc_version_suffix="";
+          fi;
+          url="https://github.com/ispc/ispc/releases/download/${ispc_version}/ispc-${ispc_version}${ispc_version_suffix}-${url_os}.tar.gz";
+          wget -O ispc.tar.gz $url;
+          mkdir ispc && tar -xvzf ispc.tar.gz -C ispc --strip 1;
+      - name: Install NMODL dependencies
+        if: ${{ matrix.config.use_nmodl == 'ON' ||  matrix.config.use_ispc == 'ON' }}
+        run: |
+          python3 -m pip install --upgrade pip jinja2 pyyaml pytest "sympy<1.6";
+       
+      - uses: actions/checkout@v2
+
+      - name: Install Python3 documentation dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.config.documentation == 'ON' }}
+        working-directory: ${{runner.workspace}}/CoreNeuron
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade -r docs/docs_requirements.txt
+        
+      - name: Build and Test
+        id: build-test
+        shell: bash
+        working-directory: ${{runner.workspace}}/CoreNeuron
+        run:  |
+          if [ -n "$GCC_VERSION" ]; then
+              export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}";
+          fi
+          
+          if [[ "${{ startsWith(matrix.os, 'macOS') }}" = "true" ]]; then
+              git submodule update --init -- external/Random123
+              export PATH=${{runner.workspace}}/CoreNeuron/external/Random123:/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH;
+              export CXX=g++;
+              export CC=gcc;
+          fi
+          
+          echo "------- Build, Test and Install -------"
+          mkdir build && cd build
+          if [[ "$USE_ISPC" == "ON" ]]; then
+              cmake -DCORENRN_ENABLE_ISPC=ON -DCMAKE_ISPC_COMPILER=${{runner.workspace}}/ispc/bin/ispc -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DPYTHON_EXECUTABLE=$(which python3) ..;
+          elif [[ "$USE_NMODL" == "ON" ]]; then
+              cmake -DCORENRN_ENABLE_NMODL=ON -DCORENRN_NMODL_FLAGS="sympy --analytic" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DPYTHON_EXECUTABLE=$(which python3) ..;
+          else
+              cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DPYTHON_EXECUTABLE=$(which python3) ..;
+          fi
+          make
+          ctest --output-on-failure
+          make install         
+        env:
+          cmake_option: ${{ matrix.config.cmake_option }}
+          USE_ISPC: ${{ matrix.config.use_ispc }}
+          USE_NMODL: ${{ matrix.config.use_nmodl }}
+          INSTALL_DIR: ${{ runner.workspace }}/install
+          GCC_VERSION: ${{ matrix.config.gcc_version }}
+          PYTHON_VERSION:  ${{ matrix.config.py_version || env.DEFAULT_PY_VERSION }}
+
+      # This step will set up an SSH connection on tmate.io for live debugging.
+      # To trigger it, simply prefix your branch name with `live-debug`
+      #   i.e.: live-debug-hocfix
+      - name: live debug session on failure
+        if: failure() && startsWith(github.ref, 'refs/heads/live-debug')
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Documentation 
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.config.documentation == 'ON' }}
+        id: documentation
+        working-directory: ${{runner.workspace}}/CoreNeuron
+        run: |
+          echo "------- Build Doxygen Documentation -------";
+          pushd build;
+          make docs;
+          echo "-------- Disable jekyll --------";
+          pushd docs;
+          touch .nojekyll;
+          echo ::set-output name=status::done
+          
+#       - name: Deploy 🚀
+#         uses: JamesIves/github-pages-deploy-action@3.7.1
+#         if: steps.documentation.outputs.status == 'done'
+#         with:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           BRANCH: gh-pages # The branch the action should deploy to.
+#           FOLDER: ${{runner.workspace}}/nrn/build/docs # The folder the action should deploy.
+#           CLEAN: false # Automatically remove deleted files from the deploy branch
