@@ -98,7 +98,7 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string 
                 nrn_use_fast_imem = true;
                 report.type = IMembraneReport;
             } else {
-                switch (TargetType(target_type)) {
+                switch (static_cast<TargetType>(target_type)) {
                     case TargetType::Soma:
                         report.type = SomaReport;
                         break;
