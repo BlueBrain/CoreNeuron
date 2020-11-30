@@ -414,7 +414,7 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
     }
     else {
         if (nrnmpi_myid == 0) {
-            printf(" WARNING : Report name '%s' has unknown format: '%s'.\n", config.name, config.format);
+            printf(" WARNING : Report name '%s' has unknown format: '%s'.\n", config.name.data(), config.format.data());
         }
         return nullptr;
     }

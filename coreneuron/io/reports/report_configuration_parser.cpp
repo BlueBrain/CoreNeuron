@@ -74,22 +74,17 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string 
     std::vector<ReportConfiguration> reports;
     std::string report_on;
     int target_type;
-
     std::ifstream report_conf(conf_file);
-    std::string line;
-    std::getline(report_conf, line);
 
-    std::istringstream iss(line);
     int num_reports = 0;
-    iss >> num_reports;
+    report_conf >> num_reports;
     for (int i = 0; i < num_reports; i++) {
         ReportConfiguration report;
         // mechansim id registered in coreneuron
         report.mech_id = -1;
         report.buffer_size = 4; // default size to 4 Mb
-        std::getline(report_conf, line);
-        std::istringstream iss(line);
-        iss >> report.name >> report.target_name >> report.type_str >> report_on >>
+
+        report_conf >> report.name >> report.target_name >> report.type_str >> report_on >>
                report.unit >> report.format >> target_type >> report.report_dt >>
                report.start >> report.stop >> report.num_gids >> report.buffer_size >>
                report.population_name;
@@ -156,18 +151,16 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string 
         }
         if (report.num_gids) {
             std::vector<int> new_gids(report.num_gids);
+            report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             report_conf.read(reinterpret_cast<char *>(new_gids.data()), report.num_gids * sizeof(int));
             report.target = std::set<int>(new_gids.begin(), new_gids.end());
-            // extra new line
-            std::getline(report_conf, line);
+            // extra new line: skip
+            report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         reports.push_back(report);
     }
-    std::getline(report_conf, line);
-    std::istringstream iss_end(line);
 
-    std::string new_spikes_population;
-    iss_end >> new_spikes_population;
+    report_conf >> spikes_population_name;
     return reports;
 }
-} // namespace coreneuron
+}  // namespace coreneuron
