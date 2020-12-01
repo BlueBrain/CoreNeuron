@@ -30,4 +30,4 @@ nrnivmodl mod
 
 **Use certain branches for the SimulationStack CI**
 
-CI_BRANCHES:NEURON_BRANCH=master
+CI_BRANCHES:NEURON_BRANCH=master,
