@@ -60,7 +60,7 @@ void report_cell_stats(void) {
         stat_array[3] += (long)nrn_threads[ith].n_netcon;        // number of netcons, synapses
         stat_array[4] += (long)nrn_threads[ith].n_pntproc;       // number of point processes
         if (nrn_partrans::transfer_thread_data_) {
-            int ntar = nrn_partrans::transfer_thread_data_[ith].ntar;
+            size_t ntar = nrn_partrans::transfer_thread_data_[ith].tar_indices.size();
             stat_array[11] += (long)ntar;  // number of transfer (gap) targets
         }
     }
