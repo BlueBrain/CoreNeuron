@@ -146,7 +146,14 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         ttd.outsrc_indices.push_back(i);
     }
 
-    // insrc_indices point into NrnThread.data
+    // Which insrc_indices point into which NrnThread.data
+    // An sgid occurs at most once in the process recv_from_have.
+    // But it might get distributed to more than one thread and to
+    // several targets in a thread (specified by tar2info)
+    // insrc_indices is parallel to tar_indices and has size ntar of the thread.
+    // insrc_indices[i] is the index into insrc_buf
+    // tar_indices[i] is the index into NrnThread.data
+    // i.e. NrnThead._data[tar_indices[i]] = insrc_buf[insrc_indices[i]]
     for (int i = 0; i < insrcdspl_[nhost]; ++i) {
         sgid_t sgid = recv_from_have[i];
         SidInfo& sidinfo = tar2info[sgid];
@@ -185,13 +192,18 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
 
 /**
  *  For now, until conceptualization of the ordering is clear,
- *  just replace setup_info_ indices values with stdindex2ptr determined
+ *  just replace src setup_info_ indices values with stdindex2ptr determined
  *  index into NrnThread._data
 **/
-void nrn_partrans::gap_data_indices_setup(NrnThread& nt) {
+void nrn_partrans::gap_data_indices_setup(NrnThread* n) {
+    NrnThread& nt = *n;
     // printf("%d gap_data_indices_setup tid=%d\n", nrnmpi_myid, nt.id);
     nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[nt.id];
     nrn_partrans::SetupTransferInfo& sti = setup_info_[nt.id];
+
+    ttd.src_gather.resize(sti.src_sid.size());
+    ttd.insrc_indices.resize(sti.tar_sid.size());
+    ttd.tar_indices.resize(sti.tar_sid.size());
 
     for (size_t i = 0; i < sti.src_sid.size(); ++i) {
         double* d = stdindex2ptr(sti.src_type[i], sti.src_index[i], nt);
@@ -200,8 +212,12 @@ void nrn_partrans::gap_data_indices_setup(NrnThread& nt) {
 
     for (size_t i = 0; i < sti.tar_sid.size(); ++i) {
         double* d = stdindex2ptr(sti.tar_type[i], sti.tar_index[i], nt);
-        sti.tar_index[i] = int(d - nt._data);
+        ttd.tar_indices[i] = int(d - nt._data);
     }
+
+    // Here we could reorder sti.src_... according to NrnThread._data index
+    // order
+
 }
 
 }  // namespace coreneuron

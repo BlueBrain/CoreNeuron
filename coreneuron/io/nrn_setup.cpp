@@ -483,7 +483,7 @@ void nrn_setup(const char* filesdat,
     for (int i = 0; i < nrn_nthread; ++i)
         nrnthreads_netcon_srcgid[i] = nullptr;
 
-    // Gap junctions have been done first in the sense of reading files
+    // Gap junctions used to be done first in the sense of reading files
     // and calling gap_mpi_setup. But during phase2, gap_thread_setup and
     // gap_indices_permute were called after NrnThread.data was in its final
     // layout and mechanism permutation was determined. This is no longer
@@ -526,6 +526,7 @@ void nrn_setup(const char* filesdat,
                 sizeof(nrn_partrans::sgid_t), &nrn_partrans::setup_info_);
         }
 
+        nrn_multithread_job(nrn_partrans::gap_data_indices_setup);
         nrn_partrans::gap_mpi_setup(userParams.ngroup);
 
         if (!corenrn_embedded) {
