@@ -74,7 +74,8 @@ class TransferThreadData {
 
     std::vector<int> src_indices;   // indices into NrnThread._data
     std::vector<double> src_gather; // copy of NrnThread._data[src_indices]
-    std::vector<int> outsrc_indices;// ix of src_gather that get copied into outsrc_buf
+    std::vector<int> gather2outsrc_indices; // ix of src_gather that send into outsrc_indices
+    std::vector<int> outsrc_indices;// ix of outsrc_buf that receive src_gather values
 
     std::vector<int> insrc_indices; // insrc_buf_ copied to these NrnThread.data indices.
     std::vector<int> tar_indices;   // indices of NrnThread.data that are targets.

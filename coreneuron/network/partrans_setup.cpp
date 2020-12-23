@@ -60,6 +60,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     // also count the map sizes and fill have and want arrays
     std::map<sgid_t, SidInfo> src2info;
     std::map<sgid_t, SidInfo> tar2info;
+
     int src2info_size = 0, tar2info_size = 0;  // number of unique sids
     for (int tid = 0; tid < ngroup; ++tid) {
         SetupTransferInfo& si = setup_info_[tid];
@@ -125,10 +126,11 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     insrc_buf_ = new double[insrcdspl_[nhost]];
     outsrc_buf_ = new double[outsrcdspl_[nhost]];
 
-    // outsrc_indices point into NrnThread.data_.
-    // Many outsrc_indices elements can point to the same NrnThread.data_
-    // element, but only if an sgid src datum is destined for multiple ranks.
-    // Copy is outsrc_buf_[outsrc_indices[i]] = NrnThread.data[v_indices[i]];
+    // for i: src_gather[i] = NrnThread._data[src_indices[i]]
+    // for j: outsrc_buf[outsrc_indices[j]] = src_gather[gather2outsrc_indices[j]]
+    // src_indices point into NrnThread._data
+    // Many outsrc_indices elements can point to the same src_gather element
+    // but only if an sgid src datum is destined for multiple ranks.
     for (int i = 0; i < outsrcdspl_[nhost]; ++i) {
         sgid_t sgid = send_to_want[i];
         SidInfo& sidinfo = src2info[sgid];
@@ -142,9 +144,31 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         // Note that src_index points into NrnThread.data, as it has already
         // been transformed using original src_type and src_index via
         // stdindex2ptr.
-        ttd.src_indices.push_back(si.src_index[setup_info_index]);
+        // For copying into outsrc_buf from src_gather. This is from
+        // NrnThread._data, fixup to "from src_gather" below.
+        ttd.gather2outsrc_indices.push_back(si.src_index[setup_info_index]);
         ttd.outsrc_indices.push_back(i);
     }
+
+    // Need to know src_gather index given NrnThread._data index
+    // to compute gather2outsrc_indices. And the update outsrc_indices so that
+    // for a given thread
+    // for j: outsrc_buf[outsrc_indices[j]] = src_gather[gather2outsrc_indices[j]]
+    for (int tid = 0; tid < ngroup; ++tid) {
+        NrnThread& nt = nrn_threads[tid];
+        nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[tid];
+        std::map<int, int> data_to_gather;
+        for (int i = 0; i < ttd.src_indices.size(); ++i) {
+            data_to_gather[ttd.src_indices[i]] = i;
+        }
+
+        for (int i = 0; i < ttd.outsrc_indices.size(); ++i) {
+            ttd.gather2outsrc_indices[i] = data_to_gather[ttd.gather2outsrc_indices[i]];
+        }
+    }
+
+    std::map<int, int> gather2outsrc_helper;
+
 
     // Which insrc_indices point into which NrnThread.data
     // An sgid occurs at most once in the process recv_from_have.
@@ -171,11 +195,16 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
   for (int tid=0; tid < ngroup; ++tid) {
     nrn_partrans::SetupTransferInfo& si = setup_info_[tid];
     nrn_partrans::TransferThreadData& ttd = transfer_thread_data_[tid];
-    for (int i=0; i < si.nsrc; ++i) {
-      printf("%d %d src sid=%d v_index=%d\n", nrnmpi_myid, tid, si.sid_src[i], si.v_indices[i]);
+    for (size_t i=0; i < si.src_sid.size(); ++i) {
+      printf("%d %d src sid=%d v_index=%d %g\n", nrnmpi_myid, tid, si.src_sid[i], ttd.src_indices[i], nrn_threads[tid]._data[ttd.src_indices[i]]);
     }
+    for (size_t i=0; i < ttd.tar_indices.size(); ++i) {
+      printf("%d %d src sid=i%z tar_index=%d %g\n", nrnmpi_myid, tid, i,
+        ttd.tar_indices[i], nrn_threads[tid]._data[ttd.tar_indices[i]]);
+    }
+#if 0
     for (int i=0; i < si.ntar; ++i) {
-      printf("%d %d tar sid=%d i=%d\n", nrnmpi_myid, tid, si.sid_target[i], i);
+      printf("%d %d tar sid=%d i=%d\n", nrnmpi_myid, tid, si.tar_sid[i], i);
     }
     for (int i=0; i < ttd.nsrc; ++i) {
       printf("%d %d src i=%d v_index=%d\n", nrnmpi_myid, tid, i, ttd.v_indices[i]);
@@ -183,6 +212,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     for (int i=0; i < ttd.ntar; ++i) {
       printf("%d %d tar i=%d insrc_index=%d\n", nrnmpi_myid, tid, i, ttd.insrc_indices[i]);
     }
+#endif
   }
 #endif
 
@@ -202,22 +232,32 @@ void nrn_partrans::gap_data_indices_setup(NrnThread* n) {
     nrn_partrans::SetupTransferInfo& sti = setup_info_[nt.id];
 
     ttd.src_gather.resize(sti.src_sid.size());
+    ttd.src_indices.resize(sti.src_sid.size());
     ttd.insrc_indices.resize(sti.tar_sid.size());
     ttd.tar_indices.resize(sti.tar_sid.size());
 
+    // For copying into src_gather from NrnThread._data
     for (size_t i = 0; i < sti.src_sid.size(); ++i) {
         double* d = stdindex2ptr(sti.src_type[i], sti.src_index[i], nt);
         sti.src_index[i] = int(d - nt._data);
     }
 
+    // For copying into NrnThread._data from insrc_buf.
     for (size_t i = 0; i < sti.tar_sid.size(); ++i) {
         double* d = stdindex2ptr(sti.tar_type[i], sti.tar_index[i], nt);
-        ttd.tar_indices[i] = int(d - nt._data);
+        sti.tar_index[i] = int(d - nt._data);
     }
 
     // Here we could reorder sti.src_... according to NrnThread._data index
     // order
 
+    // copy into TransferThreadData
+    for (size_t i = 0; i < sti.src_sid.size(); ++i) {
+        ttd.src_indices[i] = sti.src_index[i];
+    }
+    for (size_t i = 0; i < sti.tar_sid.size(); ++i) {
+        ttd.tar_indices[i] = sti.tar_index[i];
+    }
 }
 
 }  // namespace coreneuron

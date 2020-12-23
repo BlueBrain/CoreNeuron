@@ -42,7 +42,7 @@ void nrnmpi_v_transfer() {
         double* src_val = ttd.src_gather.data();
         int n_src_val = int(ttd.src_gather.size());
 // clang-format off
-        #pragma acc parallel loop present(          \
+        #pragma acc parallel loop present(                        \
             src_indices[0:n_src_val], src_data[0:nt._ndata],      \
             src_val[0 : n_src_val]) /*copyout(vg[0:n_src_val])*/  \
             if (nt.compute_gpu) async(nt.stream_id)
@@ -66,9 +66,11 @@ void nrnmpi_v_transfer() {
         int n = int(ttd.outsrc_indices.size());
         int* outsrc_indices = ttd.outsrc_indices.data();
         double* src_val = ttd.src_gather.data();
-        int* src_indices = ttd.src_indices.data();
+        int* src_indices = ttd.gather2outsrc_indices.data();
         for (int i = 0; i < n; ++i) {
             outsrc_buf_[outsrc_indices[i]] = src_val[src_indices[i]];
+printf("%g %d outsrc_buf %d %g  src_indices %d\n", nrn_threads[tid]._t, i, outsrc_indices[i],
+outsrc_buf_[outsrc_indices[i]], outsrc_indices[i]);
         }
     }
 
