@@ -65,12 +65,13 @@ void nrnmpi_v_transfer() {
         TransferThreadData& ttd = transfer_thread_data_[tid];
         int n = int(ttd.outsrc_indices.size());
         int* outsrc_indices = ttd.outsrc_indices.data();
-        double* src_val = ttd.src_gather.data();
-        int* src_indices = ttd.gather2outsrc_indices.data();
+        double* gather_val = ttd.src_gather.data();
+        int* gather_indices = ttd.gather2outsrc_indices.data();
         for (int i = 0; i < n; ++i) {
-            outsrc_buf_[outsrc_indices[i]] = src_val[src_indices[i]];
-printf("%g %d outsrc_buf %d %g  src_indices %d\n", nrn_threads[tid]._t, i, outsrc_indices[i],
-outsrc_buf_[outsrc_indices[i]], outsrc_indices[i]);
+            outsrc_buf_[outsrc_indices[i]] = gather_val[gather_indices[i]];
+//printf("t=%g rank=%d tid=%d i=%d outsrc_buf %d %g  gather_indices %d\n",
+//nrn_threads[tid]._t, nrnmpi_myid, tid, i, outsrc_indices[i],
+//outsrc_buf_[outsrc_indices[i]], gather_indices[i]);
         }
     }
 
