@@ -47,24 +47,24 @@ using sgid_t = int;
  *  might be good to copy to the target in target index order from the
  *  input_buf_. And on the source side, it is certainly simple to scatter
  *  to the outbut_buf_ in NrnThread.data order.  Note that one expects a wide
- *  scatter to the output_buf and also a wide scatter within the input_buf_.
+ *  scatter to the outsrc_buf and also a wide scatter within the insrc_buf_.
 **/
 
 /*
 * In partrans.cpp: nrnmpi_v_transfer
 *   Copy NrnThead.data to outsrc_buf_ for all threads via
-*     gpu: gather vg[i] = vdata[src_indices[i]];
-*     gpu to host vg
-*     cpu: outsrc_buf_[outsrc_indices[i]] = vg[i];
+*     gpu: gather src_gather[i] = NrnThread._data[src_indices[i]];
+*     gpu to host src_gather
+*     cpu: outsrc_buf_[outsrc_indices[i]] = vg[gather2outsrc_indices[i]];
 *
 *   MPI_Allgatherv outsrc_buf_ to insrc_buf_
 *
 *   host to gpu insrc_buf_
 *
 * In partrans.cpp: nrnthread_v_transfer
-*   insrc_buf_ to NrnThread.data via
-*   NrnThread.data[ix] = insrc_buf_[insrc_indices[i]];
-*     where ix depends on i, layout, type, etc.
+*   insrc_buf_ to NrnThread._data via
+*   NrnThread.data[tar_indices[i]] = insrc_buf_[insrc_indices[i]];
+*     where tar_indices depends on layout, type, etc.
 */
 
 class TransferThreadData {
@@ -77,8 +77,8 @@ class TransferThreadData {
     std::vector<int> gather2outsrc_indices; // ix of src_gather that send into outsrc_indices
     std::vector<int> outsrc_indices;// ix of outsrc_buf that receive src_gather values
 
-    std::vector<int> insrc_indices; // insrc_buf_ copied to these NrnThread.data indices.
-    std::vector<int> tar_indices;   // indices of NrnThread.data that are targets.
+    std::vector<int> insrc_indices; // insrc_buf_ indices copied to ...
+    std::vector<int> tar_indices;   // indices of NrnThread.data.
 };
 extern TransferThreadData* transfer_thread_data_; /* array for threads */
 

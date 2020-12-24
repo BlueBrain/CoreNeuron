@@ -29,8 +29,8 @@ void nrnmpi_v_transfer() {
 
     // gather the source values. can be done in parallel
     for (int tid = 0; tid < nrn_nthread; ++tid) {
-        TransferThreadData& ttd = transfer_thread_data_[tid];
-        NrnThread& nt = nrn_threads[tid];
+        auto& ttd = transfer_thread_data_[tid];
+        auto& nt = nrn_threads[tid];
         int n = int(ttd.outsrc_indices.size());
         if (n == 0) {
             continue;

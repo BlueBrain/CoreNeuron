@@ -519,7 +519,7 @@ void nrn_setup(const char* filesdat,
         nrn_partrans::transfer_thread_data_ = new nrn_partrans::TransferThreadData[nrn_nthread];
         if (!corenrn_embedded) {
             nrn_partrans::setup_info_ = new nrn_partrans::SetupTransferInfo[
-                userParams.ngroup]; // Note ngroup, not nrn_nthread.
+                nrn_nthread];
             coreneuron::phase_wrapper<coreneuron::gap>(userParams);
         } else {
             (*nrn2core_get_partrans_setup_info_)(userParams.ngroup, nrn_nthread,
@@ -587,7 +587,7 @@ void setup_ThreadData(NrnThread& nt) {
 }
 
 void read_phasegap(NrnThread& nt, UserParams& userParams) {
-    nrn_partrans::SetupTransferInfo& si = nrn_partrans::setup_info_[nt.id];
+    auto& si = nrn_partrans::setup_info_[nt.id];
     size_t ntar = 0;
     size_t nsrc = 0;
 
