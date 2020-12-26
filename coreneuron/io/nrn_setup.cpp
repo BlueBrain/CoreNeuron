@@ -602,22 +602,22 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
     nsrc = size_t(F.read_int());
 
     si.src_sid.resize(nsrc);
-    F.read_array<nrn_partrans::sgid_t>(si.src_sid.data(), nsrc);
-
     si.src_type.resize(nsrc);
-    F.read_array<int>(si.src_type.data(), nsrc);
-
     si.src_index.resize(nsrc);
-    F.read_array<int>(si.src_index.data(), nsrc);
+    if (nsrc) {
+        F.read_array<nrn_partrans::sgid_t>(si.src_sid.data(), nsrc);
+        F.read_array<int>(si.src_type.data(), nsrc);
+        F.read_array<int>(si.src_index.data(), nsrc);
+    }
 
-    si.tar_sid.resize(nsrc);
-    F.read_array<nrn_partrans::sgid_t>(si.tar_sid.data(), ntar);
-
-    si.tar_type.resize(nsrc);
-    F.read_array<int>(si.tar_type.data(), ntar);
-
-    si.tar_index.resize(nsrc);
-    F.read_array<int>(si.tar_index.data(), ntar);
+    si.tar_sid.resize(ntar);
+    si.tar_type.resize(ntar);
+    si.tar_index.resize(ntar);
+    if (ntar) {
+        F.read_array<nrn_partrans::sgid_t>(si.tar_sid.data(), ntar);
+        F.read_array<int>(si.tar_type.data(), ntar);
+        F.read_array<int>(si.tar_index.data(), ntar);
+    }
 
 #if DEBUG
   printf("%d read_phasegap tid=%d nsrc=%d ntar=%d\n",
