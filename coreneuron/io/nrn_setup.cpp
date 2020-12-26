@@ -64,9 +64,9 @@ int corenrn_embedded_nthread;
 void (*nrn2core_group_ids_)(int*);
 
 extern "C" {
-void (*nrn2core_get_partrans_setup_info_)(int ngroup, int cn_nthread,
-                                          size_t cn_sidt_size,
-                                          coreneuron::nrn_partrans::SetupTransferInfo**);
+coreneuron::nrn_partrans::SetupTransferInfo*
+    (*nrn2core_get_partrans_setup_info_)(int ngroup, int cn_nthread,
+                                         size_t cn_sidt_size);
 }
 
 void (*nrn2core_get_trajectory_requests_)(int tid,
@@ -522,18 +522,15 @@ void nrn_setup(const char* filesdat,
                 nrn_nthread];
             coreneuron::phase_wrapper<coreneuron::gap>(userParams);
         } else {
-            (*nrn2core_get_partrans_setup_info_)(userParams.ngroup, nrn_nthread,
-                sizeof(nrn_partrans::sgid_t), &nrn_partrans::setup_info_);
+            nrn_partrans::setup_info_ = (*nrn2core_get_partrans_setup_info_)(
+                userParams.ngroup, nrn_nthread, sizeof(nrn_partrans::sgid_t));
         }
 
         nrn_multithread_job(nrn_partrans::gap_data_indices_setup);
         nrn_partrans::gap_mpi_setup(userParams.ngroup);
 
-        if (!corenrn_embedded) {
-            delete [] nrn_partrans::setup_info_;
-        }else{ // allocated in NEURON. Delete there.
-            (*nrn2core_get_partrans_setup_info_)(-1, -1, 0, NULL);
-        }
+        // Whether allocated in NEURON or here, delete here.
+        delete [] nrn_partrans::setup_info_;
         nrn_partrans::setup_info_ = nullptr;
     }
 
