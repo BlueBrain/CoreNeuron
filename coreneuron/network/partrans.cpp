@@ -51,7 +51,7 @@ void nrnmpi_v_transfer() {
         }
         // do not know why the copyout above did not work
         // and the following update is needed
-        #pragma acc update host(src_val[0 : n])     \
+        #pragma acc update host(src_val[0 : n_src_val])     \
             if (nrn_threads[0].compute_gpu)         \
             async(nt.stream_id)
         // clang-format on
@@ -69,9 +69,6 @@ void nrnmpi_v_transfer() {
         int* gather_indices = ttd.gather2outsrc_indices.data();
         for (int i = 0; i < n; ++i) {
             outsrc_buf_[outsrc_indices[i]] = gather_val[gather_indices[i]];
-//printf("t=%g rank=%d tid=%d i=%d outsrc_buf %d %g  gather_indices %d\n",
-//nrn_threads[tid]._t, nrnmpi_myid, tid, i, outsrc_indices[i],
-//outsrc_buf_[outsrc_indices[i]], gather_indices[i]);
         }
     }
 
