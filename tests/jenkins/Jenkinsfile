@@ -7,7 +7,7 @@ pipeline {
                description: 'What branch of CoreNeuron to test.')
         string(name: 'SPACK_BRANCH', defaultValue: 'develop',
                description: 'Which branch of spack to use.')
-        string(name: 'NEURON_BRANCH', defaultValue: '',
+        string(name: 'NEURON_BRANCH', defaultValue: 'iontransfer',
                description: 'Which branch of neuron to use. For master branch (neuron@develop) leave this parameter blank.')
     }
 
