@@ -9,6 +9,7 @@ sed_apply() (
 )
 
 patch_neuron() (
+    export NEURON_BRANCH=iontransfer
     if [ "$NEURON_BRANCH" ]; then
         pkg_file="${SPACK_ROOT}/var/spack/repos/builtin/packages/neuron/package.py"
         sedexp="/version.*tag=/d"  # Drop tags
