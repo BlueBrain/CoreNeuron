@@ -107,7 +107,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
 // clang-format off
     #pragma acc parallel loop present(              \
         insrc_indices[0:ntar],             \
-        tar_data[0:nt._ndata],                      \
+        tar_data[0:_nt->_ndata],                      \
         insrc_buf_[0:insrcdspl_[nrnmpi_numprocs]])  \
     if (_nt->compute_gpu)                       \
         async(_nt->stream_id)
@@ -130,16 +130,21 @@ void nrn_partrans::gap_update_indices() {
 
         int n = int(ttd.src_indices.size());
         int ng = int(ttd.src_gather.size());
+        NrnThread *nt = nrn_threads + tid;
         if (n) {
 // clang-format off
-            #pragma acc enter data copyin(ttd.src_indices.data()[0 : n]) if (nrn_threads[0].compute_gpu)
-            #pragma acc enter data create(ttd.src_gather.data[0 : ng]) if (nrn_threads[0].compute_gpu)
+            int *src_indices = ttd.src_indices.data();
+            double *src_gather = ttd.src_gather.data();
+            #pragma acc enter data copyin(src_indices[0 : n]) if (nt->compute_gpu)
+            #pragma acc enter data create(src_gather[0 : ng]) if (nt->compute_gpu)
             // clang-format on
         }
 
         if (ttd.insrc_indices.size()) {
 // clang-format off
-            #pragma acc enter data copyin(ttd.insrc_indices.data()[0 : ttd.insrc_indices.size()]) if (nrn_threads[0].compute_gpu)
+            int *insrc_indices = ttd.insrc_indices.data();
+            int n = ttd.insrc_indices.size();
+            #pragma acc enter data copyin(insrc_indices[0 : n]) if (nt->compute_gpu)
             // clang-format on
         }
     }
