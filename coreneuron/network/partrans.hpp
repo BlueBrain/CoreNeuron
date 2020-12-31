@@ -55,7 +55,7 @@ using sgid_t = int;
 *   Copy NrnThead.data to outsrc_buf_ for all threads via
 *     gpu: gather src_gather[i] = NrnThread._data[src_indices[i]];
 *     gpu to host src_gather
-*     cpu: outsrc_buf_[outsrc_indices[i]] = vg[gather2outsrc_indices[i]];
+*     cpu: outsrc_buf_[outsrc_indices[i]] = src_gather[gather2outsrc_indices[i]];
 *
 *   MPI_Allgatherv outsrc_buf_ to insrc_buf_
 *

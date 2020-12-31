@@ -55,8 +55,8 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     sgid_t* have = new sgid_t[total_nsrc + 1];
     sgid_t* want = new sgid_t[total_ntar + 1];
 
-    // map from sid_src to (tid, index) into v_indices
-    // and sid_target to lists of (tid, index) for memb_list
+    // map from source sid to (tid, index), ie.  NrnThread[tid]._data[index].
+    // and target sid to lists of (tid, index) for memb_list
     // also count the map sizes and fill have and want arrays
     std::map<sgid_t, SidInfo> src2info;
     std::map<sgid_t, SidInfo> tar2info;
@@ -74,7 +74,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
             have[src2info_size] = sid;
             src2info_size++;
         }
-        // Possibly many targets of same sgid
+        // Possibly many targets of same sid
         // Only want unique sids. From each, can obtain all its targets.
         for (int i = 0; i < si.tar_sid.size(); ++i) {
             sgid_t sid = si.tar_sid[i];
