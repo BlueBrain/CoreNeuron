@@ -33,11 +33,6 @@ class SidInfo {
 
 namespace coreneuron {
 using namespace coreneuron::nrn_partrans;
-nrn_partrans::TransferThreadData::TransferThreadData() {
-}
-
-nrn_partrans::TransferThreadData::~TransferThreadData() {
-}
 
 void nrn_partrans::gap_mpi_setup(int ngroup) {
     // printf("%d gap_mpi_setup ngroup=%d\n", nrnmpi_myid, ngroup);
@@ -65,7 +60,8 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
     for (int tid = 0; tid < ngroup; ++tid) {
         auto& si = setup_info_[tid];
         // Sgid has unique source.
-        for (int i = 0; i < si.src_sid.size(); ++i) {
+
+        for (size_t i = 0; i < si.src_sid.size(); ++i) {
             sgid_t sid = si.src_sid[i];
             SidInfo sidinfo;
             sidinfo.tids_.push_back(tid);
@@ -76,11 +72,10 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         }
         // Possibly many targets of same sid
         // Only want unique sids. From each, can obtain all its targets.
-        for (int i = 0; i < si.tar_sid.size(); ++i) {
+        for (size_t i = 0; i < si.tar_sid.size(); ++i) {
             sgid_t sid = si.tar_sid[i];
             if (tar2info.find(sid) == tar2info.end()) {
-                SidInfo sidinfo;
-                tar2info[sid] = sidinfo;
+                tar2info[sid] = SidInfo();
                 want[tar2info_size] = sid;
                 tar2info_size++;
             }
@@ -179,7 +174,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         sgid_t sgid = recv_from_have[i];
         SidInfo& sidinfo = tar2info[sgid];
         // there may be several items in the lists.
-        for (unsigned j = 0; j < sidinfo.tids_.size(); ++j) {
+        for (size_t j = 0; j < sidinfo.tids_.size(); ++j) {
             int tid = sidinfo.tids_[j];
             int index = sidinfo.indices_[j];
 
@@ -213,7 +208,6 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
 **/
 void nrn_partrans::gap_data_indices_setup(NrnThread* n) {
     NrnThread& nt = *n;
-    // printf("%d gap_data_indices_setup tid=%d\n", nrnmpi_myid, nt.id);
     auto& ttd = transfer_thread_data_[nt.id];
     auto& sti = setup_info_[nt.id];
 

@@ -67,11 +67,7 @@ using sgid_t = int;
 *     where tar_indices depends on layout, type, etc.
 */
 
-class TransferThreadData {
-  public:
-    TransferThreadData();
-    ~TransferThreadData();
-
+struct TransferThreadData {
     std::vector<int> src_indices;   // indices into NrnThread._data
     std::vector<double> src_gather; // copy of NrnThread._data[src_indices]
     std::vector<int> gather2outsrc_indices; // ix of src_gather that send into outsrc_indices
