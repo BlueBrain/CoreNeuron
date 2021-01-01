@@ -873,6 +873,8 @@ void nrn_cleanup() {
     }
 
     destroy_interleave_info();
+
+    nrn_partrans::gap_cleanup();
 }
 
 void delete_trajectory_requests(NrnThread& nt) {

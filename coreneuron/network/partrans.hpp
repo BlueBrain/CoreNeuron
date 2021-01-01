@@ -93,6 +93,7 @@ extern SetupTransferInfo* setup_info_; /* array for threads exists only during s
 extern void gap_mpi_setup(int ngroup);
 extern void gap_data_indices_setup(NrnThread* nt);
 extern void gap_update_indices();
+extern void gap_cleanup();
 
 extern double* insrc_buf_;   // Receive buffer for gap voltages
 extern double* outsrc_buf_;  // Send buffer for gap voltages

@@ -236,4 +236,18 @@ void nrn_partrans::gap_data_indices_setup(NrnThread* n) {
     ttd.tar_indices = sti.tar_index;
 }
 
+void nrn_partrans::gap_cleanup() {
+    if (transfer_thread_data_) {
+        delete [] transfer_thread_data_; transfer_thread_data_ = nullptr;
+    }
+    if (insrc_buf_) {
+        delete [] insrc_buf_; insrc_buf_ = nullptr;
+        delete [] insrccnt_; insrccnt_ = nullptr;
+        delete [] insrcdspl_; insrcdspl_ = nullptr;   
+        delete [] outsrc_buf_; outsrc_buf_ = nullptr;  
+        delete [] outsrccnt_; outsrccnt_ = nullptr;
+        delete [] outsrcdspl_; outsrcdspl_ = nullptr;
+    }
+}
+
 }  // namespace coreneuron
