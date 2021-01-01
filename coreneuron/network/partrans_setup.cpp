@@ -39,7 +39,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
 
     // count total_nsrc, total_ntar and allocate.
     // Possible either or both are 0 on this process.
-    int total_nsrc = 0, total_ntar = 0;
+    size_t total_nsrc = 0, total_ntar = 0;
     for (int tid = 0; tid < ngroup; ++tid) {
         auto& si = setup_info_[tid];
         total_nsrc += si.src_sid.size();
@@ -153,11 +153,11 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         NrnThread& nt = nrn_threads[tid];
         auto& ttd = transfer_thread_data_[tid];
         std::map<int, int> data2gather_indices;
-        for (int i = 0; i < ttd.src_indices.size(); ++i) {
+        for (size_t i = 0; i < ttd.src_indices.size(); ++i) {
             data2gather_indices[ttd.src_indices[i]] = i;
         }
 
-        for (int i = 0; i < ttd.outsrc_indices.size(); ++i) {
+        for (size_t i = 0; i < ttd.outsrc_indices.size(); ++i) {
             ttd.gather2outsrc_indices[i] = data2gather_indices[ttd.gather2outsrc_indices[i]];
         }
     }
@@ -225,6 +225,8 @@ void nrn_partrans::gap_data_indices_setup(NrnThread* n) {
     // For copying into NrnThread._data from insrc_buf.
     for (size_t i = 0; i < sti.tar_sid.size(); ++i) {
         double* d = stdindex2ptr(sti.tar_type[i], sti.tar_index[i], nt);
+        // todo : this should be revisited once nt._data will be broken
+        // into mechanism specific data
         sti.tar_index[i] = int(d - nt._data);
     }
 

@@ -24,7 +24,7 @@ int* nrn_partrans::outsrcdspl_;
 
 void nrnmpi_v_transfer() {
     // copy source values to outsrc_buf_ and mpi transfer to insrc_buf
-    
+ 
     // note that same source value (usually voltage) may get copied to
     // several locations in outsrc_buf
 
@@ -101,10 +101,11 @@ void nrnthread_v_transfer(NrnThread* _nt) {
     // Copy insrc_buf_ values to the target locations. (An insrc_buf_ value
     // may be copied to several target locations.
     TransferThreadData& ttd = transfer_thread_data_[_nt->id];
-    int ntar = int(ttd.tar_indices.size());
+    size_t ntar = ttd.tar_indices.size();
     int* tar_indices = ttd.tar_indices.data();
     int* insrc_indices = ttd.insrc_indices.data();
     double* tar_data = _nt->_data;
+    // last element in the displacement vector gives total length
     int n_insrc_buf = insrcdspl_[nrnmpi_numprocs];
     int ndata = _nt->_ndata;
 
@@ -116,7 +117,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
     if (_nt->compute_gpu)               \
         async(_nt->stream_id)
     // clang-format on
-    for (int i = 0; i < ntar; ++i) {
+    for (size_t i = 0; i < ntar; ++i) {
         tar_data[tar_indices[i]] = insrc_buf_[insrc_indices[i]];
     }
 }
@@ -134,8 +135,8 @@ void nrn_partrans::gap_update_indices() {
     for (int tid = 0; tid < nrn_nthread; ++tid) {
         TransferThreadData& ttd = transfer_thread_data_[tid];
 
-        int n_src_indices = int(ttd.src_indices.size());
-        int n_src_gather = int(ttd.src_gather.size());
+        size_t n_src_indices = ttd.src_indices.size();
+        size_t n_src_gather = ttd.src_gather.size();
         NrnThread *nt = nrn_threads + tid;
         if (n_src_indices) {
 // clang-format off
@@ -149,7 +150,7 @@ void nrn_partrans::gap_update_indices() {
         if (ttd.insrc_indices.size()) {
 // clang-format off
             int *insrc_indices = ttd.insrc_indices.data();
-            int n_insrc_indices = ttd.insrc_indices.size();
+            size_t n_insrc_indices = ttd.insrc_indices.size();
             #pragma acc enter data copyin(insrc_indices[0 : n_insrc_indices]) if (nt->compute_gpu)
             // clang-format on
         }
