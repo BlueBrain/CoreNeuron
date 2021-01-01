@@ -15,7 +15,7 @@ CoreNEURON is designed as a library within the NEURON simulator and can transpar
 
 ## Dependencies
 * [CMake 3.7+](https://cmake.org)
-* [MPI 2.0+](http://mpich.org) [Optional, for MPI support]
+* MPI Library [Optional, for MPI support]
 * [PGI OpenACC Compiler / NVIDIA HPC SDK](https://developer.nvidia.com/hpc-sdk) [Optional, for GPU support]
 * [CUDA Toolkit >=9.0](https://developer.nvidia.com/cuda-downloads) [Optional, for GPU support]
 
