@@ -23,9 +23,10 @@ void write_mech_report() {
         }
     }
 
+    std::vector<unsigned long long> total_mech_count(n_memb_func);
+
 #if NRNMPI
     /// get global sum of all mechanism instances
-    std::vector<unsigned long long> total_mech_count(n_memb_func);
     MPI_Allreduce(&local_mech_count[0],
                   &total_mech_count[0],
                   local_mech_count.size(),
@@ -33,23 +34,18 @@ void write_mech_report() {
                   MPI_SUM,
                   MPI_COMM_WORLD);
 
+#else
+    total_mech_count = local_mech_count;
+#endif
     /// print global stats to stdout
     if (nrnmpi_myid == 0) {
         printf("\n================ MECHANISMS COUNT BY TYPE ==================\n");
         printf("%4s %20s %10s\n", "Id", "Name", "Count");
         for (size_t i = 0; i < total_mech_count.size(); i++) {
-            printf("%4d %20s %10lld\n", i, nrn_get_mechname(i), total_mech_count[i]);
+            printf("%4lu %20s %10lld\n", i, nrn_get_mechname(i), total_mech_count[i]);
         }
         printf("=============================================================\n");
     }
-#else
-    printf("\n================ MECHANISMS COUNT BY TYPE ==================\n");
-    printf("%4s %20s %10s\n", "Id", "Name", "Count");
-    for (size_t i = 0; i < local_mech_count.size(); i++) {
-        printf("%4d %20s %10lld\n", i, nrn_get_mechname(i), local_mech_count[i]);
-    }
-    printf("=============================================================\n");
-#endif
 }
 
 }  // namespace coreneuron
