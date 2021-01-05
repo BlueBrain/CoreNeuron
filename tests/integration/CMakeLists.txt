@@ -5,6 +5,7 @@
 # =============================================================================
 
 set(COMMON_ARGS "--tstop 100. --celsius 6.3 --mpi")
+set(COUNT_MECHS_ARG "--count_mechs")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
 set(RING_GAP_COMMON_ARGS "--datpath ${CMAKE_CURRENT_SOURCE_DIR}/ring_gap ${COMMON_ARGS}")
@@ -16,7 +17,7 @@ endif()
 
 # List of tests with arguments
 set(TEST_CASES_WITH_ARGS
-    "ring!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
+    "ring!${RING_COMMON_ARGS} ${COUNT_MECHS_ARG} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
     "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer --spikebuf 1"
