@@ -106,8 +106,7 @@ jobs:
           fi
           
           if [[ "${{ startsWith(matrix.os, 'macOS') }}" = "true" ]]; then
-              git submodule update --init -- external/Random123
-              export PATH=${{runner.workspace}}/CoreNeuron/external/Random123:/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH;
+              export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH;
               export CXX=g++;
               export CC=gcc;
           fi
