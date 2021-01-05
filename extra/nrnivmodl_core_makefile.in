@@ -15,6 +15,12 @@ OUTPUT_DIR = @CMAKE_HOST_SYSTEM_PROCESSOR@
 DESTDIR =
 TARGET_LIB_TYPE = $(BUILD_TYPE)
 
+# required for OSX to execute nrnivmodl-core
+OSX_SYSROOT=@CMAKE_OSX_SYSROOT@
+ifneq ($(OSX_SYSROOT),)
+  export SDKROOT := $(OSX_SYSROOT)
+endif
+
 # CoreNEURON installation directories
 CORENRN_BIN_DIR := $(ROOT)/bin
 CORENRN_LIB_DIR := $(ROOT)/lib
@@ -64,11 +70,11 @@ MOD2CPP_ENV_VAR = PYTHONPATH=@CORENRN_NMODL_PYTHONPATH@:${CORENRN_LIB_DIR}/pytho
 # nmodl options
 ifeq (@CORENRN_ENABLE_NMODL@, ON)
     ifeq (@CORENRN_ENABLE_GPU@, ON)
-        nmodl_arguments_c="@NMODL_ACC_BACKEND_ARGS@ @NMODL_COMMON_ARGS@"
+        nmodl_arguments_c=@NMODL_ACC_BACKEND_ARGS@ @NMODL_COMMON_ARGS@
     else
-        nmodl_arguments_c="@NMODL_CPU_BACKEND_ARGS@ @NMODL_COMMON_ARGS@"
+        nmodl_arguments_c=@NMODL_CPU_BACKEND_ARGS@ @NMODL_COMMON_ARGS@
     endif
-    nmodl_arguments_ispc="@NMODL_ISPC_BACKEND_ARGS@ @NMODL_COMMON_ARGS@"
+    nmodl_arguments_ispc=@NMODL_ISPC_BACKEND_ARGS@ @NMODL_COMMON_ARGS@
 endif
 
 # name of the mechanism library with suffix if provided
@@ -155,8 +161,8 @@ C_GREEN := \033[32m
 
 # Default nmodl flags. Override if MOD2CPP_RUNTIME_FLAGS is not empty
 ifeq (@CORENRN_ENABLE_NMODL@, ON)
-    MOD2CPP_FLAGS_ISPC = $(if $(MOD2CPP_RUNTIME_FLAGS),$(MOD2CPP_RUNTIME_FLAGS),@nmodl_arguments_ispc@)
-    MOD2CPP_FLAGS_C = $(if $(MOD2CPP_RUNTIME_FLAGS),$(MOD2CPP_RUNTIME_FLAGS),@nmodl_arguments_c@)
+    MOD2CPP_FLAGS_ISPC = $(if $(MOD2CPP_RUNTIME_FLAGS),$(MOD2CPP_RUNTIME_FLAGS),$(nmodl_arguments_ispc))
+    MOD2CPP_FLAGS_C = $(if $(MOD2CPP_RUNTIME_FLAGS),$(MOD2CPP_RUNTIME_FLAGS),$(nmodl_arguments_c))
 endif
 
 ifeq (@CORENRN_ENABLE_ISPC@, ON)
