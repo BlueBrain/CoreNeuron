@@ -18,8 +18,8 @@ install_spack() (
     SPACK_REPO=https://github.com/BlueBrain/spack.git
     SPACK_BRANCH=${SPACK_BRANCH:-"develop"}
 
-    echo "Installing SPACK. Cloning $SPACK_REPO $SPACK_ROOT --depth 1 -b $SPACK_BRANCH"
-    git clone $SPACK_REPO $SPACK_ROOT --depth 1 -b $SPACK_BRANCH
+    echo "Installing SPACK. Cloning $SPACK_REPO $SPACK_ROOT --depth 1"
+    git clone $SPACK_REPO $SPACK_ROOT --depth 1
     # Use BBP configs
     mkdir -p $SPACK_ROOT/etc/spack/defaults/linux
     cp /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/*.yaml $SPACK_ROOT/etc/spack/
