@@ -10,7 +10,7 @@ reportinglib_dir=$(spack location --install-dir --latest reportinglib%intel)
 CORENRN_TYPE="$1"
 
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ] || [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
-    module load nvhpc/20.9 cuda/10.1.243 hpe-mpi cmake boost
+    module load pgi/19.10 cuda hpe-mpi cmake boost
 
     mkdir build_${CORENRN_TYPE}
 else
