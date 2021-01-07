@@ -10,7 +10,9 @@ reportinglib_dir=$(spack location --install-dir --latest reportinglib%intel)
 CORENRN_TYPE="$1"
 
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ] || [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
-    module load nvhpc/20.9 cuda/11.1.0 hpe-mpi cmake boost
+    # PGI compiler issue in unstable :  BSD-204
+    module unload unstable && module load archive/2020-12
+    module load pgi/19.10 cuda hpe-mpi cmake boost
     mkdir build_${CORENRN_TYPE}
 else
     module load boost intel hpe-mpi cmake
