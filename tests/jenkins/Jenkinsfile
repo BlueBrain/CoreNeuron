@@ -18,6 +18,7 @@ pipeline {
 
     stages {
 
+        /*
         stage('install Spack'){
             steps {
                 sh 'source $WORKSPACE/tests/jenkins/spack_setup.sh'
@@ -29,9 +30,11 @@ pipeline {
                 sh 'sh tests/jenkins/install_neuron_reportinglib.sh'
             }
         }
+        */
 
         stage('build CoreNeuron'){
             parallel{
+                /*
                 stage('AoS'){
                     stages{
                         stage('build'){
@@ -61,6 +64,7 @@ pipeline {
                         }
                     }
                 }
+                */
 
                 stage('GPU-non-unified'){
                     stages{
@@ -94,6 +98,7 @@ pipeline {
             }
         }
 
+        /*
         stage('neuron_direct'){
             parallel{
                 stage('AoS'){
@@ -107,8 +112,9 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
+        /*
         stage('checkout tests'){
             parallel{
                 stage('testcorenrn'){
@@ -133,8 +139,9 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
+        /*
         stage('nrnivmodl'){
             parallel{
                 stage('nrnivmodl testcorenrn'){
@@ -183,8 +190,8 @@ pipeline {
                     }
                 }
             }
-        }
-
+        }*/
+        /*
         stage('testcorenrn'){
             parallel{
                 stage('deriv'){
@@ -393,7 +400,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
     }
     post {
         always {
