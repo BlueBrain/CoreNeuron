@@ -1,6 +1,9 @@
 pipeline {
     agent {
-        label 'bb5 && !bb5-07'
+        node {
+            label 'bb5 && !bb5-07'
+            customWorkspace "/gpfs/bbp.cscs.ch/project/proj16/kumbhar/pramod_scratch/jenkins/${BUILD_TAG}"
+        }
     }
     parameters {
         string(name: 'sha1', defaultValue: 'master',
@@ -402,9 +405,10 @@ pipeline {
             }
         }*/
     }
+    /*
     post {
         always {
             cleanWs()
         }
-    }
+    }*/
 }
