@@ -5,12 +5,12 @@ set -x
 
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
-#reportinglib_dir=$(spack location --install-dir --latest reportinglib%intel)
+reportinglib_dir=$(spack location --install-dir --latest reportinglib%intel)
 
 CORENRN_TYPE="$1"
 
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ] || [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
-    module load pgi/19.10 cuda hpe-mpi cmake boost
+    module load nvhpc/20.9 cuda/11.1.0 hpe-mpi cmake boost
     mkdir build_${CORENRN_TYPE}
 else
     module load boost intel hpe-mpi cmake
@@ -65,7 +65,7 @@ elif [ "${CORENRN_TYPE}" = "AoS" ] || [ "${CORENRN_TYPE}" = "SoA" ]; then
       -DCMAKE_BUILD_TYPE=Debug  \
       -DCORENRN_ENABLE_SOA=$CORENRN_ENABLE_SOA \
       -DCORENRN_ENABLE_OPENMP=$ENABLE_OPENMP \
-      -DCORENRN_ENABLE_BIN_REPORTS=OFF \
+      -DCORENRN_ENABLE_BIN_REPORTS=ON \
       -DCMAKE_PREFIX_PATH=$reportinglib_dir \
       -DTEST_MPI_EXEC_BIN="mpirun" \
       -DTEST_EXEC_PREFIX="mpirun;-n;2" \

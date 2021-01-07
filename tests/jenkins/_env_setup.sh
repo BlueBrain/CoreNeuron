@@ -1,7 +1,7 @@
 # Upstream modules
 unset MODULEPATH
 source /gpfs/bbp.cscs.ch/apps/hpc/jenkins/config/modules.sh
-module load archive/2020-12
+module load unstable
 
 # Local spack
 BUILD_HOME="${WORKSPACE}/BUILD_HOME"
