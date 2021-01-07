@@ -26,7 +26,6 @@ if(CORENRN_ENABLE_GPU)
   if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
 
     # workaround for old PGI version
-    set(PGI_ACC_BUG_DEFS -DPG_ACC_BUGS)
     set(PGI_ACC_FLAGS "-acc")
     # disable very verbose diagnosis messages and obvious warnings for mod2c
     set(PGI_DIAG_FLAGS "--diag_suppress 161,177,550")
@@ -51,7 +50,7 @@ if(CORENRN_ENABLE_GPU)
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   set(CUDA_PROFILING_DEF -DCUDA_PROFILING)
 
-  set(CORENRN_ACC_GPU_DEFS "${UNIFIED_MEMORY_DEF} ${CUDA_PROFILING_DEF} ${PGI_ACC_BUG_DEFS}")
+  set(CORENRN_ACC_GPU_DEFS "${UNIFIED_MEMORY_DEF} ${CUDA_PROFILING_DEF}")
   set(CORENRN_ACC_GPU_FLAGS "${PGI_ACC_FLAGS} ${PGI_DIAG_FLAGS} ${PGI_INLINE_FLAGS}")
 
   add_definitions(${CORENRN_ACC_GPU_DEFS})
