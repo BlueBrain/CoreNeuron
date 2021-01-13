@@ -11,8 +11,7 @@ CORENRN_TYPE="$1"
 
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ] || [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
     # PGI compiler issue in unstable :  BSD-204
-    module unload unstable && module load archive/2020-12
-    module load pgi/19.10 cuda hpe-mpi cmake boost
+    module load nvhpc cuda hpe-mpi cmake boost
     mkdir build_${CORENRN_TYPE}
 else
     module load boost intel hpe-mpi cmake
