@@ -35,7 +35,6 @@ if [ "${CORENRN_TYPE}" = "GPU-non-unified" ]; then
         -DTEST_EXEC_PREFIX="srun;-n;6;--account=proj16;--partition=$SALLOC_PARTITION;--constraint=volta;--gres=gpu:2;--mem;0;-t;00:05:00" \
         -DAUTO_TEST_WITH_SLURM=OFF \
         -DAUTO_TEST_WITH_MPIEXEC=OFF \
-        -DCMAKE_C_FLAGS="-D__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1" \
         -DCMAKE_CXX_FLAGS="-D__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1" \
         $WORKSPACE/
 elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
@@ -47,6 +46,7 @@ elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
         -DTEST_EXEC_PREFIX="srun;-n;6;--account=proj16;--partition=$SALLOC_PARTITION;--constraint=volta;--gres=gpu:2;--mem;0;-t;00:05:00" \
         -DAUTO_TEST_WITH_SLURM=OFF \
         -DAUTO_TEST_WITH_MPIEXEC=OFF \
+        -DCMAKE_CXX_FLAGS="-D__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1" \
         $WORKSPACE/
 elif [ "${CORENRN_TYPE}" = "AoS" ] || [ "${CORENRN_TYPE}" = "SoA" ]; then
     CORENRN_ENABLE_SOA=ON
