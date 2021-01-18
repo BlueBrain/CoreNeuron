@@ -27,9 +27,9 @@ of struct _spblk, we are really using TQItem
 */
 
 TQItem::TQItem() {
-    left_ = 0;
-    right_ = 0;
-    parent_ = 0;
+    left_ = nullptr;
+    right_ = nullptr;
+    parent_ = nullptr;
 }
 
 BinQ::BinQ() {
