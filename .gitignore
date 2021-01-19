@@ -4,7 +4,6 @@ spconfig.*
 *~
 .DS_Store
 *.swp
-.idea
 *.srctrl*
 
 # HPC coding conventions
