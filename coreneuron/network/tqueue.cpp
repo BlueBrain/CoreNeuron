@@ -26,12 +26,6 @@ Douglas Jones.
 of struct _spblk, we are really using TQItem
 */
 
-TQItem::TQItem() {
-    left_ = nullptr;
-    right_ = nullptr;
-    parent_ = nullptr;
-}
-
 BinQ::BinQ() {
     nbin_ = 1000;
     bins_ = new TQItem*[nbin_];
