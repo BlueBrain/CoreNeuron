@@ -10,7 +10,9 @@ jobs:
         - name: Fetch repository
           uses: actions/checkout@v2
         - name: Install clang-format 11
-          run:  sudo apt-get install clang-format-11 python3-pip
+          run:  |
+              sudo apt-get update
+              sudo apt-get install clang-format-11 python3-pip
         - name: Install cmake-format 0.6.13
           run:  python3 -m pip install cmake-format==0.6.13
         - name: Configure
