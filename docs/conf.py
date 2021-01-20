@@ -74,8 +74,6 @@ nbsphinx_allow_errors = True
 import os
 if os.environ.get("READTHEDOCS"):
     os.system("mkdir -p BUILD")
-    os.system("cd BUILD")
-    os.system("cmake -DCORENRN_ENABLE_MPI=OFF ..")
-    os.system("make docs")
+    os.system("cd BUILD && cmake -DCORENRN_ENABLE_MPI=OFF ../.. && make docs")
     os.system("mkdir -p ./_build/html")
-    os.system("mv docs/* ./_build/html")
+    os.system("mv BUILD/docs/* ./_build/html")
