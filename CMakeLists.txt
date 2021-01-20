@@ -37,8 +37,7 @@ endif()
 # Include cmake modules path
 # =============================================================================
 list(APPEND CMAKE_MODULE_PATH ${CORENEURON_PROJECT_SOURCE_DIR}/CMake
-            ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages
-            ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
+     ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/packages ${CORENEURON_PROJECT_SOURCE_DIR}/CMake/config)
 
 # =============================================================================
 # HPC Coding Conventions
@@ -367,7 +366,8 @@ if(NOT CORENEURON_AS_SUBPROJECT)
       COMMENT "Generating full documentation")
   else()
     add_custom_target(
-      docs VERBATIM
+      docs
+      VERBATIM
       COMMAND echo "Please install docs requirements (see docs/README.md)!"
       COMMENT "Documentation generation not possible!")
   endif()

@@ -74,11 +74,11 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_SOURCE_DIR}/io/corenrn_data_return.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
 
-  set_source_files_properties(${DIMPLIC_CODE_FILE} ${NMODL_INBUILT_MOD_OUTPUTS} PROPERTIES
-                              COMPILE_FLAGS "")
+  set_source_files_properties(${DIMPLIC_CODE_FILE} ${NMODL_INBUILT_MOD_OUTPUTS}
+                              PROPERTIES COMPILE_FLAGS "")
 
   set_source_files_properties(${OPENACC_EXCLUDED_FILES} PROPERTIES COMPILE_FLAGS
-                              "-DDISABLE_OPENACC")
+                                                                   "-DDISABLE_OPENACC")
 
   # compile cuda files for multiple architecture
   # ~~~
@@ -147,21 +147,19 @@ target_include_directories(coreneuron SYSTEM
 
 set_target_properties(
   coreneuron scopmath ${link_cudacoreneuron}
-  PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib LIBRARY_OUTPUT_DIRECTORY
-             ${CMAKE_BINARY_DIR}/lib POSITION_INDEPENDENT_CODE ON)
+  PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+             POSITION_INDEPENDENT_CODE ON)
 
 # =============================================================================
 # create special-core with halfgap.mod for tests
 # =============================================================================
 add_custom_target(
   nrniv-core ALL
-  COMMAND
-    ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 1
-    ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
-  WORKING_DIRECTORY
-    ${CMAKE_BINARY_DIR}/bin
-    BYPRODUCTS
-    ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
+  COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 1
+          ${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+  BYPRODUCTS ${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core
   COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_dependencies(nrniv-core scopmath coreneuron ${NMODL_TARGET_TO_DEPEND})
 
@@ -215,7 +213,8 @@ install(
   EXPORT coreneuron
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION $<INSTALL_INTERFACE:include>)
+  INCLUDES
+  DESTINATION $<INSTALL_INTERFACE:include>)
 
 # scopemath into share for nrnivmodl-core
 install(
