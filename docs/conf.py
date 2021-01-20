@@ -78,5 +78,5 @@ if os.environ.get("READTHEDOCS"):
     os.system("cd BUILD")
     os.system("cmake -DCORENRN_ENABLE_MPI=OFF ..")
     os.system("make docs")
-    os.system("mkdir ../_build/html")
-    os.system("mv docs/* ../_build/html")
+    os.system("mkdir -p ./_build/html")
+    os.system("mv docs/* ./_build/html")
