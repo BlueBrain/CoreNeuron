@@ -73,7 +73,5 @@ nbsphinx_allow_errors = True
 
 import os
 if os.environ.get("READTHEDOCS"):
-    os.system("mkdir -p BUILD")
-    os.system("cd BUILD && cmake -DCORENRN_ENABLE_MPI=OFF ../.. && make doxygen")
-    os.system("mkdir -p ./_build/html")
-    os.system("mv BUILD/docs/* ./_build/html")
+    os.system("rm -rf BUILD && mkdir BUILD && cd BUILD && cmake -DCORENRN_ENABLE_MPI=OFF ../.. && make doxygen")
+    html_extra_path = ['BUILD/docs']
