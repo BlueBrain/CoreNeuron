@@ -23,7 +23,7 @@ jobs:
         - name: Run clang-format
           shell: bash
           working-directory: ${{runner.workspace}}/CoreNeuron/BUILD
-          run: make check-clang-format
+          run: make check-clang-format VERBOSE=1
         - name: Run cmake-format
           shell: bash
           working-directory: ${{runner.workspace}}/CoreNeuron/BUILD
