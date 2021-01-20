@@ -10,9 +10,7 @@ jobs:
         - name: Fetch repository
           uses: actions/checkout@v2
         - name: Install clang-format 11
-          run:  |
-              sudo apt-get update
-              sudo apt-get install clang-format-11 python3-pip
+          run:  sudo apt-get install clang-format-11 python3-pip libboost-all-dev libopenmpi-dev openmpi-bin
         - name: Install cmake-format 0.6.13
           run:  python3 -m pip install cmake-format==0.6.13
         - name: Configure
@@ -21,7 +19,7 @@ jobs:
           run: |
               export PATH=/home/runner/.local/bin:$PATH
               mkdir BUILD && cd BUILD
-              cmake -DCORENRN_CLANG_FORMAT=ON -DCORENRN_CMAKE_FORMAT=ON -DCORENRN_ENABLE_MPI=OFF -DCORENRN_ENABLE_OPENMP=OFF -DClangFormat_EXECUTABLE=$(which clang-format-11) -DCMakeFormat_EXECUTABLE=$(which cmake-format) ..
+              cmake -DCORENRN_CLANG_FORMAT=ON -DCORENRN_CMAKE_FORMAT=ON -DCORENRN_ENABLE_MPI=ON -DCORENRN_ENABLE_OPENMP=OFF -DClangFormat_EXECUTABLE=$(which clang-format-11) -DCMakeFormat_EXECUTABLE=$(which cmake-format) ..
         - name: Run clang-format
           shell: bash
           working-directory: ${{runner.workspace}}/CoreNeuron/BUILD
