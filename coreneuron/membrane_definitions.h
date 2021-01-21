@@ -1,44 +1,24 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 /* /local/src/master/nrn/src/nrnoc/membdef.h,v 1.2 1995/02/13 20:20:42 hines Exp */
 
 /* numerical parameters */
-#define DEF_nseg 1             /* default number of segments per section*/
-#define DEF_dt .025            /* ms */
+#define DEF_nseg   1           /* default number of segments per section*/
+#define DEF_dt     .025        /* ms */
 #define DEF_rev_dt 1. / DEF_dt /* 1/ms */
 #define DEF_secondorder                           \
     0 /* >0 means crank-nicolson. 2 means current \
       adjusted to t+dt/2 */
 
 /*global parameters */
-#define DEF_Ra 35.4 /* ohm-cm */ /*changed from 34.5 on 1/6/95*/
-#define DEF_celsius 6.3          /* deg-C */
+#define DEF_Ra      35.4 /* ohm-cm */ /*changed from 34.5 on 1/6/95*/
+#define DEF_celsius 6.3               /* deg-C */
 
 #define DEF_vrest -65. /* mV */
 
@@ -48,7 +28,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Parameters that are used in mechanism _alloc() procedures */
 /* cable */
-#define DEF_L 100. /* microns */
+#define DEF_L          100. /* microns */
 #define DEF_rallbranch 1.
 
 /* morphology */

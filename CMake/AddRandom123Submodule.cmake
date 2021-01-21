@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2020 Blue Brain Project
+# Copyright (C) 2016-2021 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -22,8 +22,7 @@ if(NOT Random123_FOUND)
   endif()
   message(STATUS "Sub-module Random123 missing: running git submodule update --init --recursive")
   execute_process(
-    COMMAND
-      ${GIT_EXECUTABLE} submodule update --init --recursive --
-      ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123
+    COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --
+            ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123
     WORKING_DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR})
 endif()

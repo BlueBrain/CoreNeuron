@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #pragma once
@@ -33,12 +13,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/mechanism/mechanism.hpp"
 namespace coreneuron {
 
-using Pfrpdat = Datum* (*)(void);
+using Pfrpdat = Datum* (*) (void);
 
 struct NrnThread;
 
 using mod_alloc_t = void (*)(double*, Datum*, int);
-using mod_f_t =  void (*)(NrnThread*, Memb_list*, int);
+using mod_f_t = void (*)(NrnThread*, Memb_list*, int);
 using pnt_receive_t = void (*)(Point_process*, int, double);
 
 /*
@@ -62,21 +42,21 @@ struct Memb_func {
     int* dparam_semantics; /* for nrncore writing. */
 };
 
-#define VINDEX -1
+#define VINDEX       -1
 #define CABLESECTION 1
-#define MORPHOLOGY 2
-#define CAP 3
-#define EXTRACELL 5
+#define MORPHOLOGY   2
+#define CAP          3
+#define EXTRACELL    5
 
 #define nrnocCONST 1
-#define DEP 2
-#define STATE 3 /*See init.c and cabvars.h for order of nrnocCONST, DEP, and STATE */
+#define DEP        2
+#define STATE      3 /*See init.c and cabvars.h for order of nrnocCONST, DEP, and STATE */
 
-#define BEFORE_INITIAL 0
-#define AFTER_INITIAL 1
+#define BEFORE_INITIAL    0
+#define AFTER_INITIAL     1
 #define BEFORE_BREAKPOINT 2
-#define AFTER_SOLVE 3
-#define BEFORE_STEP 4
+#define AFTER_SOLVE       3
+#define BEFORE_STEP       4
 #define BEFORE_AFTER_SIZE 5 /* 1 more than the previous */
 struct BAMech {
     mod_f_t f;

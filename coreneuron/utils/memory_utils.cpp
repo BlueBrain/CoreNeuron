@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 /**
@@ -63,9 +43,9 @@ double nrn_mallinfo(void) {
 #if defined(__APPLE__) && defined(__MACH__)
     struct mach_task_basic_info info;
     mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
-    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount) !=
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t) &info, &infoCount) !=
         KERN_SUCCESS)
-        return (size_t)0L; /* Can't access? */
+        return (size_t) 0L; /* Can't access? */
     return info.resident_size / (1024.0 * 1024.0);
 #elif defined(MINGW)
     mbs = -1;
@@ -104,10 +84,18 @@ void report_mem_usage(const char* message, bool all_ranks) {
     // all ranks prints information if all_ranks is true
     if (all_ranks) {
         printf(" Memory (MBs) (Rank : %2d) : %30s : Cur %.4lf, Max %.4lf, Min %.4lf, Avg %.4lf \n",
-               nrnmpi_myid, message, cur_mem, mem_max, mem_min, mem_avg);
+               nrnmpi_myid,
+               message,
+               cur_mem,
+               mem_max,
+               mem_min,
+               mem_avg);
     } else if (nrnmpi_myid == 0) {
-        printf(" Memory (MBs) : %25s : Max %.4lf, Min %.4lf, Avg %.4lf \n", message, mem_max,
-               mem_min, mem_avg);
+        printf(" Memory (MBs) : %25s : Max %.4lf, Min %.4lf, Avg %.4lf \n",
+               message,
+               mem_max,
+               mem_min,
+               mem_avg);
     }
     fflush(stdout);
 }

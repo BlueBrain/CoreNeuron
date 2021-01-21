@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #include <cstdio>
@@ -36,10 +16,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 
-PlayRecordEvent::PlayRecordEvent() {
-}
-PlayRecordEvent::~PlayRecordEvent() {
-}
+PlayRecordEvent::PlayRecordEvent() {}
+PlayRecordEvent::~PlayRecordEvent() {}
 
 void PlayRecordEvent::deliver(double tt, NetCvode* ns, NrnThread*) {
     plr_->deliver(tt, ns);
@@ -74,8 +52,12 @@ VecPlayContinuous::VecPlayContinuous(double* pd,
                                      IvocVect* discon,
                                      int ith)
     : PlayRecord(pd, ith)
-    , y_(std::move(yvec)), t_(std::move(tvec)), discon_indices_(discon)
-    , last_index_(0), discon_index_(0), ubound_index_(0)
+    , y_(std::move(yvec))
+    , t_(std::move(tvec))
+    , discon_indices_(discon)
+    , last_index_(0)
+    , discon_index_(0)
+    , ubound_index_(0)
     , e_(new PlayRecordEvent{}) {
     e_->plr_ = this;
 }
@@ -90,7 +72,7 @@ void VecPlayContinuous::play_init() {
     discon_index_ = 0;
     if (discon_indices_) {
         if (discon_indices_->size() > 0) {
-            ubound_index_ = (int)(*discon_indices_)[discon_index_++];
+            ubound_index_ = (int) (*discon_indices_)[discon_index_++];
             // printf("play_init %d %g\n", ubound_index_, t_->elem(ubound_index_));
             e_->send(t_[ubound_index_], net_cvode_instance, nt);
         } else {
@@ -106,12 +88,13 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
     NrnThread* nt = nrn_threads + ith_;
     // printf("deliver %g\n", tt);
     last_index_ = ubound_index_;
-// clang-format off
+    // clang-format off
+
     #pragma acc update device(last_index_) if (nt->compute_gpu)
     // clang-format on
     if (discon_indices_) {
         if (discon_index_ < discon_indices_->size()) {
-            ubound_index_ = (int)(*discon_indices_)[discon_index_++];
+            ubound_index_ = (int) (*discon_indices_)[discon_index_++];
             // printf("after deliver:send %d %g\n", ubound_index_, t_->elem(ubound_index_));
             e_->send(t_[ubound_index_], ns, nt);
         } else {
@@ -123,7 +106,8 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
             e_->send(t_[ubound_index_], ns, nt);
         }
     }
-// clang-format off
+    // clang-format off
+
     #pragma acc update device(ubound_index_) if (nt->compute_gpu)
     // clang-format on
     continuous(tt);
@@ -131,7 +115,8 @@ void VecPlayContinuous::deliver(double tt, NetCvode* ns) {
 
 void VecPlayContinuous::continuous(double tt) {
     NrnThread* nt = nrn_threads + ith_;
-// clang-format off
+    // clang-format off
+
     #pragma acc kernels present(this) if(nt->compute_gpu)
     {
         *pd_ = interpolate(tt);

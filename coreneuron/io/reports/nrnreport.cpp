@@ -1,3 +1,11 @@
+/*
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+*/
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -75,4 +83,4 @@ void finalize_report() {
     sonata_flush(nrn_threads[0]._t);
 #endif
 }
-} // Namespace coreneuron
+}  // Namespace coreneuron

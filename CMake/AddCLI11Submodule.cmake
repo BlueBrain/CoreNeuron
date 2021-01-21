@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2020 Blue Brain Project
+# Copyright (C) 2016-2021 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -21,8 +21,7 @@ if(NOT CLI11_FOUND)
   endif()
   message(STATUS "Sub-module CLI11 missing: running git submodule update --init")
   execute_process(
-    COMMAND
-      ${GIT_EXECUTABLE} submodule update --init --
-      ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11
+    COMMAND ${GIT_EXECUTABLE} submodule update --init --
+            ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11
     WORKING_DIRECTORY ${CORENEURON_PROJECT_SOURCE_DIR})
 endif()

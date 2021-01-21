@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #include <vector>
@@ -92,7 +72,7 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
             if (receives_events) {
                 fprintf(f, "%d nri %d\n", cix, pntindex);
                 int k = nrn_i_layout(i, cnt, 1, psize, layout);
-                Point_process* pp = (Point_process*)nt._vdata[ml->pdata[k]];
+                Point_process* pp = (Point_process*) nt._vdata[ml->pdata[k]];
                 pnt2index[pp] = pntindex;
                 ++pntindex;
             }
@@ -112,7 +92,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
 
     // List of NetCon for each of the NET_RECEIVE point process instances
     // Also create the initial map of NetCon <-> DiscreteEvent (PreSyn)
-    std::vector<std::vector<NetCon*> > nclist;
+    std::vector<std::vector<NetCon*>> nclist;
     nclist.resize(pntindex);
     map_nc2src.clear();
     int nc_cnt = 0;
@@ -166,30 +146,45 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
     }
 
     for (int i = 0; i < pntindex; ++i) {
-        for (int j = 0; j < (int)(nclist[i].size()); ++j) {
+        for (int j = 0; j < (int) (nclist[i].size()); ++j) {
             NetCon* nc = nclist[i][j];
             int srcgid = -3;
             it_nc2src = map_nc2src.find(nc);
-            if (it_nc2src !=
-                map_nc2src.end()) {  // seems like there should be no NetCon which is not in the map
+            if (it_nc2src != map_nc2src.end()) {  // seems like there should be no NetCon which is
+                                                  // not in the map
                 de = it_nc2src->second;
                 if (de && de->type() == PreSynType) {
-                    PreSyn* ps = (PreSyn*)de;
+                    PreSyn* ps = (PreSyn*) de;
                     srcgid = ps->gid_;
                     Point_process* pnt = ps->pntsrc_;
                     if (srcgid < 0 && pnt) {
                         int type = pnt->_type;
-                        fprintf(f, "%d %s %d %.*g", i, corenrn.get_memb_func(type).sym, nc->active_ ? 1 : 0,
-                                precision, nc->delay_);
-                    } else if (srcgid < 0 && ps->thvar_index_ > 0) {
-                        fprintf(f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision,
+                        fprintf(f,
+                                "%d %s %d %.*g",
+                                i,
+                                corenrn.get_memb_func(type).sym,
+                                nc->active_ ? 1 : 0,
+                                precision,
                                 nc->delay_);
+                    } else if (srcgid < 0 && ps->thvar_index_ > 0) {
+                        fprintf(
+                            f, "%d %s %d %.*g", i, "v", nc->active_ ? 1 : 0, precision, nc->delay_);
                     } else {
-                        fprintf(f, "%d %d %d %.*g", i, srcgid, nc->active_ ? 1 : 0, precision,
+                        fprintf(f,
+                                "%d %d %d %.*g",
+                                i,
+                                srcgid,
+                                nc->active_ ? 1 : 0,
+                                precision,
                                 nc->delay_);
                     }
                 } else {
-                    fprintf(f, "%d %d %d %.*g", i, map_nc2gid[nc], nc->active_ ? 1 : 0, precision,
+                    fprintf(f,
+                            "%d %d %d %.*g",
+                            i,
+                            map_nc2gid[nc],
+                            nc->active_ ? 1 : 0,
+                            precision,
                             nc->delay_);
                 }
             } else {
@@ -245,9 +240,16 @@ static void pr_realcell(PreSyn& ps, NrnThread& nt, FILE* f) {
         if (cellnodes[iorig] >= 0) {
             int i = permute(iorig, nt);
             int ip = nt._v_parent_index[i];
-            fprintf(f, "%d %d %.*g %.*g %.*g\n", cellnodes[iorig],
-                    ip >= 0 ? cellnodes[inv_permute(ip, nt)] : -1, precision, nt._actual_area[i],
-                    precision, nt._actual_a[i], precision, nt._actual_b[i]);
+            fprintf(f,
+                    "%d %d %.*g %.*g %.*g\n",
+                    cellnodes[iorig],
+                    ip >= 0 ? cellnodes[inv_permute(ip, nt)] : -1,
+                    precision,
+                    nt._actual_area[i],
+                    precision,
+                    nt._actual_a[i],
+                    precision,
+                    nt._actual_b[i]);
         }
     fprintf(f, "inode v\n");
     for (int i = 0; i < nt.end; ++i)

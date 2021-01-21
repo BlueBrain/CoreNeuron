@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #include <cstring>
@@ -79,8 +59,8 @@ void add_nrn_fornetcons(int type, int indx) {
         return;
 
     int i = nrn_fornetcon_cnt_++;
-    nrn_fornetcon_type_ = (int*)erealloc(nrn_fornetcon_type_, (i + 1) * sizeof(int));
-    nrn_fornetcon_index_ = (int*)erealloc(nrn_fornetcon_index_, (i + 1) * sizeof(int));
+    nrn_fornetcon_type_ = (int*) erealloc(nrn_fornetcon_type_, (i + 1) * sizeof(int));
+    nrn_fornetcon_index_ = (int*) erealloc(nrn_fornetcon_index_, (i + 1) * sizeof(int));
     nrn_fornetcon_type_[i] = type;
     nrn_fornetcon_index_[i] = indx;
 }
@@ -95,9 +75,9 @@ void add_nrn_artcell(int type, int qi) {
 }
 
 void set_pnt_receive(int type,
-    pnt_receive_t pnt_receive,
-    pnt_receive_t pnt_receive_init,
-    short size) {
+                     pnt_receive_t pnt_receive,
+                     pnt_receive_t pnt_receive_init,
+                     short size) {
     if (type == -1) {
         return;
     }
@@ -127,7 +107,7 @@ void initnrn() {
                               adjusted to t+dt/2 */
     t = 0.;                        /* msec */
     dt = DEF_dt;                   /* msec */
-    rev_dt = (int)(DEF_rev_dt);    /* 1/msec */
+    rev_dt = (int) (DEF_rev_dt);   /* 1/msec */
     celsius = DEF_celsius;         /* degrees celsius */
 }
 
@@ -155,7 +135,7 @@ int register_mech(const char** m,
     if (memb_func[type].sym) {
         assert(strcmp(memb_func[type].sym, m[1]) == 0);
     } else {
-        memb_func[type].sym = (char*)emalloc(strlen(m[1]) + 1);
+        memb_func[type].sym = (char*) emalloc(strlen(m[1]) + 1);
         strcpy(memb_func[type].sym, m[1]);
     }
     memb_func[type].current = cur;
@@ -163,7 +143,7 @@ int register_mech(const char** m,
     memb_func[type].alloc = alloc;
     memb_func[type].state = stat;
     memb_func[type].initialize = initialize;
-    memb_func[type].destructor = (Pfri)0;
+    memb_func[type].destructor = (Pfri) 0;
 #if VECTORIZE
     memb_func[type].vectorized = vectorized ? 1 : 0;
     memb_func[type].thread_size_ = vectorized ? (vectorized - 1) : 0;
@@ -184,7 +164,7 @@ void nrn_writes_conc(int type, int /* unused */) {
         return;
 
 #if DEBUG
-	printf("%s reordered from %d to %d\n", corenrn.get_memb_func(type).sym, type, lastion);
+    printf("%s reordered from %d to %d\n", corenrn.get_memb_func(type).sym, type, lastion);
 #endif
     if (nrn_is_ion(type)) {
         ++lastion;
@@ -219,7 +199,7 @@ void hoc_register_prop_size(int type, int psize, int dpsize) {
     corenrn.get_prop_param_size()[type] = psize;
     corenrn.get_prop_dparam_size()[type] = dpsize;
     if (dpsize) {
-        corenrn.get_memb_func(type).dparam_semantics = (int*)ecalloc(dpsize, sizeof(int));
+        corenrn.get_memb_func(type).dparam_semantics = (int*) ecalloc(dpsize, sizeof(int));
     }
 }
 void hoc_register_dparam_semantics(int type, int ix, const char* name) {
@@ -262,8 +242,11 @@ void hoc_register_dparam_semantics(int type, int ix, const char* name) {
         }
     }
 #if DEBUG
-	printf("dparam semantics %s ix=%d %s %d\n", memb_func[type].sym,
-	  ix, name, memb_func[type].dparam_semantics[ix]);
+    printf("dparam semantics %s ix=%d %s %d\n",
+           memb_func[type].sym,
+           ix,
+           name,
+           memb_func[type].dparam_semantics[ix]);
 #endif
 }
 
@@ -278,7 +261,7 @@ static void ion_write_depend(int type, int etype) {
         ion_write_depend_.resize(memb_func.size());
     }
 
-    int size = !ion_write_depend_[etype].empty() ? ion_write_depend_[etype][0] + 1: 2;
+    int size = !ion_write_depend_[etype].empty() ? ion_write_depend_[etype][0] + 1 : 2;
 
     ion_write_depend_[etype].resize(size, 0);
     ion_write_depend_[etype][0] = size;
@@ -315,9 +298,8 @@ int nrn_mech_depend(int type, int* dependencies) {
             if (ds[i] > 0 && ds[i] < 1000) {
                 int deptype = ds[i];
                 int idepnew = depend_append(idep, dependencies, deptype, type);
-                if ((idepnew > idep)
-                    && !corenrn.get_ion_write_dependency().empty()
-                    && !corenrn.get_ion_write_dependency()[deptype].empty()) {
+                if ((idepnew > idep) && !corenrn.get_ion_write_dependency().empty() &&
+                    !corenrn.get_ion_write_dependency()[deptype].empty()) {
                     auto& iwd = corenrn.get_ion_write_dependency()[deptype];
                     int size = iwd[0];
                     for (int j = 1; j < size; ++j) {
@@ -358,15 +340,14 @@ int point_register_mech(const char** m,
                         void* (*constructor)(),
                         void (*destructor)(),
                         int vectorized) {
-    (void)constructor;
-    (void)destructor; /* unused */
+    (void) constructor;
+    (void) destructor; /* unused */
     const Symbol* s = m[1];
     register_mech(m, alloc, cur, jacob, stat, initialize, nrnpointerindex, vectorized);
     return point_reg_helper(s);
 }
 
-void _modl_cleanup() {
-}
+void _modl_cleanup() {}
 
 int state_discon_allowed_;
 int state_discon_flag_ = 0;
@@ -398,11 +379,12 @@ void hoc_reg_ba(int mt, mod_f_t f, int type) {
             type = BEFORE_STEP;
             break;
         default:
-            printf("before-after processing type %d for %s not implemented\n", type,
+            printf("before-after processing type %d for %s not implemented\n",
+                   type,
                    corenrn.get_memb_func(mt).sym);
             nrn_exit(1);
     }
-    auto bam = (BAMech*)emalloc(sizeof(BAMech));
+    auto bam = (BAMech*) emalloc(sizeof(BAMech));
     bam->f = f;
     bam->type = mt;
     bam->next = corenrn.get_bamech()[type];

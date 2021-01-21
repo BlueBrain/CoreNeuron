@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #ifndef tqueue_h
@@ -59,12 +39,12 @@ namespace coreneuron {
 #define STRCMP(a, b) (a - b)
 
 class TQItem;
-#define SPBLK TQItem
-#define leftlink left_
+#define SPBLK     TQItem
+#define leftlink  left_
 #define rightlink right_
-#define uplink parent_
-#define cnt cnt_
-#define key t_
+#define uplink    parent_
+#define cnt       cnt_
+#define key       t_
 
 struct SPTREE {
     SPBLK* root; /* root node */
@@ -73,11 +53,11 @@ struct SPTREE {
     int enqcmps; /* compares in spenq */
 };
 
-#define spinit sptq_spinit
-#define spenq sptq_spenq
-#define spdeq sptq_spdeq
-#define splay sptq_splay
-#define sphead sptq_sphead
+#define spinit   sptq_spinit
+#define spenq    sptq_spenq
+#define spdeq    sptq_spdeq
+#define splay    sptq_splay
+#define sphead   sptq_sphead
 #define spdelete sptq_spdelete
 
 extern void spinit(SPTREE*);           /* init tree */
@@ -89,15 +69,12 @@ extern void spdelete(SPBLK*, SPTREE*); /* delete node from tree */
 
 class TQItem {
   public:
-    TQItem();
-
-  public:
-    void* data_;
-    double t_;
-    TQItem* left_;
-    TQItem* right_;
-    TQItem* parent_;
-    int cnt_;  // reused: -1 means it is in the splay tree, >=0 gives bin
+    void* data_ = nullptr;
+    double t_ = 0;
+    TQItem* left_ = nullptr;
+    TQItem* right_ = nullptr;
+    TQItem* parent_ = nullptr;
+    int cnt_ = 0;  // reused: -1 means it is in the splay tree, >=0 gives bin
 };
 
 using TQPair = std::pair<double, TQItem*>;
@@ -133,11 +110,12 @@ class BinQ {
     TQItem* next(TQItem*);
     void remove(TQItem*);
     void resize(int);
+
   private:
     double tt_;  // time at beginning of qpt_ interval
     int nbin_, qpt_;
     TQItem** bins_;
-    std::vector<std::vector<TQItem*> > vec_bins;
+    std::vector<std::vector<TQItem*>> vec_bins;
 };
 
 enum container { spltree, pq_que };

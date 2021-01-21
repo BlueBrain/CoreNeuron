@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #ifndef nrnran123_h
@@ -53,7 +33,7 @@ http://www.deshawresearch.com/resources_random123.html
 
 #ifdef __bgclang__
 #define R123_USE_MULHILO64_MULHI_INTRIN 0
-#define R123_USE_GNU_UINT128 1
+#define R123_USE_GNU_UINT128            1
 #endif
 
 #include <Random123/philox.h>
@@ -68,22 +48,22 @@ http://www.deshawresearch.com/resources_random123.html
 #endif
 
 #if (defined(__CUDACC__) || defined(_OPENACC)) && !defined(DISABLE_OPENACC)
-#define nrnran123_newstream cu_nrnran123_newstream
-#define nrnran123_newstream3 cu_nrnran123_newstream3
-#define nrnran123_deletestream cu_nrnran123_deletestream
-#define nrnran123_uint2dbl cu_nrnran123_uint2dbl
-#define nrnran123_negexp cu_nrnran123_negexp
-#define nrnran123_dblpick cu_nrnran123_dblpick
-#define nrnran123_ipick cu_nrnran123_ipick
-#define nrnran123_getids cu_nrnran123_getids
-#define nrnran123_setseq cu_nrnran123_setseq
-#define nrnran123_getseq cu_nrnran123_getseq
+#define nrnran123_newstream       cu_nrnran123_newstream
+#define nrnran123_newstream3      cu_nrnran123_newstream3
+#define nrnran123_deletestream    cu_nrnran123_deletestream
+#define nrnran123_uint2dbl        cu_nrnran123_uint2dbl
+#define nrnran123_negexp          cu_nrnran123_negexp
+#define nrnran123_dblpick         cu_nrnran123_dblpick
+#define nrnran123_ipick           cu_nrnran123_ipick
+#define nrnran123_getids          cu_nrnran123_getids
+#define nrnran123_setseq          cu_nrnran123_setseq
+#define nrnran123_getseq          cu_nrnran123_getseq
 #define nrnran123_get_globalindex cu_nrnran123_get_globalindex
 #define nrnran123_set_globalindex cu_nrnran123_set_globalindex
-#define nrnran123_state_size cu_nrnran123_state_size
-#define nrnran123_instance_count cu_nrnran123_instance_count
-#define nrnran123_normal cu_nrnran123_normal
-#define nrnran123_getids3 cu_nrnran123_getids3
+#define nrnran123_state_size      cu_nrnran123_state_size
+#define nrnran123_instance_count  cu_nrnran123_instance_count
+#define nrnran123_normal          cu_nrnran123_normal
+#define nrnran123_getids3         cu_nrnran123_getids3
 #endif
 
 namespace coreneuron {
@@ -94,7 +74,9 @@ typedef struct nrnran123_State {
     char which_;
 } nrnran123_State;
 
-typedef struct nrnran123_array4x32 { uint32_t v[4]; } nrnran123_array4x32;
+typedef struct nrnran123_array4x32 {
+    uint32_t v[4];
+} nrnran123_array4x32;
 
 /* do this on launch to make nrnran123_newstream threadsafe */
 extern DEVICE void nrnran123_mutconstruct(void);

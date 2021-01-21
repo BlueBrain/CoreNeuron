@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #ifndef netcon_h
@@ -44,12 +24,12 @@ struct Point_process;
 class NetCvode;
 
 #define DiscreteEventType 0
-#define TstopEventType 1
-#define NetConType 2
-#define SelfEventType 3
-#define PreSynType 4
-#define NetParEventType 7
-#define InputPreSynType 20
+#define TstopEventType    1
+#define NetConType        2
+#define SelfEventType     3
+#define PreSynType        4
+#define NetParEventType   7
+#define InputPreSynType   20
 
 class DiscreteEvent {
   public:
@@ -66,7 +46,7 @@ class DiscreteEvent {
     virtual void pr(const char*, double t, NetCvode*);
 };
 
-class NetCon : public DiscreteEvent {
+class NetCon: public DiscreteEvent {
   public:
     bool active_;
     double delay_;
@@ -89,7 +69,7 @@ class NetCon : public DiscreteEvent {
     virtual void pr(const char*, double t, NetCvode*) override;
 };
 
-class SelfEvent : public DiscreteEvent {
+class SelfEvent: public DiscreteEvent {
   public:
     double flag_;
     Point_process* target_;
@@ -109,7 +89,7 @@ class SelfEvent : public DiscreteEvent {
     void call_net_receive(NetCvode*);
 };
 
-class ConditionEvent : public DiscreteEvent {
+class ConditionEvent: public DiscreteEvent {
   public:
     // condition detection factored out of PreSyn for re-use
     ConditionEvent();
@@ -123,7 +103,7 @@ class ConditionEvent : public DiscreteEvent {
                 // bug(?))
 };
 
-class PreSyn : public ConditionEvent {
+class PreSyn: public ConditionEvent {
   public:
 #if NRNMPI
     unsigned char localgid_;  // compressed gid for spike transfer
@@ -151,7 +131,7 @@ class PreSyn : public ConditionEvent {
 #endif
 };
 
-class InputPreSyn : public DiscreteEvent {
+class InputPreSyn: public DiscreteEvent {
   public:
     int nc_index_;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
     int nc_cnt_;    // how many netcon starting at nc_index_
@@ -168,7 +148,7 @@ class InputPreSyn : public DiscreteEvent {
 #endif
 };
 
-class NetParEvent : public DiscreteEvent {
+class NetParEvent: public DiscreteEvent {
   public:
     int ithread_;     // for pr()
     double wx_, ws_;  // exchange time and "spikes to Presyn" time

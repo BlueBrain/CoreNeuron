@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2020 Blue Brain Project
+# Copyright (C) 2016-2021 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -37,8 +37,9 @@ if(CORENRN_ENABLE_GPU)
     set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
 
   else()
-    message(FATAL_ERROR "GPU support is available via OpenACC using PGI/NVIDIA compilers."
-                        " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++")
+    message(
+      FATAL_ERROR "GPU support is available via OpenACC using PGI/NVIDIA compilers."
+                  " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++")
   endif()
 
   # find_cuda produce verbose messages : use new behavior to use _ROOT variables

@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2020 Blue Brain Project
+# Copyright (C) 2016-2021 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -15,7 +15,9 @@ endif()
 set(CMAKE_BUILD_RPATH ${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR})
 
 # mechanism library path
-set(corenrn_mech_lib "${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set(corenrn_mech_lib
+    "${CMAKE_BINARY_DIR}/bin/${CMAKE_HOST_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_STATIC_LIBRARY_SUFFIX}"
+)
 
 set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.41.0 QUIET COMPONENTS filesystem system atomic unit_test_framework)

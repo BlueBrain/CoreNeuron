@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #define BOOST_TEST_MODULE cmdline_interface
@@ -36,7 +16,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 using namespace coreneuron;
 
 BOOST_AUTO_TEST_CASE(cmdline_interface) {
-
     const char* argv[] = {
 
         "nrniv-core",
@@ -94,20 +73,21 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
         "0.1",
 
         "--dt_io",
-        "0.2"
-        };
+        "0.2"};
 
     int argc = 0;
 
-    for (; strcmp(argv[argc], "0.2"); argc++);
+    for (; strcmp(argv[argc], "0.2"); argc++)
+        ;
 
     argc++;
-    
+
     corenrn_parameters corenrn_param_test;
 
-    corenrn_param_test.parse(argc, const_cast<char**>(argv)); //discarding const as CLI11 interface is not const
-    
-    BOOST_CHECK(corenrn_param_test.seed == -1);            // testing default value
+    corenrn_param_test.parse(argc, const_cast<char**>(argv));  // discarding const as CLI11
+                                                               // interface is not const
+
+    BOOST_CHECK(corenrn_param_test.seed == -1);  // testing default value
 
     BOOST_CHECK(corenrn_param_test.spikebuf == 100);
 
@@ -152,7 +132,6 @@ BOOST_AUTO_TEST_CASE(cmdline_interface) {
     argc = 1;
 
     corenrn_param_test.dt = 18.1;
-    
-    BOOST_CHECK(corenrn_param_test.dt == 18.1);
 
+    BOOST_CHECK(corenrn_param_test.dt == 18.1);
 }

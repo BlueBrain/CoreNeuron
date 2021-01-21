@@ -1,29 +1,9 @@
 /*
-Copyright (c) 2016, Blue Brain Project
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 
 #ifndef vrecitem_h
@@ -35,10 +15,10 @@ namespace coreneuron {
 class PlayRecord;
 
 #define VecPlayContinuousType 4
-#define PlayRecordEventType 21
+#define PlayRecordEventType   21
 
 // used by PlayRecord subclasses that utilize discrete events
-class PlayRecordEvent : public DiscreteEvent {
+class PlayRecordEvent: public DiscreteEvent {
   public:
     PlayRecordEvent();
     virtual ~PlayRecordEvent();
@@ -58,12 +38,10 @@ class PlayRecord {
   public:
     PlayRecord(double* pd, int ith);
     virtual ~PlayRecord();
-    virtual void play_init() {
-    }  // called near beginning of finitialize
+    virtual void play_init() {}  // called near beginning of finitialize
     virtual void continuous(double) {
     }  // play - every f(y, t) or res(y', y, t); record - advance_tn and initialize flag
-    virtual void deliver(double, NetCvode*) {
-    }  // at associated DiscreteEvent
+    virtual void deliver(double, NetCvode*) {}  // at associated DiscreteEvent
     virtual PlayRecordEvent* event() {
         return nullptr;
     }
@@ -76,7 +54,7 @@ class PlayRecord {
     int ith_;  // The thread index
 };
 
-class VecPlayContinuous : public PlayRecord {
+class VecPlayContinuous: public PlayRecord {
   public:
     VecPlayContinuous(double*, IvocVect&& yvec, IvocVect&& tvec, IvocVect* discon, int ith);
     virtual ~VecPlayContinuous();

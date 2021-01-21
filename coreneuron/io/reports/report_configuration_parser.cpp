@@ -1,30 +1,11 @@
 /*
-   Copyright (c) 2018, Blue Brain Project
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without modification,
-   are permitted provided that the following conditions are met:
-   1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-   2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-   THE POSSIBILITY OF SUCH DAMAGE.
+# =============================================================================
+# Copyright (C) 2016-2021 Blue Brain Project
+#
+# See top-level LICENSE file for details.
+# =============================================================================
 */
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -61,16 +42,16 @@ enum class TargetType {
 /*
  * Split filter string ("mech.var_name") into mech_id and var_name
  */
-void parse_filter_string(const std::string &filter, ReportConfiguration &config) {
+void parse_filter_string(const std::string& filter, ReportConfiguration& config) {
     std::istringstream iss(filter);
     std::string token;
     std::getline(iss, config.mech_name, '.');
     std::getline(iss, config.var_name, '.');
 }
 
-std::vector<ReportConfiguration> create_report_configurations(const std::string &conf_file,
-                                                              const std::string &output_dir,
-                                                              std::string &spikes_population_name) {
+std::vector<ReportConfiguration> create_report_configurations(const std::string& conf_file,
+                                                              const std::string& output_dir,
+                                                              std::string& spikes_population_name) {
     std::vector<ReportConfiguration> reports;
     std::string report_on;
     int target_type;
@@ -82,14 +63,14 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string 
         ReportConfiguration report;
         // mechansim id registered in coreneuron
         report.mech_id = -1;
-        report.buffer_size = 4; // default size to 4 Mb
+        report.buffer_size = 4;  // default size to 4 Mb
 
         report_conf >> report.name >> report.target_name >> report.type_str >> report_on >>
-               report.unit >> report.format >> target_type >> report.report_dt >>
-               report.start >> report.stop >> report.num_gids >> report.buffer_size >>
-               report.population_name;
+            report.unit >> report.format >> target_type >> report.report_dt >> report.start >>
+            report.stop >> report.num_gids >> report.buffer_size >> report.population_name;
 
-        std::transform(report.type_str.begin(), report.type_str.end(),
+        std::transform(report.type_str.begin(),
+                       report.type_str.end(),
                        report.type_str.begin(),
                        [](unsigned char c) { return std::tolower(c); });
         report.output_path = output_dir + "/" + report.name;
@@ -152,7 +133,8 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string 
         if (report.num_gids) {
             std::vector<int> new_gids(report.num_gids);
             report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            report_conf.read(reinterpret_cast<char *>(new_gids.data()), report.num_gids * sizeof(int));
+            report_conf.read(reinterpret_cast<char*>(new_gids.data()),
+                             report.num_gids * sizeof(int));
             report.target = std::set<int>(new_gids.begin(), new_gids.end());
             // extra new line: skip
             report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
