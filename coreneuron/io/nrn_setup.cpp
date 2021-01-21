@@ -1086,28 +1086,26 @@ size_t model_size(bool detailed_report) {
                       13,
                       MPI_UNSIGNED_LONG_LONG,
                       MPI_MIN,
-                      MPI_COMM_WORLD);
+                      nrnmpi_comm);
         MPI_Allreduce(&size_data[0],
                       &global_size_data_max[0],
                       13,
                       MPI_UNSIGNED_LONG_LONG,
                       MPI_MAX,
-                      MPI_COMM_WORLD);
+                      nrnmpi_comm);
         MPI_Allreduce(&size_data[0],
                       &global_size_data_sum[0],
                       13,
                       MPI_UNSIGNED_LONG_LONG,
                       MPI_SUM,
-                      MPI_COMM_WORLD);
+                      nrnmpi_comm);
         for (int i = 0; i < 13; i++) {
             global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
         }
 #else
         global_size_data_max = size_data;
         global_size_data_min = size_data;
-        for (int i = 0; i < 13; i++) {
-            global_size_data_avg[i] = size_data[i];
-        }
+        global_size_data_avg.assign(size_data.cbegin(), size_data.cend());
 #endif
         // now print the collected data:
         if (nrnmpi_myid == 0) {
@@ -1204,7 +1202,7 @@ size_t model_size(bool detailed_report) {
 
 #if NRNMPI
     size_t global_nbyte = 0;
-    MPI_Allreduce(&nbyte, &global_nbyte, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&nbyte, &global_nbyte, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, nrnmpi_comm);
     nbyte = global_nbyte;
 
 #endif
