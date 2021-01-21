@@ -37,7 +37,6 @@ size_t model_size(bool detailed_report);
 namespace coreneuron {
 
 
-
 /// Reading phase number.
 enum phase { one = 1, two, three, gap };
 

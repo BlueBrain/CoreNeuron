@@ -552,17 +552,16 @@ void nrn_setup(const char* filesdat,
 
         if (model_size_bytes < 1024) {
             printf(" Model size   : %ld bytes\n", model_size_bytes);
-        } else if (model_size_bytes  < 1024*1024) {
-            printf(" Model size   : %.2lf kB\n", model_size_bytes/1024.);
-        } else if (model_size_bytes  < 1024*1024*1024) {
-            printf(" Model size   : %.2lf MB\n", model_size_bytes/(1024.*1024.));
+        } else if (model_size_bytes < 1024 * 1024) {
+            printf(" Model size   : %.2lf kB\n", model_size_bytes / 1024.);
+        } else if (model_size_bytes < 1024 * 1024 * 1024) {
+            printf(" Model size   : %.2lf MB\n", model_size_bytes / (1024. * 1024.));
         } else {
-            printf(" Model size   : %.2lf GB\n", model_size_bytes/(1024.*1024.*1024.));
+            printf(" Model size   : %.2lf GB\n", model_size_bytes / (1024. * 1024. * 1024.));
         }
     }
 
     delete[] userParams.gidgroups;
-
 }
 
 void setup_ThreadData(NrnThread& nt) {
@@ -1062,9 +1061,7 @@ size_t model_size(bool detailed_report) {
             size_data[9] += nt.n_netcon;
             size_data[10] += nt.n_weight;
             size_data[11] += nb_nt;
-
         }
-
     }
 
     nbyte += nccnt * sizeof(NetCon*);
@@ -1114,37 +1111,100 @@ size_t model_size(bool detailed_report) {
 #endif
         // now print the collected data:
         if (nrnmpi_myid == 0) {
-          printf("Memory size information for all NrnThreads per rank\n");
-          printf("------------------------------------------------------------------\n");
-          printf("%22s %12s %12s %12s\n","field", "min", "max", "avg");
-          printf("%22s %12ld %12ld %15.2f\n","n_cell",           global_size_data_min[0], global_size_data_max[0], global_size_data_avg[0]);
-          printf("%22s %12ld %12ld %15.2f\n","n_compartment",    global_size_data_min[1], global_size_data_max[1], global_size_data_avg[1]);
-          printf("%22s %12ld %12ld %15.2f\n","n_mechanism",      global_size_data_min[2], global_size_data_max[2], global_size_data_avg[2]);
-          printf("%22s %12ld %12ld %15.2f\n","_ndata",           global_size_data_min[3], global_size_data_max[3], global_size_data_avg[3]);
-          printf("%22s %12ld %12ld %15.2f\n","_nidata",          global_size_data_min[4], global_size_data_max[4], global_size_data_avg[4]);
-          printf("%22s %12ld %12ld %15.2f\n","_nvdata",          global_size_data_min[5], global_size_data_max[5], global_size_data_avg[5]);
-          printf("%22s %12ld %12ld %15.2f\n","n_presyn",         global_size_data_min[6], global_size_data_max[6], global_size_data_avg[6]);
-          printf("%22s %12ld %12ld %15.2f\n","n_presyn (bytes)", global_size_data_min[6]*sz_presyn, global_size_data_max[6]*sz_presyn, global_size_data_avg[6]*sz_presyn);
-          printf("%22s %12ld %12ld %15.2f\n","n_input_presyn",         global_size_data_min[7], global_size_data_max[7], global_size_data_avg[7]);
-          printf("%22s %12ld %12ld %15.2f\n","n_input_presyn (bytes)", global_size_data_min[7]*sz_input_presyn, global_size_data_max[7]*sz_input_presyn, global_size_data_avg[7]*sz_input_presyn);
-          printf("%22s %12ld %12ld %15.2f\n","n_pntproc",         global_size_data_min[8], global_size_data_max[8], global_size_data_avg[8]);
-          printf("%22s %12ld %12ld %15.2f\n","n_pntproc (bytes)", global_size_data_min[8]*sz_pntproc, global_size_data_max[8]*sz_pntproc, global_size_data_avg[8]*sz_pntproc);
-          printf("%22s %12ld %12ld %15.2f\n","n_netcon",          global_size_data_min[9], global_size_data_max[9], global_size_data_avg[9]);
-          printf("%22s %12ld %12ld %15.2f\n","n_netcon (bytes)",  global_size_data_min[9]*sz_netcon, global_size_data_max[9]*sz_netcon, global_size_data_avg[9]*sz_netcon);
-          printf("%22s %12ld %12ld %15.2f\n","n_weight",          global_size_data_min[10], global_size_data_max[10], global_size_data_avg[10]);
-          printf("%22s %12ld %12ld %15.2f\n","NrnThread (bytes)", global_size_data_min[11], global_size_data_max[11], global_size_data_avg[11]);
-          printf("%22s %12ld %12ld %15.2f\n","model size (bytes)",global_size_data_min[12], global_size_data_max[12], global_size_data_avg[12]);
+            printf("Memory size information for all NrnThreads per rank\n");
+            printf("------------------------------------------------------------------\n");
+            printf("%22s %12s %12s %12s\n", "field", "min", "max", "avg");
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_cell",
+                   global_size_data_min[0],
+                   global_size_data_max[0],
+                   global_size_data_avg[0]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_compartment",
+                   global_size_data_min[1],
+                   global_size_data_max[1],
+                   global_size_data_avg[1]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_mechanism",
+                   global_size_data_min[2],
+                   global_size_data_max[2],
+                   global_size_data_avg[2]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "_ndata",
+                   global_size_data_min[3],
+                   global_size_data_max[3],
+                   global_size_data_avg[3]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "_nidata",
+                   global_size_data_min[4],
+                   global_size_data_max[4],
+                   global_size_data_avg[4]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "_nvdata",
+                   global_size_data_min[5],
+                   global_size_data_max[5],
+                   global_size_data_avg[5]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_presyn",
+                   global_size_data_min[6],
+                   global_size_data_max[6],
+                   global_size_data_avg[6]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_presyn (bytes)",
+                   global_size_data_min[6] * sz_presyn,
+                   global_size_data_max[6] * sz_presyn,
+                   global_size_data_avg[6] * sz_presyn);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_input_presyn",
+                   global_size_data_min[7],
+                   global_size_data_max[7],
+                   global_size_data_avg[7]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_input_presyn (bytes)",
+                   global_size_data_min[7] * sz_input_presyn,
+                   global_size_data_max[7] * sz_input_presyn,
+                   global_size_data_avg[7] * sz_input_presyn);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_pntproc",
+                   global_size_data_min[8],
+                   global_size_data_max[8],
+                   global_size_data_avg[8]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_pntproc (bytes)",
+                   global_size_data_min[8] * sz_pntproc,
+                   global_size_data_max[8] * sz_pntproc,
+                   global_size_data_avg[8] * sz_pntproc);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_netcon",
+                   global_size_data_min[9],
+                   global_size_data_max[9],
+                   global_size_data_avg[9]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_netcon (bytes)",
+                   global_size_data_min[9] * sz_netcon,
+                   global_size_data_max[9] * sz_netcon,
+                   global_size_data_avg[9] * sz_netcon);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "n_weight",
+                   global_size_data_min[10],
+                   global_size_data_max[10],
+                   global_size_data_avg[10]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "NrnThread (bytes)",
+                   global_size_data_min[11],
+                   global_size_data_max[11],
+                   global_size_data_avg[11]);
+            printf("%22s %12ld %12ld %15.2f\n",
+                   "model size (bytes)",
+                   global_size_data_min[12],
+                   global_size_data_max[12],
+                   global_size_data_avg[12]);
         }
     }
 
 #if NRNMPI
     size_t global_nbyte = 0;
-    MPI_Allreduce(&nbyte,
-              &global_nbyte,
-              1,
-              MPI_UNSIGNED_LONG_LONG,
-              MPI_SUM,
-              MPI_COMM_WORLD);
+    MPI_Allreduce(&nbyte, &global_nbyte, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
     nbyte = global_nbyte;
 
 #endif
