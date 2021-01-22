@@ -23,7 +23,7 @@ fi
 cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 
 # We convert spikes to out.dat format
-reports=@ENABLE_SONATA_REPORTS@
+reports=@ENABLE_SONATA_REPORTS_TESTS@
 if [ "$reports" = "ON" ]
 then
   data=$(@H5DUMP_EXECUTABLE@ -d /spikes/timestamps -d /spikes/node_ids -y -O out.h5 | tr "," "\n")
