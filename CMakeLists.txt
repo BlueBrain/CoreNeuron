@@ -220,11 +220,11 @@ if(CORENRN_ENABLE_REPORTING)
       message(SEND_ERROR "SONATA library was found but without reporting support")
     endif()
   endif()
-  
+
   if(NOT reportinglib_FOUND AND NOT sonata_FOUND)
     message(SEND_ERROR "Neither reportinglib nor SONATA libraries were found")
   endif()
-  
+
   include_directories(${reportinglib_INCLUDE_DIR})
   include_directories(${sonatareport_INCLUDE_DIR})
 endif()
