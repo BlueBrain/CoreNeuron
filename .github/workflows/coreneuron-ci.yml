@@ -2,7 +2,7 @@ name: CoreNEURON CI
 
 on:
   push:
-    branches: 
+    branches:
       - master
       - live-debug*
       - release/**
@@ -59,8 +59,8 @@ jobs:
         run: |
           sudo apt-get install g++-${GCC_VERSION}
         shell: bash
-        env: 
-          GCC_VERSION: ${{ matrix.config.gcc_version }} 
+        env:
+          GCC_VERSION: ${{ matrix.config.gcc_version }}
 
       - name: Set up Python3
         uses: actions/setup-python@v2
@@ -88,7 +88,7 @@ jobs:
         if: ${{ matrix.config.use_nmodl == 'ON' ||  matrix.config.use_ispc == 'ON' }}
         run: |
           python3 -m pip install --upgrade pip jinja2 pyyaml pytest "sympy<1.6";
-       
+
       - uses: actions/checkout@v2
 
       - name: Install Python3 documentation dependencies
@@ -97,7 +97,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade -r docs/docs_requirements.txt
-        
+
       - name: Build and Test
         id: build-test
         shell: bash
@@ -124,7 +124,7 @@ jobs:
           fi
           make
           ctest --output-on-failure
-          make install         
+          make install
         env:
           cmake_option: ${{ matrix.config.cmake_option }}
           USE_ISPC: ${{ matrix.config.use_ispc }}
@@ -139,8 +139,7 @@ jobs:
       - name: live debug session on failure
         if: failure() && startsWith(github.ref, 'refs/heads/live-debug')
         uses: mxschmitt/action-tmate@v3
-
-      - name: Documentation 
+      - name: Documentation
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.config.documentation == 'ON' }}
         id: documentation
         working-directory: ${{runner.workspace}}/CoreNeuron
@@ -172,6 +171,7 @@ jobs:
           sudo apt-get install doxygen bison flex libboost-all-dev libopenmpi-dev openmpi-bin python3-dev python3-pip lcov
         shell: bash
       - uses: actions/checkout@v2
+        fetch-depth: 2
       - name: Build and Test for Coverage
         id: build-test
         shell: bash
