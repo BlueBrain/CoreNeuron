@@ -28,8 +28,8 @@ cd @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@
 reports=@ENABLE_SONATA_REPORTS_TESTS@
 if [ "$reports" = "ON" ]
 then
-  data=$(@H5DUMP_EXECUTABLE@ -d /spikes/timestamps -d /spikes/node_ids -y -O spikes | tr "," "\n")
-  echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i "\t" $(n+i) }' >> out_SONATA.dat
+  data=$(@H5DUMP_EXECUTABLE@ -d /spikes/All/timestamps -d /spikes/All/node_ids -y -O spikes | sed 's/"ms"//g;s/,/\n/g')
+  echo $data | awk '{n=NF/2; for (i=1;i<=n;i++) print $i "\t" $(n+i) }' > out_SONATA.dat
 
   if [ ! -f out_SONATA.dat ]
   then

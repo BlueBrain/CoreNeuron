@@ -4,7 +4,7 @@ OK=0
 FAILED=1
 sonata_reports=@ENABLE_SONATA_REPORTS_TESTS@
 bin_reports=@ENABLE_BIN_REPORTS_TESTS@
-test_ref=@CMAKE_CURRENT_SOURCE_DIR@/reportinglib/test_ref.out
+test_ref=@CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@/test_ref.out
 
 if [ "$bin_reports" = "ON" ]
 then

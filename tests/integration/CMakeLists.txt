@@ -101,6 +101,8 @@ if(CORENRN_ENABLE_REPORTING)
     configure_file(reportinglib/${TEST_NAME}.conf.in ${SIM_NAME}/${TEST_NAME}.conf @ONLY)
     configure_file(reportinglib/reporting_test.sh.in ${SIM_NAME}/reporting_test.sh @ONLY)
     configure_file(reportinglib/${TEST_NAME}.check.in ${SIM_NAME}/${TEST_NAME}.check @ONLY)
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/reportinglib/test_ref.out"
+        DESTINATION "${SIM_NAME}/")
     add_test(
       NAME ${SIM_NAME}
       COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
