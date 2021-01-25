@@ -2,6 +2,7 @@
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:@CMAKE_BINARY_DIR@/lib
 export OMP_NUM_THREADS=1
+export LIBSONATA_ZERO_BASED_GIDS=true
 
 # Run the executable
 #SRUN_EXTRA="--propagate=CORE"

@@ -1,6 +1,7 @@
 #! /bin/sh
 
 export OMP_NUM_THREADS=1
+export LIBSONATA_ZERO_BASED_GIDS=true
 
 # Run the executable
 SRUN_EXTRA=

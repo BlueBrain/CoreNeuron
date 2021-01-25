@@ -3,6 +3,8 @@
 set -e -o pipefail
 
 export OMP_NUM_THREADS=1
+export LIBSONATA_ZERO_BASED_GIDS=true
+
 @SRUN_PREFIX@ @CMAKE_BINARY_DIR@/bin/@CMAKE_SYSTEM_PROCESSOR@/special-core --mpi --read-config @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@/@TEST_NAME@.conf
 chmod +x @CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@/@TEST_NAME@.check
 exit `@CMAKE_CURRENT_BINARY_DIR@/@SIM_NAME@/@TEST_NAME@.check`
