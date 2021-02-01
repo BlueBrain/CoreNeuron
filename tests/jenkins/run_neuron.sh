@@ -23,7 +23,7 @@ if [ "${TEST_DIR}" = "testcorenrn" ]; then
     rm out${TEST}.dat
 elif [ "${TEST_DIR}" = "ringtest" ]; then
     mkdir ${TEST}
-    mpirun -n 6 ./x86_64/special ringtest.py -mpi
+    mpirun -n 6 ./x86_64/special ringtest.py -mpi -dumpmodel
     if [ ! -f spk6.std ]; then
       echo "Neuron simulation didn't run correctly"
       exit 1
