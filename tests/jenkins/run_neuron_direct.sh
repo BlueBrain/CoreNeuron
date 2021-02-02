@@ -22,7 +22,7 @@ ls -la x86_64
 module unload intel
 
 # run test sim with external mechanism
-mpirun -n 1 ./x86_64/special -python -mpi $WORKSPACE/tests/jenkins/neuron_direct.py
+mpirun -n 1 ./x86_64/special -python -mpi $WORKSPACE/tests/jenkins/neuron_direct.py | grep "Voltage times and i_membrane_ are same and difference is less than 1e-10"
 
 # remove build directory
 cd -
