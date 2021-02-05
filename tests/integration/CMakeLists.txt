@@ -18,6 +18,7 @@ endif()
 # List of tests with arguments
 set(TEST_CASES_WITH_ARGS
     "ring!${RING_COMMON_ARGS} ${MODEL_STATS_ARG} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring"
+    "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
     "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer --spikebuf 1"
@@ -41,6 +42,7 @@ set(NEGATIVE_TEST_CASES_WITH_ARGS
 foreach(data_dir "ring" "ring_gap")
   foreach(
     test_suffix
+    "serial"
     "multisend"
     "binqueue"
     "savestate_permute0"
@@ -67,7 +69,12 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
 foreach(args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+    # serial test run without srun or mpiexec
+    if(args_line MATCHES "ring_serial.*")
+      string(REPLACE ";" " " SRUN_PREFIX "")
+    else()
+      string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+    endif()
   endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
