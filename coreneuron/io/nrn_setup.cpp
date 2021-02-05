@@ -1081,7 +1081,7 @@ size_t model_size(bool detailed_report) {
     if (detailed_report) {
         size_data[12] = nbyte;
 #if NRNMPI
-        // last arg is op type where 1 is sum, 2 is max and >2 is min
+        // last arg is op type where 1 is sum, 2 is max and any other value is min
         nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
         nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
         nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
