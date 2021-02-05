@@ -19,7 +19,7 @@ namespace coreneuron {
 void write_mech_report() {
     /// mechanim count across all gids, local to rank
     const auto n_memb_func = corenrn.get_memb_funcs().size();
-    std::vector<unsigned long long> local_mech_count(n_memb_func, 0);
+    std::vector<size_t> local_mech_count(n_memb_func, 0);
 
     /// each gid record goes on separate row, only check non-empty threads
     for (size_t i = 0; i < nrn_nthread; i++) {
@@ -31,16 +31,14 @@ void write_mech_report() {
         }
     }
 
-    std::vector<unsigned long long> total_mech_count(n_memb_func);
+    std::vector<size_t> total_mech_count(n_memb_func);
 
 #if NRNMPI
     /// get global sum of all mechanism instances
-    MPI_Allreduce(&local_mech_count[0],
-                  &total_mech_count[0],
-                  local_mech_count.size(),
-                  MPI_UNSIGNED_LONG_LONG,
-                  MPI_SUM,
-                  nrnmpi_comm);
+    nrnmpi_long_allreduce_vec(&local_mech_count[0],
+                              &total_mech_count[0],
+                              local_mech_count.size(),
+                              1);
 
 #else
     total_mech_count = local_mech_count;

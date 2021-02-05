@@ -1081,24 +1081,10 @@ size_t model_size(bool detailed_report) {
     if (detailed_report) {
         size_data[12] = nbyte;
 #if NRNMPI
-        MPI_Allreduce(&size_data[0],
-                      &global_size_data_min[0],
-                      13,
-                      MPI_UNSIGNED_LONG_LONG,
-                      MPI_MIN,
-                      nrnmpi_comm);
-        MPI_Allreduce(&size_data[0],
-                      &global_size_data_max[0],
-                      13,
-                      MPI_UNSIGNED_LONG_LONG,
-                      MPI_MAX,
-                      nrnmpi_comm);
-        MPI_Allreduce(&size_data[0],
-                      &global_size_data_sum[0],
-                      13,
-                      MPI_UNSIGNED_LONG_LONG,
-                      MPI_SUM,
-                      nrnmpi_comm);
+        // last arg is op type where 1 is sum, 2 is max and >2 is min
+        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
+        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
+        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
         for (int i = 0; i < 13; i++) {
             global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
         }
@@ -1202,9 +1188,8 @@ size_t model_size(bool detailed_report) {
 
 #if NRNMPI
     size_t global_nbyte = 0;
-    MPI_Allreduce(&nbyte, &global_nbyte, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, nrnmpi_comm);
+    nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
     nbyte = global_nbyte;
-
 #endif
 
     return nbyte;
