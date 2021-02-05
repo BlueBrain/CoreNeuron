@@ -27,13 +27,11 @@ pipeline {
             }
         }
 
-        /*
         stage('Spack installations'){
             steps {
                 sh 'sh tests/jenkins/install_neuron_reportinglib.sh'
             }
         }
-        */
 
         stage('build CoreNeuron'){
             parallel{
