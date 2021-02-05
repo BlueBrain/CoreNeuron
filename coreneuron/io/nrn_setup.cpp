@@ -996,7 +996,7 @@ size_t input_presyn_size(void) {
 }
 
 size_t model_size(bool detailed_report) {
-    size_t nbyte = 0;
+    long nbyte = 0;
     size_t sz_nrnThread = sizeof(NrnThread);
     size_t sz_presyn = sizeof(PreSyn);
     size_t sz_input_presyn = sizeof(InputPreSyn);
@@ -1004,10 +1004,10 @@ size_t model_size(bool detailed_report) {
     size_t sz_pntproc = sizeof(Point_process);
     size_t nccnt = 0;
 
-    std::vector<size_t> size_data(13, 0);
-    std::vector<size_t> global_size_data_min(13, 0);
-    std::vector<size_t> global_size_data_max(13, 0);
-    std::vector<size_t> global_size_data_sum(13, 0);
+    std::vector<long> size_data(13, 0);
+    std::vector<long> global_size_data_min(13, 0);
+    std::vector<long> global_size_data_max(13, 0);
+    std::vector<long> global_size_data_sum(13, 0);
     std::vector<float> global_size_data_avg(13, 0.0);
 
     for (int i = 0; i < nrn_nthread; ++i) {
@@ -1187,7 +1187,7 @@ size_t model_size(bool detailed_report) {
     }
 
 #if NRNMPI
-    size_t global_nbyte = 0;
+    long global_nbyte = 0;
     nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
     nbyte = global_nbyte;
 #endif

@@ -30,8 +30,8 @@ set(TEST_CASES_WITH_ARGS
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
 
-# Reports can not be generated without MPI
-if(CORENRN_ENABLE_REPORTING)
+# As reports require MPI, do not add test if report is enabled
+if(NOT CORENRN_ENABLE_REPORTING)
   list(
     APPEND
     TEST_CASES_WITH_ARGS

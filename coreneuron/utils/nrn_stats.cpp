@@ -30,7 +30,7 @@ const int NUM_STATS = 13;
 enum event_type { enq = 0, spike, ite };
 
 void report_cell_stats(void) {
-    size_t stat_array[NUM_STATS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, gstat_array[NUM_STATS];
+    long stat_array[NUM_STATS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, gstat_array[NUM_STATS];
 
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         stat_array[0] += nrn_threads[ith].ncell;           // number of cells
@@ -66,16 +66,16 @@ void report_cell_stats(void) {
 
     if (nrnmpi_myid == 0 && !corenrn_param.is_quiet()) {
         printf("\n\n Simulation Statistics\n");
-        printf(" Number of cells: %zu\n", gstat_array[0]);
-        printf(" Number of compartments: %zu\n", gstat_array[10]);
-        printf(" Number of presyns: %zu\n", gstat_array[1]);
-        printf(" Number of input presyns: %zu\n", gstat_array[2]);
-        printf(" Number of synapses: %zu\n", gstat_array[3]);
-        printf(" Number of point processes: %zu\n", gstat_array[4]);
-        printf(" Number of transfer sources: %zu\n", gstat_array[12]);
-        printf(" Number of transfer targets: %zu\n", gstat_array[11]);
-        printf(" Number of spikes: %zu\n", gstat_array[5]);
-        printf(" Number of spikes with non negative gid-s: %zu\n", gstat_array[6]);
+        printf(" Number of cells: %ld\n", gstat_array[0]);
+        printf(" Number of compartments: %ld\n", gstat_array[10]);
+        printf(" Number of presyns: %ld\n", gstat_array[1]);
+        printf(" Number of input presyns: %ld\n", gstat_array[2]);
+        printf(" Number of synapses: %ld\n", gstat_array[3]);
+        printf(" Number of point processes: %ld\n", gstat_array[4]);
+        printf(" Number of transfer sources: %ld\n", gstat_array[12]);
+        printf(" Number of transfer targets: %ld\n", gstat_array[11]);
+        printf(" Number of spikes: %ld\n", gstat_array[5]);
+        printf(" Number of spikes with non negative gid-s: %ld\n", gstat_array[6]);
     }
 }
 }  // namespace coreneuron
