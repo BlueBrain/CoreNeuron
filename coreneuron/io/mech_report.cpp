@@ -48,7 +48,7 @@ void write_mech_report() {
         printf("\n================ MECHANISMS COUNT BY TYPE ==================\n");
         printf("%4s %20s %10s\n", "Id", "Name", "Count");
         for (size_t i = 0; i < total_mech_count.size(); i++) {
-            printf("%4lu %20s %10lld\n", i, nrn_get_mechname(i), total_mech_count[i]);
+            printf("%4lu %20s %10lu\n", i, nrn_get_mechname(i), total_mech_count[i]);
         }
         printf("=============================================================\n");
     }
