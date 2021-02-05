@@ -2,6 +2,7 @@ pipeline {
     agent {
         node {
             label 'bb5 && !bb5-07'
+            customWorkspace "/gpfs/bbp.cscs.ch/project/proj16/scratch/jenkins/coreneuron/${BUILD_ID}/${BUILD_TAG}"
         }
     }
     parameters {
