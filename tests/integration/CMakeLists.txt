@@ -30,8 +30,10 @@ set(TEST_CASES_WITH_ARGS
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
 
-# As reports require MPI, do not add test if report is enabled
-# GPU tests need SLURM allocation
+# ~~~
+# As reports require MPI, do not add test if report is enabled.
+# GPU tests need SLURM allocation and hence they won't run without srun
+# ~~~
 if(NOT CORENRN_ENABLE_REPORTING AND NOT CORENRN_ENABLE_GPU)
   list(
     APPEND
