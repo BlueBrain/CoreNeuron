@@ -31,11 +31,12 @@ set(TEST_CASES_WITH_ARGS
 )
 
 # As reports require MPI, do not add test if report is enabled
-if(NOT CORENRN_ENABLE_REPORTING)
+# GPU tests need SLURM allocation
+if(NOT CORENRN_ENABLE_REPORTING AND NOT CORENRN_ENABLE_GPU)
   list(
     APPEND
     TEST_CASES_WITH_ARGS
-    "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
+    "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
   )
 endif()
 
