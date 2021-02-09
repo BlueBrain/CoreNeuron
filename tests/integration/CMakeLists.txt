@@ -126,3 +126,34 @@ if(CORENRN_ENABLE_REPORTING)
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
   endforeach()
 endif()
+
+#
+# Add tests based on external repositories
+#
+include(CoreNEURONTestUtils)
+cnrn_add_test_group(
+  NAME external_ringtest
+  SUBMODULE tests/ringtest
+  MODFILE_DIRECTORY "mod"
+  OUTPUT asciispikes::spk2.std
+  SCRIPT_PATTERNS "*.py" "*.hoc")
+cnrn_add_test(
+  GROUP external_ringtest
+  NAME neuron
+  COMMAND special -python ringtest.py -tstop 100 OUTPUT asciispikes::spk1.std)
+cnrn_add_test(
+  GROUP external_ringtest
+  NAME neuron_mpi
+  COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS} special
+          ${MPIEXEC_POSTFLAGS} -mpi -python ringtest.py -tstop 100)
+cnrn_add_test(
+  GROUP external_ringtest
+  NAME coreneuron_mpi
+  COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS} special
+          ${MPIEXEC_POSTFLAGS} -mpi -python ringtest.py -tstop 100 -coreneuron)
+cnrn_add_test(
+  GROUP external_ringtest
+  NAME coreneuron_mpi_threads
+  COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS} special
+          ${MPIEXEC_POSTFLAGS} -mpi -python ringtest.py -tstop 100 -coreneuron -nt 2)
+cnrn_add_test_group_comparison(GROUP external_ringtest)

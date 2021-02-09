@@ -4,3 +4,24 @@ additional_commands:
     flags: ["STATIC", "SHARED", "MODULE", "EXCLUDE_FROM_ALL"]
     kwargs:
       OPTIONS: '*'
+  cnrn_add_test_group:
+    pargs: 0
+    kwargs:
+      NAME: 1
+      SUBMODULE: '?'
+      MODFILE_DIRECTORY: '?'
+      SCRIPT_PATTERNS: '*'
+      OUTPUT: '*'
+  cnrn_add_test:
+    pargs: 0
+    kwargs:
+      GROUP: 1
+      NAME: 1
+      SUBMODULE: '?'
+      MODFILE_DIRECTORY: '?'
+      COMMAND: '+'
+      SCRIPT_PATTERNS: '*'
+  cnrn_add_test_group_comparison:
+    pargs: 0
+    kwargs:
+      GROUP: 1
