@@ -14,5 +14,5 @@ target_link_libraries(
   ${sonatareport_LIBRARY})
 add_dependencies(interleave_info_bin nrniv-core)
 
-add_test(NAME interleave_info_constructor_test
-         COMMAND ${TEST_EXEC_PREFIX} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/interleave_info_bin)
+add_test(NAME interleave_info_constructor_test COMMAND ${TEST_EXEC_PREFIX}
+                                                       $<TARGET_FILE:interleave_info_bin>)

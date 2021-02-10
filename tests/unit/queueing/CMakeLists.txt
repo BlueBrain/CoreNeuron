@@ -14,5 +14,4 @@ target_link_libraries(
   ${sonatareport_LIBRARY})
 add_dependencies(queuing_test_bin nrniv-core)
 
-add_test(NAME queuing_test COMMAND ${TEST_EXEC_PREFIX}
-                                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/queuing_test_bin)
+add_test(NAME queuing_test COMMAND ${TEST_EXEC_PREFIX} $<TARGET_FILE:queuing_test_bin>)

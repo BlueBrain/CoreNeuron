@@ -16,5 +16,4 @@ target_include_directories(cmd_interface_test_bin SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 add_dependencies(cmd_interface_test_bin nrniv-core)
 
-add_test(NAME cmd_interface_test COMMAND ${TEST_EXEC_PREFIX}
-                                         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmd_interface_test_bin)
+add_test(NAME cmd_interface_test COMMAND ${TEST_EXEC_PREFIX} $<TARGET_FILE:cmd_interface_test_bin>)
