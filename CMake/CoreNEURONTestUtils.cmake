@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2021 Blue Brain Project
+# Copyright (C) 2021 Blue Brain Project
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -122,8 +122,7 @@ function(cnrn_add_test)
   if(DEFINED CNRN_ADD_TEST_MODFILE_DIRECTORY)
     set(modfile_directory "${CNRN_ADD_TEST_MODFILE_DIRECTORY}")
   endif()
-  # First, make sure the specified submodule is initialised TODO: this seems to be doing too much
-  # work when it gets re-run?
+  # First, make sure the specified submodule is initialised.
   cpp_cc_git_submodule(${git_submodule})
   # Construct the name of the source tree directory where the submodule has been checked out.
   set(test_source_directory "${PROJECT_SOURCE_DIR}/${CORENRN_3RDPARTY_DIR}/${git_submodule}")
