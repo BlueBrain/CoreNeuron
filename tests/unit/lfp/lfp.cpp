@@ -4,10 +4,11 @@
 #include <iostream>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/test_case_template.hpp>
 
 #include "coreneuron/io/lfp.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+
+using namespace coreneuron;
 
 template <typename F>
 double integral(F f, double a, double b, int n) {
@@ -28,7 +29,6 @@ std::array<double, 3> operator+(const std::array<double, 3>& x, const std::array
 }
 
 BOOST_AUTO_TEST_CASE(LFP_PointSource_LineSource) {
-    using namespace coreneuron;
 #if NRNMPI
     nrnmpi_init(nullptr, nullptr);
 #endif
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(LFP_PointSource_LineSource) {
     std::array<double, 3> segment_end = segment_start +
                                         std::array<double, 3>{0.0, 0.0, segment_length};
     double floor{1.0e-6};
-    double pi{3.141592653589};
+    pi = 3.141592653589;
 
     std::array<double, 10> vals;
     double circling_radius{1.0e-6};

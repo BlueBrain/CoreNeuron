@@ -6,8 +6,7 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/math/constants/constants.hpp>
-
+#include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 
@@ -156,7 +155,7 @@ struct LFPCalculator {
         if (seg_start.size() != radius.size()) {
             throw std::invalid_argument("Different number of segments and radii.");
         }
-        double f(1.0 / (extra_cellular_conductivity * 4.0 * boost::math::constants::pi<double>()));
+        double f(1.0 / (extra_cellular_conductivity * 4.0 * pi));
 
         m.resize(electrodes.size());
         for (size_t k = 0; k < electrodes.size(); ++k) {
