@@ -12,26 +12,23 @@
 
 namespace coreneuron {
 
-template <typename T>
-using Array3 = std::array<T, 3>;
+using F = double;
+using Point3D = std::array<F, 3>;
+using Point3Ds = std::vector<Point3D>;
 
-template <typename Point3D, typename F>
 F dot(const Point3D& p1, const Point3D& p2) {
     return p1[0] * p2[0] + p1[1] * p2[1] + p1[2] * p2[2];
 }
 
-template <typename Point3D, typename F>
 F norm(const Point3D& p1) {
-    return std::sqrt(dot<Point3D, F>(p1, p1));
+    return std::sqrt(dot(p1, p1));
 }
 
-template <typename Point3D, typename F>
-Array3<F> barycenter(const Point3D& p1, const Point3D& p2) {
+Point3D barycenter(const Point3D& p1, const Point3D& p2) {
     return {0.5 * (p1[0] + p2[0]), 0.5 * (p1[1] + p2[1]), 0.5 * (p1[2] + p2[2])};
 }
 
-template <typename Point3D, typename F>
-Array3<F> axp(const Point3D& p1, const F alpha, const Point3D& p2) {
+Point3D paxp(const Point3D& p1, const F alpha, const Point3D& p2) {
     return {p1[0] + alpha * p2[0], p1[1] + alpha * p2[1], p1[2] + alpha * p2[2]};
 }
 
@@ -45,11 +42,10 @@ Array3<F> axp(const Point3D& p1, const F alpha, const Point3D& p2) {
  * \param f conductivity factor 1/([4 pi] * [conductivity])
  * \return Resistance of the medium from the segment to the electrode.
  */
-template <typename Point3D, typename F>
 F point_source_lfp_factor(const Point3D& e_pos, const Point3D& seg_pos, const F radius, const F f) {
     nrn_assert(radius >= 0.0);
-    Array3<F> es = axp(e_pos, -1.0, seg_pos);
-    return f / std::max(norm<Point3D, F>(es), radius);
+    Point3D es = paxp(e_pos, -1.0, seg_pos);
+    return f / std::max(norm(es), radius);
 }
 
 /**
@@ -62,24 +58,23 @@ F point_source_lfp_factor(const Point3D& e_pos, const Point3D& seg_pos, const F 
  * \param f conductivity factor 1/([4 pi] * [conductivity])
  * \return Resistance of the medium from the segment to the electrode.
  */
-template <typename Point3D, typename F>
 F line_source_lfp_factor(const Point3D& e_pos,
                          const Point3D& seg_0,
                          const Point3D& seg_1,
                          const F radius,
                          const F f) {
     nrn_assert(radius >= 0.0);
-    Array3<F> dx = axp(seg_1, -1.0, seg_0);
-    Array3<F> de = axp(e_pos, -1.0, seg_0);
-    F dx2(dot<Array3<F>, F>(dx, dx));
+    Point3D dx = paxp(seg_1, -1.0, seg_0);
+    Point3D de = paxp(e_pos, -1.0, seg_0);
+    F dx2(dot(dx, dx));
     F dxn(std::sqrt(dx2));
     if (dxn < 1.0e-20) {
         return point_source_lfp_factor(e_pos, seg_0, radius, f);
     }
-    F de2(dot<Array3<F>, F>(de, de));
-    F mu(dot<Array3<F>, F>(dx, de) / dx2);
-    Array3<F> de_star(axp(de, -mu, dx));
-    F de_star2(dot<Array3<F>, F>(de_star, de_star));
+    F de2(dot(de, de));
+    F mu(dot(dx, de) / dx2);
+    Point3D de_star(paxp(de, -mu, dx));
+    F de_star2(dot(de_star, de_star));
     F q2(de_star2 / dx2);
 
     F delta(mu * mu - (de2 - radius * radius) / dx2);
@@ -141,10 +136,9 @@ struct LFPCalculator {
      * \param extra_cellular_conductivity conductivity of the extra-cellular
      * medium
      */
-    template <typename Point3Ds, typename Vector>
     LFPCalculator(const Point3Ds& seg_start,
                   const Point3Ds& seg_end,
-                  const Vector& radius,
+                  const std::vector<double>& radius,
                   const std::vector<SegmentIdTy>& segment_ids,
                   const Point3Ds& electrodes,
                   double extra_cellular_conductivity)
@@ -190,7 +184,6 @@ struct LFPCalculator {
     std::vector<double> lfp_values;
 
   private:
-    template <typename Point3D, typename F>
     inline F getFactor(const Point3D& e_pos,
                        const Point3D& seg_0,
                        const Point3D& seg_1,
@@ -202,7 +195,6 @@ struct LFPCalculator {
 };
 
 template <>
-template <typename Point3D, typename F>
 F LFPCalculator<LineSource>::getFactor(const Point3D& e_pos,
                                        const Point3D& seg_0,
                                        const Point3D& seg_1,
@@ -212,14 +204,14 @@ F LFPCalculator<LineSource>::getFactor(const Point3D& e_pos,
 }
 
 template <>
-template <typename Point3D, typename F>
 F LFPCalculator<PointSource>::getFactor(const Point3D& e_pos,
                                         const Point3D& seg_0,
                                         const Point3D& seg_1,
                                         const F radius,
                                         const F f) const {
-    return point_source_lfp_factor(e_pos, barycenter<Point3D, F>(seg_0, seg_1), radius, f);
+    return point_source_lfp_factor(e_pos, barycenter(seg_0, seg_1), radius, f);
 }
+
 };  // namespace coreneuron
 
 #endif  // AREA_LFP_H
