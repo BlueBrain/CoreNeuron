@@ -68,7 +68,7 @@ F line_source_lfp_factor(const Point3D& e_pos,
     Point3D de = paxpy(e_pos, -1.0, seg_0);
     F dx2(dot(dx, dx));
     F dxn(std::sqrt(dx2));
-    if (dxn < 1.0e-20) {
+    if (dxn < std::numeric_limits<F>::epsilon()) {
         return point_source_lfp_factor(e_pos, seg_0, radius, f);
     }
     F de2(dot(de, de));
@@ -149,7 +149,7 @@ struct LFPCalculator {
         if (seg_start.size() != radius.size()) {
             throw std::invalid_argument("Different number of segments and radii.");
         }
-        double f(1.0 / (extra_cellular_conductivity * 4.0 * pi));
+        double f(1.0 / (extra_cellular_conductivity * 4.0 * 3.141592653589));
 
         m.resize(electrodes.size());
         for (size_t k = 0; k < electrodes.size(); ++k) {
