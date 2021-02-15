@@ -80,7 +80,7 @@ F line_source_lfp_factor(const Point3D& e_pos,
     F delta(mu * mu - (de2 - radius * radius) / dx2);
     F one_m_mu(1.0 - mu);
     auto log_integral = [&q2, &dxn](F a, F b) {
-        if (std::abs(q2) < std::numeric_limits<F>::epsilon()) {
+        if (q2 < std::numeric_limits<F>::epsilon()) {
             if (a * b <= 0) {
                 throw std::invalid_argument("Log integral: invalid arguments " + std::to_string(b) +
                                             " " + std::to_string(a) +
