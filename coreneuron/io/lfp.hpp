@@ -28,7 +28,7 @@ Point3D barycenter(const Point3D& p1, const Point3D& p2) {
     return {0.5 * (p1[0] + p2[0]), 0.5 * (p1[1] + p2[1]), 0.5 * (p1[2] + p2[2])};
 }
 
-Point3D paxp(const Point3D& p1, const F alpha, const Point3D& p2) {
+Point3D paxpy(const Point3D& p1, const F alpha, const Point3D& p2) {
     return {p1[0] + alpha * p2[0], p1[1] + alpha * p2[1], p1[2] + alpha * p2[2]};
 }
 
@@ -44,7 +44,7 @@ Point3D paxp(const Point3D& p1, const F alpha, const Point3D& p2) {
  */
 F point_source_lfp_factor(const Point3D& e_pos, const Point3D& seg_pos, const F radius, const F f) {
     nrn_assert(radius >= 0.0);
-    Point3D es = paxp(e_pos, -1.0, seg_pos);
+    Point3D es = paxpy(e_pos, -1.0, seg_pos);
     return f / std::max(norm(es), radius);
 }
 
@@ -64,8 +64,8 @@ F line_source_lfp_factor(const Point3D& e_pos,
                          const F radius,
                          const F f) {
     nrn_assert(radius >= 0.0);
-    Point3D dx = paxp(seg_1, -1.0, seg_0);
-    Point3D de = paxp(e_pos, -1.0, seg_0);
+    Point3D dx = paxpy(seg_1, -1.0, seg_0);
+    Point3D de = paxpy(e_pos, -1.0, seg_0);
     F dx2(dot(dx, dx));
     F dxn(std::sqrt(dx2));
     if (dxn < 1.0e-20) {
@@ -73,7 +73,7 @@ F line_source_lfp_factor(const Point3D& e_pos,
     }
     F de2(dot(de, de));
     F mu(dot(dx, de) / dx2);
-    Point3D de_star(paxp(de, -mu, dx));
+    Point3D de_star(paxpy(de, -mu, dx));
     F de_star2(dot(de_star, de_star));
     F q2(de_star2 / dx2);
 
