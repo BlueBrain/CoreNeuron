@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_CASE(LFP_PointSource_LineSource) {
   }
   // TEST of SYMMETRY of LFP FORMULA
   for (size_t k = 0; k < 5; k++) {
-    BOOST_REQUIRE(std::abs((vals[k] - vals[k + 5]) * 0.5 /
-                           (vals[k] + vals[k + 5])) < 1.0e-12);
+    BOOST_REQUIRE(std::abs((vals[k] - vals[k + 5]) /
+                           std::max(std::abs(vals[k]), std::abs(vals[k + 5]))) < 1.0e-12);
   }
   std::vector<std::array<double, 3> > segments_starts = {
     { 0., 0., 1. }, { 0., 0., 0.5 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, -0.5 }
