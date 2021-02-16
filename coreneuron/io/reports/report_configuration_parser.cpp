@@ -43,10 +43,30 @@ enum class TargetType {
  * Split filter string ("mech.var_name") into mech_id and var_name
  */
 void parse_filter_string(const std::string& filter, ReportConfiguration& config) {
-    std::istringstream iss(filter);
-    std::string token;
-    std::getline(iss, config.mech_name, '.');
-    std::getline(iss, config.var_name, '.');
+    std::istringstream in(filter);
+
+    std::vector<std::string> mechanisms;
+    std::stringstream ss(filter);
+    std::string mechanism;
+    // Tokenizing with ','
+    while(getline(ss, mechanism, ',')) {
+        mechanisms.push_back(mechanism);
+    }
+    for(auto i=0; i < mechanisms.size(); ++i) {
+        std::string mech_name;
+        std::string var_name;
+        std::istringstream iss(mechanisms[i]);
+        std::getline(iss, mech_name, '.');
+        std::getline(iss, var_name, '.');
+        if(var_name.empty()) {
+            var_name = "i";
+        }
+        config.mech_names.emplace_back(mech_name);
+        config.var_names.emplace_back(var_name);
+        if(mech_name == "i_membrane") {
+            nrn_use_fast_imem = true;
+        }
+    }
 }
 
 std::vector<ReportConfiguration> create_report_configurations(const std::string& conf_file,
@@ -61,8 +81,6 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
     report_conf >> num_reports;
     for (int i = 0; i < num_reports; i++) {
         ReportConfiguration report;
-        // mechansim id registered in coreneuron
-        report.mech_id = -1;
         report.buffer_size = 4;  // default size to 4 Mb
 
         report_conf >> report.name >> report.target_name >> report.type_str >> report_on >>
@@ -123,11 +141,13 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
             }
         } else if (report.type_str == "synapse") {
             report.type = SynapseReport;
+        } else if (report.type_str == "summation") {
+            report.type = SummationReport;
         } else {
             std::cerr << "Report error: unsupported type " << report.type_str << std::endl;
             nrn_abort(1);
         }
-        if (report.type == SynapseReport) {
+        if (report.type == SynapseReport || report.type == SummationReport) {
             parse_filter_string(report_on, report);
         }
         if (report.num_gids) {

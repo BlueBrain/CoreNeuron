@@ -36,6 +36,7 @@
 #include "coreneuron/io/mech_report.h"
 #include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/io/nrn_setup.hpp"
+#include "coreneuron/io/reports/nrnreport.hpp"
 
 // callbacks into nrn/src/nrniv/nrnbbcore_write.cpp
 #include "coreneuron/sim/fast_imem.hpp"
@@ -851,6 +852,10 @@ void nrn_cleanup() {
             delete ((NrnThreadMappingInfo*) nt->mapping);
         }
 
+        if (nt->alu_) {
+            delete ((ALUMapping*) nt->alu_);
+        }
+
         free_memory(nt->_ml_list);
 
         if (nt->nrn_fast_imem) {
@@ -919,6 +924,7 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
 
     /** mapping information for all neurons in single NrnThread */
     NrnThreadMappingInfo* ntmapping = new NrnThreadMappingInfo();
+    ALUMapping* alu = new ALUMapping();
 
     int count = 0;
 
@@ -951,6 +957,7 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
 
     // set pointer in NrnThread
     nt.mapping = (void*) ntmapping;
+    nt.alu_ = (void*) alu;
 }
 
 static size_t memb_list_size(NrnThreadMembList* tml) {

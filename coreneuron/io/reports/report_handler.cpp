@@ -19,9 +19,12 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
     }
     m_report_config.stop = std::min(m_report_config.stop, tstop);
 
-    m_report_config.mech_id = nrn_get_mechtype(m_report_config.mech_name.data());
-    if (m_report_config.type == SynapseReport && m_report_config.mech_id == -1) {
-        std::cerr << "[ERROR] mechanism to report: " << m_report_config.mech_name
+    for(const auto& mech: m_report_config.mech_names) {
+        m_report_config.mech_ids.emplace_back(nrn_get_mechtype(mech.data()));
+    }
+    //m_report_config.mech_id = nrn_get_mechtype(m_report_config.mech_name.data());
+    if (m_report_config.type == SynapseReport && m_report_config.mech_ids.empty()) {
+        std::cerr << "[ERROR] mechanism to report: " << m_report_config.mech_names[0]
                   << " is not mapped in this simulation, cannot report on it \n";
         nrn_abort(1);
     }
@@ -56,6 +59,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                m_report_config.section_type,
                                                m_report_config.section_all_compartments);
                 register_compartment_report(nt, m_report_config, vars_to_report);
+                break;
+            case SummationReport:
+                vars_to_report = get_summation_vars_to_report(nt, m_report_config.target, m_report_config, nodes_to_gid);
+                register_custom_report(nt, m_report_config, vars_to_report);
                 break;
             default:
                 vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
@@ -253,6 +260,85 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
     return vars_to_report;
 }
 
+VarsToReport ReportHandler::get_summation_vars_to_report(const NrnThread& nt,
+                                                         const std::set<int>& target,
+                                                         ReportConfiguration& report,
+                                                         const std::vector<int>& nodes_to_gids) const {
+    VarsToReport vars_to_report;
+    const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
+    auto* alu_mapping = static_cast<ALUMapping*>(nt.alu_);
+    auto& alu = alu_mapping->report_ALU_[report.output_path];
+    if (!mapinfo) {
+        std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
+                  << nt.ncell << '\n';
+        nrn_abort(1);
+    }
+    for (int i = 0; i < nt.ncell; i++) {
+        int gid = nt.presyns[i].gid_;
+        if (report.target.find(gid) == report.target.end()) {
+            continue;
+        }
+        bool has_imembrane = false;
+        int scalar = 1;
+        for(auto i = 0; i < report.mech_ids.size(); ++i) {
+            auto mech_id = report.mech_ids[i];
+            auto var_name = report.var_names[i];
+            auto mech_name = report.mech_names[i];
+            if(mech_name != "i_membrane") {
+                if(mech_name == "IClamp" || mech_name == "SEClamp") {
+                    scalar = -1;
+                }
+                Memb_list* ml = nt._ml_list[mech_id];
+                if (!ml) {
+                    continue;
+                }
+                for (int j = 0; j < ml->nodecount; j++) {
+                    auto segment_id = ml->nodeindices[j];
+                    if ((nodes_to_gids[ml->nodeindices[j]] == gid)) {
+                        double* var_value =
+                            get_var_location_from_var_name(mech_id, var_name.data(), ml, j);
+                        alu.currents_[segment_id].push_back(std::make_pair(var_value, scalar));
+                    }
+                }
+            } else {
+                has_imembrane = true;
+            }
+        }
+        if (target.find(gid) != target.end()) {
+            const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
+            if (cell_mapping == nullptr) {
+                std::cerr
+                    << "[COMPARTMENTS] Error : Compartment mapping information is missing for gid "
+                    << gid << '\n';
+                nrn_abort(1);
+            }
+            std::vector<VarWithMapping> to_report;
+            to_report.reserve(cell_mapping->size());
+            alu.summation_.resize(nt.end);
+            const auto& section_mapping = cell_mapping->secmapvec;
+            for (const auto& sections: section_mapping) {
+                for (auto& section: sections->secmap) {
+                    // compartment_id
+                    int section_id = section.first;
+                    //std::cout << "compartment_id: " << section_id << std::endl;
+                    auto& segment_ids = section.second;
+                    for (const auto& segment_id: segment_ids) {
+                        /** corresponding voltage in coreneuron voltage array */
+                        if(has_imembrane) {
+                            //std::cout << "segment_id: " << segment_id << std::endl;
+                            alu.currents_[segment_id].push_back(std::make_pair(nt.nrn_fast_imem->nrn_sav_rhs + segment_id, 1));
+                        }
+                        double* variable = alu.summation_.data() + segment_id;
+                        to_report.emplace_back(VarWithMapping(section_id, variable));
+                    }
+                }
+            }
+            vars_to_report[gid] = to_report;
+        }
+    }
+    return vars_to_report;
+}
+
 VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
                                                       ReportConfiguration& report,
                                                       const std::vector<int>& nodes_to_gids) const {
@@ -262,7 +348,10 @@ VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
         if (report.target.find(gid) == report.target.end()) {
             continue;
         }
-        Memb_list* ml = nt._ml_list[report.mech_id];
+        // There can only be 1 mechanism
+        auto mech_id = report.mech_ids[0];
+        auto var_name = report.var_names[0];
+        Memb_list* ml = nt._ml_list[mech_id];
         if (!ml) {
             continue;
         }
@@ -271,7 +360,7 @@ VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
 
         for (int j = 0; j < ml->nodecount; j++) {
             double* is_selected =
-                get_var_location_from_var_name(report.mech_id, SELECTED_VAR_MOD_NAME, ml, j);
+                get_var_location_from_var_name(mech_id, SELECTED_VAR_MOD_NAME, ml, j);
             bool report_variable = false;
 
             /// if there is no variable in mod file then report on every compartment
@@ -283,9 +372,9 @@ VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
             }
             if ((nodes_to_gids[ml->nodeindices[j]] == gid) && report_variable) {
                 double* var_value =
-                    get_var_location_from_var_name(report.mech_id, report.var_name.data(), ml, j);
+                    get_var_location_from_var_name(mech_id, var_name.data(), ml, j);
                 double* synapse_id =
-                    get_var_location_from_var_name(report.mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
+                    get_var_location_from_var_name(mech_id, SYNAPSE_ID_MOD_NAME, ml, j);
                 nrn_assert(synapse_id && var_value);
                 to_report.emplace_back(static_cast<int>(*synapse_id), var_value);
             }

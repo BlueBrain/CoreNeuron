@@ -8,6 +8,7 @@
 
 #include "report_event.hpp"
 #include "coreneuron/sim/multicore.hpp"
+#include "coreneuron/io/reports/nrnreport.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #ifdef ENABLE_BIN_REPORTS
 #include "reportinglib/Records.h"
@@ -43,6 +44,16 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
     {
         // each thread needs to know its own step
 #ifdef ENABLE_BIN_REPORTS
+        auto* alu_mapping = static_cast<ALUMapping*>(nt->alu_);
+        auto& alu = alu_mapping->report_ALU_[report_path];
+        double sum = 0.0;
+        for(const auto& kv: alu.currents_) {
+            for(const auto& value: kv.second) {
+                sum += *value.first * value.second;
+            }
+            alu.summation_[kv.first] = sum;
+            sum = 0.0;
+        }
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
 #endif
 #ifdef ENABLE_SONATA_REPORTS
