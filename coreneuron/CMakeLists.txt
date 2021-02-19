@@ -157,16 +157,16 @@ set_target_properties(
 # =============================================================================
 set(modfile_directory "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod")
 file(GLOB modfiles "${modfile_directory}/*.mod")
-set(special_name "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special")
-set(output_binaries "${special}" "${special_name}-core")
+set(output_binaries "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core"
+                    "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech.a")
 add_custom_command(
   OUTPUT ${output_binaries}
-  DEPENDS nrniv_lib scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles}
+  DEPENDS scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles}
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 1
           "${modfile_directory}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_custom_target(nrniv-core DEPENDS ${output_binaries})
+add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 
