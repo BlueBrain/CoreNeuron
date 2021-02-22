@@ -107,7 +107,9 @@ lfputils::F LFPCalculator<LineSource>::getFactor(const lfputils::Point3D& e_pos,
                                        const lfputils::Point3D& seg_0,
                                        const lfputils::Point3D& seg_1,
                                        const lfputils::F radius,
-                                       const lfputils::F f) const;
+                                       const lfputils::F f) const {
+    return lfputils::line_source_lfp_factor(e_pos, seg_0, seg_1, radius, f);
+}
 
 template <>
 lfputils::F LFPCalculator<PointSource>::getFactor(const lfputils::Point3D& e_pos,

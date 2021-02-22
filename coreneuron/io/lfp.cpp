@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <limits>
-
+#include <sstream>
 
 
 namespace coreneuron {
@@ -33,10 +33,12 @@ namespace coreneuron {
     auto log_integral = [&q2, &dxn](F a, F b) {
         if (q2 < std::numeric_limits<F>::epsilon()) {
             if (a * b <= 0) {
-                throw std::invalid_argument("Log integral: invalid arguments " + std::to_string(b) +
-                                            " " + std::to_string(a) +
+                std::ostringstream s;
+                s << "Log integral: invalid arguments " << b  <<
+                                            " " << a <<
                                             ". Likely electrode exactly on the segment and "
-                                            "no flooring is present.");
+                                            << "no flooring is present.";
+                throw std::invalid_argument(s.str());
             }
             return std::abs(std::log(b / a)) / dxn;
         } else {
@@ -117,14 +119,6 @@ template <typename Vector>
         lfp_values = res_reduced;
     }
 
-template <>
-lfputils::F LFPCalculator<LineSource>::getFactor(const lfputils::Point3D& e_pos,
-                                       const lfputils::Point3D& seg_0,
-                                       const lfputils::Point3D& seg_1,
-                                       const lfputils::F radius,
-                                       const lfputils::F f) const {
-    return lfputils::line_source_lfp_factor(e_pos, seg_0, seg_1, radius, f);
-}
 
 template LFPCalculator<LineSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
                   const lfputils::Point3Ds& seg_end,
