@@ -9,6 +9,7 @@
 #include "coreneuron/mpi/nrnmpi.h"
 
 using namespace coreneuron;
+using namespace coreneuron::utils;
 
 template <typename F>
 double integral(F f, double a, double b, int n) {
