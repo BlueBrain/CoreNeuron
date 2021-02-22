@@ -7,9 +7,9 @@
 
 namespace coreneuron {
 
-    namespace lfputils {
+namespace lfputils {
 
-    F line_source_lfp_factor(const Point3D& e_pos,
+F line_source_lfp_factor(const Point3D& e_pos,
                          const Point3D& seg_0,
                          const Point3D& seg_1,
                          const F radius,
@@ -34,10 +34,9 @@ namespace coreneuron {
         if (q2 < std::numeric_limits<F>::epsilon()) {
             if (a * b <= 0) {
                 std::ostringstream s;
-                s << "Log integral: invalid arguments " << b  <<
-                                            " " << a <<
-                                            ". Likely electrode exactly on the segment and "
-                                            << "no flooring is present.";
+                s << "Log integral: invalid arguments " << b << " " << a
+                  << ". Likely electrode exactly on the segment and "
+                  << "no flooring is present.";
                 throw std::invalid_argument(s.str());
             }
             return std::abs(std::log(b / a)) / dxn;
@@ -67,74 +66,74 @@ namespace coreneuron {
         }
         return f * parts;
     };
-  }
- } // namespace utils
- 
- using namespace lfputils;
+}
+}  // namespace lfputils
 
- template <LFPCalculatorType Type, typename SegmentIdTy>
- LFPCalculator<Type, SegmentIdTy>::LFPCalculator(const Point3Ds& seg_start,
-                  const Point3Ds& seg_end,
-                  const std::vector<double>& radius,
-                  const std::vector<SegmentIdTy>& segment_ids,
-                  const Point3Ds& electrodes,
-                  double extra_cellular_conductivity)
-        : segment_ids_(segment_ids) {
-        if (seg_start.size() != seg_end.size()) {
-            throw std::invalid_argument("Different number of segment starts and ends.");
-        }
-        if (seg_start.size() != radius.size()) {
-            throw std::invalid_argument("Different number of segments and radii.");
-        }
-        double f(1.0 / (extra_cellular_conductivity * 4.0 * 3.141592653589));
+using namespace lfputils;
 
-        m.resize(electrodes.size());
-        for (size_t k = 0; k < electrodes.size(); ++k) {
-            auto& ms = m[k];
-            ms.resize(seg_start.size());
-            for (size_t l = 0; l < seg_start.size(); l++) {
-                ms[l] = getFactor(electrodes[k], seg_start[l], seg_end[l], radius[l], f);
-            }
+template <LFPCalculatorType Type, typename SegmentIdTy>
+LFPCalculator<Type, SegmentIdTy>::LFPCalculator(const Point3Ds& seg_start,
+                                                const Point3Ds& seg_end,
+                                                const std::vector<double>& radius,
+                                                const std::vector<SegmentIdTy>& segment_ids,
+                                                const Point3Ds& electrodes,
+                                                double extra_cellular_conductivity)
+    : segment_ids_(segment_ids) {
+    if (seg_start.size() != seg_end.size()) {
+        throw std::invalid_argument("Different number of segment starts and ends.");
+    }
+    if (seg_start.size() != radius.size()) {
+        throw std::invalid_argument("Different number of segments and radii.");
+    }
+    double f(1.0 / (extra_cellular_conductivity * 4.0 * 3.141592653589));
+
+    m.resize(electrodes.size());
+    for (size_t k = 0; k < electrodes.size(); ++k) {
+        auto& ms = m[k];
+        ms.resize(seg_start.size());
+        for (size_t l = 0; l < seg_start.size(); l++) {
+            ms[l] = getFactor(electrodes[k], seg_start[l], seg_end[l], radius[l], f);
         }
     }
+}
 
 template <LFPCalculatorType Type, typename SegmentIdTy>
 template <typename Vector>
-    inline void LFPCalculator<Type, SegmentIdTy>::lfp(const Vector& membrane_current) {
-        std::vector<double> res(m.size());
-        for (size_t k = 0; k < m.size(); ++k) {
-            res[k] = 0.0;
-            auto& ms = m[k];
-            for (size_t l = 0; l < ms.size(); l++) {
-                res[k] += ms[l] * membrane_current[segment_ids_[l]];
-            }
+inline void LFPCalculator<Type, SegmentIdTy>::lfp(const Vector& membrane_current) {
+    std::vector<double> res(m.size());
+    for (size_t k = 0; k < m.size(); ++k) {
+        res[k] = 0.0;
+        auto& ms = m[k];
+        for (size_t l = 0; l < ms.size(); l++) {
+            res[k] += ms[l] * membrane_current[segment_ids_[l]];
         }
-        std::vector<double> res_reduced(res.size());
-#if NRNMPI
-        int mpi_sum{1};
-        nrnmpi_dbl_allreduce_vec(res.data(), res_reduced.data(), res.size(), mpi_sum);
-#else
-        res_reduced = res;
-#endif
-        lfp_values = res_reduced;
     }
+    std::vector<double> res_reduced(res.size());
+#if NRNMPI
+    int mpi_sum{1};
+    nrnmpi_dbl_allreduce_vec(res.data(), res_reduced.data(), res.size(), mpi_sum);
+#else
+    res_reduced = res;
+#endif
+    lfp_values = res_reduced;
+}
 
 
 template LFPCalculator<LineSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
-                  const lfputils::Point3Ds& seg_end,
-                  const std::vector<double>& radius,
-                  const std::vector<int>& segment_ids,
-                  const lfputils::Point3Ds& electrodes,
-                  double extra_cellular_conductivity);
+                                                  const lfputils::Point3Ds& seg_end,
+                                                  const std::vector<double>& radius,
+                                                  const std::vector<int>& segment_ids,
+                                                  const lfputils::Point3Ds& electrodes,
+                                                  double extra_cellular_conductivity);
 template LFPCalculator<PointSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
-                  const lfputils::Point3Ds& seg_end,
-                  const std::vector<double>& radius,
-                  const std::vector<int>& segment_ids,
-                  const lfputils::Point3Ds& electrodes,
-                  double extra_cellular_conductivity);
-template void  LFPCalculator<LineSource>::lfp(const Vec& membrane_current);
-template void  LFPCalculator<PointSource>::lfp(const Vec& membrane_current);
-template void  LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
-template void  LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
+                                                   const lfputils::Point3Ds& seg_end,
+                                                   const std::vector<double>& radius,
+                                                   const std::vector<int>& segment_ids,
+                                                   const lfputils::Point3Ds& electrodes,
+                                                   double extra_cellular_conductivity);
+template void LFPCalculator<LineSource>::lfp(const Vec& membrane_current);
+template void LFPCalculator<PointSource>::lfp(const Vec& membrane_current);
+template void LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
+template void LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
 
-} // namespace coreneuron
+}  // namespace coreneuron
