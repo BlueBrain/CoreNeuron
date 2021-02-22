@@ -1,9 +1,13 @@
 #include "coreneuron/io/lfp.hpp"
 
+#include <cmath>
+#include <limits>
+
+
 
 namespace coreneuron {
 
-    namespace utils {
+    namespace lfputils {
 
     F line_source_lfp_factor(const Point3D& e_pos,
                          const Point3D& seg_0,
@@ -64,8 +68,7 @@ namespace coreneuron {
   }
  } // namespace utils
  
-
- using namespace utils;
+ using namespace lfputils;
 
  template <LFPCalculatorType Type, typename SegmentIdTy>
  LFPCalculator<Type, SegmentIdTy>::LFPCalculator(const Point3Ds& seg_start,
@@ -114,9 +117,30 @@ template <typename Vector>
         lfp_values = res_reduced;
     }
 
+template <>
+lfputils::F LFPCalculator<LineSource>::getFactor(const lfputils::Point3D& e_pos,
+                                       const lfputils::Point3D& seg_0,
+                                       const lfputils::Point3D& seg_1,
+                                       const lfputils::F radius,
+                                       const lfputils::F f) const {
+    return lfputils::line_source_lfp_factor(e_pos, seg_0, seg_1, radius, f);
+}
 
-template void  LFPCalculator<LineSource>::lfp(const double*& membrane_current);
-template void  LFPCalculator<PointSource>::lfp(const double*& membrane_current);
-
+template LFPCalculator<LineSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
+                  const lfputils::Point3Ds& seg_end,
+                  const std::vector<double>& radius,
+                  const std::vector<int>& segment_ids,
+                  const lfputils::Point3Ds& electrodes,
+                  double extra_cellular_conductivity);
+template LFPCalculator<PointSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
+                  const lfputils::Point3Ds& seg_end,
+                  const std::vector<double>& radius,
+                  const std::vector<int>& segment_ids,
+                  const lfputils::Point3Ds& electrodes,
+                  double extra_cellular_conductivity);
+template void  LFPCalculator<LineSource>::lfp(const Vec& membrane_current);
+template void  LFPCalculator<PointSource>::lfp(const Vec& membrane_current);
+template void  LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
+template void  LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
 
 } // namespace coreneuron

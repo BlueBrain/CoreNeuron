@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 #include <array>
 #include <vector>
 
@@ -10,11 +9,12 @@
 
 namespace coreneuron {
 
-namespace utils {
+namespace lfputils {
 
 using F = double;
 using Point3D = std::array<F, 3>;
 using Point3Ds = std::vector<Point3D>;
+using Vec = double*;
 
 inline F dot(const Point3D& p1, const Point3D& p2) {
     return p1[0] * p2[0] + p1[1] * p2[1] + p1[2] * p2[2];
@@ -54,7 +54,7 @@ inline F point_source_lfp_factor(const Point3D& e_pos, const Point3D& seg_pos, c
  * \param f conductivity factor 1/([4 pi] * [conductivity])
  * \return Resistance of the medium from the segment to the electrode.
  */
-inline F line_source_lfp_factor(const Point3D& e_pos,
+F line_source_lfp_factor(const Point3D& e_pos,
                          const Point3D& seg_0,
                          const Point3D& seg_1,
                          const F radius,
@@ -79,49 +79,60 @@ struct LFPCalculator {
      * \param extra_cellular_conductivity conductivity of the extra-cellular
      * medium
      */
-    LFPCalculator(const Point3Ds& seg_start,
-                  const Point3Ds& seg_end,
+    LFPCalculator(const lfputils::Point3Ds& seg_start,
+                  const lfputils::Point3Ds& seg_end,
                   const std::vector<double>& radius,
                   const std::vector<SegmentIdTy>& segment_ids,
-                  const Point3Ds& electrodes,
+                  const lfputils::Point3Ds& electrodes,
                   double extra_cellular_conductivity);
 
     template <typename Vector>
-    inline void lfp(const Vector& membrane_current);
+     void lfp(const Vector& membrane_current);
 
     std::vector<double> lfp_values;
 
   private:
-    inline F getFactor(const Point3D& e_pos,
-                       const Point3D& seg_0,
-                       const Point3D& seg_1,
-                       const F radius,
-                       const F f) const;
+    inline lfputils::F getFactor(const lfputils::Point3D& e_pos,
+                       const lfputils::Point3D& seg_0,
+                       const lfputils::Point3D& seg_1,
+                       const lfputils::F radius,
+                       const lfputils::F f) const;
 
     std::vector<std::vector<double>> m;
     const std::vector<SegmentIdTy>& segment_ids_;
 };
 
 template <>
-F LFPCalculator<LineSource>::getFactor(const Point3D& e_pos,
-                                       const Point3D& seg_0,
-                                       const Point3D& seg_1,
-                                       const F radius,
-                                       const F f) const {
-    return utils::line_source_lfp_factor(e_pos, seg_0, seg_1, radius, f);
-}
+lfputils::F LFPCalculator<LineSource>::getFactor(const lfputils::Point3D& e_pos,
+                                       const lfputils::Point3D& seg_0,
+                                       const lfputils::Point3D& seg_1,
+                                       const lfputils::F radius,
+                                       const lfputils::F f) const;
 
 template <>
-F LFPCalculator<PointSource>::getFactor(const Point3D& e_pos,
-                                        const Point3D& seg_0,
-                                        const Point3D& seg_1,
-                                        const F radius,
-                                        const F f) const {
-    return utils::point_source_lfp_factor(e_pos, barycenter(seg_0, seg_1), radius, f);
+lfputils::F LFPCalculator<PointSource>::getFactor(const lfputils::Point3D& e_pos,
+                                        const lfputils::Point3D& seg_0,
+                                        const lfputils::Point3D& seg_1,
+                                        const lfputils::F radius,
+                                        const lfputils::F f) const {
+    return lfputils::point_source_lfp_factor(e_pos, lfputils::barycenter(seg_0, seg_1), radius, f);
 }
 
-template void LFPCalculator<LineSource>::lfp(const double*& membrane_current);
-template void LFPCalculator<PointSource>::lfp(const double*& membrane_current);
-
+extern template LFPCalculator<LineSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
+                  const lfputils::Point3Ds& seg_end,
+                  const std::vector<double>& radius,
+                  const std::vector<int>& segment_ids,
+                  const lfputils::Point3Ds& electrodes,
+                  double extra_cellular_conductivity);
+extern template LFPCalculator<PointSource>::LFPCalculator(const lfputils::Point3Ds& seg_start,
+                  const lfputils::Point3Ds& seg_end,
+                  const std::vector<double>& radius,
+                  const std::vector<int>& segment_ids,
+                  const lfputils::Point3Ds& electrodes,
+                  double extra_cellular_conductivity);
+extern template void LFPCalculator<LineSource>::lfp(const lfputils::Vec& membrane_current);
+extern template void LFPCalculator<PointSource>::lfp(const lfputils::Vec& membrane_current);
+extern template void LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
+extern template void LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
 };  // namespace coreneuron
 
