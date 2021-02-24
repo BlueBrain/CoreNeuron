@@ -488,7 +488,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
     bool compute_gpu = corenrn_param.gpu;
     bool skip_mpi_finalize = corenrn_param.skip_mpi_finalize;
 
-// clang-format off
+    // clang-format off
+
     #pragma acc update device(celsius, secondorder) if (compute_gpu)
     // clang-format on
     {
