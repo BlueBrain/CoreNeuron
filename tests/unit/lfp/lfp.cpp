@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(LFP_PointSource_LineSource) {
     std::array<double, 3> segment_end =
         paxpy(segment_start, 1.0, std::array<double, 3>{0.0, 0.0, segment_length});
     double floor{1.0e-6};
-    double pi = 3.141592653589;
+    pi = 3.141592653589;
 
     std::array<double, 10> vals;
     double circling_radius{1.0e-6};

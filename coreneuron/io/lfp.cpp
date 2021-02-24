@@ -85,7 +85,7 @@ LFPCalculator<Type, SegmentIdTy>::LFPCalculator(const Point3Ds& seg_start,
     if (seg_start.size() != radius.size()) {
         throw std::invalid_argument("Different number of segments and radii.");
     }
-    double f(1.0 / (extra_cellular_conductivity * 4.0 * 3.141592653589));
+    double f(1.0 / (extra_cellular_conductivity * 4.0 * pi));
 
     m.resize(electrodes.size());
     for (size_t k = 0; k < electrodes.size(); ++k) {
