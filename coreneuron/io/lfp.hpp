@@ -92,7 +92,7 @@ struct LFPCalculator {
     void lfp(const Vector& membrane_current);
 
     const std::vector<double>& lfp_values() const noexcept {
-        return lfp_values_; 
+        return lfp_values_;
     }
 
   private:
