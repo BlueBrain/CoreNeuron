@@ -108,14 +108,13 @@ inline void LFPCalculator<Type, SegmentIdTy>::lfp(const Vector& membrane_current
             res[k] += ms[l] * membrane_current[segment_ids_[l]];
         }
     }
-    std::vector<double> res_reduced(res.size());
 #if NRNMPI
+    lfp_values_.resize(res.size());
     int mpi_sum{1};
-    nrnmpi_dbl_allreduce_vec(res.data(), res_reduced.data(), res.size(), mpi_sum);
+    nrnmpi_dbl_allreduce_vec(res.data(), lfp_values_.data(), res.size(), mpi_sum); 
 #else
-    res_reduced = res;
+    std::swap(res, lfp_values_);
 #endif
-    lfp_values = res_reduced;
 }
 
 

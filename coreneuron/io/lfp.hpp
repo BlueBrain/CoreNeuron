@@ -91,7 +91,9 @@ struct LFPCalculator {
     template <typename Vector>
     void lfp(const Vector& membrane_current);
 
-    std::vector<double> lfp_values;
+    const std::vector<double> lfp_values() const noexcept {
+        return lfp_values_; 
+    }
 
   private:
     inline double getFactor(const lfputils::Point3D& e_pos,
@@ -99,7 +101,7 @@ struct LFPCalculator {
                                  const lfputils::Point3D& seg_1,
                                  const double radius,
                                  const double f) const;
-
+    std::vector<double> lfp_values_;
     std::vector<std::vector<double>> m;
     const std::vector<SegmentIdTy>& segment_ids_;
 };

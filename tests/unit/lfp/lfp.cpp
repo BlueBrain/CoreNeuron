@@ -90,11 +90,11 @@ BOOST_AUTO_TEST_CASE(LFP_PointSource_LineSource) {
     std::vector<int> indices = {0, 1, 2, 3};
     LFPCalculator<LineSource> lfp(segments_starts, segments_ends, radii, indices, electrodes, 1.0);
     lfp.template lfp<std::vector<double>>({0.0, 1.0, 2.0, 3.0});
-    std::vector<double> res_line_source = lfp.lfp_values;
+    std::vector<double> res_line_source = lfp.lfp_values();
     LFPCalculator<PointSource> lfpp(
         segments_starts, segments_ends, radii, indices, electrodes, 1.0);
     lfpp.template lfp<std::vector<double>>({0.0, 1.0, 2.0, 3.0});
-    std::vector<double> res_point_source = lfpp.lfp_values;
+    std::vector<double> res_point_source = lfpp.lfp_values();
     BOOST_REQUIRE_CLOSE(res_line_source[0], res_point_source[0], 1.0);
     BOOST_REQUIRE_CLOSE(res_line_source[1], res_point_source[1], 1.0);
 #if NRNMPI
