@@ -3,9 +3,9 @@
 #include <array>
 #include <vector>
 
+#include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/mpi/nrnmpidec.h"
 
 namespace coreneuron {
 
@@ -40,9 +40,9 @@ inline Point3D paxpy(const Point3D& p1, const double alpha, const Point3D& p2) {
  * \return Resistance of the medium from the segment to the electrode.
  */
 inline double point_source_lfp_factor(const Point3D& e_pos,
-                                 const Point3D& seg_pos,
-                                 const double radius,
-                                 const double f) {
+                                      const Point3D& seg_pos,
+                                      const double radius,
+                                      const double f) {
     nrn_assert(radius >= 0.0);
     Point3D es = paxpy(e_pos, -1.0, seg_pos);
     return f / std::max(norm(es), radius);
@@ -57,10 +57,10 @@ inline double point_source_lfp_factor(const Point3D& e_pos,
  * \return Resistance of the medium from the segment to the electrode.
  */
 double line_source_lfp_factor(const Point3D& e_pos,
-                         const Point3D& seg_0,
-                         const Point3D& seg_1,
-                         const double radius,
-                         const double f);
+                              const Point3D& seg_0,
+                              const Point3D& seg_1,
+                              const double radius,
+                              const double f);
 }  // namespace lfputils
 
 enum LFPCalculatorType { LineSource, PointSource };
@@ -97,10 +97,10 @@ struct LFPCalculator {
 
   private:
     inline double getFactor(const lfputils::Point3D& e_pos,
-                                 const lfputils::Point3D& seg_0,
-                                 const lfputils::Point3D& seg_1,
-                                 const double radius,
-                                 const double f) const;
+                            const lfputils::Point3D& seg_0,
+                            const lfputils::Point3D& seg_1,
+                            const double radius,
+                            const double f) const;
     std::vector<double> lfp_values_;
     std::vector<std::vector<double>> m;
     const std::vector<SegmentIdTy>& segment_ids_;
@@ -108,19 +108,19 @@ struct LFPCalculator {
 
 template <>
 double LFPCalculator<LineSource>::getFactor(const lfputils::Point3D& e_pos,
-                                                 const lfputils::Point3D& seg_0,
-                                                 const lfputils::Point3D& seg_1,
-                                                 const double radius,
-                                                 const double f) const {
+                                            const lfputils::Point3D& seg_0,
+                                            const lfputils::Point3D& seg_1,
+                                            const double radius,
+                                            const double f) const {
     return lfputils::line_source_lfp_factor(e_pos, seg_0, seg_1, radius, f);
 }
 
 template <>
 double LFPCalculator<PointSource>::getFactor(const lfputils::Point3D& e_pos,
-                                                  const lfputils::Point3D& seg_0,
-                                                  const lfputils::Point3D& seg_1,
-                                                  const double radius,
-                                                  const double f) const {
+                                             const lfputils::Point3D& seg_0,
+                                             const lfputils::Point3D& seg_1,
+                                             const double radius,
+                                             const double f) const {
     return lfputils::point_source_lfp_factor(e_pos, lfputils::barycenter(seg_0, seg_1), radius, f);
 }
 

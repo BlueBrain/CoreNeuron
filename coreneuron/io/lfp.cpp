@@ -10,10 +10,10 @@ namespace coreneuron {
 namespace lfputils {
 
 double line_source_lfp_factor(const Point3D& e_pos,
-                         const Point3D& seg_0,
-                         const Point3D& seg_1,
-                         const double radius,
-                         const double f) {
+                              const Point3D& seg_0,
+                              const Point3D& seg_1,
+                              const double radius,
+                              const double f) {
     nrn_assert(radius >= 0.0);
     Point3D dx = paxpy(seg_1, -1.0, seg_0);
     Point3D de = paxpy(e_pos, -1.0, seg_0);
@@ -111,7 +111,7 @@ inline void LFPCalculator<Type, SegmentIdTy>::lfp(const Vector& membrane_current
 #if NRNMPI
     lfp_values_.resize(res.size());
     int mpi_sum{1};
-    nrnmpi_dbl_allreduce_vec(res.data(), lfp_values_.data(), res.size(), mpi_sum); 
+    nrnmpi_dbl_allreduce_vec(res.data(), lfp_values_.data(), res.size(), mpi_sum);
 #else
     std::swap(res, lfp_values_);
 #endif
