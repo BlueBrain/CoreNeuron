@@ -91,7 +91,7 @@ struct LFPCalculator {
     template <typename Vector>
     void lfp(const Vector& membrane_current);
 
-    const std::vector<double> lfp_values() const noexcept {
+    const std::vector<double>& lfp_values() const noexcept {
         return lfp_values_; 
     }
 
