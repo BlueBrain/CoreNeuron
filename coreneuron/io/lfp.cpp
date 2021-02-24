@@ -9,29 +9,29 @@ namespace coreneuron {
 
 namespace lfputils {
 
-F line_source_lfp_factor(const Point3D& e_pos,
+double line_source_lfp_factor(const Point3D& e_pos,
                          const Point3D& seg_0,
                          const Point3D& seg_1,
-                         const F radius,
-                         const F f) {
+                         const double radius,
+                         const double f) {
     nrn_assert(radius >= 0.0);
     Point3D dx = paxpy(seg_1, -1.0, seg_0);
     Point3D de = paxpy(e_pos, -1.0, seg_0);
-    F dx2(dot(dx, dx));
-    F dxn(std::sqrt(dx2));
-    if (dxn < std::numeric_limits<F>::epsilon()) {
+    double dx2(dot(dx, dx));
+    double dxn(std::sqrt(dx2));
+    if (dxn < std::numeric_limits<double>::epsilon()) {
         return point_source_lfp_factor(e_pos, seg_0, radius, f);
     }
-    F de2(dot(de, de));
-    F mu(dot(dx, de) / dx2);
+    double de2(dot(de, de));
+    double mu(dot(dx, de) / dx2);
     Point3D de_star(paxpy(de, -mu, dx));
-    F de_star2(dot(de_star, de_star));
-    F q2(de_star2 / dx2);
+    double de_star2(dot(de_star, de_star));
+    double q2(de_star2 / dx2);
 
-    F delta(mu * mu - (de2 - radius * radius) / dx2);
-    F one_m_mu(1.0 - mu);
-    auto log_integral = [&q2, &dxn](F a, F b) {
-        if (q2 < std::numeric_limits<F>::epsilon()) {
+    double delta(mu * mu - (de2 - radius * radius) / dx2);
+    double one_m_mu(1.0 - mu);
+    auto log_integral = [&q2, &dxn](double a, double b) {
+        if (q2 < std::numeric_limits<double>::epsilon()) {
             if (a * b <= 0) {
                 std::ostringstream s;
                 s << "Log integral: invalid arguments " << b << " " << a
@@ -47,20 +47,20 @@ F line_source_lfp_factor(const Point3D& e_pos,
     if (delta <= 0.0) {
         return f * log_integral(-mu, one_m_mu);
     } else {
-        F sqr_delta(std::sqrt(delta));
-        F d1(mu - sqr_delta);
-        F d2(mu + sqr_delta);
-        F parts = 0.0;
+        double sqr_delta(std::sqrt(delta));
+        double d1(mu - sqr_delta);
+        double d2(mu + sqr_delta);
+        double parts = 0.0;
         if (d1 > 0.0) {
-            F b(std::min(d1, 1.0) - mu);
+            double b(std::min(d1, 1.0) - mu);
             parts += log_integral(-mu, b);
         }
         if (d2 < 1.0) {
-            F b(std::max(d2, 0.0) - mu);
+            double b(std::max(d2, 0.0) - mu);
             parts += log_integral(b, one_m_mu);
         };
         // complement
-        F maxd1_0(std::max(d1, 0.0)), mind2_1(std::min(d2, 1.0));
+        double maxd1_0(std::max(d1, 0.0)), mind2_1(std::min(d2, 1.0));
         if (maxd1_0 < mind2_1) {
             parts += 1.0 / radius * (mind2_1 - maxd1_0);
         }
@@ -131,8 +131,8 @@ template LFPCalculator<PointSource>::LFPCalculator(const lfputils::Point3Ds& seg
                                                    const std::vector<int>& segment_ids,
                                                    const lfputils::Point3Ds& electrodes,
                                                    double extra_cellular_conductivity);
-template void LFPCalculator<LineSource>::lfp(const Vec& membrane_current);
-template void LFPCalculator<PointSource>::lfp(const Vec& membrane_current);
+template void LFPCalculator<LineSource>::lfp(const DoublePtr& membrane_current);
+template void LFPCalculator<PointSource>::lfp(const DoublePtr& membrane_current);
 template void LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
 template void LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
 
