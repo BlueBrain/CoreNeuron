@@ -140,4 +140,4 @@ extern template void LFPCalculator<LineSource>::lfp(const lfputils::DoublePtr& m
 extern template void LFPCalculator<PointSource>::lfp(const lfputils::DoublePtr& membrane_current);
 extern template void LFPCalculator<LineSource>::lfp(const std::vector<double>& membrane_current);
 extern template void LFPCalculator<PointSource>::lfp(const std::vector<double>& membrane_current);
-};  // namespace coreneuron
+}  // namespace coreneuron
