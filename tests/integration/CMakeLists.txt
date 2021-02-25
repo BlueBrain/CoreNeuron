@@ -30,6 +30,18 @@ set(TEST_CASES_WITH_ARGS
     "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
 
+# ~~~
+# As reports require MPI, do not add test if report is enabled.
+# GPU tests need SLURM allocation and hence they won't run without srun
+# ~~~
+if(NOT CORENRN_ENABLE_REPORTING AND NOT CORENRN_ENABLE_GPU)
+  list(
+    APPEND
+    TEST_CASES_WITH_ARGS
+    "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
+  )
+endif()
+
 set(NEGATIVE_TEST_CASES_WITH_ARGS
     "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456"
 )
@@ -41,6 +53,7 @@ set(NEGATIVE_TEST_CASES_WITH_ARGS
 foreach(data_dir "ring" "ring_gap")
   foreach(
     test_suffix
+    "serial"
     "multisend"
     "binqueue"
     "savestate_permute0"
@@ -67,7 +80,12 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
 foreach(args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
   if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+    # serial test run without srun or mpiexec
+    if(args_line MATCHES "ring_serial.*")
+      string(REPLACE ";" " " SRUN_PREFIX "")
+    else()
+      string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+    endif()
   endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
