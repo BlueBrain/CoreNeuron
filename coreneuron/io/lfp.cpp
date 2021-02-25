@@ -7,6 +7,9 @@
 
 namespace coreneuron {
 
+// extern variables require acc declare
+#pragma acc declare create(celsius)
+
 namespace lfputils {
 
 double line_source_lfp_factor(const Point3D& e_pos,
