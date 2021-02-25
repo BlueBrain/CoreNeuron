@@ -8,7 +8,7 @@
 namespace coreneuron {
 
 // extern variables require acc declare
-#pragma acc declare create(celsius)
+#pragma acc declare create(pi)
 
 namespace lfputils {
 
