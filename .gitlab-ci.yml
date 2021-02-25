@@ -1,0 +1,70 @@
+include:
+  - project: hpc/gitlab-pipelines
+    ref: olupton/coreneuron # TODO drop this
+    file: spack-build-components.gitlab-ci.yml
+
+# Configure when the pipeline actually runs.
+workflow:
+  rules:
+    # Don't run on push events for now to try and save resources
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never
+    # Don't run on MR events because we also get "external_pull_request_event" from GitHub.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - when: always
+
+stages:
+    - .pre
+    - build
+    - test
+    - build_neuron
+    - test_neuron
+
+# Set up Spack
+spack_setup:
+  extends: .spack_setup_ccache
+
+.spack_intel:
+  variables:
+    SPACK_COMPILER: intel
+.spack_coreneuron:
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_SPEC: +debug+tests~legacy-unit
+.spack_neuron:
+  variables:
+    SPACK_PACKAGE: neuron
+    # TODO: need a way of configuring this, maybe from the PR description?
+    SPACK_COMMIT: branch="olupton/ext_coreneuron_fix"
+    SPACK_SPEC: +coreneuron+debug+tests~legacy-unit
+
+# CoreNEURON will be checked out for us by default
+build:coreneuron:intel:
+  extends:
+    - .spack_build
+    - .spack_coreneuron
+    - .spack_intel
+
+test:coreneuron:intel:
+  extends:
+    - .ctest
+  needs: ["build:coreneuron:intel"]
+
+build:neuron:intel:
+  stage: build_neuron
+  extends:
+    - .spack_build
+    - .spack_neuron
+    - .spack_intel
+  needs: ["build:coreneuron:intel"]
+
+test:neuron:intel:
+  stage: test_neuron
+  before_script:
+    - !reference [.ctest, before_script]
+    # Wipe Slurm environment to try and keep mpiexec happy.
+    - unset $(env|awk -F= '/^SLURM_/ {if (match($1, "_(ACCOUNT|PARTITION)$")==0) print $1}')
+  extends:
+    - .ctest
+  needs: ["build:neuron:intel"]

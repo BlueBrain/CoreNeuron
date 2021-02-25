@@ -79,12 +79,14 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
 # Configure test scripts
 foreach(args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
+  set(test_num_processors 1)
   if(MPI_FOUND)
     # serial test run without srun or mpiexec
     if(args_line MATCHES "ring_serial.*")
       string(REPLACE ";" " " SRUN_PREFIX "")
     else()
-      string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+      set(test_num_processors 2)
+      string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;${test_num_processors}")
     endif()
   endif()
   list(GET string_line 0 TEST_NAME)
@@ -95,12 +97,15 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
     NAME ${TEST_NAME}_TEST
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
+  set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
 endforeach()
 
 foreach(args_line ${NEGATIVE_TEST_CASES})
   string(REPLACE "!" ";" string_line ${args_line})
+  set(test_num_processors 1)
   if(MPI_FOUND)
-    string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;2")
+    set(test_num_processors 2)
+    string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;${test_num_processors}")
   endif()
   list(GET string_line 0 TEST_NAME)
   list(GET string_line 1 TEST_ARGS)
@@ -110,6 +115,7 @@ foreach(args_line ${NEGATIVE_TEST_CASES})
     NAME ${TEST_NAME}_TEST
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/negative_integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
+  set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
 endforeach()
 
 if(CORENRN_ENABLE_REPORTING)
