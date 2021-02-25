@@ -72,7 +72,6 @@ template <LFPCalculatorType Ty, typename SegmentIdTy = int>
 struct LFPCalculator {
     /**
      * LFP Calculator constructor
-     * \param comm MPI communicator
      * \param seg_start all segments start owned by the proc
      * \param seg_end all segments end owned by the proc
      * \param radius fence around the segment. Ensures electrode cannot be
