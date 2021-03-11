@@ -1,6 +1,7 @@
 include:
   - project: hpc/gitlab-pipelines
-    ref: olupton/coreneuron # TODO drop this
+    # TODO drop this once https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines/-/merge_requests/7 is merged.
+    ref: olupton/coreneuron
     file: spack-build-components.gitlab-ci.yml
 
 # Configure when the pipeline actually runs.
@@ -27,17 +28,16 @@ spack_setup:
 
 .spack_intel:
   variables:
-    SPACK_COMPILER: intel
+    SPACK_PACKAGE_COMPILER: intel
 .spack_coreneuron:
   variables:
     SPACK_PACKAGE: coreneuron
-    SPACK_SPEC: +debug+tests~legacy-unit
+    SPACK_PACKAGE_SPEC: +debug+tests~legacy-unit
 .spack_neuron:
   variables:
     SPACK_PACKAGE: neuron
-    # TODO: need a way of configuring this, maybe from the PR description?
-    SPACK_COMMIT: branch="olupton/ext_coreneuron_fix"
-    SPACK_SPEC: +coreneuron+debug+tests~legacy-unit
+    SPACK_PACKAGE_REF: '' # Take the default branch
+    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
 
 # CoreNEURON will be checked out for us by default
 build:coreneuron:intel:
