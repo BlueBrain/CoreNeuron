@@ -1,17 +1,10 @@
 include:
   - project: hpc/gitlab-pipelines
-    file: spack-build-components.gitlab-ci.yml
-
-# Configure when the pipeline actually runs.
-workflow:
-  rules:
-    # Don't run on push events for now to try and save resources
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never
-    # Don't run on MR events because we also get "external_pull_request_event" from GitHub.
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - when: always
+    # TODO remove this when https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines/-/merge_requests/10 is merged
+    ref: olupton/github-workflow
+    file:
+      - spack-build-components.gitlab-ci.yml
+      - github-project-pipelines.gitlab-ci.yml
 
 stages:
     - .pre
