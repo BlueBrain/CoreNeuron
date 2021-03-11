@@ -1,7 +1,5 @@
 include:
   - project: hpc/gitlab-pipelines
-    # TODO drop this once https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines/-/merge_requests/7 is merged.
-    ref: olupton/coreneuron
     file: spack-build-components.gitlab-ci.yml
 
 # Configure when the pipeline actually runs.
