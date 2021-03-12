@@ -14,6 +14,19 @@ stages:
 # Set up Spack
 spack_setup:
   extends: .spack_setup_ccache
+  script:
+    - !reference [.spack_setup_ccache, script]
+    # This allows us to use the CoreNEURON repository in regression tests of
+    # the gitlab-pipelines repositories. The regression test pipeline triggers
+    # *this* pipeline as a child, having pushed a modified branch to the GitLab
+    # mirror of the CoreNEURON repository. We have to update the Spack recipe
+    # to point at the GitLab mirror so the relevant commit (on the modified
+    # branch) can be found.
+    - if [[ "${CI_PIPELINE_SOURCE}" == "pipeline" ]]; then
+    - cd $(spack location -p coreneuron)
+    - sed -i -e 's#\(git\s*=\s\)"https://github.com/BlueBrain/CoreNeuron"#\1"git@bbpgitlab.epfl.ch:hpc/coreneuron.git"#' package.py
+    - git diff
+    - fi
 
 .spack_intel:
   variables:
