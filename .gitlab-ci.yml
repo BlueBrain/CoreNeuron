@@ -1,7 +1,5 @@
 include:
   - project: hpc/gitlab-pipelines
-    # TODO remove this when https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines/-/merge_requests/10 is merged
-    ref: olupton/github-workflow
     file:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
