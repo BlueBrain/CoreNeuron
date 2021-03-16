@@ -31,27 +31,44 @@ spack_setup:
 .spack_intel:
   variables:
     SPACK_PACKAGE_COMPILER: intel
-.spack_coreneuron:
-  variables:
-    SPACK_PACKAGE: coreneuron
-    SPACK_PACKAGE_SPEC: +debug+tests~legacy-unit
 .spack_neuron:
   variables:
     SPACK_PACKAGE: neuron
-    SPACK_PACKAGE_REF: '' # Take the default branch
+    SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
 
-# CoreNEURON will be checked out for us by default
 build:coreneuron:intel:
   extends:
     - .spack_build
-    - .spack_coreneuron
     - .spack_intel
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
+
+build:coreneuron:gpu:
+  extends:
+    - .spack_build
+  variables:
+    SPACK_PACKAGE: coreneuron
+    # With NVHPC 20.9 and CUDA 11.1 we cannot compile with build_type=Debug
+    # +report would try to build hdf5%nvhpc, which doesn't work. For now we use
+    # ~report instead of something like ^hdf5%intel.
+    SPACK_PACKAGE_SPEC: +gpu+tests~legacy-unit~report build_type=RelWithDebInfo
+    # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
+    bb5_constraint: volta
+    SPACK_PACKAGE_COMPILER: nvhpc
 
 test:coreneuron:intel:
+  extends: [.ctest]
+  needs: ["build:coreneuron:intel"]
+
+test:coreneuron:gpu:
   extends:
     - .ctest
-  needs: ["build:coreneuron:intel"]
+  variables:
+    # GPU tests need to run on nodes with GPUs.
+    bb5_constraint: volta
+  needs: ["build:coreneuron:gpu"]
 
 build:neuron:intel:
   stage: build_neuron
@@ -61,12 +78,44 @@ build:neuron:intel:
     - .spack_intel
   needs: ["build:coreneuron:intel"]
 
+build:neuron:gpu:
+  stage: build_neuron
+  extends:
+    - .spack_build
+    - .spack_neuron
+  variables:
+    # Avoid trying to build all the NEURON dependencies with the PGI/NVHPC/GPU
+    # compiler.
+    SPACK_PACKAGE_COMPILER: nvhpc
+    SPACK_EXPORT_SPECS: gettext
+    # Compiling NEURON invokes `nrnivmodl -coreneuron`, which invokes the NVHPC
+    # compiler used to build CoreNEURON. As noted above, this only works on the
+    # nodes with GPUs.
+    bb5_constraint: volta
+  before_script:
+    # The +rx3d variant is not compatible with the NVHPC compiler.
+    # See: https://github.com/neuronsimulator/nrn/issues/1109
+    - SPACK_PACKAGE_SPEC="~rx3d${SPACK_PACKAGE_SPEC}"
+    # Get the hash of a gcc build of py-cython so we can force the nvhpc build
+    # of neuron to use it. py-cython does not build with nvhpc.
+    - . ${SPACK_ROOT}/share/spack/setup-env.sh
+    - CYTHON_HASH=$(spack find --json py-cython%gcc | python -c "import json, sys; print(json.loads(sys.stdin.read())[0]['hash'])")
+    # Inject the hash for py-cython after the one for coreneuron; also say
+    # numpy has to be built with GCC to minimise the amount of time we spend
+    # building dependencies in the CI.
+    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^/${CYTHON_HASH}^py-numpy%gcc"
+    - !reference [.spack_build, before_script]
+  needs: ["build:coreneuron:gpu"]
+
 test:neuron:intel:
   stage: test_neuron
-  before_script:
-    - !reference [.ctest, before_script]
-    # Wipe Slurm environment to try and keep mpiexec happy.
-    - unset $(env|awk -F= '/^SLURM_/ {if (match($1, "_(ACCOUNT|PARTITION)$")==0) print $1}')
-  extends:
-    - .ctest
+  extends: [.ctest]
   needs: ["build:neuron:intel"]
+
+test:neuron:gpu:
+  stage: test_neuron
+  extends: [.ctest]
+  variables:
+    # GPU tests need to run on nodes with GPUs.
+    bb5_constraint: volta
+  needs: ["build:neuron:gpu"]
