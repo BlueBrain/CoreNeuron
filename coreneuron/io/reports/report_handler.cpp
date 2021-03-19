@@ -72,7 +72,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
             auto report_event = std::make_unique<ReportEvent>(dt,
                                                               t,
                                                               vars_to_report,
-                                                              m_report_config.output_path.data());
+                                                              m_report_config.output_path.data(),
+                                                              m_report_config.report_dt);
             report_event->send(t, net_cvode_instance, &nt);
             m_report_events.push_back(std::move(report_event));
         }
