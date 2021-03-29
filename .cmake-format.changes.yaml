@@ -4,3 +4,8 @@ additional_commands:
     flags: ["STATIC", "SHARED", "MODULE", "EXCLUDE_FROM_ALL"]
     kwargs:
       OPTIONS: '*'
+  cpp_cc_build_time_copy:
+    flags: ['NO_TARGET']
+    kwargs:
+      INPUT: '1'
+      OUTPUT: '1'
