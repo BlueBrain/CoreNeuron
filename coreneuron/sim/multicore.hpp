@@ -129,9 +129,9 @@ struct NrnThread: public MemoryManaged {
     int _net_send_buffer_cnt = 0;
     int* _net_send_buffer = nullptr;
 
-    int* _watch_types = nullptr;                   /* nullptr or 0 terminated array of integers */
-    void* mapping = nullptr;                       /* section to segment mapping information */
-    void* alu_ = nullptr;
+    int* _watch_types = nullptr; /* nullptr or 0 terminated array of integers */
+    void* mapping = nullptr;     /* section to segment mapping information */
+    void* alu_ = nullptr;        /* report to ALU (values of the current summation */
     TrajectoryRequests* trajec_requests = nullptr; /* per time step values returned to NEURON */
 
     /* Needed in case there are FOR_NETCON statements in use. */

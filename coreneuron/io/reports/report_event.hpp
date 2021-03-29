@@ -32,7 +32,11 @@ using VarsToReport = std::unordered_map<int, std::vector<VarWithMapping>>;
 
 class ReportEvent: public DiscreteEvent {
   public:
-    ReportEvent(double dt, double tstart, const VarsToReport& filtered_gids, const char* name, double report_dt);
+    ReportEvent(double dt,
+                double tstart,
+                const VarsToReport& filtered_gids,
+                const char* name,
+                double report_dt);
 
     /** on deliver, call ReportingLib and setup next event */
     void deliver(double t, NetCvode* nc, NrnThread* nt) override;

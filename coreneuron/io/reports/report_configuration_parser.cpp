@@ -40,7 +40,7 @@ enum class TargetType {
 };
 
 /*
- * Split filter string ("mech.var_name") into mech_id and var_name
+ * Split filter comma separated strings ("mech.var_name") into mech_name and var_name
  */
 void parse_filter_string(const std::string& filter, ReportConfiguration& config) {
     std::istringstream in(filter);
@@ -48,22 +48,23 @@ void parse_filter_string(const std::string& filter, ReportConfiguration& config)
     std::vector<std::string> mechanisms;
     std::stringstream ss(filter);
     std::string mechanism;
-    // Tokenizing with ','
-    while(getline(ss, mechanism, ',')) {
+    // Separate in case of more than 1 report_on
+    while (getline(ss, mechanism, ',')) {
         mechanisms.push_back(mechanism);
     }
-    for(auto i=0; i < mechanisms.size(); ++i) {
+    // Split mechanisms
+    for (int i = 0; i < mechanisms.size(); ++i) {
         std::string mech_name;
         std::string var_name;
         std::istringstream iss(mechanisms[i]);
         std::getline(iss, mech_name, '.');
         std::getline(iss, var_name, '.');
-        if(var_name.empty()) {
+        if (var_name.empty()) {
             var_name = "i";
         }
         config.mech_names.emplace_back(mech_name);
         config.var_names.emplace_back(var_name);
-        if(mech_name == "i_membrane") {
+        if (mech_name == "i_membrane") {
             nrn_use_fast_imem = true;
         }
     }

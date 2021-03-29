@@ -32,7 +32,7 @@ ReportEvent::ReportEvent(double dt,
     VarsToReport::iterator it;
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
-    reporting_period = static_cast<int>(report_dt/dt);
+    reporting_period = static_cast<int>(report_dt / dt);
     gids_to_report.reserve(filtered_gids.size());
     for (const auto& gid: filtered_gids) {
         gids_to_report.push_back(gid.first);
@@ -41,12 +41,12 @@ ReportEvent::ReportEvent(double dt,
 }
 
 void ReportEvent::summation_ALU(NrnThread* nt) {
-    if(static_cast<int>(step) % reporting_period == 0) {
+    if (static_cast<int>(step) % reporting_period == 0) {
         auto* alu_mapping = static_cast<ALUMapping*>(nt->alu_);
         auto& alu = alu_mapping->report_ALU_[report_path];
         double sum = 0.0;
-        for(const auto& kv: alu.currents_) {
-            for(const auto& value: kv.second) {
+        for (const auto& kv: alu.currents_) {
+            for (const auto& value: kv.second) {
                 sum += *value.first * value.second;
             }
             alu.summation_[kv.first] = sum;
