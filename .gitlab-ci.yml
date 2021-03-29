@@ -31,32 +31,35 @@ spack_setup:
 .spack_intel:
   variables:
     SPACK_PACKAGE_COMPILER: intel
+.spack_nvhpc:
+  variables:
+    # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
+    bb5_constraint: volta
+    SPACK_PACKAGE_COMPILER: nvhpc
 .spack_neuron:
   variables:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
+.spack_coreneuron:
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
 
 build:coreneuron:intel:
   extends:
     - .spack_build
     - .spack_intel
-  variables:
-    SPACK_PACKAGE: coreneuron
-    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
+    - .spack_coreneuron
 
 build:coreneuron:gpu:
+  variables:
+    # +report pulls in a lot of dependencies and the tests fail.
+    SPACK_PACKAGE_SPEC: +tests~legacy-unit~report build_type=Debug
   extends:
     - .spack_build
-  variables:
-    SPACK_PACKAGE: coreneuron
-    # With NVHPC 20.9 and CUDA 11.1 we cannot compile with build_type=Debug
-    # +report would try to build hdf5%nvhpc, which doesn't work. For now we use
-    # ~report instead of something like ^hdf5%intel.
-    SPACK_PACKAGE_SPEC: +gpu+tests~legacy-unit~report build_type=RelWithDebInfo
-    # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
-    bb5_constraint: volta
-    SPACK_PACKAGE_COMPILER: nvhpc
+    - .spack_coreneuron
+    - .spack_nvhpc
 
 test:coreneuron:intel:
   extends: [.ctest]
@@ -83,19 +86,12 @@ build:neuron:gpu:
   extends:
     - .spack_build
     - .spack_neuron
+    - .spack_nvhpc
   variables:
     # Avoid trying to build all the NEURON dependencies with the PGI/NVHPC/GPU
     # compiler.
-    SPACK_PACKAGE_COMPILER: nvhpc
     SPACK_EXPORT_SPECS: gettext
-    # Compiling NEURON invokes `nrnivmodl -coreneuron`, which invokes the NVHPC
-    # compiler used to build CoreNEURON. As noted above, this only works on the
-    # nodes with GPUs.
-    bb5_constraint: volta
   before_script:
-    # The +rx3d variant is not compatible with the NVHPC compiler.
-    # See: https://github.com/neuronsimulator/nrn/issues/1109
-    - SPACK_PACKAGE_SPEC="~rx3d${SPACK_PACKAGE_SPEC}"
     # Get the hash of a gcc build of py-cython so we can force the nvhpc build
     # of neuron to use it. py-cython does not build with nvhpc.
     - . ${SPACK_ROOT}/share/spack/setup-env.sh
