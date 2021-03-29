@@ -17,6 +17,7 @@
 
 namespace coreneuron {
 void setup_nrnthreads_on_device(NrnThread* threads, int nthreads);
+void delete_nrnthreads_on_device(NrnThread* threads, int nthreads);
 void update_nrnthreads_on_host(NrnThread* threads, int nthreads);
 void update_nrnthreads_on_device(NrnThread* threads, int nthreads);
 void modify_data_on_device(NrnThread* threads, int nthreads);

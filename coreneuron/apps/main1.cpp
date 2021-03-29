@@ -608,6 +608,11 @@ extern "C" int run_solve_core(int argc, char** argv) {
         finalize_report();
     }
 
+    // cleanup threads on GPU
+    if (corenrn_param.gpu) {
+        delete_nrnthreads_on_device(nrn_threads, nrn_nthread);
+    }
+
     // Cleaning the memory
     nrn_cleanup();
 
