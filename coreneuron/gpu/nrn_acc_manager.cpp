@@ -922,9 +922,6 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 acc_delete(info->firstnode, sizeof(int) * (info->nwarp + 1));
                 acc_delete(info->stride, sizeof(int) * info->nstride);
                 acc_delete(info, sizeof(InterleaveInfo));
-            } else {
-                printf("\n ERROR: only --cell_permute = [12] implemented");
-                abort();
             }
         }
 
@@ -1062,6 +1059,23 @@ void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 #endif
 }
 
+void nrn_newtonspace_delete_from_device(NewtonSpace* ns) {
+#ifdef _OPENACC
+    if (nrn_threads[0].compute_gpu == 0) {
+        return;
+    }
+    int n = ns->n * ns->n_instance;
+    acc_delete(ns->jacobian[0], ns->n * n * sizeof(double));
+    acc_delete(ns->jacobian, ns->n * sizeof(double*));
+    acc_delete(ns->perm, n * sizeof(int));
+    acc_delete(ns->rowmax, n * sizeof(double));
+    acc_delete(ns->low_value, n * sizeof(double));
+    acc_delete(ns->high_value, n * sizeof(double));
+    acc_delete(ns->delta_x, n * sizeof(double));
+    acc_delete(ns, sizeof(NewtonSpace));
+#endif
+}
+
 void nrn_sparseobj_copyto_device(SparseObj* so) {
 #ifdef _OPENACC
     if (nrn_threads[0].compute_gpu == 0) {
@@ -1140,6 +1154,27 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
         pd = (double*) acc_deviceptr(so->coef_list[i]);
         acc_memcpy_to_device(&(d_coef_list[i]), &pd, sizeof(double*));
     }
+#endif
+}
+
+void nrn_sparseobj_delete_from_device(SparseObj* so) {
+#ifdef _OPENACC
+    if (nrn_threads[0].compute_gpu == 0) {
+        return;
+    }
+    unsigned n1 = so->neqn + 1;
+    for (unsigned irow = 1; irow < n1; ++irow) {
+        for (Elm* elm = so->rowst[irow]; elm; elm = elm->c_right) {
+            acc_delete(elm->value, so->_cntml_padded * sizeof(double));
+            acc_delete(elm, sizeof(Elm));
+        }
+    }
+    acc_delete(so->coef_list, so->coef_list_size * sizeof(double*));
+    acc_delete(so->rhs, n1 * so->_cntml_padded * sizeof(double));
+    acc_delete(so->ngetcall, so->_cntml_padded * sizeof(unsigned));
+    acc_delete(so->diag, n1 * sizeof(Elm*));
+    acc_delete(so->rowst, n1 * sizeof(Elm*));
+    acc_delete(so, sizeof(SparseObj));
 #endif
 }
 
