@@ -626,7 +626,6 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 #endif
 
-    finalize_data_on_device();
     Instrumentor::phase_end("main");
 
     return 0;

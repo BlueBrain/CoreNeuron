@@ -867,15 +867,6 @@ void update_matrix_to_gpu(NrnThread* _nt) {
 #endif
 }
 
-void finalize_data_on_device() {
-    /*@todo: when we have used random123 on gpu and we do this finalize,
-    I am seeing cuCtxDestroy returned CUDA_ERROR_INVALID_CONTEXT error.
-    THis might be due to the fact that the cuda apis (e.g. free is not
-    called yet for Ramdom123 data / streams etc. So handle this better!
-    */
-    return;
-}
-
 /** Cleanup device memory that is being tracked by the OpenACC runtime.
  *
  *  This function painstakingly calls `acc_delete` in reverse order on all
@@ -1021,6 +1012,8 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
 void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 #ifdef _OPENACC
+    // FIXME this check needs to be tweaked if we ever want to run with a mix
+    //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
@@ -1061,6 +1054,8 @@ void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 
 void nrn_newtonspace_delete_from_device(NewtonSpace* ns) {
 #ifdef _OPENACC
+    // FIXME this check needs to be tweaked if we ever want to run with a mix
+    //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
@@ -1078,6 +1073,8 @@ void nrn_newtonspace_delete_from_device(NewtonSpace* ns) {
 
 void nrn_sparseobj_copyto_device(SparseObj* so) {
 #ifdef _OPENACC
+    // FIXME this check needs to be tweaked if we ever want to run with a mix
+    //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
@@ -1159,6 +1156,8 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
 
 void nrn_sparseobj_delete_from_device(SparseObj* so) {
 #ifdef _OPENACC
+    // FIXME this check needs to be tweaked if we ever want to run with a mix
+    //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {
         return;
     }
