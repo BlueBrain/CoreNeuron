@@ -35,6 +35,8 @@ spack_setup:
   variables:
     # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
     bb5_constraint: volta
+    # We cannot use phase 2 GPU nodes for the moment.
+    bb5_partition: prod_p1
     SPACK_PACKAGE_COMPILER: nvhpc
 .spack_neuron:
   variables:
@@ -71,6 +73,8 @@ test:coreneuron:gpu:
   variables:
     # GPU tests need to run on nodes with GPUs.
     bb5_constraint: volta
+    # We cannot use phase 2 GPU nodes for the moment.
+    bb5_partition: prod_p1
   needs: ["build:coreneuron:gpu"]
 
 build:neuron:intel:
@@ -114,4 +118,6 @@ test:neuron:gpu:
   variables:
     # GPU tests need to run on nodes with GPUs.
     bb5_constraint: volta
+    # We cannot use phase 2 GPU nodes for the moment.
+    bb5_partition: prod_p1
   needs: ["build:neuron:gpu"]
