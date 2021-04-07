@@ -43,20 +43,17 @@ enum class TargetType {
  * Split filter comma separated strings ("mech.var_name") into mech_name and var_name
  */
 void parse_filter_string(const std::string& filter, ReportConfiguration& config) {
-    std::istringstream in(filter);
-
     std::vector<std::string> mechanisms;
     std::stringstream ss(filter);
     std::string mechanism;
-    // Separate in case of more than 1 report_on
+    // Multiple report variables are separated by `,`
     while (getline(ss, mechanism, ',')) {
         mechanisms.push_back(mechanism);
-    }
-    // Split mechanisms
-    for (int i = 0; i < mechanisms.size(); ++i) {
+
+        // Split mechanism name and corresponding reporting variable
         std::string mech_name;
         std::string var_name;
-        std::istringstream iss(mechanisms[i]);
+        std::istringstream iss(mechanism);
         std::getline(iss, mech_name, '.');
         std::getline(iss, var_name, '.');
         if (var_name.empty()) {

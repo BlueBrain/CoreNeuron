@@ -40,16 +40,19 @@ ReportEvent::ReportEvent(double dt,
     std::sort(gids_to_report.begin(), gids_to_report.end());
 }
 
-void ReportEvent::summation_ALU(NrnThread* nt) {
+void ReportEvent::summation_alu(NrnThread* nt) {
     if (static_cast<int>(step) % reporting_period == 0) {
-        auto* alu_mapping = static_cast<ALUMapping*>(nt->alu_);
-        auto& alu = alu_mapping->report_ALU_[report_path];
+        auto& summation_report = nt->summation_report_handler_->summation_reports_[report_path];
+        // Add currents of all variables in each segment
         double sum = 0.0;
-        for (const auto& kv: alu.currents_) {
+        for (const auto& kv: summation_report.currents_) {
+            int segment_id = kv.first;
             for (const auto& value: kv.second) {
-                sum += *value.first * value.second;
+                double current_value = *value.first;
+                int scalar = value.second;
+                sum += current_value * scalar;
             }
-            alu.summation_[kv.first] = sum;
+            summation_report.summation_[segment_id] = sum;
             sum = 0.0;
         }
     }
@@ -60,7 +63,7 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 /* reportinglib is not thread safe */
 #pragma omp critical
     {
-        summation_ALU(nt);
+        summation_alu(nt);
         // each thread needs to know its own step
 #ifdef ENABLE_BIN_REPORTS
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());

@@ -852,10 +852,6 @@ void nrn_cleanup() {
             delete ((NrnThreadMappingInfo*) nt->mapping);
         }
 
-        if (nt->alu_) {
-            delete ((ALUMapping*) nt->alu_);
-        }
-
         free_memory(nt->_ml_list);
 
         if (nt->nrn_fast_imem) {
@@ -924,7 +920,6 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
 
     /** mapping information for all neurons in single NrnThread */
     NrnThreadMappingInfo* ntmapping = new NrnThreadMappingInfo();
-    ALUMapping* alu = new ALUMapping();
 
     int count = 0;
 
@@ -957,7 +952,7 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
 
     // set pointer in NrnThread
     nt.mapping = (void*) ntmapping;
-    nt.alu_ = (void*) alu;
+    nt.summation_report_handler_ = std::make_unique<SummationReportMapping>();
 }
 
 static size_t memb_list_size(NrnThreadMembList* tml) {

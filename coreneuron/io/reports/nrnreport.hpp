@@ -24,16 +24,16 @@
 
 namespace coreneuron {
 
-struct ALU {
+struct SummationReport {
     // Contains the values of the summation with index == segment_id
     std::vector<double> summation_ = {};
     // Map containing the pointers of the currents and its scaling factor for every segment_id
     std::unordered_map<int, std::vector<std::pair<double*, int>>> currents_;
 };
 
-struct ALUMapping {
-    // Map containing an ALU object per report
-    std::unordered_map<std::string, ALU> report_ALU_;
+struct SummationReportMapping {
+    // Map containing an SummationReport object per report
+    std::unordered_map<std::string, SummationReport> summation_reports_;
 };
 
 // name of the variable in mod file that is used to indicate which synapse

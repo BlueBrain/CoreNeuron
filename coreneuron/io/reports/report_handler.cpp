@@ -270,8 +270,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
     const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
-    auto* alu_mapping = static_cast<ALUMapping*>(nt.alu_);
-    auto& alu = alu_mapping->report_ALU_[report.output_path];
+    auto& summation_report = nt.summation_report_handler_->summation_reports_[report.output_path];
     if (!mapinfo) {
         std::cerr << "[COMPARTMENTS] Error : mapping information is missing for a Cell group "
                   << nt.ncell << '\n';
@@ -283,6 +282,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             continue;
         }
         bool has_imembrane = false;
+        // In case we need convertion of units
         int scalar = 1;
         for (auto i = 0; i < report.mech_ids.size(); ++i) {
             auto mech_id = report.mech_ids[i];
@@ -302,7 +302,8 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                     if ((nodes_to_gids[ml->nodeindices[j]] == gid)) {
                         double* var_value =
                             get_var_location_from_var_name(mech_id, var_name.data(), ml, j);
-                        alu.currents_[segment_id].push_back(std::make_pair(var_value, scalar));
+                        summation_report.currents_[segment_id].push_back(
+                            std::make_pair(var_value, scalar));
                     }
                 }
             } else {
@@ -319,7 +320,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             }
             std::vector<VarWithMapping> to_report;
             to_report.reserve(cell_mapping->size());
-            alu.summation_.resize(nt.end);
+            summation_report.summation_.resize(nt.end);
             const auto& section_mapping = cell_mapping->secmapvec;
             for (const auto& sections: section_mapping) {
                 for (auto& section: sections->secmap) {
@@ -329,10 +330,10 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                     for (const auto& segment_id: segment_ids) {
                         /** corresponding voltage in coreneuron voltage array */
                         if (has_imembrane) {
-                            alu.currents_[segment_id].push_back(
+                            summation_report.currents_[segment_id].push_back(
                                 std::make_pair(nt.nrn_fast_imem->nrn_sav_rhs + segment_id, 1));
                         }
-                        double* variable = alu.summation_.data() + segment_id;
+                        double* variable = summation_report.summation_.data() + segment_id;
                         to_report.emplace_back(VarWithMapping(section_id, variable));
                     }
                 }
