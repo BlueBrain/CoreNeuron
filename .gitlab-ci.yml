@@ -35,32 +35,29 @@ spack_setup:
   variables:
     # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
     bb5_constraint: volta
-    # We cannot use phase 2 GPU nodes for the moment.
-    bb5_partition: prod_p1
     SPACK_PACKAGE_COMPILER: nvhpc
 .spack_neuron:
   variables:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
-.spack_coreneuron:
+
+build:coreneuron:intel:
   variables:
     SPACK_PACKAGE: coreneuron
     SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
-
-build:coreneuron:intel:
   extends:
     - .spack_build
     - .spack_intel
-    - .spack_coreneuron
 
 build:coreneuron:gpu:
   variables:
+    SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
-    SPACK_PACKAGE_SPEC: +tests~legacy-unit~report build_type=Debug
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +gpu+tests~legacy-unit~report build_type=RelWithDebInfo
   extends:
     - .spack_build
-    - .spack_coreneuron
     - .spack_nvhpc
 
 test:coreneuron:intel:
@@ -73,8 +70,6 @@ test:coreneuron:gpu:
   variables:
     # GPU tests need to run on nodes with GPUs.
     bb5_constraint: volta
-    # We cannot use phase 2 GPU nodes for the moment.
-    bb5_partition: prod_p1
   needs: ["build:coreneuron:gpu"]
 
 build:neuron:intel:
@@ -118,6 +113,4 @@ test:neuron:gpu:
   variables:
     # GPU tests need to run on nodes with GPUs.
     bb5_constraint: volta
-    # We cannot use phase 2 GPU nodes for the moment.
-    bb5_partition: prod_p1
   needs: ["build:neuron:gpu"]
