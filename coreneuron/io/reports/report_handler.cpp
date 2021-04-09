@@ -276,6 +276,11 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                   << nt.ncell << '\n';
         nrn_abort(1);
     }
+    if (report.target_type == TargetType::Soma) {
+        std::cerr << "[SUMMATION] Error with report: '" << report.name
+                  << "' Soma target not supported with summation reports" << std::endl;
+        nrn_abort(1);
+    }
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
         if (report.target.find(gid) == report.target.end()) {
@@ -283,7 +288,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
         }
         bool has_imembrane = false;
         // In case we need convertion of units
-        int scalar = 1;
+        int scale = 1;
         for (auto i = 0; i < report.mech_ids.size(); ++i) {
             auto mech_id = report.mech_ids[i];
             auto var_name = report.var_names[i];
@@ -291,19 +296,20 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             if (mech_name != "i_membrane") {
                 // need special handling for Clamp processes to flip the current value
                 if (mech_name == "IClamp" || mech_name == "SEClamp") {
-                    scalar = -1;
+                    scale = -1;
                 }
                 Memb_list* ml = nt._ml_list[mech_id];
                 if (!ml) {
                     continue;
                 }
+
                 for (int j = 0; j < ml->nodecount; j++) {
                     auto segment_id = ml->nodeindices[j];
                     if ((nodes_to_gids[ml->nodeindices[j]] == gid)) {
                         double* var_value =
                             get_var_location_from_var_name(mech_id, var_name.data(), ml, j);
                         summation_report.currents_[segment_id].push_back(
-                            std::make_pair(var_value, scalar));
+                            std::make_pair(var_value, scale));
                     }
                 }
             } else {
@@ -314,7 +320,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
             if (cell_mapping == nullptr) {
                 std::cerr
-                    << "[COMPARTMENTS] Error : Compartment mapping information is missing for gid "
+                    << "[SUMMATION] Error : Compartment mapping information is missing for gid "
                     << gid << '\n';
                 nrn_abort(1);
             }

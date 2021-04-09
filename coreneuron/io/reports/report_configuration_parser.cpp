@@ -23,21 +23,6 @@
 
 namespace coreneuron {
 
-/*
- * Defines the type of target, as per the following syntax:
- *   0=Compartment, 1=Cell/Soma, Section { 2=Axon, 3=Dendrite, 4=Apical }
- * The "Comp" variations are compartment-based (all segments, not middle only)
- */
-enum class TargetType {
-    Compartment = 0,
-    Soma = 1,
-    Axon = 2,
-    Dendrite = 3,
-    Apical = 4,
-    AxonComp = 5,
-    DendriteComp = 6,
-    ApicalComp = 7,
-};
 
 /*
  * Split filter comma separated strings ("mech.var_name") into mech_name and var_name
@@ -72,7 +57,7 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
                                                               std::string& spikes_population_name) {
     std::vector<ReportConfiguration> reports;
     std::string report_on;
-    int target_type;
+    int target;
     std::ifstream report_conf(conf_file);
 
     int num_reports = 0;
@@ -82,9 +67,10 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
         report.buffer_size = 4;  // default size to 4 Mb
 
         report_conf >> report.name >> report.target_name >> report.type_str >> report_on >>
-            report.unit >> report.format >> target_type >> report.report_dt >> report.start >>
+            report.unit >> report.format >> target >> report.report_dt >> report.start >>
             report.stop >> report.num_gids >> report.buffer_size >> report.population_name;
 
+        report.target_type = static_cast<TargetType>(target);
         std::transform(report.type_str.begin(),
                        report.type_str.end(),
                        report.type_str.begin(),
@@ -95,7 +81,7 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
                 nrn_use_fast_imem = true;
                 report.type = IMembraneReport;
             } else {
-                switch (static_cast<TargetType>(target_type)) {
+                switch (report.target_type) {
                     case TargetType::Soma:
                         report.type = SomaReport;
                         break;

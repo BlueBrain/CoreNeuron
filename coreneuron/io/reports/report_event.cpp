@@ -41,6 +41,7 @@ ReportEvent::ReportEvent(double dt,
 }
 
 void ReportEvent::summation_alu(NrnThread* nt) {
+    // Sum currents only on reporting steps
     if (static_cast<int>(step) % reporting_period == 0) {
         auto& summation_report = nt->summation_report_handler_->summation_reports_[report_path];
         // Add currents of all variables in each segment
@@ -49,8 +50,8 @@ void ReportEvent::summation_alu(NrnThread* nt) {
             int segment_id = kv.first;
             for (const auto& value: kv.second) {
                 double current_value = *value.first;
-                int scalar = value.second;
-                sum += current_value * scalar;
+                int scale = value.second;
+                sum += current_value * scale;
             }
             summation_report.summation_[segment_id] = sum;
             sum = 0.0;

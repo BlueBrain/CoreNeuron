@@ -43,6 +43,22 @@ struct SummationReportMapping {
 /// name of the variable in mod file used for setting synapse id
 #define SYNAPSE_ID_MOD_NAME "synapseID"
 
+/*
+ * Defines the type of target, as per the following syntax:
+ *   0=Compartment, 1=Cell/Soma, Section { 2=Axon, 3=Dendrite, 4=Apical }
+ * The "Comp" variations are compartment-based (all segments, not middle only)
+ */
+enum class TargetType {
+    Compartment = 0,
+    Soma = 1,
+    Axon = 2,
+    Dendrite = 3,
+    Apical = 4,
+    AxonComp = 5,
+    DendriteComp = 6,
+    ApicalComp = 7,
+};
+
 // enumerate that defines the type of target report requested
 enum ReportType {
     SomaReport,
@@ -67,6 +83,7 @@ struct ReportConfiguration {
     std::string format;                   // format of the report (Bin, hdf5, SONATA)
     std::string type_str;                 // type of report string
     std::string population_name;          // population name of the report
+    TargetType target_type;               // type of the target
     ReportType type;                      // type of the report
     SectionType section_type;             // type of section report
     bool section_all_compartments;        // flag for section report (all values)
