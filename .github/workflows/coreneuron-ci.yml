@@ -45,6 +45,7 @@ jobs:
       - name: Install homebrew packages
         if: startsWith(matrix.os, 'macOS')
         run: |
+          brew update
           brew install coreutils bison flex boost openmpi
         shell: bash
 
