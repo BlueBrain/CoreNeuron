@@ -86,8 +86,9 @@ NOTE : If the CMake command fails, please make sure to delete temporary CMake ca
 4. Build and Install :  once the configure step is done, you can build and install the project as:
 
 	```bash
-	make -j install
+	cmake --build . --parallel 8 --target install
 	```
+  Feel free to define the number of parallel jobs building by setting a number for the `--parallel` option.
 
 ## Building Model
 
@@ -127,7 +128,7 @@ With CoreNEURON, existing NEURON models can be run with minimal changes. For a g
 3. If GPU support is enabled during build, enable GPU execution using :
 	```
 	coreneuron.gpu = True
-    ```
+  ```
 
 4. Use `psolve` to run simulation after initialization :
 
@@ -256,7 +257,7 @@ cmake .. \
   -DCMAKE_C_COMPILER=icc \
   -DCMAKE_CXX_COMPILER=icpc \
   -DNRN_ENABLE_TESTS=ON
-make -j
+cmake --build . --parallel 8
 ctest # use --parallel for speed, -R to run specific tests
 ```
 
@@ -274,14 +275,10 @@ Once the appropriate modules for compiler, MPI, CMake are loaded, you can build 
 ```bash
 mkdir CoreNeuron/build && cd CoreNeuron/build
 cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/install
-make -j && make install
+cmake --build . --parallel 8 --target install
 ```
 
-If you don't have MPI, you can disable the MPI dependency using the CMake option `-DCORENRN_ENABLE_MPI=OFF`. Once build is successful, you can run tests using:
-
-```
-make test
-```
+If you don't have MPI, you can disable the MPI dependency using the CMake option `-DCORENRN_ENABLE_MPI=OFF`.
 
 #### Compiling MOD files
 
@@ -301,7 +298,7 @@ CoreNEURON has support for GPUs using the OpenACC programming model when enabled
 module purge all
 module load nvidia-hpc-sdk/20.11 cuda/11 cmake openmpi # change pgi, cuda and mpi modules
 cmake .. -DCORENRN_ENABLE_GPU=ON -DCMAKE_INSTALL_PREFIX=$HOME/install -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++
-make -j && make install
+cmake --build . --parallel 8 --target install
 ```
 
 You have to run GPU executable with the `--gpu` flag. Make sure to enable cell re-ordering mechanism to improve GPU performance using `--cell_permute` option (permutation types : 2 or 1):
@@ -340,14 +337,14 @@ In order to format code with `cmake-format` and `clang-format` tools, before cre
 
 ```
 cmake .. -DCORENRN_CLANG_FORMAT=ON -DCORENRN_CMAKE_FORMAT=ON
-make -j install
+cmake --build . --parallel 8 --target install
 ```
 
 and now you can use `cmake-format` or `clang-format` targets:
 
 ```
-make cmake-format
-make clang-format
+cmake --build . --target cmake-format
+cmake --build . --target clang-format
 ```
 
 ## Citation
