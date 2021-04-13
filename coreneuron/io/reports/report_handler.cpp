@@ -360,6 +360,7 @@ VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
             continue;
         }
         // There can only be 1 mechanism
+        nrn_assert(report.mech_ids.size() == 1);
         auto mech_id = report.mech_ids[0];
         auto var_name = report.var_names[0];
         Memb_list* ml = nt._ml_list[mech_id];
