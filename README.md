@@ -23,7 +23,7 @@ In addition to this, you will need other [NEURON dependencies](https://github.co
 
 ## Installation
 
-CoreNEURON is now integrated into the development version of the NEURON simulator. If you are a NEURON user, the preferred way to install CoreNEURON is to enable extra build options during NEURON installation as follows:
+**CoreNEURON** is now **integrated into** the **development version** of the **NEURON** simulator. If you are a NEURON user, **the preferred way** to **install CoreNEURON** is to **enable extra build options** during **NEURON installation** as follows:
 
 1. Clone the latest version of NEURON:
 
@@ -56,7 +56,7 @@ Note that if you are building on Cray system with the GNU toolchain, you have to
   export CRAYPE_LINK_TYPE=dynamic
   ```
 
-3. Run CMake with the appropriate [options](https://github.com/neuronsimulator/nrn#build-using-cmake) and additionally enable CoreNEURON with `-DNRN_ENABLE_CORENEURON=ON` option:
+3. Run CMake with the appropriate [options](https://github.com/neuronsimulator/nrn/blob/master/docs/install/install_instructions.md#install-neuron-using-cmake) and additionally enable CoreNEURON with `-DNRN_ENABLE_CORENEURON=ON` option:
 
   ```
   cmake .. \
@@ -233,6 +233,34 @@ By default, OpenMP threading is enabled. You can disable it with `-DCORENRN_ENAB
 For other errors, please [open an issue](https://github.com/BlueBrain/CoreNeuron/issues).
 
 ## Developer Build
+
+#### Running Unit and Integration Tests
+
+As **CoreNEURON** is mostly used as a compute library of **NEURON** it needs to be incorporated with **NEURON** to test most of its functionality. Consequently its tests are included in the NEURON repository. To enable and run all the tests of **CoreNEURON** you need to add the `-DNRN_ENABLE_TESTS=ON` CMake flag in **NEURON**.
+Those tests include:
+* Unit tests of NEURON
+* Unit tests of CoreNEURON
+* Integration tests of NEURON
+* Integration tests of CoreNEURON
+* Integration tests between NEURON and CoreNEURON
+* [ringtest](https://github.com/neuronsimulator/ringtest) tests with NEURON and CoreNEURON
+* [testcorenrn](https://github.com/neuronsimulator/testcorenrn) tests with NEURON and CoreNEURON
+Some of those tests are going to be also run with various backends in case that those are enabled (for example with GPUs).
+To build NEURON with CoreNEURON and run the tests you need to:
+
+```bash
+cd nrn/build
+cmake .. \
+  -DNRN_ENABLE_CORENEURON=ON \
+  -DNRN_ENABLE_INTERVIEWS=OFF \
+  -DNRN_ENABLE_RX3D=OFF \
+  -DCMAKE_INSTALL_PREFIX=$HOME/install
+  -DCMAKE_C_COMPILER=icc \
+  -DCMAKE_CXX_COMPILER=icpc \
+  -DNRN_ENABLE_TESTS=ON
+make -j
+make test
+```
 
 #### Building standalone CoreNEURON without NEURON
 
