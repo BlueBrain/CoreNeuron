@@ -240,9 +240,7 @@ As **CoreNEURON** is mostly used as a compute library of **NEURON** it needs to 
 Those tests include:
 * Unit tests of NEURON
 * Unit tests of CoreNEURON
-* Integration tests of NEURON
-* Integration tests of CoreNEURON
-* Integration tests between NEURON and CoreNEURON
+* Integration tests comparing NEURON, CoreNEURON and reference files
 * [ringtest](https://github.com/neuronsimulator/ringtest) tests with NEURON and CoreNEURON
 * [testcorenrn](https://github.com/neuronsimulator/testcorenrn) tests with NEURON and CoreNEURON
 Some of those tests are going to be also run with various backends in case that those are enabled (for example with GPUs).
@@ -259,7 +257,7 @@ cmake .. \
   -DCMAKE_CXX_COMPILER=icpc \
   -DNRN_ENABLE_TESTS=ON
 make -j
-make test
+ctest # use --parallel for speed, -R to run specific tests
 ```
 
 #### Building standalone CoreNEURON without NEURON
