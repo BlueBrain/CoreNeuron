@@ -10,7 +10,10 @@
 configure_file(nrnivmodl_core_makefile.in
                ${CMAKE_BINARY_DIR}/share/coreneuron/nrnivmodl_core_makefile @ONLY)
 configure_file(nrnivmodl-core.in ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core @ONLY)
-add_custom_target(nrnivmodl-core ALL DEPENDS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core ${CMAKE_BINARY_DIR}/share/coreneuron/nrnivmodl_core_makefile ${NMODL_TARGET_TO_DEPEND})
+add_custom_target(
+  nrnivmodl-core ALL
+  DEPENDS ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core
+          ${CMAKE_BINARY_DIR}/share/coreneuron/nrnivmodl_core_makefile ${NMODL_TARGET_TO_DEPEND})
 
 # =============================================================================
 # Install for end users
