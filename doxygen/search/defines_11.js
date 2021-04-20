@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['s_5f',['s_',['../newton__thread_8cpp.html#a58618482aa5000417f7a01af6db4728d',1,'s_():&#160;newton_thread.cpp'],['../sparse__thread_8cpp.html#a58618482aa5000417f7a01af6db4728d',1,'s_():&#160;sparse_thread.cpp'],['../ssimplic__thread_8cpp.html#a58618482aa5000417f7a01af6db4728d',1,'s_():&#160;ssimplic_thread.cpp']]],
+  ['sec',['sec',['../md1redef_8h.html#a6921f8f80b53280bbc4e8e5f76c46a06',1,'md1redef.h']]],
+  ['selected_5fvar_5fmod_5fname',['SELECTED_VAR_MOD_NAME',['../nrnreport_8hpp.html#a4303ccc30a86196ae7ef9fa7d05704a2',1,'nrnreport.hpp']]],
+  ['selfeventtype',['SelfEventType',['../netcon_8hpp.html#a8f7c30cc91b86bbb30dcf2dfd7140000',1,'netcon.hpp']]],
+  ['sgid_5falltoallv',['sgid_alltoallv',['../partrans__setup_8cpp.html#ac9fbc2dccde929b4021c9d92fd28ef50',1,'partrans_setup.cpp']]],
+  ['singular',['SINGULAR',['../errcodes_8h.html#a87d5f56e2e026ba605bc9303c4fceafa',1,'errcodes.h']]],
+  ['soa_5flayout',['SOA_LAYOUT',['../data__layout_8hpp.html#a0864ec0a328e23aad46f49530d5ad26b',1,'data_layout.hpp']]],
+  ['spblk',['SPBLK',['../tqueue_8hpp.html#afe36cfdf62903dee25cab43997bdb37c',1,'tqueue.hpp']]],
+  ['spdelete',['spdelete',['../tqueue_8hpp.html#ada277a4e04a6b71cd5963839bb344e61',1,'tqueue.hpp']]],
+  ['spdeq',['spdeq',['../tqueue_8hpp.html#a86b313c3015d93ccdb11a62fe2f5c003',1,'tqueue.hpp']]],
+  ['spenq',['spenq',['../tqueue_8hpp.html#a22a3a866e2312c6e9a1579b020eddded',1,'tqueue.hpp']]],
+  ['spfun',['spfun',['../mod2c__core__thread_8hpp.html#af772cc4448cfda2814daa611fc2e208b',1,'mod2c_core_thread.hpp']]],
+  ['sphead',['sphead',['../tqueue_8hpp.html#a0d1c30fcbcb5fda18a8222fa2b331a89',1,'tqueue.hpp']]],
+  ['spinit',['spinit',['../tqueue_8hpp.html#a487b0549b117b8cc6920a90ba3ba8469',1,'tqueue.hpp']]],
+  ['splay',['splay',['../tqueue_8hpp.html#a9c2322208023a847ef4090633b60a830',1,'tqueue.hpp']]],
+  ['state',['STATE',['../membfunc_8hpp.html#aacd2cf60f504e45efada9aec028ee3cd',1,'membfunc.hpp']]],
+  ['step',['STEP',['../errcodes_8h.html#a70be2dc5c8bdc85b027ea6118753cca1',1,'errcodes.h']]],
+  ['strcmp',['STRCMP',['../tqueue_8hpp.html#a266061e8a5daa109d3092d6240f89340',1,'tqueue.hpp']]],
+  ['success',['SUCCESS',['../errcodes_8h.html#aa90cac659d18e8ef6294c7ae337f6b58',1,'errcodes.h']]],
+  ['synapse_5fid_5fmod_5fname',['SYNAPSE_ID_MOD_NAME',['../nrnreport_8hpp.html#a997ec31096b2ec8983e6644afb6b6dc2',1,'nrnreport.hpp']]]
+];
