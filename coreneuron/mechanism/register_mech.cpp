@@ -144,7 +144,7 @@ int register_mech(const char** m,
     memb_func[type].alloc = alloc;
     memb_func[type].state = stat;
     memb_func[type].initialize = initialize;
-    memb_func[type].destructor = (Pfri) 0;
+    memb_func[type].destructor = nullptr;
 #if VECTORIZE
     memb_func[type].vectorized = vectorized ? 1 : 0;
     memb_func[type].thread_size_ = vectorized ? (vectorized - 1) : 0;
@@ -313,7 +313,7 @@ int nrn_mech_depend(int type, int* dependencies) {
     return idep;
 }
 
-void register_destructor(Pfri d) {
+void register_destructor(mod_f_t d) {
     corenrn.get_memb_funcs().back().destructor = d;
 }
 
