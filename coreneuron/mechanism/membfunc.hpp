@@ -94,7 +94,7 @@ extern int point_register_mech(const char**,
                                mod_f_t initialize,
                                int nrnpointerindex,
                                void* (*constructor)(),
-                               void (*destructor)(),
+                               mod_f_t destructor,
                                int vectorized);
 extern void register_destructor(mod_f_t destructor);
 using NetBufReceive_t = void (*)(NrnThread*);
