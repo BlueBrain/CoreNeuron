@@ -30,7 +30,7 @@ struct Memb_func {
     mod_f_t jacob;
     mod_f_t state;
     mod_f_t initialize;
-    mod_f_t destructor; /* only for point processes */
+    mod_f_t destructor;
     Symbol* sym;
     int vectorized;
     int thread_size_;                       /* how many Datum needed in Memb_list if vectorized */
