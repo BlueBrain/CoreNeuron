@@ -30,7 +30,7 @@ struct Memb_func {
     mod_f_t jacob;
     mod_f_t state;
     mod_f_t initialize;
-    mod_f_t destructor;
+    mod_f_t destructor; /* only for point processes */
     Symbol* sym;
     int vectorized;
     int thread_size_;                       /* how many Datum needed in Memb_list if vectorized */
@@ -96,7 +96,6 @@ extern int point_register_mech(const char**,
                                void* (*constructor)(),
                                mod_f_t destructor,
                                int vectorized);
-extern void register_destructor(mod_f_t destructor);
 using NetBufReceive_t = void (*)(NrnThread*);
 extern void hoc_register_net_receive_buffering(NetBufReceive_t, int);
 
