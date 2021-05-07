@@ -79,8 +79,8 @@ struct corenrn_parameters {
     std::string filesdat = "files.dat";  /// Name of file containing list of gids dat files read in
     std::string restorepath;             /// Restore simulation from provided checkpoint directory.
     std::string reportfilepath;          /// Reports configuration file.
-    std::string checkpointpath;  /// Enable checkpoint and specify directory to store related files.
-    std::string writeParametersFilepath;  /// Write parameters to this file
+    std::string checkpointpath;          /// Enable checkpoint and specify directory to store related files.
+    std::string writeParametersFilepath; /// Write parameters to this file
 
     CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."};  /// CLI app that performs
                                                                           /// CLI parsing
