@@ -315,7 +315,7 @@ int nrn_mech_depend(int type, int* dependencies) {
 }
 
 void register_constructor(mod_f_t c) {
-    corenrn.get_memb_funcs().back().constructor = d;
+    corenrn.get_memb_funcs().back().constructor = c;
 }
 
 void register_destructor(mod_f_t d) {
