@@ -39,10 +39,9 @@ class ProgressBar {
     int current_step = 0;
     constexpr static int progressbar_update_steps = 5;
 
-public:
+  public:
     ProgressBar(int nsteps)
-      : show(nrnmpi_myid == 0 && !corenrn_param.is_quiet())
-    {
+        : show(nrnmpi_myid == 0 && !corenrn_param.is_quiet()) {
         if (show) {
             printf("\n");
             pbar = progressbar_new("psolve", nsteps);
@@ -51,21 +50,23 @@ public:
 
     void update(int step, double time) {
         current_step = step;
-        if (!show || current_step % progressbar_update_steps) return;
-        progressbar_update(pbar, current_step, time);
+        if (show && (current_step % progressbar_update_steps) == 0) {
+            progressbar_update(pbar, current_step, time);
+        }
     }
 
     void step(double time) {
-      update(current_step + 1, time);
+        update(current_step + 1, time);
     }
 
     virtual ~ProgressBar() {
-        if (!show) return;
-        progressbar_finish(pbar);
+        if (show) {
+            progressbar_finish(pbar);
+        }
     }
 };
 
-} // unnamed namespace
+}  // unnamed namespace
 
 
 void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
