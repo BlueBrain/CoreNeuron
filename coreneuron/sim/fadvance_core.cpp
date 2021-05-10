@@ -64,7 +64,10 @@ void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
 #endif
 
 #if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
-    nrn_flush_reports(nrn_threads[0]._t);
+    {
+        Instrumentor::phase p("flush_reports");
+        nrn_flush_reports(nrn_threads[0]._t);
+    }
 #endif
     t = nrn_threads[0]._t;
 }
@@ -138,7 +141,10 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
 #endif
 
 #if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
-        nrn_flush_reports(nrn_threads[0]._t);
+        {
+            Instrumentor::phase p("flush_reports");
+            nrn_flush_reports(nrn_threads[0]._t);
+        }
 #endif
         if (stoprun) {
             break;
