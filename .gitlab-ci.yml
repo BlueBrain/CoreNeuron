@@ -38,7 +38,10 @@ spack_setup:
 .spack_nvhpc:
   variables:
     # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
-    bb5_constraint: volta
+    # Because there is an outstanding issue with HTTPS downloads on the phase 2
+    # nodes (HELP-13868), which makes Spack build jobs fail there, we restrict
+    # to phase 1 nodes for building.
+    bb5_constraint: 'volta&rack2'
     SPACK_PACKAGE_COMPILER: nvhpc
 .spack_neuron:
   variables:
