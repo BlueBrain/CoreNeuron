@@ -7,7 +7,6 @@ include:
 stages:
     - .pre
     - build
-    - test
     - build_neuron
     - test_neuron
 
@@ -32,9 +31,6 @@ spack_setup:
     - git diff
     - fi
 
-.spack_intel:
-  variables:
-    SPACK_PACKAGE_COMPILER: intel
 .spack_nvhpc:
   variables:
     # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
@@ -49,14 +45,6 @@ spack_setup:
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
 
-build:coreneuron:intel:
-  variables:
-    SPACK_PACKAGE: coreneuron
-    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
-  extends:
-    - .spack_build
-    - .spack_intel
-
 build:coreneuron:gpu:
   variables:
     SPACK_PACKAGE: coreneuron
@@ -66,26 +54,6 @@ build:coreneuron:gpu:
   extends:
     - .spack_build
     - .spack_nvhpc
-
-test:coreneuron:intel:
-  extends: [.ctest]
-  needs: ["build:coreneuron:intel"]
-
-test:coreneuron:gpu:
-  extends:
-    - .ctest
-  variables:
-    # GPU tests need to run on nodes with GPUs.
-    bb5_constraint: volta
-  needs: ["build:coreneuron:gpu"]
-
-build:neuron:intel:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_intel
-  needs: ["build:coreneuron:intel"]
 
 build:neuron:gpu:
   stage: build_neuron
@@ -109,15 +77,12 @@ build:neuron:gpu:
     - !reference [.spack_build, before_script]
   needs: ["build:coreneuron:gpu"]
 
-test:neuron:intel:
-  stage: test_neuron
-  extends: [.ctest]
-  needs: ["build:neuron:intel"]
-
 test:neuron:gpu:
   stage: test_neuron
   extends: [.ctest]
   variables:
     # GPU tests need to run on nodes with GPUs.
     bb5_constraint: volta
+  before_script:
+    - env
   needs: ["build:neuron:gpu"]
