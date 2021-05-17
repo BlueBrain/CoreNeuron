@@ -33,10 +33,10 @@ static void* nrn_fixed_step_group_thread(NrnThread*, int, int, int&);
 
 namespace {
 
-class ProgressBar {
-    bool show;
+class ProgressBar final {
     progressbar* pbar;
     int current_step = 0;
+    bool show;
     constexpr static int progressbar_update_steps = 5;
 
   public:
@@ -59,7 +59,7 @@ class ProgressBar {
         update(current_step + 1, time);
     }
 
-    virtual ~ProgressBar() {
+    ~ProgressBar() {
         if (show) {
             progressbar_finish(pbar);
         }
