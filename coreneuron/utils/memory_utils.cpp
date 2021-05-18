@@ -58,7 +58,7 @@ double nrn_mallinfo(void) {
         mbs = (data_size * sysconf(_SC_PAGESIZE)) / (1024.0 * 1024.0);
     } else {
 #if defined HAVE_MALLOC_H
-        struct mallinfo m = mallinfo();
+        struct mallinfo2 m = mallinfo2();
         mbs = (m.hblkhd + m.uordblks) / (1024.0 * 1024.0);
 #endif
     }
