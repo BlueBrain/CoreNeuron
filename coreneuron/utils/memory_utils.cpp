@@ -59,7 +59,7 @@ double nrn_mallinfo(void) {
     } else {
 #if defined HAVE_MALLOC_H
 // The mallinfo2() function was added in glibc 2.33
-#if defined(__GLIBC__) && (__GLIBC__>=2 && __GLIBC_MINOR__>=33)
+#if defined(__GLIBC__) && (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 33)
         struct mallinfo2 m = mallinfo2();
 #else
         struct mallinfo m = mallinfo();
