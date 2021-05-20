@@ -29,11 +29,14 @@ struct SummationReport {
     // Contains the values of the summation with index == segment_id
     std::vector<double> summation_ = {};
     // Map containing the pointers of the currents and its scaling factor for every segment_id
-    std::unordered_map<int, std::vector<std::pair<double*, int>>> currents_;
+    std::unordered_map<size_t, std::vector<std::pair<double*, int>>> currents_;
+    // Map containing the list of segment_ids per gid
+    std::unordered_map<int, std::vector<size_t>> gid_segments_;
+    std::unordered_map<int, size_t> gid_soma_segment_;
 };
 
 struct SummationReportMapping {
-    // Map containing an SummationReport object per report
+    // Map containing a SummationReport object per report
     std::unordered_map<std::string, SummationReport> summation_reports_;
 };
 
@@ -71,7 +74,7 @@ enum ReportType {
 };
 
 // enumerate that defines the section type for a Section report
-enum SectionType { Axon, Dendrite, Apical };
+enum SectionType { Soma, Axon, Dendrite, Apical, All };
 
 struct ReportConfiguration {
     std::string name;                     // name of the report

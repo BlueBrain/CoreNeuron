@@ -56,6 +56,18 @@ void ReportEvent::summation_alu(NrnThread* nt) {
             summation_report.summation_[segment_id] = sum;
             sum = 0.0;
         }
+        if (!summation_report.gid_soma_segment_.empty()) {
+            double sum_soma = 0.0;
+            for (const auto& kv: summation_report.gid_segments_) {
+                int gid = kv.first;
+                for (const auto& segment_id: kv.second) {
+                    sum_soma += summation_report.summation_[segment_id];
+                }
+                int soma_segment = summation_report.gid_soma_segment_[gid];
+                summation_report.summation_[soma_segment] = sum_soma;
+                sum_soma = 0.0;
+            }
+        }
     }
 }
 
