@@ -575,6 +575,9 @@ int temp1[1024] = {0};
 int temp2[1024] = {0};
 int temp3[1024] = {0};
 
+/**
+ * \brief Solve Hines matrices with granularity of compartment
+ */
 void solve_interleaved2(int ith) {
     static int foo = 1;
     NrnThread* nt = nrn_threads + ith;
@@ -637,6 +640,9 @@ void solve_interleaved2(int ith) {
     }
 }
 
+/**
+ * \brief Solve Hines matrices/cells with granularity per cell
+ */
 void solve_interleaved1(int ith) {
     NrnThread* nt = nrn_threads + ith;
     int ncell = nt->ncell;
