@@ -129,16 +129,16 @@ void register_sections_to_report(const SecMapping* sections,
         int section_id = section.first;
         const auto& segment_ids = section.second;
 
-        /** get all compartment values (otherwise, just middle point) */
+        // get all compartment values (otherwise, just middle point)
         if (all_compartments) {
             for (const auto& segment_id: segment_ids) {
-                /** corresponding voltage in coreneuron voltage array */
+                // corresponding voltage in coreneuron voltage array
                 double* variable = report_variable + segment_id;
                 to_report.emplace_back(VarWithMapping(section_id, variable));
             }
         } else {
             nrn_assert(segment_ids.size() % 2);
-            /** corresponding voltage in coreneuron voltage array */
+            // corresponding voltage in coreneuron voltage array
             const auto segment_id = segment_ids[segment_ids.size() / 2];
             double* variable = report_variable + segment_id;
             to_report.emplace_back(VarWithMapping(section_id, variable));
@@ -176,13 +176,19 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
             if (section_type_str == "All") {
                 const auto& section_mapping = cell_mapping->secmapvec;
                 for (const auto& sections: section_mapping) {
-                    register_sections_to_report(sections, to_report, report_variable, all_compartments);
+                    register_sections_to_report(sections,
+                                                to_report,
+                                                report_variable,
+                                                all_compartments);
                 }
             } else {
                 /** get section list mapping for the type, if available */
                 if (cell_mapping->get_seclist_section_count(section_type_str) > 0) {
                     const auto& sections = cell_mapping->get_seclist_mapping(section_type_str);
-                    register_sections_to_report(sections, to_report, report_variable, all_compartments);
+                    register_sections_to_report(sections,
+                                                to_report,
+                                                report_variable,
+                                                all_compartments);
                 }
             }
             vars_to_report[gid] = to_report;
@@ -256,7 +262,10 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             if (report.section_type != SectionType::All) {
                 if (cell_mapping->get_seclist_section_count(section_type_str) > 0) {
                     const auto& sections = cell_mapping->get_seclist_mapping(section_type_str);
-                    register_sections_to_report(sections, to_report, report_variable, report.section_all_compartments);
+                    register_sections_to_report(sections,
+                                                to_report,
+                                                report_variable,
+                                                report.section_all_compartments);
                 }
             }
             const auto& section_mapping = cell_mapping->secmapvec;
@@ -266,7 +275,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                     int section_id = section.first;
                     auto& segment_ids = section.second;
                     for (const auto& segment_id: segment_ids) {
-                        // corresponding voltage in coreneuron voltage array 
+                        // corresponding voltage in coreneuron voltage array
                         if (has_imembrane) {
                             summation_report.currents_[segment_id].push_back(
                                 std::make_pair(nt.nrn_fast_imem->nrn_sav_rhs + segment_id, 1));

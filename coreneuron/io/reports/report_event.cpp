@@ -56,6 +56,7 @@ void ReportEvent::summation_alu(NrnThread* nt) {
             summation_report.summation_[segment_id] = sum;
             sum = 0.0;
         }
+        // Add all currents in the soma
         // Only when type summation and soma target
         if (!summation_report.gid_segments_.empty()) {
             double sum_soma = 0.0;
