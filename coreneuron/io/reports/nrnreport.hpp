@@ -32,7 +32,6 @@ struct SummationReport {
     std::unordered_map<size_t, std::vector<std::pair<double*, int>>> currents_;
     // Map containing the list of segment_ids per gid
     std::unordered_map<int, std::vector<size_t>> gid_segments_;
-    std::unordered_map<int, size_t> gid_soma_segment_;
 };
 
 struct SummationReportMapping {

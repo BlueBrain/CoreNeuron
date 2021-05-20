@@ -120,12 +120,10 @@ std::string getSectionTypeStr(SectionType type) {
     }
 }
 
-void register_sections_to_report(const NrnThread& nt,
-                                 const SecMapping* sections,
+void register_sections_to_report(const SecMapping* sections,
                                  std::vector<VarWithMapping>& to_report,
                                  double* report_variable,
-                                 bool all_compartments,
-                                 bool has_imembrane) {
+                                 bool all_compartments) {
     for (const auto& section: sections->secmap) {
         // compartment_id
         int section_id = section.first;
@@ -175,25 +173,16 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
             std::vector<VarWithMapping> to_report;
             to_report.reserve(cell_mapping->size());
 
-            // register_report(section_type_str, cell_mapping);
             if (section_type_str == "All") {
                 const auto& section_mapping = cell_mapping->secmapvec;
                 for (const auto& sections: section_mapping) {
-                    register_sections_to_report(nt,
-                                                sections,
-                                                to_report,
-                                                report_variable,
-                                                all_compartments, false);
+                    register_sections_to_report(sections, to_report, report_variable, all_compartments);
                 }
             } else {
                 /** get section list mapping for the type, if available */
                 if (cell_mapping->get_seclist_section_count(section_type_str) > 0) {
                     const auto& sections = cell_mapping->get_seclist_mapping(section_type_str);
-                    register_sections_to_report(nt,
-                                                sections,
-                                                to_report,
-                                                report_variable,
-                                                all_compartments, false);
+                    register_sections_to_report(sections, to_report, report_variable, all_compartments);
                 }
             }
             vars_to_report[gid] = to_report;
@@ -263,28 +252,29 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
             to_report.reserve(cell_mapping->size());
             summation_report.summation_.resize(nt.end);
             double* report_variable = summation_report.summation_.data();
+            const auto& section_type_str = getSectionTypeStr(report.section_type);
+            if (report.section_type != SectionType::All) {
+                if (cell_mapping->get_seclist_section_count(section_type_str) > 0) {
+                    const auto& sections = cell_mapping->get_seclist_mapping(section_type_str);
+                    register_sections_to_report(sections, to_report, report_variable, report.section_all_compartments);
+                }
+            }
             const auto& section_mapping = cell_mapping->secmapvec;
             for (const auto& sections: section_mapping) {
                 for (auto& section: sections->secmap) {
                     // compartment_id
                     int section_id = section.first;
                     auto& segment_ids = section.second;
-                    if (report.section_type == SectionType::Soma && sections->name == "soma") {
-                        const auto segment_id = segment_ids[segment_ids.size() / 2];
-                        double* variable = report_variable + segment_id;
-                        to_report.emplace_back(VarWithMapping(section_id, variable));
-                        summation_report.gid_soma_segment_[gid] = segment_id;
-                    }
                     for (const auto& segment_id: segment_ids) {
-                        /** corresponding voltage in coreneuron voltage array */
+                        // corresponding voltage in coreneuron voltage array 
                         if (has_imembrane) {
                             summation_report.currents_[segment_id].push_back(
                                 std::make_pair(nt.nrn_fast_imem->nrn_sav_rhs + segment_id, 1));
                         }
-                        if (report.section_type != SectionType::Soma) {
+                        if (report.section_type == SectionType::All) {
                             double* variable = report_variable + segment_id;
                             to_report.emplace_back(VarWithMapping(section_id, variable));
-                        } else {
+                        } else if (report.section_type == SectionType::Soma) {
                             summation_report.gid_segments_[gid].push_back(segment_id);
                         }
                     }
