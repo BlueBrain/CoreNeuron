@@ -54,11 +54,8 @@ class CheckPoints {
     T* soa2aos(T* data, int cnt, int sz, int layout, int* permute) const;
     void write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) const;
     void write_tqueue(NrnThread& nt, FileHandler& fh) const;
-    void restore_tqitem(int type,
-                        std::shared_ptr<Phase2::EventTypeBase> event,
-                        NrnThread& nt);
+    void restore_tqitem(int type, std::shared_ptr<Phase2::EventTypeBase> event, NrnThread& nt);
 };
-
 
 
 int* inverse_permute(int* p, int n);

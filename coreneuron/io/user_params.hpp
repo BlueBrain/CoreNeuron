@@ -16,7 +16,11 @@ class CheckPoints;
 /// Before it was globals variables, group them to give them as a single argument.
 /// They have for the most part, nothing related to each other.
 struct UserParams {
-    UserParams(int ngroup_, int* gidgroups_, const char* path_, const char* restore_path_, CheckPoints& checkPoints_)
+    UserParams(int ngroup_,
+               int* gidgroups_,
+               const char* path_,
+               const char* restore_path_,
+               CheckPoints& checkPoints_)
         : ngroup(ngroup_)
         , gidgroups(gidgroups_)
         , path(path_)
