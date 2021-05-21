@@ -570,7 +570,8 @@ bool CheckPoints::initialize() {
             auto memb_func = corenrn.get_memb_func(type);
             fprintf(stderr,
                     "Checkpoint is requested involving BBCOREPOINTER but there is no bbcore_write"
-                    " function for %s\n", memb_func.sym);
+                    " function for %s\n",
+                    memb_func.sym);
             assert(corenrn.get_bbcore_write()[type]);
         }
     }
