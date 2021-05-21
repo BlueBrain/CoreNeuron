@@ -13,27 +13,28 @@
 #include <algorithm>
 namespace coreneuron {
 /**
- * \brief Function that performs the permutation of the cells such that the 
+ * \brief Function that performs the permutation of the cells such that the
  *        execution threads access coalesced memory.
- * 
+ *
  * \param ith NrnThread to access
  * \param ncell number of cells in NrnThread
  * \param nnode number of compartments in the ncells
  * \param parent parent indices of cells
- * 
+ *
  * \return int* order, interleaved order of the cells
-*/
+ */
 int* interleave_order(int ith, int ncell, int nnode, int* parent);
 
 void create_interleave_info();
 void destroy_interleave_info();
 
 /**
- * 
+ *
  * \brief Solve the Hines matrices based on the interleave_permute_type (1 or 2).
- * 
- * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one Hines matrix (cell)
- * For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix is solved by multiple execution threads (with coalesced memory access as well)
+ *
+ * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one
+ * Hines matrix (cell) For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix
+ * is solved by multiple execution threads (with coalesced memory access as well)
  */
 extern void solve_interleaved(int ith);
 
@@ -64,11 +65,12 @@ class InterleaveInfo {
 
 /**
  * \brief Function that returns a permutation of length nnode.
- * 
+ *
  * There are two permutation strategies:
- * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one Hines matrix (cell)
- * For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix is solved by multiple execution threads (with coalesced memory access as well)
- * 
+ * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one
+ * Hines matrix (cell) For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix
+ * is solved by multiple execution threads (with coalesced memory access as well)
+ *
  * \param ncell number of cells
  * \param nnode number of compartments in the ncells
  * \param parents parent indices of the cells
@@ -81,7 +83,7 @@ class InterleaveInfo {
  * \param firstnode firstnode[i] is the index of the first nonroot node of the cell
  * \param lastnode lastnode[i] is the index of the last node of the cell
  * \param cellsize cellsize is the number of nodes in the cell not counting root.
- * \param stridedispl 
+ * \param stridedispl
  * \return int* : a permutation of length nnode
  */
 int* node_order(int ncell,

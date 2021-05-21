@@ -267,7 +267,7 @@ static void set_cellindex(int ncell, VecTNode& nodevec) {
 
 /**
  * \brief Initialization of the groupindex (groups)
- * 
+ *
  * The cells are groupped at a later stage based on a load balancing algorithm.
  * This is just an initialization function.
  */
@@ -429,7 +429,7 @@ void prtree(VecTNode& nodevec) {
 
 /**
  * \brief Perform tree preparation for interleaving strategies
- * 
+ *
  * \param parent vector of parent indices
  * \param nnode number of compartments in the cells
  * \param ncell number of cells
@@ -471,10 +471,10 @@ static bool interleave_comp(TNode* a, TNode* b) {
 
 /**
  * \brief Naive interleaving strategy (interleave_permute_type == 1)
- * 
+ *
  * Sort so nodevec[ncell:nnode] cell instances are interleaved. Keep the
  * secondary ordering with respect to treenode_order so each cell is still a tree.
- * 
+ *
  * \param ncell number of cells (trees)
  * \param nodevec vector that contains compartments (nodes of the trees)
  */
@@ -512,7 +512,7 @@ static void admin1(int ncell,
                    int*& stride,
                    int*& firstnode,
                    int*& lastnode,
-                   int*& cellsize) { 
+                   int*& cellsize) {
     firstnode = (int*) ecalloc_align(ncell, sizeof(int));
     lastnode = (int*) ecalloc_align(ncell, sizeof(int));
     cellsize = (int*) ecalloc_align(ncell, sizeof(int));
@@ -600,7 +600,8 @@ static void admin2(int ncell,
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
     ncycles = (int*) ecalloc_align(nwarp, sizeof(int));
-    stridedispl = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // running sum of ncycles (start at 0)
+    stridedispl = (int*) ecalloc_align(nwarp + 1,
+                                       sizeof(int));  // running sum of ncycles (start at 0)
     rootbegin = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first root in warp.
     nodebegin = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first node in warp.
 
@@ -625,7 +626,8 @@ static void admin2(int ncell,
         size_t i = nodebegin[iwarp];
         while (i < j) {
             i += stride_length(i, j, nodevec);
-            ++nc; // ncycles refers to how many times a warp should cycle this level before going to a higher one
+            ++nc;  // ncycles refers to how many times a warp should cycle this level before going
+                   // to a higher one
         }
         ncycles[iwarp] = nc;
         stridedispl[iwarp + 1] = stridedispl[iwarp] + nc;
