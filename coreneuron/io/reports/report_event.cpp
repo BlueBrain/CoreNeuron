@@ -42,7 +42,7 @@ ReportEvent::ReportEvent(double dt,
 
 void ReportEvent::summation_alu(NrnThread* nt) {
     // Sum currents only on reporting steps
-    if (static_cast<int>(step) % reporting_period == 0) {
+    if (step > 0 && (static_cast<int>(step) % reporting_period) == 0) {
         auto& summation_report = nt->summation_report_handler_->summation_reports_[report_path];
         // Add currents of all variables in each segment
         double sum = 0.0;
