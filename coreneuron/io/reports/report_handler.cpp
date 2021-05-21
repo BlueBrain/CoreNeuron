@@ -45,7 +45,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                report_variable,
                                                m_report_config.section_type,
                                                m_report_config.section_all_compartments);
-                register_compartment_report(nt, m_report_config, vars_to_report);
+                register_section_report(nt,
+                                        m_report_config,
+                                        vars_to_report,
+                                        m_report_config.section_type == SectionType::Soma);
                 break;
             case SummationReport:
                 vars_to_report = get_summation_vars_to_report(nt,
@@ -55,7 +58,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_custom_report(nt, m_report_config, vars_to_report);
                 break;
             default:
-                vars_to_report = get_custom_vars_to_report(nt, m_report_config, nodes_to_gid);
+                vars_to_report = get_synapse_vars_to_report(nt, m_report_config, nodes_to_gid);
                 register_custom_report(nt, m_report_config, vars_to_report);
         }
         if (!vars_to_report.empty()) {
@@ -77,17 +80,10 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
 }
 
 #if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
-void ReportHandler::register_soma_report(const NrnThread& nt,
-                                         ReportConfiguration& config,
-                                         const VarsToReport& vars_to_report) {
-    if (nrnmpi_myid == 0) {
-        std::cerr << "[WARNING] : Format '" << config.format << "' in report '"
-                  << config.output_path << "' not supported.\n";
-    }
-}
-void ReportHandler::register_compartment_report(const NrnThread& nt,
-                                                ReportConfiguration& config,
-                                                const VarsToReport& vars_to_report) {
+void ReportHandler::register_section_report(const NrnThread& nt,
+                                            ReportConfiguration& config,
+                                            const VarsToReport& vars_to_report,
+                                            bool is_soma_target) {
     if (nrnmpi_myid == 0) {
         std::cerr << "[WARNING] : Format '" << config.format << "' in report '"
                   << config.output_path << "' not supported.\n";
@@ -295,9 +291,10 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
     return vars_to_report;
 }
 
-VarsToReport ReportHandler::get_custom_vars_to_report(const NrnThread& nt,
-                                                      ReportConfiguration& report,
-                                                      const std::vector<int>& nodes_to_gids) const {
+VarsToReport ReportHandler::get_synapse_vars_to_report(
+    const NrnThread& nt,
+    ReportConfiguration& report,
+    const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
