@@ -250,7 +250,7 @@ size_t level_from_leaf(VecTNode& nodevec) {
 }
 
 /**
- * \brief Set the cellindex to distinguish the difference cells
+ * \brief Set the cellindex to distinguish the different cells.
  */
 static void set_cellindex(int ncell, VecTNode& nodevec) {
     for (int i = 0; i < ncell; ++i) {
@@ -329,7 +329,7 @@ int* node_order(int ncell,
     check(nodevec);
 
     set_cellindex(ncell, nodevec);
-    set_groupindex(nodevec); // pack cells into groups (32 cells per group)
+    set_groupindex(nodevec);
     level_from_root(nodevec);
 
     // nodevec[ncell:nnode] cells are interleaved in nodevec[0:ncell] cell order
@@ -600,8 +600,7 @@ static void admin2(int ncell,
     nwarp = nodevec[ncell - 1]->groupindex + 1;
 
     ncycles = (int*) ecalloc_align(nwarp, sizeof(int));
-    stridedispl = (int*) ecalloc_align(nwarp + 1,
-                                       sizeof(int));  // running sum of ncycles (start at 0)
+    stridedispl = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // running sum of ncycles (start at 0)
     rootbegin = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first root in warp.
     nodebegin = (int*) ecalloc_align(nwarp + 1, sizeof(int));  // index (+1) of first node in warp.
 
@@ -612,6 +611,7 @@ static void admin2(int ncell,
         rootbegin[nodevec[i]->groupindex + 1] = i + 1;
     }
     nodebegin[0] = ncell;
+    // We start from the leaves and go backwards towards the root
     for (size_t i = size_t(ncell); i < nodevec.size(); ++i) {
         nodebegin[nodevec[i]->groupindex + 1] = i + 1;
     }
@@ -625,7 +625,7 @@ static void admin2(int ncell,
         size_t i = nodebegin[iwarp];
         while (i < j) {
             i += stride_length(i, j, nodevec);
-            ++nc;
+            ++nc; // ncycles refers to how many times a warp should cycle this level before going to a higher one
         }
         ncycles[iwarp] = nc;
         stridedispl[iwarp + 1] = stridedispl[iwarp] + nc;

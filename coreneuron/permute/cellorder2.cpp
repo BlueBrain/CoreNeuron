@@ -44,12 +44,12 @@ static bool sortlevel_cmp(TNode* a, TNode* b) {
     size_t pblevel = b->parent ? 1 + b->parent->level : 0;
     if (palevel < pblevel) {          // only used when starting leaf to root order
         result = true;                // earlier level first
-    } else if (palevel == pblevel) {  // alwayse true when starting root to leaf
+    } else if (palevel == pblevel) {  // always true when starting root to leaf
         if (palevel == 0) {           // a and b are roots
             if (a->nodevec_index < b->nodevec_index) {
                 result = true;
             }
-        } else {  // parent order (already sorted with proper treenode_order
+        } else {  // parent order (already sorted with proper treenode_order)
             if (a->treenode_order < b->treenode_order) {  // children order
                 result = true;
             } else if (a->treenode_order == b->treenode_order) {
@@ -461,13 +461,13 @@ static void set_nodeindex(VecTNode& nodevec) {
 void group_order2(VecTNode& nodevec, size_t groupsize, size_t ncell) {
     size_t maxlevel = level_from_root(nodevec);
 
-    // if not nullptr use this to define groups (and reset TNode.groupindex)
+    // reset TNode.groupindex
     size_t nwarp = warp_balance(ncell, nodevec);
 
     // work on a cellgroup as a vector of levels. ie only possible race is
     // two children in same warpsize
 
-    // every warp composes a group of cells
+    // every warp deals with a group of cells
     // the cell dispatching to the available groups is done through the warp_balance function (lpt algo)
     VVVTN groups(nwarp ? nwarp : (ncell / groupsize + ((ncell % groupsize) ? 1 : 0)));
 

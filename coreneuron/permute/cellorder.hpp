@@ -21,7 +21,7 @@ namespace coreneuron {
  * \param nnode number of compartments in the ncells
  * \param parent parent indices of cells
  * 
- * \return int* order, interleave order of the cells
+ * \return int* order, interleaved order of the cells
 */
 int* interleave_order(int ith, int ncell, int nnode, int* parent);
 
@@ -30,10 +30,10 @@ void destroy_interleave_info();
 
 /**
  * 
- * \brief Solve the Hines matrices based on the interleave_permute_type (1 or 2)
+ * \brief Solve the Hines matrices based on the interleave_permute_type (1 or 2).
  * 
  * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one Hines matrix (cell)
- * For interleave_permute_type == 2 : Advanced interleaving -> Hines matrices are solved by multiple execution threads (in groups of warp size)
+ * For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix is solved by multiple execution threads (with coalesced memory access as well)
  */
 extern void solve_interleaved(int ith);
 
@@ -63,11 +63,11 @@ class InterleaveInfo {
 };
 
 /**
- * \brief Function that returns a permutation of length nnode
+ * \brief Function that returns a permutation of length nnode.
  * 
  * There are two permutation strategies:
  * For interleave_permute_type == 1 : Naive interleaving -> Each execution thread deals with one Hines matrix (cell)
- * For interleave_permute_type == 2 : Advanced interleaving -> Hines matrices are solved by multiple execution threads (in groups of warp size)
+ * For interleave_permute_type == 2 : Advanced interleaving -> Each Hines matrix is solved by multiple execution threads (with coalesced memory access as well)
  * 
  * \param ncell number of cells
  * \param nnode number of compartments in the ncells
