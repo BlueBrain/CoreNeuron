@@ -130,7 +130,7 @@ endif()
 # =============================================================================
 # Build option specific compiler flags
 # =============================================================================
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "NVHPC")
   # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
 endif()
@@ -285,9 +285,6 @@ if(CORENRN_ENABLE_CALIPER_PROFILING)
   include_directories(${caliper_INCLUDE_DIR})
   add_definitions("-DCORENEURON_CALIPER")
   set(CALIPER_LIB "caliper")
-  if(CORENRN_ENABLE_MPI)
-    set(CALIPER_MPI_LIB "caliper-mpi")
-  endif()
 endif()
 
 if(CORENRN_ENABLE_LIKWID_PROFILING)
