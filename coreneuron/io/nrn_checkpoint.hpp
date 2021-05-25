@@ -18,16 +18,16 @@ class FileHandler;
 class CheckPoints {
   public:
     CheckPoints(const std::string& save, const std::string& restore);
-    std::string getSavePath() const {
+    std::string get_save_path() const {
         return save_;
     }
-    std::string getRestorePath() const {
+    std::string get_restore_path() const {
         return restore_;
     }
-    bool shouldSave() const {
+    bool should_save() const {
         return !save_.empty();
     }
-    bool shouldRestore() const {
+    bool should_restore() const {
         return !restore_.empty();
     }
     double restore_time() const;

@@ -237,7 +237,7 @@ void nrn_init_and_load_data(int argc,
               checkPoints,
               run_setup_cleanup,
               corenrn_param.datpath.c_str(),
-              checkPoints.getRestorePath().c_str(),
+              checkPoints.get_restore_path().c_str(),
               &corenrn_param.mindelay);
 
     // Allgather spike compression and  bin queuing.

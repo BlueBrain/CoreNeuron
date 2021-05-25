@@ -47,7 +47,7 @@ CheckPoints::CheckPoints(const std::string& save, const std::string& restore)
 
 /// todo : need to broadcast this rather than all reading a double
 double CheckPoints::restore_time() const {
-    if (!shouldRestore()) {
+    if (!should_restore()) {
         return 0.;
     }
 
@@ -61,7 +61,7 @@ double CheckPoints::restore_time() const {
 }
 
 void CheckPoints::write_checkpoint(NrnThread* nt, int nb_threads) const {
-    if (!shouldSave()) {
+    if (!should_save()) {
         return;
     }
 
@@ -91,7 +91,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
     FileHandler fh;
 
     NrnThreadChkpnt& ntc = nrnthread_chkpnt[nt.id];
-    auto filename = getSavePath() + "/" + std::to_string(ntc.file_id) + "_2.dat";
+    auto filename = get_save_path() + "/" + std::to_string(ntc.file_id) + "_2.dat";
 
     fh.open(filename, std::ios::out);
     fh.checkpoint(2);
@@ -512,7 +512,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
 
 void CheckPoints::write_time() const {
     FileHandler f;
-    auto filename = getSavePath() + "/time.dat";
+    auto filename = get_save_path() + "/time.dat";
     f.open(filename, std::ios::out);
     f.write_array(&t, 1);
     f.close();
