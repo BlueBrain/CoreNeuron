@@ -37,11 +37,6 @@ spack_setup:
     SPACK_PACKAGE_COMPILER: intel
 .spack_nvhpc:
   variables:
-    # We have to run GPU builds on GPU nodes for driver/makelocalrc reasons.
-    # Because there is an outstanding issue with HTTPS downloads on the phase 2
-    # nodes (HELP-13868), which makes Spack build jobs fail there, we restrict
-    # to phase 1 nodes for building.
-    bb5_constraint: 'volta&rack2'
     SPACK_PACKAGE_COMPILER: nvhpc
 .spack_neuron:
   variables:
@@ -93,19 +88,9 @@ build:neuron:gpu:
     - .spack_build
     - .spack_neuron
     - .spack_nvhpc
-  variables:
-    # Avoid trying to build all the NEURON dependencies with the PGI/NVHPC/GPU
-    # compiler.
-    SPACK_EXPORT_SPECS: gettext
   before_script:
-    # Get the hash of a gcc build of py-cython so we can force the nvhpc build
-    # of neuron to use it. py-cython does not build with nvhpc.
-    - . ${SPACK_ROOT}/share/spack/setup-env.sh
-    - CYTHON_HASH=$(spack find --json py-cython%gcc | python -c "import json, sys; print(json.loads(sys.stdin.read())[0]['hash'])")
-    # Inject the hash for py-cython after the one for coreneuron; also say
-    # numpy has to be built with GCC to minimise the amount of time we spend
-    # building dependencies in the CI.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^/${CYTHON_HASH}^py-numpy%gcc"
+    # Build py-cython and py-numpy with GCC instead of NVHPC.
+    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
     - !reference [.spack_build, before_script]
   needs: ["build:coreneuron:gpu"]
 
