@@ -291,6 +291,23 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             acc_memcpy_to_device(&(d_nt->_shadow_d), &d_shadow_ptr, sizeof(double*));
         }
 
+        /* Fast membrane current calculation struct */
+        if (nt->nrn_fast_imem) {
+            auto* d_fast_imem = reinterpret_cast<NrnFastImem*>(
+                acc_copyin(nt->nrn_fast_imem, sizeof(NrnFastImem)));
+            acc_memcpy_to_device(&(d_nt->nrn_fast_imem), &d_fast_imem, sizeof(NrnFastImem*));
+            {
+                auto* d_ptr = reinterpret_cast<double*>(
+                    acc_copyin(nt->nrn_fast_imem->nrn_sav_rhs, nt->end * sizeof(double)));
+                acc_memcpy_to_device(&(d_fast_imem->nrn_sav_rhs), &d_ptr, sizeof(double*));
+            }
+            {
+                auto* d_ptr = reinterpret_cast<double*>(
+                    acc_copyin(nt->nrn_fast_imem->nrn_sav_d, nt->end * sizeof(double)));
+                acc_memcpy_to_device(&(d_fast_imem->nrn_sav_d), &d_ptr, sizeof(double*));
+            }
+        }
+
         if (nt->n_pntproc) {
             /* copy Point_processes array and fix the pointer to execute net_receive blocks on GPU
              */
@@ -659,6 +676,11 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                 acc_update_self(nt->_shadow_d, pcnt * sizeof(double));
             }
 
+            if (nt->nrn_fast_imem) {
+                acc_update_self(nt->nrn_fast_imem->nrn_sav_rhs, nt->end * sizeof(double));
+                acc_update_self(nt->nrn_fast_imem->nrn_sav_d, nt->end * sizeof(double));
+            }
+
             if (nt->n_pntproc) {
                 acc_update_self(nt->pntprocs, nt->n_pntproc * sizeof(Point_process));
             }
@@ -748,6 +770,11 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 acc_update_device(nt->_shadow_d, pcnt * sizeof(double));
             }
 
+            if (nt->nrn_fast_imem) {
+                acc_update_device(nt->nrn_fast_imem->nrn_sav_rhs, nt->end * sizeof(double));
+                acc_update_device(nt->nrn_fast_imem->nrn_sav_d, nt->end * sizeof(double));
+            }
+
             if (nt->n_pntproc) {
                 acc_update_device(nt->pntprocs, nt->n_pntproc * sizeof(Point_process));
             }
@@ -784,6 +811,19 @@ void update_voltage_from_gpu(NrnThread* nt) {
 
         #pragma acc update host(voltage [0:num_voltage])
         // clang-format on
+    }
+}
+
+/**
+ * @brief Copy fast_imem vectors from GPU to CPU.
+ *
+ */
+void update_fast_imem_from_gpu(NrnThread* nt) {
+    if (nt->compute_gpu && nt->end > 0 && nt->nrn_fast_imem) {
+        int num_fast_imem = nt->end;
+        double* fast_imem_d = nt->nrn_fast_imem->nrn_sav_d;
+        double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
+#pragma acc update host(fast_imem_d [0:num_fast_imem], fast_imem_rhs [0:num_fast_imem])
     }
 }
 
@@ -938,6 +978,11 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         // Cleanup point processes
         if (nt->n_pntproc) {
             acc_delete(nt->pntprocs, nt->n_pntproc * sizeof(Point_process));
+        }
+
+        if (nt->nrn_fast_imem) {
+            acc_delete(nt->nrn_fast_imem->nrn_sav_d, nt->end * sizeof(double));
+            acc_delete(nt->nrn_fast_imem->nrn_sav_rhs, nt->end * sizeof(double));
         }
 
         if (nt->shadow_rhs_cnt) {
