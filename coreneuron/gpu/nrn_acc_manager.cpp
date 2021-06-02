@@ -241,7 +241,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 d_displ = (int*) acc_copyin(nrb->_displ, sizeof(int) * (nrb->_size + 1));
                 acc_memcpy_to_device(&(d_nrb->_displ), &d_displ, sizeof(int*));
 
-                d_nrb_index = (int*) acc_copyin(nrb->_nrb_index, sizeof(int) * (nrb->_size + 1));
+                d_nrb_index = (int*) acc_copyin(nrb->_nrb_index, sizeof(int) * nrb->_size);
                 acc_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index, sizeof(int*));
             }
 
@@ -964,7 +964,7 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             {
                 NetReceiveBuffer_t* nrb{tml->ml->_net_receive_buffer};
                 if (nrb) {
-                    acc_delete(nrb->_nrb_index, sizeof(int) * (nrb->_size + 1));
+                    acc_delete(nrb->_nrb_index, sizeof(int) * nrb->_size);
                     acc_delete(nrb->_displ, sizeof(int) * (nrb->_size + 1));
                     acc_delete(nrb->_nrb_flag, sizeof(double) * nrb->_size);
                     acc_delete(nrb->_nrb_t, sizeof(double) * nrb->_size);
