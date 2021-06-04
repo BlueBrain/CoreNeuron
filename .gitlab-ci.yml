@@ -3,6 +3,8 @@ include:
     file:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
+  - project: hpc/gitlab-upload-logs
+    file: enable-upload.yml
 
 stages:
     - .pre
