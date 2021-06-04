@@ -4,7 +4,12 @@ include:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
   - project: hpc/gitlab-upload-logs
+    ref: olupton/patch-for-steps
     file: enable-upload.yml
+
+upload_logs_to_github:
+  trigger:
+    branch: olupton/patch-for-steps
 
 stages:
     - .pre
