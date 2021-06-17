@@ -6,7 +6,7 @@ set -x
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
 reportinglib_dir=$(spack install reportinglib%intel | cut -d' '  -f2)
-libsonata_report_dir=$(spack install libsonata_report%intel | cut -d' ' -f2)
+libsonata_report_dir=$(spack install libsonata-report%intel | cut -d' ' -f2)
 
 CORENRN_TYPE="$1"
 
