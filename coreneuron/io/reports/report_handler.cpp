@@ -102,6 +102,7 @@ std::string getSectionTypeStr(SectionType type) {
     switch (type) {
         case All:
             return "All";
+        case Cell:
         case Soma:
             return "soma";
         case Axon:
@@ -279,7 +280,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                         if (report.section_type == SectionType::All) {
                             double* variable = report_variable + segment_id;
                             to_report.emplace_back(VarWithMapping(section_id, variable));
-                        } else if (report.section_type == SectionType::Soma) {
+                        } else if (report.section_type == SectionType::Cell) {
                             summation_report.gid_segments_[gid].push_back(segment_id);
                         }
                     }

@@ -53,13 +53,15 @@ struct SummationReportMapping {
  */
 enum class TargetType {
     Compartment = 0,
-    Soma = 1,
-    Axon = 2,
-    Dendrite = 3,
-    Apical = 4,
-    AxonComp = 5,
-    DendriteComp = 6,
-    ApicalComp = 7,
+    Cell = 1,
+    SectionSoma = 2,
+    SectionAxon = 3,
+    SectionDendrite = 4,
+    SectionApical = 5,
+    SectionSomaAll = 6,
+    SectionAxonAll = 7,
+    SectionDendriteAll = 8,
+    SectionApicalAll = 9,
 };
 
 // enumerate that defines the type of target report requested
@@ -73,7 +75,7 @@ enum ReportType {
 };
 
 // enumerate that defines the section type for a Section report
-enum SectionType { Soma, Axon, Dendrite, Apical, All };
+enum SectionType { Cell, Soma, Axon, Dendrite, Apical, All };
 
 struct ReportConfiguration {
     std::string name;                     // name of the report
