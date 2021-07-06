@@ -47,10 +47,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                m_report_config.section_all_compartments);
                 bool is_soma_target = m_report_config.section_type == SectionType::Soma ||
                                       m_report_config.section_type == SectionType::Cell;
-                register_section_report(nt,
-                                        m_report_config,
-                                        vars_to_report,
-                                        is_soma_target);
+                register_section_report(nt, m_report_config, vars_to_report, is_soma_target);
                 break;
             case SummationReport:
                 vars_to_report = get_summation_vars_to_report(nt,
