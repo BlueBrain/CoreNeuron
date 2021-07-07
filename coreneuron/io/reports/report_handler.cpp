@@ -35,6 +35,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
         }
         const std::vector<int>& nodes_to_gid = map_gids(nt);
         VarsToReport vars_to_report;
+        bool is_soma_target;
         switch (m_report_config.type) {
             case IMembraneReport:
                 report_variable = nt.nrn_fast_imem->nrn_sav_rhs;
@@ -45,8 +46,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                report_variable,
                                                m_report_config.section_type,
                                                m_report_config.section_all_compartments);
-                bool is_soma_target = m_report_config.section_type == SectionType::Soma ||
-                                      m_report_config.section_type == SectionType::Cell;
+                is_soma_target = m_report_config.section_type == SectionType::Soma ||
+                                 m_report_config.section_type == SectionType::Cell;
                 register_section_report(nt, m_report_config, vars_to_report, is_soma_target);
                 break;
             case SummationReport:
