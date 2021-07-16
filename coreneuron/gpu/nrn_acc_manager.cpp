@@ -139,15 +139,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             acc_memcpy_to_device(&(d_nt->_actual_diam), &(dptr), sizeof(double*));
         }
 
-        size_t offset = 6 * ne;
-
-        // see Phase2::populate(): some mechanisms can have diam semantics
-        // added after matrix data in nt._data. Take that into account while
-        // calculating the offset for start of mechanism data.
-        if (nt->_actual_diam) {
-            offset += ne;
-        }
-
         int* d_v_parent_index = (int*) acc_copyin(nt->_v_parent_index, nt->end * sizeof(int));
         acc_memcpy_to_device(&(d_nt->_v_parent_index), &(d_v_parent_index), sizeof(int*));
 
@@ -194,13 +185,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int is_art = corenrn.get_is_artificial()[type];
             int layout = corenrn.get_mech_data_layout()[type];
 
-            offset = nrn_soa_padded_size(offset, layout);
-
-            dptr = d__data + offset;
-
+            // get device pointer for corresponding mechanism data
+            dptr = (double *) acc_deviceptr(tml->ml->data);
             acc_memcpy_to_device(&(d_ml->data), &(dptr), sizeof(double*));
 
-            offset += nrn_soa_padded_size(n, layout) * szp;
 
             if (!is_art) {
                 int* d_nodeindices = (int*) acc_copyin(tml->ml->nodeindices, sizeof(int) * n);
