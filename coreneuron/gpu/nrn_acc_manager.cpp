@@ -139,6 +139,15 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             acc_memcpy_to_device(&(d_nt->_actual_diam), &(dptr), sizeof(double*));
         }
 
+        size_t offset = 6 * ne;
+
+        // see Phase2::populate(): some mechanisms can have diam semantics
+        // added after matrix data in nt._data. Take that into account while
+        // calculating the offset for start of mechanism data.
+        if (nt->_actual_diam) {
+            offset += ne;
+        }
+
         int* d_v_parent_index = (int*) acc_copyin(nt->_v_parent_index, nt->end * sizeof(int));
         acc_memcpy_to_device(&(d_nt->_v_parent_index), &(d_v_parent_index), sizeof(int*));
 
@@ -153,7 +162,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         NrnThreadMembList* d_last_tml;
 
         bool first_tml = true;
-        size_t offset = 6 * ne;
 
         for (auto tml = nt->tml; tml; tml = tml->next) {
             /*copy tml to device*/
