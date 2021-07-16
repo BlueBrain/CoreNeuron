@@ -186,7 +186,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int layout = corenrn.get_mech_data_layout()[type];
 
             // get device pointer for corresponding mechanism data
-            dptr = (double *) acc_deviceptr(tml->ml->data);
+            dptr = (double*) acc_deviceptr(tml->ml->data);
             acc_memcpy_to_device(&(d_ml->data), &(dptr), sizeof(double*));
 
 
