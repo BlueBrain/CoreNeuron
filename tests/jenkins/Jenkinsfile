@@ -58,6 +58,7 @@ pipeline {
                        """
                     )
                 }
+            }
         }
 
         stage('build CoreNeuron'){
