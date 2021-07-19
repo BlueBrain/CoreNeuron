@@ -24,8 +24,10 @@ set(CMAKE_BUILD_TYPE
     RelWithDebInfo
     CACHE STRING "Empty or one of Debug, Release, RelWithDebInfo")
 
-if (NOT "cxx_std_14" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-  message(FATAL_ERROR "This compiler does not fully support C++14, choose an higher version or an other compiler.")
+if(NOT "cxx_std_14" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+  message(
+    FATAL_ERROR
+      "This compiler does not fully support C++14, choose an higher version or an other compiler.")
 endif()
 
 # =============================================================================
