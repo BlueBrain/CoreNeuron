@@ -85,7 +85,9 @@ void net_send(void** v, int weight_index_, Point_process* pnt, double td, double
     se->flag_ = flag;
     se->target_ = pnt;
     se->weight_index_ = weight_index_;
-    se->movable_ = v;  // needed for SaveState
+    if (v >= nt->_vdata) {
+        se->movable_ = v;  // needed for SaveState
+    }
     assert(net_cvode_instance);
     ++p.unreffed_event_cnt_;
     if (td < nt->_t) {
@@ -97,7 +99,7 @@ void net_send(void** v, int weight_index_, Point_process* pnt, double td, double
     }
     TQItem* q;
     q = net_cvode_instance->event(td, se, nt);
-    if (flag == 1.0) {
+    if (flag == 1.0 && v >= nt->_vdata) {
         *v = (void*) q;
     }
     // printf("net_send %g %s %g %p\n", td, pnt_name(pnt), flag, *v);
@@ -289,6 +291,7 @@ bool NetCvode::deliver_event(double til, NrnThread* nt) {
 }
 
 void net_move(void** v, Point_process* pnt, double tt) {
+    // assert, if possible that *v == pnt->movable.
     if (!(*v))
         hoc_execerror("No event with flag=1 for net_move in ",
                       corenrn.get_memb_func(pnt->_type).sym);
