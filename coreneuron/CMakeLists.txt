@@ -138,8 +138,12 @@ if(CORENRN_ENABLE_GPU)
   cuda_add_library("cudacoreneuron" ${CORENEURON_CUDA_FILES} OPTIONS ${cuda_arch_flags} -Xcompiler
                                                                      -fPIC)
   set(link_cudacoreneuron cudacoreneuron)
+  list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
+  list(REMOVE_ITEM CORENEURON_UTILS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
 else()
   set(link_cudacoreneuron "")
+  list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cu")
+  list(REMOVE_ITEM CORENEURON_UTILS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cu")
 endif()
 
 # =============================================================================
