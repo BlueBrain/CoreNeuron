@@ -31,7 +31,10 @@ using Symbol = char;
 #define VEC_AREA(i) (_nt->_actual_area[(i)])
 #define VECTORIZE   1
 
+// extern variables require acc declare
 extern double celsius;
+#pragma acc declare create(celsius)
+
 extern double pi;
 
 extern double t, dt;
