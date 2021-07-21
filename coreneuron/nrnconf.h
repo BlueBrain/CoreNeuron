@@ -36,10 +36,13 @@ extern double celsius;
 #pragma acc declare create(celsius)
 
 extern double pi;
+#pragma acc declare create(pi)
+
+extern int secondorder;
+#pragma acc declare create(secondorder)
 
 extern double t, dt;
 extern int rev_dt;
-extern int secondorder;
 extern bool stoprun;
 extern const char* bbcore_write_version;
 #define tstopbit   (1 << 15)
