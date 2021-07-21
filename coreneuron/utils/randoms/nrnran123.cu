@@ -5,17 +5,13 @@
 # See top-level LICENSE file for details.
 # =============================================================================.
 */
+#include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/randoms/nrnran123.h"
 
-#ifdef _OPENMP
-#include "coreneuron/utils/nrnmutdec.h"
-#endif
-
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
-#include <atomic>
 #include <mutex>
 
 // In a GPU build this file will be compiled by NVCC as CUDA code
@@ -29,13 +25,14 @@
 namespace {
 /* global data structure per process */
 CORENRN_MANAGED philox4x32_key_t g_k = {{0}};
-std::atomic<std::size_t> instance_count_{};
+OMP_Mutex g_instance_count_mutex;
+std::size_t g_instance_count{};
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 }  // namespace
 
 namespace coreneuron {
 std::size_t nrnran123_instance_count() {
-    return instance_count_;
+    return g_instance_count;
 }
 
 #ifdef _OPENMP
@@ -133,7 +130,6 @@ void nrnran123_set_globalindex(uint32_t gix) {
     g_k.v[0] = gix;
 }
 
-namespace detail {
 nrnran123_State* nrnran123_newstream3(uint32_t id1,
                                       uint32_t id2,
                                       uint32_t id3,
@@ -154,13 +150,19 @@ nrnran123_State* nrnran123_newstream3(uint32_t id1,
     s->c.v[2] = id1;
     s->c.v[3] = id2;
     nrnran123_setseq(s, 0, 0);
-    ++instance_count_;
+    {
+        std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
+        ++g_instance_count;
+    }
     return s;
 }
 
 /* nrn123 streams are destroyed from cpu launcher routine */
 void nrnran123_deletestream(nrnran123_State* s, bool use_unified_memory) {
-    --instance_count_;
+    {
+        std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
+        --g_instance_count;
+    }
     if (use_unified_memory) {
 #ifdef __CUDACC__
         cudaFree(s);
@@ -171,5 +173,4 @@ void nrnran123_deletestream(nrnran123_State* s, bool use_unified_memory) {
         delete s;
     }
 }
-}  // namespace detail
 }  // namespace coreneuron

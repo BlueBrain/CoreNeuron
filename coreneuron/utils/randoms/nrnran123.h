@@ -88,27 +88,19 @@ inline std::size_t nrnran123_state_size() {
     return sizeof(nrnran123_State);
 }
 
-// Implementation functions that have the value of
-// CORENRN_RAN123_USE_UNIFIED_MEMORY promoted into a runtime parameter, which is
-// an easy way to avoid linking problems
-namespace detail {
+/* routines for creating and deleting streams are called from cpu */
 nrnran123_State* nrnran123_newstream3(uint32_t id1,
                                       uint32_t id2,
                                       uint32_t id3,
-                                      bool use_unified_memory);
-void nrnran123_deletestream(nrnran123_State*, bool use_unified_memory);
-}  // namespace detail
-
-/* routines for creating and deleting streams are called from cpu */
-inline nrnran123_State* nrnran123_newstream3(uint32_t id1, uint32_t id2, uint32_t id3) {
-    return detail::nrnran123_newstream3(id1, id2, id3, CORENRN_RAN123_USE_UNIFIED_MEMORY);
+                                      bool use_unified_memory = CORENRN_RAN123_USE_UNIFIED_MEMORY);
+inline nrnran123_State* nrnran123_newstream(
+    uint32_t id1,
+    uint32_t id2,
+    bool use_unified_memory = CORENRN_RAN123_USE_UNIFIED_MEMORY) {
+    return nrnran123_newstream3(id1, id2, 0, use_unified_memory);
 }
-inline nrnran123_State* nrnran123_newstream(uint32_t id1, uint32_t id2) {
-    return nrnran123_newstream3(id1, id2, 0);
-}
-inline void nrnran123_deletestream(nrnran123_State* s) {
-    return detail::nrnran123_deletestream(s, CORENRN_RAN123_USE_UNIFIED_MEMORY);
-}
+void nrnran123_deletestream(nrnran123_State* s,
+                            bool use_unified_memory = CORENRN_RAN123_USE_UNIFIED_MEMORY);
 
 /* minimal data stream */
 CORENRN_HOST_DEVICE_ACC void nrnran123_getseq(nrnran123_State*, uint32_t* seq, char* which);
