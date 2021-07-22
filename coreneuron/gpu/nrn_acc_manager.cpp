@@ -685,6 +685,11 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                 acc_update_self(nt->weights, sizeof(double) * nt->n_weight);
             }
 
+            if (nt->n_presyn) {
+                acc_update_self(nt->presyns_helper, sizeof(PreSynHelper) * nt->n_presyn);
+                acc_update_self(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
+            }
+
             /* dont update vdata, its pointer array
                if(nt->_nvdata) {
                acc_update_self(nt->_vdata, sizeof(double)*nt->_nvdata);
@@ -777,6 +782,11 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             if (nt->n_weight) {
                 acc_update_device(nt->weights, sizeof(double) * nt->n_weight);
+            }
+
+            if (nt->n_presyn) {
+                acc_update_device(nt->presyns_helper, sizeof(PreSynHelper) * nt->n_presyn);
+                acc_update_device(nt->presyns, sizeof(PreSyn) * nt->n_presyn);
             }
 
             /* don't and don't update vdata, its pointer array

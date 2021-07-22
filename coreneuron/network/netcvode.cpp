@@ -151,7 +151,11 @@ void NetCvodeThreadData::enqueue(NetCvode* nc, NrnThread* nt) {
 
 NetCvode::NetCvode() {
     eps_ = 100. * DBL_EPSILON;
+#if PRINT_EVENT
+    print_event_ = 1;
+#else
     print_event_ = 0;
+#endif
     pcnt_ = 0;
     p = nullptr;
     p_construct(1);
@@ -315,7 +319,7 @@ void NetCvode::move_event(TQItem* q, double tnew, NrnThread* nt) {
     if (print_event_) {
         SelfEvent* se = (SelfEvent*) q->data_;
         printf("NetCvode::move_event self event target %s t=%g, old=%g new=%g\n",
-               memb_func[se->target_->_type].sym,
+               corenrn.get_memb_func(se->target_->_type).sym,
                nt->_t,
                q->t_,
                tnew);
@@ -517,7 +521,7 @@ SelfEvent::~SelfEvent() {}
 void SelfEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
     nrn_assert(nt == PP2NT(target_));
     PP2t(target_) = tt;
-    // printf("SelfEvent::deliver t=%g tt=%g %s\n", PP2t(target), tt, pnt_name(target_));
+    // printf("SelfEvent::deliver t=%g tt=%g %s\n", PP2t(target_), tt, pnt_name(target_));
     call_net_receive(ns);
 }
 

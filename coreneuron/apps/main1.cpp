@@ -120,6 +120,46 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* arg) {
 namespace coreneuron {
 void call_prcellstate_for_prcellgid(int prcellgid, int compute_gpu, int is_init);
 
+// bsize = 0 then per step transfer
+// bsize > 1 then full trajectory save into arrays.
+void get_nrn_trajectory_requests(int bsize) {
+    if (nrn2core_get_trajectory_requests_) {
+        for (int tid = 0; tid < nrn_nthread; ++tid) {
+            NrnThread& nt = nrn_threads[tid];
+            int n_pr;
+            int n_trajec;
+            int* types;
+            int* indices;
+            void** vpr;
+            double** varrays;
+            double** pvars;
+
+            // bsize is passed by reference, the return value will determine if
+            // per step return or entire trajectory return.
+            (*nrn2core_get_trajectory_requests_)(
+                tid, bsize, n_pr, vpr, n_trajec, types, indices, pvars, varrays);
+            delete_trajectory_requests(nt);
+            if (n_trajec) {
+                TrajectoryRequests* tr = new TrajectoryRequests;
+                nt.trajec_requests = tr;
+                tr->bsize = bsize;
+                tr->n_pr = n_pr;
+                tr->n_trajec = n_trajec;
+                tr->vsize = 0;
+                tr->vpr = vpr;
+                tr->gather = new double*[n_trajec];
+                tr->varrays = varrays;
+                tr->scatter = pvars;
+                for (int i = 0; i < n_trajec; ++i) {
+                    tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
+                }
+                delete[] types;
+                delete[] indices;
+            }
+        }
+    }
+}
+
 void nrn_init_and_load_data(int argc,
                             char* argv[],
                             CheckPoints& checkPoints,
@@ -272,6 +312,31 @@ void nrn_init_and_load_data(int argc,
         report_mem_usage("After mk_spikevec_buffer");
     }
 
+    // In direct mode there are likely trajectory record requests
+    // to allow processing in NEURON after simulation by CoreNEURON
+    if (corenrn_embedded) {
+        // arg is additional vector size required (how many items will be
+        // written to the double*) but NEURON can instead
+        // specify that returns will be on a per time step basis.
+        get_nrn_trajectory_requests(int((corenrn_param.tstop - t) / corenrn_param.dt) + 2);
+    }
+
+    // TODO : if some ranks are empty then restore will go in deadlock
+    // phase (as some ranks won't have restored anything and hence return
+    // false in checkpoint_initialize
+    if (corenrn_embedded) {
+        // In direct mode, CoreNEURON has exactly the behavior of
+        // ParallelContext.psolve(tstop). Ie a sequence of such calls
+        // without an intervening h.finitialize() continues from the end
+        // of the previous call. I.e., all initial state, including
+        // the event queue has been set up in NEURON. And, at the end
+        // all final state, including the event queue will be sent back
+        // to NEURON. Here there is some first time only
+        // initialization and queue transfer.
+        direct_mode_initialize();
+        (*nrn2core_part2_clean_)();
+    }
+
     if (corenrn_param.gpu) {
         setup_nrnthreads_on_device(nrn_threads, nrn_nthread);
     }
@@ -337,45 +402,7 @@ std::string cnrn_version() {
     return version::to_string();
 }
 
-// bsize = 0 then per step transfer
-// bsize > 1 then full trajectory save into arrays.
-void get_nrn_trajectory_requests(int bsize) {
-    if (nrn2core_get_trajectory_requests_) {
-        for (int tid = 0; tid < nrn_nthread; ++tid) {
-            NrnThread& nt = nrn_threads[tid];
-            int n_pr;
-            int n_trajec;
-            int* types;
-            int* indices;
-            void** vpr;
-            double** varrays;
-            double** pvars;
 
-            // bsize is passed by reference, the return value will determine if
-            // per step return or entire trajectory return.
-            (*nrn2core_get_trajectory_requests_)(
-                tid, bsize, n_pr, vpr, n_trajec, types, indices, pvars, varrays);
-            delete_trajectory_requests(nt);
-            if (n_trajec) {
-                TrajectoryRequests* tr = new TrajectoryRequests;
-                nt.trajec_requests = tr;
-                tr->bsize = bsize;
-                tr->n_pr = n_pr;
-                tr->n_trajec = n_trajec;
-                tr->vsize = 0;
-                tr->vpr = vpr;
-                tr->gather = new double*[n_trajec];
-                tr->varrays = varrays;
-                tr->scatter = pvars;
-                for (int i = 0; i < n_trajec; ++i) {
-                    tr->gather[i] = stdindex2ptr(types[i], indices[i], nt);
-                }
-                delete[] types;
-                delete[] indices;
-            }
-        }
-    }
-}
 
 static void trajectory_return() {
     if (nrn2core_trajectory_return_) {
@@ -504,30 +531,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
             abort();
         }
 
-        // In direct mode there are likely trajectory record requests
-        // to allow processing in NEURON after simulation by CoreNEURON
-        if (corenrn_embedded) {
-            // arg is additional vector size required (how many items will be
-            // written to the double*) but NEURON can instead
-            // specify that returns will be on a per time step basis.
-            get_nrn_trajectory_requests(int((tstop - t) / dt) + 2);
-        }
-
-        // TODO : if some ranks are empty then restore will go in deadlock
-        // phase (as some ranks won't have restored anything and hence return
-        // false in checkpoint_initialize
-        if (corenrn_embedded) {
-            // In direct mode, CoreNEURON has exactly the behavior of
-            // ParallelContext.psolve(tstop). Ie a sequence of such calls
-            // without an intervening h.finitialize() continues from the end
-            // of the previous call. I.e., all initial state, including
-            // the event queue has been set up in NEURON. And, at the end
-            // all final state, including the event queue will be sent back
-            // to NEURON. Here there is some first time only
-            // initialization and queue transfer.
-            direct_mode_initialize();
-            (*nrn2core_part2_clean_)();
-        } else if (!checkPoints.initialize()) {
+        if (!corenrn_embedded && !checkPoints.initialize()) {
             nrn_finitialize(v != 1000., v);
         }
 
