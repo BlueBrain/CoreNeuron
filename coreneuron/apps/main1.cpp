@@ -403,7 +403,6 @@ std::string cnrn_version() {
 }
 
 
-
 static void trajectory_return() {
     if (nrn2core_trajectory_return_) {
         for (int tid = 0; tid < nrn_nthread; ++tid) {
