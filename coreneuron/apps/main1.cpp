@@ -319,12 +319,7 @@ void nrn_init_and_load_data(int argc,
         // written to the double*) but NEURON can instead
         // specify that returns will be on a per time step basis.
         get_nrn_trajectory_requests(int((corenrn_param.tstop - t) / corenrn_param.dt) + 2);
-    }
 
-    // TODO : if some ranks are empty then restore will go in deadlock
-    // phase (as some ranks won't have restored anything and hence return
-    // false in checkpoint_initialize
-    if (corenrn_embedded) {
         // In direct mode, CoreNEURON has exactly the behavior of
         // ParallelContext.psolve(tstop). Ie a sequence of such calls
         // without an intervening h.finitialize() continues from the end
@@ -338,7 +333,15 @@ void nrn_init_and_load_data(int argc,
     }
 
     if (corenrn_param.gpu) {
+        // Copy nrnthreads to device only after all the data are passed from NEURON and the
+        // nrnthreads on CPU are properly set up
         setup_nrnthreads_on_device(nrn_threads, nrn_nthread);
+    }
+
+    if (corenrn_embedded) {
+        // Run nrn_init of mechanisms only to allocate any extra data needed on the GPU after
+        // nrnthreads are properly set up on the GPU
+        allocate_data_in_mechanism_nrn_init();
     }
 
     if (nrn_have_gaps) {
@@ -530,6 +533,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
             abort();
         }
 
+        // TODO : if some ranks are empty then restore will go in deadlock
+        // phase (as some ranks won't have restored anything and hence return
+        // false in checkpoint_initialize
         if (!corenrn_embedded && !checkPoints.initialize()) {
             nrn_finitialize(v != 1000., v);
         }

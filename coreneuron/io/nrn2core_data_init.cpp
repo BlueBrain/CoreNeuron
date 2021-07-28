@@ -59,21 +59,6 @@ void direct_mode_initialize() {
 
     nrn_spike_exchange_init();
 
-    // in case some nrn_init allocate data we need to do that but do not
-    // want to call initmodel.
-    _nrn_skip_initmodel = true;
-    for (int i = 0; i < nrn_nthread; ++i) {  // should be parallel
-        NrnThread& nt = nrn_threads[i];
-        for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
-            Memb_list* ml = tml->ml;
-            mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
-            if (s) {
-                (*s)(&nt, ml, tml->index);
-            }
-        }
-    }
-    _nrn_skip_initmodel = false;
-
     // the things done by checkpoint restore at the end of Phase2::read_file
     // vec_play_continuous n_vec_play_continuous of them
     // patstim_index
