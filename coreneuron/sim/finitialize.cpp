@@ -22,7 +22,6 @@ void allocate_data_in_mechanism_nrn_init() {
     // in case some nrn_init allocate data we need to do that but do not
     // want to call initmodel.
     _nrn_skip_initmodel = true;
-    std::cout << "Running nrn_init of mechanisms without initmodel" << std::endl;
     for (int i = 0; i < nrn_nthread; ++i) {  // should be parallel
         NrnThread& nt = nrn_threads[i];
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
