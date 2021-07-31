@@ -170,8 +170,9 @@ static void core2nrn_tqueue(NrnThread&);
 /** @brief All activated WATCH statements need activation on NEURON side.
  */
 // vector in unpermuted Memb_list index order of vector of
-// activated watch_index.
-typedef std::vector<std::vector<int>> Core2NrnWatchInfo;
+// activated watch_index (the bool is whether it is above threshold).
+typedef std::vector<std::pair<int, bool>> Core2NrnWatchInfoItem;
+typedef std::vector<Core2NrnWatchInfoItem> Core2NrnWatchInfo;
 extern "C" {
 void (*core2nrn_watch_clear_)();
 void (*core2nrn_watch_activate_)(int tid, int type, int watch_begin, Core2NrnWatchInfo&);
@@ -280,15 +281,12 @@ static void core2nrn_watch() {
                 int watch_begin = first;
                 for (int iml = 0; iml < nodecount; ++iml) {
                     int iml_permute = permute ? permute[iml] : iml;
-                    std::vector<int>& wiv = watch_info[iml_permute];
+                    Core2NrnWatchInfoItem& wiv = watch_info[iml_permute];
                     for (int ix = first; ix <= last; ++ix) {
                         int datum = pdata[nrn_i_layout(iml, nodecount, ix, dparam_size, layout)];
                         if (datum & 2) {  // activated
-                            // if the assert fails then perhaps need to
-                            // revisit the line in nrn/.../nrncore_callbacks.cpp
-                            // wc->flag_ = false; // this is a mystery
-                            assert(datum == 2);
-                            wiv.push_back(ix);
+                            bool above_thresh = bool(datum & 1);
+                            wiv.push_back(std::pair<int, bool>(ix, above_thresh));
                         }
                     }
                 }
