@@ -163,12 +163,13 @@ void output_spikes_parallel(const char* outpath, const std::string& population_n
     // gid offset for each population, default is 0
     int population_offset = 0;
     sonata_create_spikefile(outpath);
-    sonata_write_spikes(population_name.data(),
-                        population_offset,
-                        spikevec_time.data(),
-                        spikevec_time.size(),
-                        spikevec_gid.data(),
-                        spikevec_gid.size());
+    sonata_add_spikes_population(population_name.data(),
+                                 population_offset,
+                                 spikevec_time.data(),
+                                 spikevec_time.size(),
+                                 spikevec_gid.data(),
+                                 spikevec_gid.size());
+    sonata_write_spike_populations();
     sonata_close_spikefile();
 #endif  // ENABLE_SONATA_REPORTS
 
