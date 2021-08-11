@@ -83,7 +83,7 @@ Note that if you are building on Cray system with the GNU toolchain, you have to
 
   By default the GPU code will be compiled for NVIDIA devices with compute
   capability 6.0 or 7.0. This can be steered by passing, for example,
-  `-DCORENRN_GPU_CUDA_COMPUTE_CAPABILITY:STRING=50;60;70` to CMake.
+  `-DCMAKE_CUDA_ARCHITECTURES=50;60;70` to CMake.
 
 NOTE : If the CMake command fails, please make sure to delete temporary CMake cache files (`CMakeCache.txt`) before rerunning CMake.
 

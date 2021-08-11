@@ -8,51 +8,40 @@
 # Prepare compiler flags for GPU target
 # =============================================================================
 if(CORENRN_ENABLE_GPU)
-
   # cuda unified memory support
   if(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY)
     set(UNIFIED_MEMORY_DEF -DUNIFIED_MEMORY)
   endif()
-
-  # if user don't specify host compiler, use gcc from $PATH
-  if(NOT CUDA_HOST_COMPILER)
-    find_program(GCC_BIN gcc)
-    set(CUDA_HOST_COMPILER
-        ${GCC_BIN}
-        CACHE FILEPATH "" FORCE)
-  endif()
-
-  # various flags for PGI compiler with GPU build
-  if(${CMAKE_C_COMPILER_ID} STREQUAL "PGI" OR ${CMAKE_C_COMPILER_ID} STREQUAL "NVHPC")
-    # find_cuda produce verbose messages : use new behavior to use _ROOT variables
-    if(POLICY CMP0074)
-      cmake_policy(SET CMP0074 NEW)
-    endif()
-    find_package(CUDA 9.0 REQUIRED)
-    set(CUDA_SEPARABLE_COMPILATION ON)
-    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    set(CUDA_PROFILING_DEF -DCUDA_PROFILING)
-    set(PGI_ACC_FLAGS "-acc -gpu=cuda${CUDA_VERSION}")
-    # ${CORENRN_GPU_CUDA_COMPUTE_CAPABILITY} is {60, 70[, ...]} then generate
-    # -gpu=cudaX.Y,cc60,cc70[,...]. It is important that the architectures used to compile OpenACC
-    # C++ code are compatible with those used to compile the CUDA code that is linked in, otherwise
-    # there will be unhelpful linker errors. This also goes for the CUDA version itself, which may
-    # not be correctly detected if the build system does not itself have a GPU.
-    foreach(compute_capability ${CORENRN_GPU_CUDA_COMPUTE_CAPABILITY})
-      string(APPEND PGI_ACC_FLAGS ",cc${compute_capability}")
-    endforeach()
-    # disable very verbose diagnosis messages and obvious warnings for mod2c
-    set(PGI_DIAG_FLAGS "--diag_suppress 161,177,550")
-    # avoid PGI adding standard compliant "-A" flags
-    set(CMAKE_CXX11_STANDARD_COMPILE_OPTION --c++11)
-    set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
-
-  else()
+  # This is a lazy way of getting the major/minor versions separately without parsing
+  # ${CMAKE_CUDA_COMPILER_VERSION}
+  find_package(CUDAToolkit 9.0 REQUIRED)
+  # Be a bit paranoid
+  if(NOT ${CMAKE_CUDA_COMPILER_VERSION} STREQUAL ${CUDAToolkit_VERSION})
     message(
-      FATAL_ERROR "GPU support is available via OpenACC using PGI/NVIDIA compilers."
-                  " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++")
+      FATAL_ERROR
+        "CUDA compiler (${CMAKE_CUDA_COMPILER_VERSION}) and toolkit (${CUDAToolkit_VERSION}) versions are not the same!"
+    )
   endif()
-
+  set(CUDA_PROFILING_DEF -DCUDA_PROFILING)
+  # -acc enables OpenACC support, -cuda links CUDA libraries and (very importantly!) seems to be
+  # required so make the NVHPC compiler do the device code linking. Otherwise the explicit CUDA
+  # device code (.cu files in libcudacoreneuron) has to be linked in a separate, earlier, step,
+  # which causes problems with interoperability with OpenACC. See
+  # https://github.com/BlueBrain/CoreNeuron/issues/607 for more information about this. -gpu=cudaX.Y
+  # ensures that OpenACC code is compiled with the same CUDA version as is used for the explicit
+  # CUDA code.
+  set(PGI_ACC_FLAGS "-acc -cuda -gpu=cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
+  # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
+  # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
+  # same default compute capabilities as each other, particularly on GPU-less build machines.
+  foreach(compute_capability ${CMAKE_CUDA_ARCHITECTURES})
+    string(APPEND PGI_ACC_FLAGS ",cc${compute_capability}")
+  endforeach()
+  # disable very verbose diagnosis messages and obvious warnings for mod2c
+  set(PGI_DIAG_FLAGS "--diag_suppress 161,177,550")
+  # avoid PGI adding standard compliant "-A" flags
+  set(CMAKE_CXX11_STANDARD_COMPILE_OPTION --c++11)
+  set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
   set(CORENRN_ACC_GPU_DEFS "${UNIFIED_MEMORY_DEF} ${CUDA_PROFILING_DEF}")
   set(CORENRN_ACC_GPU_FLAGS "${PGI_ACC_FLAGS} ${PGI_DIAG_FLAGS}")
 
@@ -68,7 +57,7 @@ if(CORENRN_ENABLE_GPU)
     GLOBAL
     PROPERTY
       CORENEURON_LIB_LINK_FLAGS
-      "${PGI_ACC_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive ${CUDA_cudart_static_LIBRARY}"
+      "${PGI_ACC_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive"
   )
 else()
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
