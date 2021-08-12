@@ -137,6 +137,12 @@ if(CORENRN_ENABLE_GPU)
     message(STATUS "Setting default CUDA architectures to ${CMAKE_CUDA_ARCHITECTURES}")
   endif()
 
+  if(${CMAKE_VERSION} VERSION_LESS 3.16)
+    if(DEFINED CMAKE_CUDA_HOST_COMPILER)
+      unset(ENV{CUDAHOSTCXX})
+    endif()
+  endif()
+
   # Enable CUDA language support.
   enable_language(CUDA)
 
@@ -165,7 +171,7 @@ if(CORENRN_ENABLE_GPU)
     foreach(cuda_arch ${CMAKE_CUDA_ARCHITECTURES})
       string(
         APPEND CMAKE_CUDA_FLAGS
-        "--generate-code=arch=compute_${cuda_arch},code=[compute_${cuda_arch},sm_${cuda_arch}]")
+        " --generate-code=arch=compute_${cuda_arch},code=[compute_${cuda_arch},sm_${cuda_arch}]")
     endforeach()
   endif()
 endif()
