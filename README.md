@@ -78,7 +78,8 @@ Note that if you are building on Cray system with the GNU toolchain, you have to
    -DNRN_ENABLE_RX3D=OFF \
    -DCMAKE_INSTALL_PREFIX=$HOME/install
    -DCMAKE_C_COMPILER=nvc \
-   -DCMAKE_CXX_COMPILER=nvc++
+   -DCMAKE_CXX_COMPILER=nvc++ \
+   -DCMAKE_CUDA_COMPILER=nvcc
   ```
 
   By default the GPU code will be compiled for NVIDIA devices with compute
