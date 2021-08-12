@@ -131,6 +131,9 @@ if(CORENRN_ENABLE_GPU)
   endif()
   # Enable CUDA language support.
   enable_language(CUDA)
+  # nvc++ -cuda implicitly links dynamically to libcudart.so. Setting this makes sure that CMake
+  # does not add -lcudart_static and trigger errors due to mixed dynamic/static linkage.
+  set(CMAKE_CUDA_RUNTIME_LIBRARY Shared)
 endif()
 
 # =============================================================================
