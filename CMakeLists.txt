@@ -119,8 +119,10 @@ if(CORENRN_ENABLE_GPU)
   # Fail hard and early if we don't have the PGI/NVHPC compiler.
   if(NOT CORENRN_HAVE_NVHPC_COMPILER)
     message(
-      FATAL_ERROR "GPU support is available via OpenACC using PGI/NVIDIA compilers."
-                  " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++")
+      FATAL_ERROR
+        "GPU support is available via OpenACC using PGI/NVIDIA compilers."
+        " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CUDA_COMPILER=nvcc -DCMAKE_CXX_COMPILER=nvc++"
+    )
   endif()
   # Set some sensible default CUDA architectures.
   if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)

@@ -8,9 +8,11 @@
 # Prepare compiler flags for GPU target
 # =============================================================================
 if(CORENRN_ENABLE_GPU)
+  # Enable cudaProfiler{Start,Stop}() behind the Instrumentor::phase... APIs
+  add_compile_definitions(CORENEURON_CUDA_PROFILING)
   # cuda unified memory support
   if(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY)
-    set(UNIFIED_MEMORY_DEF -DUNIFIED_MEMORY)
+    add_compile_definitions(CORENEURON_UNIFIED_MEMORY)
   endif()
   # This is a lazy way of getting the major/minor versions separately without parsing
   # ${CMAKE_CUDA_COMPILER_VERSION}
@@ -22,31 +24,30 @@ if(CORENRN_ENABLE_GPU)
         "CUDA compiler (${CMAKE_CUDA_COMPILER_VERSION}) and toolkit (${CUDAToolkit_VERSION}) versions are not the same!"
     )
   endif()
-  set(CUDA_PROFILING_DEF -DCUDA_PROFILING)
   # -acc enables OpenACC support, -cuda links CUDA libraries and (very importantly!) seems to be
-  # required so make the NVHPC compiler do the device code linking. Otherwise the explicit CUDA
+  # required to make the NVHPC compiler do the device code linking. Otherwise the explicit CUDA
   # device code (.cu files in libcudacoreneuron) has to be linked in a separate, earlier, step,
-  # which causes problems with interoperability with OpenACC. See
-  # https://github.com/BlueBrain/CoreNeuron/issues/607 for more information about this. -gpu=cudaX.Y
-  # ensures that OpenACC code is compiled with the same CUDA version as is used for the explicit
-  # CUDA code.
-  set(PGI_ACC_FLAGS "-acc -cuda -gpu=cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
+  # which apparently causes problems with interoperability with OpenACC. Passing -cuda to nvc++ when
+  # compiling (as opposed to linking) seems to enable CUDA C++ support, which has other consequences
+  # due to e.g. __CUDACC__ being defined. See https://github.com/BlueBrain/CoreNeuron/issues/607 for
+  # more information about this. -gpu=cudaX.Y ensures that OpenACC code is compiled with the same
+  # CUDA version as is used for the explicit CUDA code.
+  set(NVHPC_ACC_COMP_FLAGS
+      "-acc -gpu=cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
+  set(NVHPC_ACC_LINK_FLAGS "-cuda")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
   foreach(compute_capability ${CMAKE_CUDA_ARCHITECTURES})
-    string(APPEND PGI_ACC_FLAGS ",cc${compute_capability}")
+    string(APPEND NVHPC_ACC_COMP_FLAGS ",cc${compute_capability}")
   endforeach()
   # disable very verbose diagnosis messages and obvious warnings for mod2c
   set(PGI_DIAG_FLAGS "--diag_suppress 161,177,550")
   # avoid PGI adding standard compliant "-A" flags
   set(CMAKE_CXX11_STANDARD_COMPILE_OPTION --c++11)
   set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
-  set(CORENRN_ACC_GPU_DEFS "${UNIFIED_MEMORY_DEF} ${CUDA_PROFILING_DEF}")
-  set(CORENRN_ACC_GPU_FLAGS "${PGI_ACC_FLAGS} ${PGI_DIAG_FLAGS}")
-
-  add_definitions(${CORENRN_ACC_GPU_DEFS})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CORENRN_ACC_GPU_FLAGS}")
+  string(APPEND CMAKE_CXX_FLAGS " ${NVHPC_ACC_COMP_FLAGS} ${PGI_DIAG_FLAGS}")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${NVHPC_ACC_LINK_FLAGS}")
 endif()
 
 # =============================================================================
@@ -57,7 +58,7 @@ if(CORENRN_ENABLE_GPU)
     GLOBAL
     PROPERTY
       CORENEURON_LIB_LINK_FLAGS
-      "${PGI_ACC_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive"
+      "${NVHPC_ACC_COMP_FLAGS} ${NVHPC_ACC_LINK_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -L${CMAKE_INSTALL_PREFIX}/lib -lcoreneuron -lcudacoreneuron -Wl,--no-whole-archive"
   )
 else()
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
