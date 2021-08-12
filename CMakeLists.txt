@@ -111,11 +111,17 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL 
 else()
   set(CORENRN_HAVE_NVHPC_COMPILER OFF)
 endif()
+
 if(CORENRN_ENABLE_GPU)
-  # find_package(CUDAToolkit), for example
-  if(${CMAKE_VERSION} VERSION_LESS 3.17)
-    message(FATAL_ERROR "GPU support requires at least CMake v3.17!")
+  # Older CMake versions have not been tested for GPU/CUDA/OpenACC support after
+  # https://github.com/BlueBrain/CoreNeuron/pull/609.
+  # https://cmake.org/cmake/help/latest/release/3.14.html#properties suggests there would be
+  # problems because of expressions like set_target_properties(lfp_test_bin PROPERTIES
+  # CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
+  if(${CMAKE_VERSION} VERSION_LESS 3.15)
+    message(FATAL_ERROR "GPU support requires at least CMake v3.15!")
   endif()
+
   # Fail hard and early if we don't have the PGI/NVHPC compiler.
   if(NOT CORENRN_HAVE_NVHPC_COMPILER)
     message(
@@ -124,16 +130,44 @@ if(CORENRN_ENABLE_GPU)
         " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CUDA_COMPILER=nvcc -DCMAKE_CXX_COMPILER=nvc++"
     )
   endif()
+
   # Set some sensible default CUDA architectures.
   if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
     set(CMAKE_CUDA_ARCHITECTURES 60 70)
     message(STATUS "Setting default CUDA architectures to ${CMAKE_CUDA_ARCHITECTURES}")
   endif()
+
   # Enable CUDA language support.
   enable_language(CUDA)
-  # nvc++ -cuda implicitly links dynamically to libcudart.so. Setting this makes sure that CMake
-  # does not add -lcudart_static and trigger errors due to mixed dynamic/static linkage.
-  set(CMAKE_CUDA_RUNTIME_LIBRARY Shared)
+
+  # Prefer shared libcudart.so
+  if(${CMAKE_VERSION} VERSION_LESS 3.17)
+    # Ugly workaround from https://gitlab.kitware.com/cmake/cmake/-/issues/17559, remove when
+    # possible
+    if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
+      list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
+      list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudadevrt")
+      list(APPEND CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart")
+    endif()
+    if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
+      list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static")
+      list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudadevrt")
+      list(APPEND CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart")
+    endif()
+  else()
+    # nvc++ -cuda implicitly links dynamically to libcudart.so. Setting this makes sure that CMake
+    # does not add -lcudart_static and trigger errors due to mixed dynamic/static linkage.
+    set(CMAKE_CUDA_RUNTIME_LIBRARY Shared)
+  endif()
+
+  # Patch CUDA_ARCHITECTURES support into older CMake versions
+  if(${CMAKE_VERSION} VERSION_LESS 3.18)
+    foreach(cuda_arch ${CMAKE_CUDA_ARCHITECTURES})
+      string(
+        APPEND CMAKE_CUDA_FLAGS
+        "--generate-code=arch=compute_${cuda_arch},code=[compute_${cuda_arch},sm_${cuda_arch}]")
+    endforeach()
+  endif()
 endif()
 
 # =============================================================================
