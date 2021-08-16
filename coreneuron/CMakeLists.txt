@@ -119,9 +119,6 @@ if(CORENRN_ENABLE_GPU)
       ${CMAKE_CURRENT_SOURCE_DIR}/io/setup_fornetcon.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/io/corenrn_data_return.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
-  # OL210831: why?
-  set_source_files_properties(${DIMPLIC_CODE_FILE} ${NMODL_INBUILT_MOD_OUTPUTS}
-                              PROPERTIES COMPILE_FLAGS "")
 
   set_source_files_properties(${OPENACC_EXCLUDED_FILES} PROPERTIES COMPILE_FLAGS
                                                                    "-DDISABLE_OPENACC")
