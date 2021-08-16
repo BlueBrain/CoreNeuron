@@ -10,9 +10,9 @@
 #include "coreneuron/utils/randoms/nrnran123.h"
 
 #include <cmath>
+#include <iostream>
 #include <memory>
 #include <mutex>
-#include <sstream>
 
 // In a GPU build this file will be compiled by NVCC as CUDA code
 // In a CPU build this file will be compiled by a C++ compiler as C++ code
@@ -174,13 +174,12 @@ void nrnran123_set_globalindex(uint32_t gix) {
     // If the global seed is changing then we shouldn't have any active streams.
     {
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
-        if (g_instance_count != 0) {
-            std::ostringstream oss;
-            oss << "nrnran123_set_globalindex(" << gix
+        if (g_instance_count != 0 && nrnmpi_myid == 0) {
+            std::cout
+                << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
                 << ") were active. This is not safe, some streams will remember the old value ("
                 << get_global_state().v[0] << ')';
-            throw std::runtime_error(oss.str());
         }
     }
     get_global_state().v[0] = gix;
