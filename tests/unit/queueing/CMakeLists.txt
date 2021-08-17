@@ -13,5 +13,8 @@ target_link_libraries(
   ${reportinglib_LIBRARY}
   ${sonatareport_LIBRARY})
 add_dependencies(queuing_test_bin nrniv-core)
-
+# Tell CMake *not* to run an explicit device code linker step (which will produce errors); let the
+# NVHPC C++ compiler handle this implicitly.
+set_target_properties(queuing_test_bin PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
+target_compile_options(queuing_test_bin PRIVATE ${CORENEURON_BOOST_UNIT_TEST_COMPILE_FLAGS})
 add_test(NAME queuing_test COMMAND ${TEST_EXEC_PREFIX} $<TARGET_FILE:queuing_test_bin>)
