@@ -293,14 +293,14 @@ void nrncore2nrn_send_values(NrnThread* nth) {
 
     TrajectoryRequests* tr = nth->trajec_requests;
     if (tr) {
-        // \todo Check if user has requested voltages for this NrnThread object.
-        //       Currently we are updating voltages if there is any trajectory
-        //       requested by NEURON.
-        update_voltage_from_gpu(nth);
-        // \todo Check if this information has been requested by the user for
-        //       this NrnThread object.
-        update_fast_imem_from_gpu(nth);
-
+        // Note that this is rather inefficient: we generate one `acc update
+        // self` call for each `double` value (voltage, membrane current,
+        // mechanism property, ...) that is being recorded, even though in most
+        // cases these values will actually fall in a small number of contiguous
+        // ranges in memory. A much better solution, which should be implemented
+        // soon, would be to gather and buffer these values timestep-by-timestep
+        // in GPU memory, and only upload the results to the host at the end of
+        // the simulation.
         if (tr->varrays) {  // full trajectories into Vector data
             double** va = tr->varrays;
             int vs = tr->vsize++;
@@ -308,7 +308,7 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             for (int i = 0; i < tr->n_trajec; ++i) {
                 // clang-format off
 
-                #pragma acc update self(tr->gather[i]) if(nth->compute_gpu)
+                #pragma acc update self(tr->gather[i][0:1]) if(nth->compute_gpu)
                 // clang-format on
                 va[i][vs] = *(tr->gather[i]);
             }
@@ -317,7 +317,7 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             for (int i = 0; i < tr->n_trajec; ++i) {
                 // clang-format off
 
-                #pragma acc update self(tr->gather[i]) if(nth->compute_gpu)
+                #pragma acc update self(tr->gather[i][0:1]) if(nth->compute_gpu)
                 // clang-format on
                 *(tr->scatter[i]) = *(tr->gather[i]);
             }

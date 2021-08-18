@@ -803,37 +803,6 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 }
 
 /**
- * Copy voltage vector from GPU to CPU
- *
- * \todo Currently we are copying all voltage vector from GPU
- *       to CPU. We need fine-grain implementation to copy
- *       only requested portion of the voltage vector.
- */
-void update_voltage_from_gpu(NrnThread* nt) {
-    if (nt->compute_gpu && nt->end > 0) {
-        double* voltage = nt->_actual_v;
-        int num_voltage = nrn_soa_padded_size(nt->end, 0);
-        // clang-format off
-
-        #pragma acc update host(voltage [0:num_voltage])
-        // clang-format on
-    }
-}
-
-/**
- * @brief Copy fast_imem vectors from GPU to CPU.
- *
- */
-void update_fast_imem_from_gpu(NrnThread* nt) {
-    if (nt->compute_gpu && nt->end > 0 && nt->nrn_fast_imem) {
-        int num_fast_imem = nt->end;
-        double* fast_imem_d = nt->nrn_fast_imem->nrn_sav_d;
-        double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
-#pragma acc update host(fast_imem_d [0:num_fast_imem], fast_imem_rhs [0:num_fast_imem])
-    }
-}
-
-/**
  * Copy weights from GPU to CPU
  *
  * User may record NetCon weights at the end of simulation.
