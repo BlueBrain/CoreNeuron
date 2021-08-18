@@ -306,20 +306,22 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             int vs = tr->vsize++;
             assert(vs < tr->bsize);
             for (int i = 0; i < tr->n_trajec; ++i) {
+                double* gather_i = tr->gather[i];
                 // clang-format off
 
-                #pragma acc update self(tr->gather[i][0:1]) if(nth->compute_gpu)
+                #pragma acc update self(gather_i[0:1]) if(nth->compute_gpu)
                 // clang-format on
-                va[i][vs] = *(tr->gather[i]);
+                va[i][vs] = *gather_i;
             }
         } else if (tr->scatter) {  // scatter to NEURON and notify each step.
             nrn_assert(nrn2core_trajectory_values_);
             for (int i = 0; i < tr->n_trajec; ++i) {
+                double* gather_i = tr->gather[i];
                 // clang-format off
 
-                #pragma acc update self(tr->gather[i][0:1]) if(nth->compute_gpu)
+                #pragma acc update self(gather_i[0:1]) if(nth->compute_gpu)
                 // clang-format on
-                *(tr->scatter[i]) = *(tr->gather[i]);
+                *(tr->scatter[i]) = *gather_i;
             }
             (*nrn2core_trajectory_values_)(nth->id, tr->n_pr, tr->vpr, nth->_t);
         }
