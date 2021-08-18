@@ -581,6 +581,14 @@ void update_net_send_buffer_on_host(NrnThread* nt, NetSendBuffer_t* nsb) {
     if (!nt->compute_gpu)
         return;
 
+    // check if nsb->_cnt was exceeded on GPU: as the buffer can not be increased
+    // during gpu execution, we should just abort the execution.
+    // \todo: this needs to be fixed with different memory allocation strategy
+    if (nsb->_cnt > nsb->_size) {
+        printf("ERROR: NetSendBuffer exceeded during GPU execution (rank %d)\n", nrnmpi_myid);
+        nrn_abort(1);
+    }
+
     if (nsb->_cnt) {
         acc_update_self(nsb->_sendtype, sizeof(int) * nsb->_cnt);
         acc_update_self(nsb->_vdata_index, sizeof(int) * nsb->_cnt);
