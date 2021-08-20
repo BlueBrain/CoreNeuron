@@ -300,7 +300,7 @@ void nrncore2nrn_send_values(NrnThread* nth) {
         // ranges in memory. A much better solution, which should be implemented
         // soon, would be to gather and buffer these values timestep-by-timestep
         // in GPU memory, and only upload the results to the host at the end of
-        // the simulation.
+        // the simulation. See also: https://github.com/BlueBrain/CoreNeuron/issues/611
         if (tr->varrays) {  // full trajectories into Vector data
             double** va = tr->varrays;
             int vs = tr->vsize++;
@@ -383,18 +383,23 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
     nth->_t += .5 * nth->_dt;
 
     if (nth->ncell) {
-#if defined(_OPENACC)
-        int stream_id = nth->stream_id;
         /*@todo: do we need to update nth->_t on GPU */
         // clang-format off
 
-        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(stream_id)
-        #pragma acc wait(stream_id)
-// clang-format on
-#endif
+        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id)
+        #pragma acc wait(nth->stream_id)
+        // clang-format on
 
         fixed_play_continuous(nth);
         nonvint(nth);
+        // Only required in case we are recording mechanism properties that are
+        // updated in nrn_state; for voltages and membrane currents this wait is
+        // not needed. TODO: revisit with
+        // https://github.com/BlueBrain/CoreNeuron/issues/611
+        // clang-format off
+
+        #pragma acc wait(nth->stream_id)
+        // clang-format on
         nrncore2nrn_send_values(nth);
         nrn_ba(nth, AFTER_SOLVE);
         nrn_ba(nth, BEFORE_STEP);
