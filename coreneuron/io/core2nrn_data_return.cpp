@@ -461,7 +461,8 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             // immediately fans out to NetCon.
             std::stringstream qetype;
             qetype << d->type();
-            hoc_execerror("core2nrn_tqueue_item -> unimplemented queue event type:", qetype.str().c_str());
+            hoc_execerror("core2nrn_tqueue_item -> unimplemented queue event type:",
+                          qetype.str().c_str());
             break;
         }
     }

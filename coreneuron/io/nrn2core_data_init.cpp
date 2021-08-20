@@ -268,8 +268,9 @@ static void nrn2core_tqueue() {
 
                     default: {
                         std::stringstream qetype;
-                        qetype <<  ncte->type[i];
-                        hoc_execerror("Unimplemented transfer queue event type:", qetype.str().c_str());
+                        qetype << ncte->type[i];
+                        hoc_execerror("Unimplemented transfer queue event type:",
+                                      qetype.str().c_str());
                     } break;
                 }
             }
