@@ -5,6 +5,7 @@
 # See top-level LICENSE file for details.
 # =============================================================================.
 */
+#include <sstream>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/network/netpar.hpp"
@@ -162,8 +163,8 @@ static void nrn2core_tqueue() {
                     case 2: {  // NetCon
                         int ncindex = ncte->intdata[idat++];
                         NetCon* nc = nt.netcons + ncindex;
-#define DEBUGQUEUE 0
-#if DEBUGQUEUE
+#define CORENRN_DEBUG_QUEUE 0
+#if CORENRN_DEBUG_QUEUE
                         printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g NetCon %d\n",
                                tid,
                                i,
@@ -212,7 +213,7 @@ static void nrn2core_tqueue() {
                                          corenrn.get_mech_data_layout()[target_type]);
                         void** movable_arg = nt._vdata + ml->pdata[movable_index];
                         TQItem* old_movable_arg = (TQItem*) (*movable_arg);
-#if DEBUGQUEUE
+#if CORENRN_DEBUG_QUEUE
                         printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g SelfEvent\n",
                                tid,
                                i,
@@ -235,7 +236,7 @@ static void nrn2core_tqueue() {
 
                     case 4: {  // PreSyn
                         int ps_index = ncte->intdata[idat++];
-#if DEBUGQUEUE
+#if CORENRN_DEBUG_QUEUE
                         printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g PreSyn %d\n",
                                tid,
                                i,
@@ -256,7 +257,7 @@ static void nrn2core_tqueue() {
                     } break;
 
                     case 7: {  // NetParEvent
-#if DEBUGQUEUE
+#if CORENRN_DEBUG_QUEUE
                         printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g NetParEvent\n",
                                tid,
                                i,
@@ -266,9 +267,9 @@ static void nrn2core_tqueue() {
                     } break;
 
                     default: {
-                        static char s[20];
-                        sprintf(s, "%d", ncte->type[i]);
-                        hoc_execerror("Unimplemented transfer queue event type:", s);
+                        std::stringstream qetype;
+                        qetype <<  ncte->type[i];
+                        hoc_execerror("Unimplemented transfer queue event type:", qetype.str().c_str());
                     } break;
                 }
             }

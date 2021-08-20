@@ -6,6 +6,8 @@
 # =============================================================================
 */
 
+#include <sstream>
+
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/sim/multicore.hpp"
@@ -13,6 +15,7 @@
 #include "coreneuron/io/core2nrn_data_return.hpp"
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/permute/node_permute.h"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/io/mem_layout_util.hpp"
 
@@ -173,10 +176,12 @@ static void core2nrn_tqueue(NrnThread&);
 // activated watch_index (the bool is whether it is above threshold).
 typedef std::vector<std::pair<int, bool>> Core2NrnWatchInfoItem;
 typedef std::vector<Core2NrnWatchInfoItem> Core2NrnWatchInfo;
+
 extern "C" {
 void (*core2nrn_watch_clear_)();
 void (*core2nrn_watch_activate_)(int tid, int type, int watch_begin, Core2NrnWatchInfo&);
 }
+
 static void core2nrn_watch();
 
 /** @brief VecPlay indices back to NEURON */
@@ -184,6 +189,7 @@ extern "C" {
 void (*core2nrn_vecplay_)(int tid, int i_nrn, int last, int discon, int ubound);
 void (*core2nrn_vecplay_events_)();
 }
+
 static void core2nrn_vecplay();
 
 /** @brief copy data back to NEURON.
@@ -438,8 +444,8 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             break;
         }
         case PreSynType: {
-            PreSyn* ps = (PreSyn*) d;
-            printf("PreSynType %g\n", td);
+            // nothing to transfer
+            // `d` can be cast to PreSyn*
             break;
         }
         case NetParEventType: {
@@ -453,7 +459,9 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
         default: {
             // In particular, InputPreSyn does not appear in tqueue as it
             // immediately fans out to NetCon.
-            assert(0);
+            std::stringstream qetype;
+            qetype << d->type();
+            hoc_execerror("core2nrn_tqueue_item -> unimplemented queue event type:", qetype.str().c_str());
             break;
         }
     }
@@ -466,7 +474,7 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             int weight_index = nc.u.weight_index_;
             auto search = self_event_weight_map.find(weight_index);
             if (search != self_event_weight_map.end()) {
-                auto& tqitems = search->second;
+                const auto& tqitems = search->second;
                 for (auto q: tqitems) {
                     DiscreteEvent* d = (DiscreteEvent*) (q->data_);
                     double td = q->t_;

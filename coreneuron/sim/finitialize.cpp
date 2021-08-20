@@ -19,10 +19,12 @@ namespace coreneuron {
 bool _nrn_skip_initmodel;
 
 void allocate_data_in_mechanism_nrn_init() {
-    // in case some nrn_init allocate data we need to do that but do not
-    // want to call initmodel.
+    // In case some nrn_init allocates data that we need. In this case
+    // we want to call nrn_init but not execute initmodel i.e. INITIAL
+    // block. For this, set _nrn_skip_initmodel to True temporarily
+    // , execute nrn_init and return.
     _nrn_skip_initmodel = true;
-    for (int i = 0; i < nrn_nthread; ++i) {  // should be parallel
+    for (int i = 0; i < nrn_nthread; ++i) {  // could be parallel
         NrnThread& nt = nrn_threads[i];
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             Memb_list* ml = tml->ml;
