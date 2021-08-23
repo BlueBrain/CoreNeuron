@@ -393,14 +393,6 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 
         fixed_play_continuous(nth);
         nonvint(nth);
-        // Only required in case we are recording mechanism properties that are
-        // updated in nrn_state; for voltages and membrane currents this wait is
-        // not needed. TODO: revisit with
-        // https://github.com/BlueBrain/CoreNeuron/issues/611
-        // clang-format off
-
-        #pragma acc wait(nth->stream_id)
-        // clang-format on
         nrncore2nrn_send_values(nth);
         nrn_ba(nth, AFTER_SOLVE);
         nrn_ba(nth, BEFORE_STEP);
