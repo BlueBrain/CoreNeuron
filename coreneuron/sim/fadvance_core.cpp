@@ -293,28 +293,29 @@ void nrncore2nrn_send_values(NrnThread* nth) {
 
     TrajectoryRequests* tr = nth->trajec_requests;
     if (tr) {
-        // Note that this is rather inefficient: we generate one `acc update
-        // self` call for each `double` value (voltage, membrane current,
-        // mechanism property, ...) that is being recorded, even though in most
-        // cases these values will actually fall in a small number of contiguous
-        // ranges in memory. A much better solution, which should be implemented
-        // soon, would be to gather and buffer these values timestep-by-timestep
-        // in GPU memory, and only upload the results to the host at the end of
-        // the simulation. See also: https://github.com/BlueBrain/CoreNeuron/issues/611
         if (tr->varrays) {  // full trajectories into Vector data
-            double** va = tr->varrays;
             int vs = tr->vsize++;
+            // make sure we do not overflow the `varrays` buffers
             assert(vs < tr->bsize);
-            for (int i = 0; i < tr->n_trajec; ++i) {
-                double* gather_i = tr->gather[i];
-                // clang-format off
 
-                #pragma acc update self(gather_i[0:1]) if(nth->compute_gpu)
-                // clang-format on
-                va[i][vs] = *gather_i;
+            // clang-format off
+
+            #pragma acc parallel loop present(tr[0:1]) if(nth->compute_gpu) async(nth->stream_id)
+            // clang-format on
+            for (int i = 0; i < tr->n_trajec; ++i) {
+                tr->varrays[i][vs] = *tr->gather[i];
             }
         } else if (tr->scatter) {  // scatter to NEURON and notify each step.
             nrn_assert(nrn2core_trajectory_values_);
+            // Note that this is rather inefficient: we generate one `acc update
+            // self` call for each `double` value (voltage, membrane current,
+            // mechanism property, ...) that is being recorded, even though in most
+            // cases these values will actually fall in a small number of contiguous
+            // ranges in memory. A better solution, if the performance of this
+            // branch becomes limiting, might be to offload this loop to the
+            // device and populate some `scatter_values` array there and copy it
+            // back with a single transfer. See also:
+            // https://github.com/BlueBrain/CoreNeuron/issues/611
             for (int i = 0; i < tr->n_trajec; ++i) {
                 double* gather_i = tr->gather[i];
                 // clang-format off
