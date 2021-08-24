@@ -435,9 +435,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                     auto* d_gather_i = acc_deviceptr(tr->gather[i]);
                     acc_memcpy_to_device(&(d_tr_gather[i]), &d_gather_i, sizeof(double*));
                 }
-                // TODO: other members of the TrajectoryRequests struct:
-                // `scatter`, `n_pr`, `n_trajec`, `bsize`, `vsize` are not
-                // updated on device.
+                // TODO: other `double** scatter` and `void** vpr` members of
+                // the TrajectoryRequests struct are not copied to the device.
+                // The `int vsize` member is updated during the simulation but
+                // not kept up to date timestep-by-timestep on the device.
             }
         }
     }

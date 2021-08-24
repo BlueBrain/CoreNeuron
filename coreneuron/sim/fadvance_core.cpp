@@ -314,8 +314,15 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             // ranges in memory. A better solution, if the performance of this
             // branch becomes limiting, might be to offload this loop to the
             // device and populate some `scatter_values` array there and copy it
-            // back with a single transfer. See also:
+            // back with a single transfer. The `acc wait` is present in case
+            // the values to be scattered are updated in the `nrn_state` methods
+            // of mechanisms (it should not be needed if only voltages and
+            // membrane currents are being passed back to NEURON) See also:
             // https://github.com/BlueBrain/CoreNeuron/issues/611
+            // clang-format off
+
+            #pragma acc wait(nth->stream_id)
+            // clang-format on
             for (int i = 0; i < tr->n_trajec; ++i) {
                 double* gather_i = tr->gather[i];
                 // clang-format off
