@@ -1,7 +1,7 @@
 #ifdef ENABLE_CUDA_
 
-#include <iostream>
-#include <stdio.h>
+//#include <iostream>
+//#include <stdio.h>
 
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/network/tnode.hpp"
@@ -25,8 +25,8 @@ void triang_interleaved2_device(NrnThread* nt, int icore, int ncycle, int* strid
     int ip;
     double p;
     while(icycle >= 0) {
-        if (icore < istride) {  // most efficient if istride equal  warpsize
-            // what is the index
+        // most efficient if istride equal warpsize, else branch divergence!
+        if (icore < istride) {
             ip = GPU_PARENT(i);
             p = GPU_A(i) / GPU_D(i);
             atomicAdd(&GPU_D(ip), - p * GPU_B(i));
