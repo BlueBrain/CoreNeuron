@@ -12,6 +12,12 @@
 #include "coreneuron/utils/memory.h"
 #include <algorithm>
 namespace coreneuron {
+
+#ifdef ENABLE_CUDA_
+class InterleaveInfo; // forward declaration
+void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore);
+#endif
+
 /**
  * \brief Function that performs the permutation of the cells such that the
  *        execution threads access coalesced memory.

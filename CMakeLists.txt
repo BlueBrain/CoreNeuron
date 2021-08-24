@@ -204,6 +204,8 @@ find_package(Perl REQUIRED)
 # =============================================================================
 # Common build options
 # =============================================================================
+add_definitions(-DENABLE_CUDA_)
+
 # build mod files for coreneuron
 add_definitions(-DCORENEURON_BUILD)
 

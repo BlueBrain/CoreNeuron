@@ -601,13 +601,19 @@ void solve_interleaved2(int ith) {
 #endif
 
     int ncore = nwarp * warpsize;
+
+#ifdef ENABLE_CUDA_
+    NrnThread* d_nt = (NrnThread*)acc_deviceptr(nt);
+    InterleaveInfo* d_info = (InterleaveInfo*)acc_deviceptr(interleave_info + ith);
+    solve_interleaved2_launcher(d_nt, d_info, ncore);
+#else
 #ifdef _OPENACC
     // clang-format off
-
-    #pragma acc parallel loop present(                  \
-        nt[0:1], strides[0:nstride],                    \
-        ncycles[0:nwarp], stridedispl[0:nwarp+1],       \
-        rootbegin[0:nwarp+1], nodebegin[0:nwarp+1])     \
+    
+    #pragma acc parallel loop gang vector vector_length(warpsize) \
+        present(nt[0:1], strides[0:nstride],                      \
+        ncycles[0:nwarp], stridedispl[0:nwarp+1],                 \
+        rootbegin[0:nwarp+1], nodebegin[0:nwarp+1])               \
         if (nt->compute_gpu) async(stream_id)
 // clang-format on
 #endif
@@ -642,6 +648,7 @@ void solve_interleaved2(int ith) {
     for (int i = 0; i < ncore; ++i) {
         printf("%d => %d %d %d\n", i, temp1[i], temp2[i], temp3[i]);
     }
+#endif
 }
 
 /**
