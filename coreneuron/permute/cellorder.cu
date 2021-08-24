@@ -9,7 +9,6 @@
 
 namespace coreneuron {
 
-#define GPU_V(i)      nt->_actual_v[i]
 #define GPU_A(i)      nt->_actual_a[i]
 #define GPU_B(i)      nt->_actual_b[i]
 #define GPU_D(i)      nt->_actual_d[i]
@@ -90,10 +89,6 @@ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int ncore)
     int lastroot = rootbegin[iwarp + 1];
     int firstnode = nodebegin[iwarp];
     int lastnode = nodebegin[iwarp + 1];
-
-    for (int i = root; i < lastroot; i += warpsize) {
-        GPU_RHS(i) /= GPU_D(i);  // the root
-    }
 
     triang_interleaved2_device(nt, ic, ncycle, stride, lastnode);
     bksub_interleaved2_device(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
