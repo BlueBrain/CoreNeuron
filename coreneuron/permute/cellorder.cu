@@ -22,21 +22,15 @@ void triang_interleaved2_device(NrnThread* nt, int icore, int ncycle, int* strid
     int istride = stride[icycle];
     int i = lastnode - istride + icore;
 
-    // execute until all tree depths are executed
-    bool has_subtrees_to_compute = true;
-
-    for (; has_subtrees_to_compute; ) {  // ncycle loop
+    int ip;
+    double p;
+    while(icycle >= 0) {
         if (icore < istride) {  // most efficient if istride equal  warpsize
             // what is the index
-            int ip = GPU_PARENT(i);
-            double p = GPU_A(i) / GPU_D(i);
+            ip = GPU_PARENT(i);
+            p = GPU_A(i) / GPU_D(i);
             atomicAdd(&GPU_D(ip), - p * GPU_B(i));
             atomicAdd(&GPU_RHS(ip), - p * GPU_RHS(i));
-        }
-        // if finished with all tree depths then ready to break
-        if (icycle == 0) {
-            has_subtrees_to_compute = false;
-            continue;
         }
         --icycle;
         istride = stride[icycle];
@@ -59,10 +53,11 @@ void bksub_interleaved2_device(NrnThread* nt,
 
     int i = firstnode + icore;
 
+    int ip;
     for (int icycle = 0; icycle < ncycle; ++icycle) {
         int istride = stride[icycle];
         if (icore < istride) {
-            int ip = GPU_PARENT(i);
+            ip = GPU_PARENT(i);
             GPU_RHS(i) -= GPU_B(i) * GPU_RHS(ip);
             GPU_RHS(i) /= GPU_D(i);
         }
