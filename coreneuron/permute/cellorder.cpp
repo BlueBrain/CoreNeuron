@@ -602,9 +602,9 @@ void solve_interleaved2(int ith) {
 
     int ncore = nwarp * warpsize;
 
-#ifdef ENABLE_CUDA_
-    NrnThread* d_nt = (NrnThread*)acc_deviceptr(nt);
-    InterleaveInfo* d_info = (InterleaveInfo*)acc_deviceptr(interleave_info + ith);
+#ifdef ENABLE_CUDA_INTERFACE
+    NrnThread* d_nt = (NrnThread*) acc_deviceptr(nt);
+    InterleaveInfo* d_info = (InterleaveInfo*) acc_deviceptr(interleave_info + ith);
     solve_interleaved2_launcher(d_nt, d_info, ncore);
 #else
 #ifdef _OPENACC

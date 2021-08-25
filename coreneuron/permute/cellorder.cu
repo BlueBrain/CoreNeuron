@@ -1,4 +1,4 @@
-#ifdef ENABLE_CUDA_
+#ifdef ENABLE_CUDA_INTERFACE
 
 //#include <iostream>
 //#include <stdio.h>
@@ -15,22 +15,24 @@ namespace coreneuron {
 #define GPU_RHS(i)    nt->_actual_rhs[i]
 #define GPU_PARENT(i) nt->_v_parent_index[i]
 
-__device__
-void triang_interleaved2_device(NrnThread* nt, int icore, int ncycle, int* stride, int lastnode)
-{
+__device__ void triang_interleaved2_device(NrnThread* nt,
+                                           int icore,
+                                           int ncycle,
+                                           int* stride,
+                                           int lastnode) {
     int icycle = ncycle - 1;
     int istride = stride[icycle];
     int i = lastnode - istride + icore;
 
     int ip;
     double p;
-    while(icycle >= 0) {
+    while (icycle >= 0) {
         // most efficient if istride equal warpsize, else branch divergence!
         if (icore < istride) {
             ip = GPU_PARENT(i);
             p = GPU_A(i) / GPU_D(i);
-            atomicAdd(&GPU_D(ip), - p * GPU_B(i));
-            atomicAdd(&GPU_RHS(ip), - p * GPU_RHS(i));
+            atomicAdd(&GPU_D(ip), -p * GPU_B(i));
+            atomicAdd(&GPU_RHS(ip), -p * GPU_RHS(i));
         }
         --icycle;
         istride = stride[icycle];
@@ -38,15 +40,13 @@ void triang_interleaved2_device(NrnThread* nt, int icore, int ncycle, int* strid
     }
 }
 
-__device__
-void bksub_interleaved2_device(NrnThread* nt,
-                               int root,
-                               int lastroot,
-                               int icore,
-                               int ncycle,
-                               int* stride,
-                               int firstnode)
-{
+__device__ void bksub_interleaved2_device(NrnThread* nt,
+                                          int root,
+                                          int lastroot,
+                                          int icore,
+                                          int ncycle,
+                                          int* stride,
+                                          int firstnode) {
     for (int i = root; i < lastroot; i += warpsize) {
         GPU_RHS(i) /= GPU_D(i);  // the root
     }
@@ -65,11 +65,9 @@ void bksub_interleaved2_device(NrnThread* nt,
     }
 }
 
-__global__
-void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int ncore)
-{
+__global__ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int ncore) {
     int icore = blockDim.x * blockIdx.x + threadIdx.x;
-    
+
     int* ncycles = ii->cellsize;         // nwarp of these
     int* stridedispl = ii->stridedispl;  // nwarp+1 of these
     int* strides = ii->stride;           // sum ncycles of these (bad since ncompart/warpsize)
@@ -89,16 +87,15 @@ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int ncore)
     bksub_interleaved2_device(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
 }
 
-void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore)
-{
+void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore) {
     cudaDeviceSynchronize();
     int threadsPerBlock = warpsize;
     int blocksPerGrid = (ncore + threadsPerBlock - 1) / threadsPerBlock;
 
-    solve_interleaved2_kernel<<<blocksPerGrid,threadsPerBlock>>>(nt, info, ncore);
+    solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock>>>(nt, info, ncore);
     cudaDeviceSynchronize();
 }
 
-} // namespace coreneuron
+}  // namespace coreneuron
 
-#endif // ENABLE_CUDA_
+#endif  // ENABLE_CUDA_INTERFACE

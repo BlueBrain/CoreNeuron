@@ -13,8 +13,8 @@
 #include <algorithm>
 namespace coreneuron {
 
-#ifdef ENABLE_CUDA_
-class InterleaveInfo; // forward declaration
+#ifdef ENABLE_CUDA_INTERFACE
+class InterleaveInfo;  // forward declaration
 void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore);
 #endif
 
