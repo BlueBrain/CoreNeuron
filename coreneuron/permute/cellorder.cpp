@@ -588,11 +588,13 @@ void solve_interleaved2(int ith) {
 
     int ncore = nwarp * warpsize;
 
+#ifdef _OPENACC
     if (corenrn_param.gpu && corenrn_param.cuda_interface) {
         auto* d_nt = static_cast<NrnThread*>(acc_deviceptr(nt));
         auto* d_info = static_cast<InterleaveInfo*>(acc_deviceptr(interleave_info + ith));
         solve_interleaved2_launcher(d_nt, d_info, ncore, acc_get_cuda_stream(nt->stream_id));
     } else {
+#endif
         static int foo = 1;
         int* ncycles = ii.cellsize;         // nwarp of these
         int* stridedispl = ii.stridedispl;  // nwarp+1 of these
@@ -645,7 +647,9 @@ void solve_interleaved2(int ith) {
         for (int i = 0; i < ncore; ++i) {
             printf("%d => %d %d %d\n", i, temp1[i], temp2[i], temp3[i]);
         }
+#ifdef _OPENACC
     }
+#endif
 }
 
 /**
