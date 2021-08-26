@@ -347,7 +347,11 @@ void nrn2core_transfer_watch_condition(int tid,
     int pntoffset = nt._pnt_offset[pnttype];
     Point_process* pnt = nt.pntprocs + (pntoffset + pntindex);
     assert(pnt->_type == pnttype);
-    assert(pnt->_i_instance == pntindex);  // is this true for permutation?
+    Memb_list* ml = nt._ml_list[pnttype];
+    if (ml->_permute) {
+        pntindex = ml->_permute[pntindex];
+    }
+    assert(pnt->_i_instance == pntindex);
     assert(pnt->_tid == tid);
 
     // perhaps all this should be more closely associated with phase2 since
@@ -359,7 +363,6 @@ void nrn2core_transfer_watch_condition(int tid,
     // from where everything was done in nrn_setup.cpp. Here, I'm guessing
     // nrn_i_layout is the relevant index transformation after finding the
     // beginning of the mechanism pdata.
-    Memb_list* ml = nt._ml_list[pnttype];
     int* pdata = ml->pdata;
     int iml = pntindex;
     int nodecount = ml->nodecount;
