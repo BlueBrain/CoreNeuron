@@ -1,19 +1,16 @@
-#ifdef ENABLE_CUDA_INTERFACE
-
-//#include <iostream>
-//#include <stdio.h>
+/*
+# =============================================================================
+# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+*/
 
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/network/tnode.hpp"
 #include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {
-
-#define GPU_A(i)      nt->_actual_a[i]
-#define GPU_B(i)      nt->_actual_b[i]
-#define GPU_D(i)      nt->_actual_d[i]
-#define GPU_RHS(i)    nt->_actual_rhs[i]
-#define GPU_PARENT(i) nt->_v_parent_index[i]
 
 __device__ void triang_interleaved2_device(NrnThread* nt,
                                            int icore,
@@ -29,10 +26,10 @@ __device__ void triang_interleaved2_device(NrnThread* nt,
     while (icycle >= 0) {
         // most efficient if istride equal warpsize, else branch divergence!
         if (icore < istride) {
-            ip = GPU_PARENT(i);
-            p = GPU_A(i) / GPU_D(i);
-            atomicAdd(&GPU_D(ip), -p * GPU_B(i));
-            atomicAdd(&GPU_RHS(ip), -p * GPU_RHS(i));
+            ip = nt->_v_parent_index[i];
+            p = nt->_actual_a[i] / nt->_actual_d[i];
+            atomicAdd(&nt->_actual_d[ip], -p * nt->_actual_b[i]);
+            atomicAdd(&nt->_actual_rhs[ip], -p * nt->_actual_rhs[i]);
         }
         --icycle;
         istride = stride[icycle];
@@ -48,7 +45,7 @@ __device__ void bksub_interleaved2_device(NrnThread* nt,
                                           int* stride,
                                           int firstnode) {
     for (int i = root; i < lastroot; i += warpsize) {
-        GPU_RHS(i) /= GPU_D(i);  // the root
+        nt->_actual_rhs[i] /= nt->_actual_d[i];  // the root
     }
 
     int i = firstnode + icore;
@@ -57,9 +54,9 @@ __device__ void bksub_interleaved2_device(NrnThread* nt,
     for (int icycle = 0; icycle < ncycle; ++icycle) {
         int istride = stride[icycle];
         if (icore < istride) {
-            ip = GPU_PARENT(i);
-            GPU_RHS(i) -= GPU_B(i) * GPU_RHS(ip);
-            GPU_RHS(i) /= GPU_D(i);
+            ip = nt->_v_parent_index[i];
+            nt->_actual_rhs[i] -= nt->_actual_b[i] * nt->_actual_rhs[ip];
+            nt->_actual_rhs[i] /= nt->_actual_d[i];
         }
         i += istride;
     }
@@ -87,15 +84,15 @@ __global__ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int
     bksub_interleaved2_device(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
 }
 
-void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore) {
-    cudaDeviceSynchronize();
+void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream) {
+    auto cuda_stream = static_cast<cudaStream_t>(stream);
+
     int threadsPerBlock = warpsize;
     int blocksPerGrid = (ncore + threadsPerBlock - 1) / threadsPerBlock;
 
-    solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock>>>(nt, info, ncore);
-    cudaDeviceSynchronize();
+    solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock, 0, cuda_stream>>>(nt, info, ncore);
+
+    cudaStreamSynchronize(cuda_stream);
 }
 
 }  // namespace coreneuron
-
-#endif  // ENABLE_CUDA_INTERFACE

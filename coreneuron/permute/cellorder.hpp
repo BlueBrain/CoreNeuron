@@ -13,11 +13,6 @@
 #include <algorithm>
 namespace coreneuron {
 
-#ifdef ENABLE_CUDA_INTERFACE
-class InterleaveInfo;  // forward declaration
-void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore);
-#endif
-
 /**
  * \brief Function that performs the permutation of the cells such that the
  *        execution threads access coalesced memory.
@@ -43,6 +38,15 @@ void destroy_interleave_info();
  * is solved by multiple execution threads (with coalesced memory access as well)
  */
 extern void solve_interleaved(int ith);
+
+class InterleaveInfo;  // forward declaration
+/**
+ *
+ * \brief CUDA branch of the solve_interleaved with interleave_permute_type == 2.
+ *
+ * This branch is activated in runtime with the --cuda-interface CLI flag
+ */
+void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream);
 
 class InterleaveInfo {
   public:

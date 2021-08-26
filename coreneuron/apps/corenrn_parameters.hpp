@@ -55,6 +55,7 @@ struct corenrn_parameters {
     bool multisend = false;          /// Use Multisend spike exchange instead of Allgather.
     bool threading = false;          /// Enable pthread/openmp
     bool gpu = false;                /// Enable GPU computation.
+    bool cuda_interface = false;     /// Enable CUDA interface. By default is the OpenACC interface.
     bool binqueue = false;           /// Use bin queue.
 
     bool show_version = false;  /// Print version and exit.
