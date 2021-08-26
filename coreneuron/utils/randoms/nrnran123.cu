@@ -183,7 +183,7 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
                 << ") were active. This is not safe, some streams will remember the old value ("
-                << get_global_state().v[0] << ')';
+                << get_global_state().v[0] << ')' << std::endl;
         }
     }
     get_global_state().v[0] = gix;
