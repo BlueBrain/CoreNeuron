@@ -188,6 +188,10 @@ static void nrn2core_tqueue() {
                         int offset = nt._pnt_offset[target_type];
                         Point_process* pnt = nt.pntprocs + offset + target_instance;
                         assert(pnt->_type == target_type);
+                        Memb_list* ml = nt._ml_list[target_type];
+                        if (ml->_permute) {
+                            target_instance = ml->_permute[target_instance];
+                        }
                         assert(pnt->_i_instance == target_instance);
                         assert(pnt->_tid == tid);
 
@@ -204,7 +208,6 @@ static void nrn2core_tqueue() {
                         // stored in the mechanism instance movable slot by net_send.
                         // And don't overwrite if not movable. Only one SelfEvent
                         // for a given target instance is movable.
-                        Memb_list* ml = nt._ml_list[target_type];
                         int movable_index =
                             nrn_i_layout(target_instance,
                                          ml->nodecount,
