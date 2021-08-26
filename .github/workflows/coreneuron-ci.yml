@@ -34,9 +34,9 @@ jobs:
       matrix:
         os: [ ubuntu-18.04, macOS-10.15 ]
         config:
-          - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON }
+          # Defaults: CORENRN_ENABLE_SOA=ON CORENRN_ENABLE_MPI=ON
+          - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON}
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
-          - {cmake_option: "-DCORENRN_ENABLE_SOA=ON"}
           - {cmake_option: "-DCORENRN_ENABLE_SOA=OFF"}
           - {use_nmodl: ON, py_version: 3.6.7}
           - {use_nmodl: ON}
