@@ -287,9 +287,9 @@ static void core2nrn_watch() {
                 int watch_begin = first;
                 for (int iml = 0; iml < nodecount; ++iml) {
                     int iml_permute = permute ? permute[iml] : iml;
-                    Core2NrnWatchInfoItem& wiv = watch_info[iml_permute];
+                    Core2NrnWatchInfoItem& wiv = watch_info[iml];
                     for (int ix = first; ix <= last; ++ix) {
-                        int datum = pdata[nrn_i_layout(iml, nodecount, ix, dparam_size, layout)];
+                        int datum = pdata[nrn_i_layout(iml_permute, nodecount, ix, dparam_size, layout)];
                         if (datum & 2) {  // activated
                             bool above_thresh = bool(datum & 1);
                             wiv.push_back(std::pair<int, bool>(ix, above_thresh));
