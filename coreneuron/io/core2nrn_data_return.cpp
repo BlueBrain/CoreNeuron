@@ -415,12 +415,11 @@ static void clear_inv_perm_for_selfevent_targets() {
 }
 
 
-static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
+typedef std::map<int, std::vector<TQItem*>> SelfEventWeightMap;
+
+static void core2nrn_tqueue_item(TQItem* q, SelfEventWeightMap& sewm, NrnThread& nt) {
     DiscreteEvent* d = (DiscreteEvent*) q->data_;
     double td = q->t_;
-
-    // potentially several SelfEvent TQItem* associated with same weight index.
-    std::map<int, std::vector<TQItem*>> self_event_weight_map;
 
     switch (d->type()) {
         case NetConType: {
@@ -435,16 +434,13 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             Point_process* pnt = se->target_;
             assert(pnt->_tid == nt.id);
             int tar_type = (int) pnt->_type;
-            int tar_index = pnt->_i_instance; // correct for no permutation
             Memb_list* ml = nt._ml_list[tar_type];
-            if (ml->_permute) { // if permutation, then calc inverse
+            if (ml->_permute) { // if permutation, then make inverse available
                 // Doing this here because we don't know, in general, which
                 // mechanisms use SelfEvent
                 if (type2invperm.count(tar_type) == 0) {
                     type2invperm[tar_type] = inverse_permute(ml->_permute, ml->nodecount);
                 }
-                tar_index = type2invperm[tar_type][tar_index];
-                assert(pnt->_i_instance == ml->_permute[tar_index]);
             }
             double flag = se->flag_;
             TQItem** movable = (TQItem**) (se->movable_);
@@ -456,8 +452,15 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             // construct a {weight_index : [TQItem]} here for any
             // weight_index >= 0, otherwise send it NEURON now.
             if (weight_index >= 0) {
-                self_event_weight_map[weight_index].push_back(q);
+                // Potentially several SelfEvent TQItem* associated with
+                // same weight index. More importantly, collect them all
+                // so that we only need to iterate over the nt.netcons once
+                sewm[weight_index].push_back(q);
             } else {
+                int tar_index = pnt->_i_instance; // correct for no permutation
+                if (ml->_permute) {
+                    tar_index = type2invperm[tar_type][tar_index];
+                }
                 (*core2nrn_SelfEvent_event_noweight_)(
                     nt.id, td, tar_type, tar_index, flag, is_movable);
             }
@@ -486,32 +489,6 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             break;
         }
     }
-
-    // For self events with weight, find the NetCon index and send that
-    // to NEURON.
-    if (!self_event_weight_map.empty()) {
-        for (int nc_index = 0; nc_index < nt.n_netcon; ++nc_index) {
-            NetCon& nc = nt.netcons[nc_index];
-            int weight_index = nc.u.weight_index_;
-            auto search = self_event_weight_map.find(weight_index);
-            if (search != self_event_weight_map.end()) {
-                const auto& tqitems = search->second;
-                for (auto q: tqitems) {
-                    DiscreteEvent* d = (DiscreteEvent*) (q->data_);
-                    double td = q->t_;
-                    assert(d->type() == SelfEventType);
-                    SelfEvent* se = (SelfEvent*) d;
-                    int tar_type = se->target_->_type;
-                    int tar_index = se->target_ - nt.pntprocs;
-                    double flag = se->flag_;
-                    TQItem** movable = (TQItem**) (se->movable_);
-                    int is_movable = (movable && *movable == q) ? 1 : 0;
-                    (*core2nrn_SelfEvent_event_)(
-                        nt.id, td, tar_type, tar_index, flag, nc_index, is_movable);
-                }
-            }
-        }
-    }
 }
 
 void core2nrn_tqueue(NrnThread& nt) {
@@ -529,14 +506,49 @@ void core2nrn_tqueue(NrnThread& nt) {
     NetCvodeThreadData& ntd = net_cvode_instance->p[nt.id];
     TQueue<QTYPE>* tqe = ntd.tqe_;
     TQItem* q;
+    SelfEventWeightMap sewm;
     // TQItems from atomic_dq
     while ((q = tqe->atomic_dq(1e20)) != nullptr) {
-        core2nrn_tqueue_item(q, nt);
+        core2nrn_tqueue_item(q, sewm, nt);
     }
     // TQitems from binq_
     for (q = tqe->binq_->first(); q; q = tqe->binq_->next(q)) {
-        core2nrn_tqueue_item(q, nt);
+        core2nrn_tqueue_item(q, sewm, nt);
     }
+
+    // For self events with weight, find the NetCon index and send that
+    // to NEURON.
+    // If the SelfEventWeightMap approach (and the corresponding pattern
+    // on the nrn2core side in NEURON) ends up being too expensive in space
+    // or time, it would be possible to modify SelfEvent to use the NetCon
+    // index instead of the weight index, and then directly determine the
+    // NetCon within the core2nrn_tqueue_item function above and call
+    // (*core2nrn_SelfEvent_event_) from there.
+    if (!sewm.empty()) {
+        for (int nc_index = 0; nc_index < nt.n_netcon; ++nc_index) {
+            NetCon& nc = nt.netcons[nc_index];
+            int weight_index = nc.u.weight_index_;
+            auto search = sewm.find(weight_index);
+            if (search != sewm.end()) {
+                const auto& tqitems = search->second;
+                for (auto q: tqitems) {
+                    DiscreteEvent* d = (DiscreteEvent*) (q->data_);
+                    double td = q->t_;
+                    assert(d->type() == SelfEventType);
+                    SelfEvent* se = (SelfEvent*) d;
+                    int tar_type = se->target_->_type;
+                    int tar_index = se->target_ - nt.pntprocs;
+                    // Note: nt.pntprocs is not permuted.
+                    double flag = se->flag_;
+                    TQItem** movable = (TQItem**) (se->movable_);
+                    int is_movable = (movable && *movable == q) ? 1 : 0;
+                    (*core2nrn_SelfEvent_event_)(
+                        nt.id, td, tar_type, tar_index, flag, nc_index, is_movable);
+                }
+            }
+        }
+    }
+
     clear_inv_perm_for_selfevent_targets();
 }
 
