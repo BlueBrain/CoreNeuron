@@ -20,7 +20,7 @@
 #include "coreneuron/network/netpar.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include "coreneuron/utils/progressbar/progressbar.h"
+#include "coreneuron/utils/progressbar/progressbar.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/io/nrn2core_direct.h"
 
@@ -293,23 +293,39 @@ void nrncore2nrn_send_values(NrnThread* nth) {
 
     TrajectoryRequests* tr = nth->trajec_requests;
     if (tr) {
-        // \todo Check if user has requested voltages for this NrnThread object.
-        //       Currently we are updating voltages if there is any trajectory
-        //       requested by NEURON.
-        update_voltage_from_gpu(nth);
-        // \todo Check if this information has been requested by the user for
-        //       this NrnThread object.
-        update_fast_imem_from_gpu(nth);
-
         if (tr->varrays) {  // full trajectories into Vector data
-            double** va = tr->varrays;
             int vs = tr->vsize++;
+            // make sure we do not overflow the `varrays` buffers
             assert(vs < tr->bsize);
+
+            // clang-format off
+
+            #pragma acc parallel loop present(tr[0:1]) if(nth->compute_gpu) async(nth->stream_id)
+            // clang-format on
             for (int i = 0; i < tr->n_trajec; ++i) {
-                va[i][vs] = *(tr->gather[i]);
+                tr->varrays[i][vs] = *tr->gather[i];
             }
         } else if (tr->scatter) {  // scatter to NEURON and notify each step.
             nrn_assert(nrn2core_trajectory_values_);
+            // Note that this is rather inefficient: we generate one `acc update
+            // self` call for each `double` value (voltage, membrane current,
+            // mechanism property, ...) that is being recorded, even though in most
+            // cases these values will actually fall in a small number of contiguous
+            // ranges in memory. A better solution, if the performance of this
+            // branch becomes limiting, might be to offload this loop to the
+            // device and populate some `scatter_values` array there and copy it
+            // back with a single transfer. Note that the `async` clause here
+            // should guarantee that correct values are reported even of
+            // mechanism data that is updated in `nrn_state`. See also:
+            // https://github.com/BlueBrain/CoreNeuron/issues/611
+            for (int i = 0; i < tr->n_trajec; ++i) {
+                double* gather_i = tr->gather[i];
+                // clang-format off
+
+                #pragma acc update self(gather_i[0:1]) if(nth->compute_gpu) async(nth->stream_id)
+            }
+            #pragma acc wait(nth->stream_id)
+            // clang-format on
             for (int i = 0; i < tr->n_trajec; ++i) {
                 *(tr->scatter[i]) = *(tr->gather[i]);
             }
@@ -373,15 +389,12 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
     nth->_t += .5 * nth->_dt;
 
     if (nth->ncell) {
-#if defined(_OPENACC)
-        int stream_id = nth->stream_id;
         /*@todo: do we need to update nth->_t on GPU */
         // clang-format off
 
-        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(stream_id)
-        #pragma acc wait(stream_id)
-// clang-format on
-#endif
+        #pragma acc update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id)
+        #pragma acc wait(nth->stream_id)
+        // clang-format on
 
         fixed_play_continuous(nth);
         nonvint(nth);
