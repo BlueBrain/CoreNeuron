@@ -405,6 +405,16 @@ void nrn2core_PreSyn_flag_receive(int tid) {
     }
 }
 
+std::map<int, int*> type2invperm;
+
+static void clear_inv_perm_for_selfevent_targets() {
+    for (auto it: type2invperm) {
+      delete it.second;
+    }
+    type2invperm.clear();
+}
+
+
 static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
     DiscreteEvent* d = (DiscreteEvent*) q->data_;
     double td = q->t_;
@@ -425,7 +435,17 @@ static void core2nrn_tqueue_item(TQItem* q, NrnThread& nt) {
             Point_process* pnt = se->target_;
             assert(pnt->_tid == nt.id);
             int tar_type = (int) pnt->_type;
-            int tar_index = pnt->_i_instance;
+            int tar_index = pnt->_i_instance; // correct for no permutation
+            Memb_list* ml = nt._ml_list[tar_type];
+            if (ml->_permute) { // if permutation, then calc inverse
+                // Doing this here because we don't know, in general, which
+                // mechanisms use SelfEvent
+                if (type2invperm.count(tar_type) == 0) {
+                    type2invperm[tar_type] = inverse_permute(ml->_permute, ml->nodecount);
+                }
+                tar_index = type2invperm[tar_type][tar_index];
+                assert(pnt->_i_instance == ml->_permute[tar_index]);
+            }
             double flag = se->flag_;
             TQItem** movable = (TQItem**) (se->movable_);
             int is_movable = (movable && *movable == q) ? 1 : 0;
@@ -517,6 +537,7 @@ void core2nrn_tqueue(NrnThread& nt) {
     for (q = tqe->binq_->first(); q; q = tqe->binq_->next(q)) {
         core2nrn_tqueue_item(q, nt);
     }
+    clear_inv_perm_for_selfevent_targets();
 }
 
 }  // namespace coreneuron
