@@ -568,10 +568,6 @@ static void bksub_interleaved2(NrnThread* nt,
     }
 }
 
-int temp1[1024] = {0};
-int temp2[1024] = {0};
-int temp3[1024] = {0};
-
 /**
  * \brief Solve Hines matrices/cells with compartment-based granularity.
  *
@@ -595,7 +591,6 @@ void solve_interleaved2(int ith) {
         solve_interleaved2_launcher(d_nt, d_info, ncore, acc_get_cuda_stream(nt->stream_id));
     } else {
 #endif
-        static int foo = 1;
         int* ncycles = ii.cellsize;         // nwarp of these
         int* stridedispl = ii.stridedispl;  // nwarp+1 of these
         int* strides = ii.stride;           // sum ncycles of these (bad since ncompart/warpsize)
@@ -625,9 +620,6 @@ void solve_interleaved2(int ith) {
             int lastroot = rootbegin[iwarp + 1];
             int firstnode = nodebegin[iwarp];
             int lastnode = nodebegin[iwarp + 1];
-// temp1[icore] = ic;
-// temp2[icore] = ncycle;
-// temp3[icore] = stride - strides;
 #if !defined(_OPENACC)
             if (ic == 0) {  // serial test mode. triang and bksub do all cores in warp
 #endif
@@ -640,13 +632,6 @@ void solve_interleaved2(int ith) {
 #ifdef _OPENACC
 #pragma acc wait(nt->stream_id)
 #endif
-        if (foo == 1) {
-            return;
-        }
-        foo = 0;
-        for (int i = 0; i < ncore; ++i) {
-            printf("%d => %d %d %d\n", i, temp1[i], temp2[i], temp3[i]);
-        }
 #ifdef _OPENACC
     }
 #endif
