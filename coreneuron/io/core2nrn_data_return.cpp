@@ -289,7 +289,8 @@ static void core2nrn_watch() {
                     int iml_permute = permute ? permute[iml] : iml;
                     Core2NrnWatchInfoItem& wiv = watch_info[iml];
                     for (int ix = first; ix <= last; ++ix) {
-                        int datum = pdata[nrn_i_layout(iml_permute, nodecount, ix, dparam_size, layout)];
+                        int datum =
+                            pdata[nrn_i_layout(iml_permute, nodecount, ix, dparam_size, layout)];
                         if (datum & 2) {  // activated
                             bool above_thresh = bool(datum & 1);
                             wiv.push_back(std::pair<int, bool>(ix, above_thresh));
@@ -409,7 +410,7 @@ std::map<int, int*> type2invperm;
 
 static void clear_inv_perm_for_selfevent_targets() {
     for (auto it: type2invperm) {
-      delete it.second;
+        delete it.second;
     }
     type2invperm.clear();
 }
@@ -435,7 +436,7 @@ static void core2nrn_tqueue_item(TQItem* q, SelfEventWeightMap& sewm, NrnThread&
             assert(pnt->_tid == nt.id);
             int tar_type = (int) pnt->_type;
             Memb_list* ml = nt._ml_list[tar_type];
-            if (ml->_permute) { // if permutation, then make inverse available
+            if (ml->_permute) {  // if permutation, then make inverse available
                 // Doing this here because we don't know, in general, which
                 // mechanisms use SelfEvent
                 if (type2invperm.count(tar_type) == 0) {
@@ -457,7 +458,7 @@ static void core2nrn_tqueue_item(TQItem* q, SelfEventWeightMap& sewm, NrnThread&
                 // so that we only need to iterate over the nt.netcons once
                 sewm[weight_index].push_back(q);
             } else {
-                int tar_index = pnt->_i_instance; // correct for no permutation
+                int tar_index = pnt->_i_instance;  // correct for no permutation
                 if (ml->_permute) {
                     tar_index = type2invperm[tar_type][tar_index];
                 }
