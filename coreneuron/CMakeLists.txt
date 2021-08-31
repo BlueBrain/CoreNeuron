@@ -180,7 +180,7 @@ target_compile_options(coreneuron
                        PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENEURON_CXX_WARNING_SUPPRESSIONS}>)
 
 # need to have _kinderiv.h for mod2c generated files and nrnivmodl-core and nmodl building
-add_dependencies(coreneuron kin_deriv_header corenrn_mpi nrnivmodl-core)
+add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
 
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
