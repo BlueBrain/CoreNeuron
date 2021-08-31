@@ -55,7 +55,8 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
         const char* name;
         int size;
         double* val = nullptr;
-        for (void* p = nullptr;;) {
+        void* p = nullptr;
+        while (1) {
             p = (*nrn2core_get_global_dbl_item_)(p, name, size, val);
             // If the last item in the NEURON symbol table is a USERDOUBLE
             // then p is NULL but val is not NULL and following fragment
