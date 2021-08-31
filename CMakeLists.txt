@@ -176,6 +176,9 @@ if(CORENRN_ENABLE_GPU)
         " --generate-code=arch=compute_${cuda_arch},code=[compute_${cuda_arch},sm_${cuda_arch}]")
     endforeach()
   endif()
+
+  # Needed for the Eigen GPU support
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
 endif()
 
 # =============================================================================
