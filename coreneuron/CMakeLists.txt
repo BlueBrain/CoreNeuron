@@ -160,6 +160,7 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 # mpi related target, this will be a separate library for dynamic MPI
 add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES})
 target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
+set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # main coreneuron library
 add_library(
