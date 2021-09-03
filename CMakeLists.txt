@@ -33,6 +33,8 @@ if(NOT "cxx_std_14" IN_LIST CMAKE_CXX_COMPILE_FEATURES OR NOT "cxx_digit_separat
       "This compiler does not fully support C++14, choose an higher version or an other compiler.")
 endif()
 
+# A dummy change
+
 # =============================================================================
 # Settings to enable project as submodule
 # =============================================================================
