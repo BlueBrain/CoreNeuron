@@ -16,13 +16,13 @@ stages:
 
 # Set up Spack
 spack_setup:
-  extends: .spack_setup_ccache
+  extends: .spack_setup
   variables:
     # Enable fetching GitHub PR descriptions and parsing them to find out what
     # branches to build of other projects.
     PARSE_GITHUB_PR_DESCRIPTIONS: "true"
   script:
-    - !reference [.spack_setup_ccache, script]
+    - !reference [.spack_setup, script]
     # This allows us to use the CoreNEURON repository in regression tests of
     # the gitlab-pipelines repositories. The regression test pipeline triggers
     # *this* pipeline as a child, having pushed a modified branch to the GitLab
