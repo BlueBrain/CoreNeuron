@@ -6,24 +6,10 @@
 # =============================================================================
 */
 
+#include "coreneuron/utils/utils_cuda.h"
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/network/tnode.hpp"
 #include "coreneuron/sim/multicore.hpp"
-
-#include <stdio.h>
-#define CHECKLAST(MSG)                             \
-    do {                                           \
-        cudaError_t e = cudaGetLastError();        \
-        if (e != cudaSuccess) {                    \
-            fprintf(stderr,                        \
-                    "%s:%d: CUDA Error: %s: %s\n", \
-                    __FILE__,                      \
-                    __LINE__,                      \
-                    (MSG),                         \
-                    cudaGetErrorString(e));        \
-            exit(1);                               \
-        }                                          \
-    } while (0)
 
 namespace coreneuron {
 
