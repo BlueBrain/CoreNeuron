@@ -177,7 +177,10 @@ if(CORENRN_ENABLE_GPU)
     endforeach()
   endif()
 
-  # Needed for the Eigen GPU support
+  # Needed for the Eigen GPU support 
+  # Warning suppression (Eigen GPU-related): 
+  # 3057 : Warning on ignoring __host__ annotation in some functions 
+  # 3085 : Warning on redeclaring a __host__ function as __host__ __device__
   set(CMAKE_CUDA_FLAGS
       "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcudafe --diag_suppress=3057,--diag_suppress=3085"
   )
