@@ -10,6 +10,21 @@
 #include "coreneuron/network/tnode.hpp"
 #include "coreneuron/sim/multicore.hpp"
 
+#include <stdio.h>
+#define CHECKLAST(MSG)                             \
+    do {                                           \
+        cudaError_t e = cudaGetLastError();        \
+        if (e != cudaSuccess) {                    \
+            fprintf(stderr,                        \
+                    "%s:%d: CUDA Error: %s: %s\n", \
+                    __FILE__,                      \
+                    __LINE__,                      \
+                    (MSG),                         \
+                    cudaGetErrorString(e));        \
+            exit(1);                               \
+        }                                          \
+    } while (0)
+
 namespace coreneuron {
 
 __device__ void triang_interleaved2_device(NrnThread* nt,
@@ -94,6 +109,8 @@ void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore,
     solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock, 0, cuda_stream>>>(nt, info, ncore);
 
     cudaStreamSynchronize(cuda_stream);
+
+    CHECKLAST("solve_interleaved2_launcher");
 }
 
 }  // namespace coreneuron
