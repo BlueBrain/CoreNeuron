@@ -178,7 +178,9 @@ if(CORENRN_ENABLE_GPU)
   endif()
 
   # Needed for the Eigen GPU support
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+  set(CMAKE_CUDA_FLAGS
+      "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcudafe --diag_suppress=3057,--diag_suppress=3085"
+  )
 endif()
 
 # =============================================================================
