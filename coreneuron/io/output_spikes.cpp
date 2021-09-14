@@ -169,20 +169,18 @@ void output_spikes_parallel(
     sonata_create_spikefile(outpath);
     // split spikevec_time and spikevec_gid by population and write to report
     int n_populations = population_name_offset.size();
-    for (int idx = 0; idx < n_populations; idx++)
-    {
+    for (int idx = 0; idx < n_populations; idx++) {
         auto cur_pop = population_name_offset[idx];
         std::string population_name = cur_pop.first;
         int population_offset = cur_pop.second;
         int gid_lower = population_offset;
         int gid_upper = -1;
-        if ( idx != n_populations - 1 ) {
+        if (idx != n_populations - 1) {
             gid_upper = population_name_offset[idx + 1].second - 1;
         }
         std::vector<double> pop_spikevec_time;
         std::vector<int> pop_spikevec_gid;
-        for (int j = 0; j < spikevec_gid.size(); j++)
-        {
+        for (int j = 0; j < spikevec_gid.size(); j++) {
             if (spikevec_gid[j] < gid_lower || spikevec_gid[j] > gid_upper && gid_upper >= 0) {
                 continue;
             }
@@ -264,7 +262,8 @@ void output_spikes_serial(const char* outpath) {
     fclose(f);
 }
 
-void output_spikes(const char* outpath, const std::vector<std::pair<std::string, int>>& population_name_offset) {
+void output_spikes(const char* outpath,
+                   const std::vector<std::pair<std::string, int>>& population_name_offset) {
     // try to transfer spikes to NEURON. If successfull, don't write out.dat
     if (all_spikes_return(spikevec_time, spikevec_gid)) {
         clear_spike_vectors();

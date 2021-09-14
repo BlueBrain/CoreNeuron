@@ -13,9 +13,8 @@
 #include <vector>
 #include <utility>
 namespace coreneuron {
-void output_spikes(
-    const char* outpath,
-    const std::vector<std::pair<std::string, int>>& population_name_offset);
+void output_spikes(const char* outpath,
+                   const std::vector<std::pair<std::string, int>>& population_name_offset);
 void mk_spikevec_buffer(int);
 
 extern std::vector<double> spikevec_time;

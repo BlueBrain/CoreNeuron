@@ -102,9 +102,10 @@ void register_target_type(ReportConfiguration& report, ReportType report_type) {
     }
 }
 
-std::vector<ReportConfiguration> create_report_configurations(const std::string& conf_file,
-                                                              const std::string& output_dir,
-                                                              std::vector<std::pair<std::string, int>>& spikes_population_name_offset) {
+std::vector<ReportConfiguration> create_report_configurations(
+    const std::string& conf_file,
+    const std::string& output_dir,
+    std::vector<std::pair<std::string, int>>& spikes_population_name_offset) {
     std::vector<ReportConfiguration> reports;
     std::string report_on;
     int target;
@@ -161,9 +162,10 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
     report_conf >> num_populations;
     std::string spikes_population_name;
     int spikes_population_offset;
-    for (int i = 0; i< num_populations; i++) {
+    for (int i = 0; i < num_populations; i++) {
         report_conf >> spikes_population_name >> spikes_population_offset;
-        spikes_population_name_offset.emplace_back(std::make_pair(spikes_population_name, spikes_population_offset));
+        spikes_population_name_offset.emplace_back(
+            std::make_pair(spikes_population_name, spikes_population_offset));
     }
 
     return reports;
