@@ -94,9 +94,6 @@ build:coreneuron+nmodl:gpu:
   extends:
     - .spack_build
     - .spack_nvhpc
-  before_script:
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^eigen%gcc"
-    - !reference [.spack_build, before_script]
   needs: ["build:nmodl:gpu"]
 
 build:coreneuron:gpu:
