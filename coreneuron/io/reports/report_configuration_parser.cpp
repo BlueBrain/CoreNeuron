@@ -158,12 +158,22 @@ std::vector<ReportConfiguration> create_report_configurations(
         }
         reports.push_back(report);
     }
-    int num_populations = 0;
-    report_conf >> num_populations;
+    // read population information for spike report
+    int num_populations;
     std::string spikes_population_name;
     int spikes_population_offset;
+    if (isdigit(report_conf.peek())) {
+        report_conf >> num_populations;
+    } else {
+        // support old format: one single line "All"
+        num_populations = 1;
+    }
     for (int i = 0; i < num_populations; i++) {
-        report_conf >> spikes_population_name >> spikes_population_offset;
+        if (!(report_conf >> spikes_population_name >> spikes_population_offset)) {
+            // support old format: one single line "All"
+            report_conf >> spikes_population_name;
+            spikes_population_offset = 0;
+        }
         spikes_population_name_offset.emplace_back(
             std::make_pair(spikes_population_name, spikes_population_offset));
     }
