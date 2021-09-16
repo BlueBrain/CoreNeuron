@@ -53,17 +53,17 @@ class fixed_vector {
         return data_[i];
     }
 
-    #pragma acc routine seq
+#pragma acc routine seq
     const T* data(void) const {
         return data_;
     }
 
-    #pragma acc routine seq
+#pragma acc routine seq
     T* data(void) {
         return data_;
     }
 
-    #pragma acc routine seq
+#pragma acc routine seq
     size_t size() const {
         return n_;
     }
