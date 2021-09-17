@@ -180,9 +180,9 @@ void output_spike_populations(
                                      pop_spikevec_time.size(),
                                      pop_spikevec_gid.data(),
                                      pop_spikevec_gid.size());
-#endif  // ENABLE_SONATA_REPORTS
     }
 }
+#endif  // ENABLE_SONATA_REPORTS
 
 /** Write generated spikes to out.dat using mpi parallel i/o.
  *  \todo : MPI related code should be factored into nrnmpi.c
