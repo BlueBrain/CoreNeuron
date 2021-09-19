@@ -498,6 +498,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
                                                corenrn_param.outpath,
                                                spikes_population_name_offset);
         reports_needs_finalize = configs.size();
+    } else {
+        // set default population name and offset in case of no report config file
+        spikes_population_name_offset.emplace_back(std::make_pair("All", 0));
     }
 
     CheckPoints checkPoints{corenrn_param.checkpointpath, corenrn_param.restorepath};
