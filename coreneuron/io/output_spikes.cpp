@@ -155,6 +155,16 @@ void sort_spikes(std::vector<double>& spikevec_time, std::vector<int>& spikevec_
  */
 void output_spike_populations(
     const std::vector<std::pair<std::string, int>>& population_name_offset) {
+    // Write spikes with default population name and offset
+    if (population_name_offset.empty()) {
+        sonata_add_spikes_population("All",
+                                     0,
+                                     spikevec_time.data(),
+                                     spikevec_time.size(),
+                                     spikevec_gid.data(),
+                                     spikevec_gid.size());
+        return;
+    }
     int n_populations = population_name_offset.size();
     for (int idx = 0; idx < n_populations; idx++) {
         auto cur_pop = population_name_offset[idx];
