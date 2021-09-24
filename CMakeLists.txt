@@ -88,7 +88,7 @@ option(CORENRN_ENABLE_OPENMP "Build the CORE NEURON with OpenMP implementation" 
 option(CORENRN_ENABLE_TIMEOUT "Enable nrn_timeout implementation" ON)
 option(CORENRN_ENABLE_REPORTING "Enable use of ReportingLib for soma reports" OFF)
 option(CORENRN_ENABLE_MPI "Enable MPI-based execution" ON)
-option(CORENRN_ENABLE_DYNAMIC_MPI "Enable dynamic MPI support" ON)
+option(CORENRN_ENABLE_DYNAMIC_MPI "Enable dynamic MPI support" OFF)
 option(CORENRN_ENABLE_SOA "Enable SoA Memory Layout" ON)
 option(CORENRN_ENABLE_HOC_EXP "Enable wrapping exp with hoc_exp()" OFF)
 option(CORENRN_ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
