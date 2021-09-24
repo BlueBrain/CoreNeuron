@@ -135,13 +135,9 @@ int nrnmpi_wrap_mpi_init_impl(int* flag) {
     return MPI_Initialized(flag);
 }
 
-#endif
-
 int nrnmpi_initialized_impl() {
     int flag = 0;
-#if NRNMPI
     MPI_Initialized(&flag);
-#endif
     return flag;
 }
 
@@ -152,6 +148,8 @@ void nrnmpi_abort_impl(int errcode) {
 double nrnmpi_wtime_impl() {
     return MPI_Wtime();
 }
+
+#endif
 
 /**
  * Return local mpi rank within a shared memory node
