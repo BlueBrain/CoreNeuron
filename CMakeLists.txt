@@ -88,6 +88,7 @@ option(CORENRN_ENABLE_OPENMP "Build the CORE NEURON with OpenMP implementation" 
 option(CORENRN_ENABLE_TIMEOUT "Enable nrn_timeout implementation" ON)
 option(CORENRN_ENABLE_REPORTING "Enable use of ReportingLib for soma reports" OFF)
 option(CORENRN_ENABLE_MPI "Enable MPI-based execution" ON)
+option(CORENRN_ENABLE_DYNAMIC_MPI "Enable dynamic MPI support" ON)
 option(CORENRN_ENABLE_SOA "Enable SoA Memory Layout" ON)
 option(CORENRN_ENABLE_HOC_EXP "Enable wrapping exp with hoc_exp()" OFF)
 option(CORENRN_ENABLE_SPLAYTREE_QUEUING "Enable use of Splay tree for spike queuing" ON)
@@ -330,6 +331,11 @@ set(MOD2C_ENABLE_LEGACY_UNITS
 set(NMODL_ENABLE_LEGACY_UNITS
     ${CORENRN_ENABLE_LEGACY_UNITS}
     CACHE BOOL "" FORCE)
+
+if(CORENRN_ENABLE_DYNAMIC_MPI)
+  option(CORENRN_ENABLE_MPI "Enable MPI is dynamic loading is asked" ON)
+  add_compile_definitions(CORENRN_ENABLE_DYNAMIC_MPI)
+endif()
 
 if(CORENRN_ENABLE_PRCELLSTATE)
   set(CORENRN_NRN_PRCELLSTATE 1)

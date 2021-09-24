@@ -6,9 +6,12 @@
 # =============================================================================.
 */
 
+#include <dlfcn.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <sys/time.h>
+
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
@@ -30,11 +33,32 @@ MPI_Comm nrn_bbs_comm;
 static MPI_Group grp_bbs;
 static MPI_Group grp_net;
 
-extern void nrnmpi_spike_initialize();
+// Those functions are part of a mechanism to dinamically load mpi or not
+void mpi_manager_t::resolve_symbols(void* handle) {
+  for ( auto* ptr : m_function_ptrs ) {
+    assert(!(*ptr));
+    ptr->resolve(handle);
+    assert(*ptr);
+  }
+}
+
+void mpi_function_base::resolve(void* handle) {
+  dlerror();
+  void* ptr = dlsym(handle, m_name);
+  const char* error = dlerror();
+  if(error) {
+      std::ostringstream oss;
+      oss << "Could not get symbol " << m_name << " from handle " << handle << ": " << error;
+      throw std::runtime_error(oss.str());
+  }
+  assert(ptr);
+  m_fptr = ptr;
+}
+extern void nrnmpi_spike_initialize_impl();
 
 static int nrnmpi_under_nrncontrol_;
 
-void nrnmpi_init(int* pargc, char*** pargv) {
+void nrnmpi_init_impl(int* pargc, char*** pargv) {
     nrnmpi_use = true;
     nrnmpi_under_nrncontrol_ = 1;
 
@@ -61,7 +85,7 @@ void nrnmpi_init(int* pargc, char*** pargv) {
     nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs_world) == MPI_SUCCESS);
     nrnmpi_numprocs = nrnmpi_numprocs_bbs = nrnmpi_numprocs_world;
     nrnmpi_myid = nrnmpi_myid_bbs = nrnmpi_myid_world;
-    nrnmpi_spike_initialize();
+    nrnmpi_spike_initialize_impl();
 
     if (nrnmpi_myid == 0) {
 #if defined(_OPENMP)
@@ -72,7 +96,7 @@ void nrnmpi_init(int* pargc, char*** pargv) {
     }
 }
 
-void nrnmpi_finalize(void) {
+void nrnmpi_finalize_impl(void) {
     if (nrnmpi_under_nrncontrol_) {
         int flag = 0;
         MPI_Initialized(&flag);
@@ -85,7 +109,7 @@ void nrnmpi_finalize(void) {
     }
 }
 
-void nrnmpi_terminate() {
+void nrnmpi_terminate_impl() {
     if (nrnmpi_use) {
         if (nrnmpi_under_nrncontrol_) {
             MPI_Finalize();
@@ -95,7 +119,7 @@ void nrnmpi_terminate() {
 }
 
 // check if appropriate threading level supported (i.e. MPI_THREAD_FUNNELED)
-void nrnmpi_check_threading_support() {
+void nrnmpi_check_threading_support_impl() {
     int th = 0;
     if (nrnmpi_use) {
         MPI_Query_thread(&th);
@@ -108,7 +132,7 @@ void nrnmpi_check_threading_support() {
 }
 
 /* so src/nrnpython/inithoc.cpp does not have to include a c++ mpi.h */
-int nrnmpi_wrap_mpi_init(int* flag) {
+int nrnmpi_wrap_mpi_init_impl(int* flag) {
     return MPI_Initialized(flag);
 }
 
@@ -149,7 +173,7 @@ void nrn_fatal_error(const char* msg) {
     nrn_abort(-1);
 }
 
-int nrnmpi_initialized() {
+int nrnmpi_initialized_impl() {
     int flag = 0;
 #if NRNMPI
     MPI_Initialized(&flag);
@@ -164,7 +188,7 @@ int nrnmpi_initialized() {
  * process on a given node. This function uses MPI 3 MPI_Comm_split_type
  * function and MPI_COMM_TYPE_SHARED key to find out the local rank.
  */
-int nrnmpi_local_rank() {
+int nrnmpi_local_rank_impl() {
     int local_rank = 0;
 #if NRNMPI
     if (nrnmpi_initialized()) {
@@ -184,7 +208,7 @@ int nrnmpi_local_rank() {
  * We use MPI 3 MPI_Comm_split_type function and MPI_COMM_TYPE_SHARED key to
  * determine number of mpi ranks within a shared memory node.
  */
-int nrnmpi_local_size() {
+int nrnmpi_local_size_impl() {
     int local_size = 1;
 #if NRNMPI
     if (nrnmpi_initialized()) {
@@ -213,7 +237,7 @@ int nrnmpi_local_size() {
  * @param buffer Buffer to write
  * @param length Length of the buffer to write
  */
-void nrnmpi_write_file(const std::string& filename, const char* buffer, size_t length) {
+void nrnmpi_write_file_impl(const std::string& filename, const char* buffer, size_t length) {
     MPI_File fh;
     MPI_Status status;
 

@@ -165,8 +165,13 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 # create libraries
 # =============================================================================
 
-# mpi related target, this will be a separate library for dynamic MPI
-add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES})
+# mpi related target, this is a separate library for dynamic MPI
+if (CORENRN_ENABLE_DYNAMIC_MPI)
+  add_library(corenrn_mpi SHARED ${MPI_CODE_FILES})
+else()
+  add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES})
+  set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)
+endif()
 target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
 set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
 
@@ -178,8 +183,8 @@ add_library(
   ${CORENEURON_TEMPLATE_FILES}
   ${CORENEURON_CODE_FILES}
   ${cudacorenrn_objs}
-  $<TARGET_OBJECTS:corenrn_mpi>
-  ${NMODL_INBUILT_MOD_OUTPUTS})
+  ${NMODL_INBUILT_MOD_OUTPUTS}
+  ${OBJ_MPI})
 # Prevent CMake from running a device code link step when assembling libcoreneuron.a in GPU builds.
 # The device code linking needs to be deferred to the final step, where it is done by `nvc++ -cuda`.
 set_target_properties(coreneuron PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
@@ -193,8 +198,9 @@ add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
-target_link_libraries(coreneuron ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
+target_link_libraries(coreneuron PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
                       ${likwid_LIBRARIES} ${MPI_CXX_LIBRARIES})
+
 target_include_directories(coreneuron SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
 target_include_directories(coreneuron SYSTEM
