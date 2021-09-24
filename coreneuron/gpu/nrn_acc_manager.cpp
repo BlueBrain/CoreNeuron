@@ -20,6 +20,7 @@
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/utils/utils.hpp"
 
 #ifdef _OPENACC
 #include <openacc.h>
