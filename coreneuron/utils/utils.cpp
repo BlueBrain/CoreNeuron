@@ -33,4 +33,4 @@ double nrn_wtime() {
         return (time1.tv_sec + time1.tv_usec / 1.e6);
     }
 }
-}
+}  // namespace coreneuron

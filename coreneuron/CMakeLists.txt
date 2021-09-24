@@ -166,7 +166,7 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 # =============================================================================
 
 # mpi related target, this is a separate library for dynamic MPI
-if (CORENRN_ENABLE_DYNAMIC_MPI)
+if(CORENRN_ENABLE_DYNAMIC_MPI)
   add_library(corenrn_mpi SHARED ${MPI_CODE_FILES})
   set(OBJ_MPI "mpi/nrnmpidec.cpp")
 else()
@@ -199,7 +199,7 @@ add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
-target_link_libraries(coreneuron PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
+target_link_libraries(coreneuron ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
                       ${likwid_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
 target_include_directories(coreneuron SYSTEM

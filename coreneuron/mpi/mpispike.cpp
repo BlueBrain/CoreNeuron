@@ -264,29 +264,29 @@ extern void nrnmpi_int_alltoall_impl(int* s, int* r, int n) {
 }
 
 extern void nrnmpi_int_alltoallv_impl(const int* s,
-                                 const int* scnt,
-                                 const int* sdispl,
-                                 int* r,
-                                 int* rcnt,
-                                 int* rdispl) {
+                                      const int* scnt,
+                                      const int* sdispl,
+                                      int* r,
+                                      int* rcnt,
+                                      int* rdispl) {
     MPI_Alltoallv(s, scnt, sdispl, MPI_INT, r, rcnt, rdispl, MPI_INT, nrnmpi_comm);
 }
 
 extern void nrnmpi_dbl_alltoallv_impl(double* s,
-                                 int* scnt,
-                                 int* sdispl,
-                                 double* r,
-                                 int* rcnt,
-                                 int* rdispl) {
+                                      int* scnt,
+                                      int* sdispl,
+                                      double* r,
+                                      int* rcnt,
+                                      int* rdispl) {
     MPI_Alltoallv(s, scnt, sdispl, MPI_DOUBLE, r, rcnt, rdispl, MPI_DOUBLE, nrnmpi_comm);
 }
 
 extern void nrnmpi_char_alltoallv_impl(char* s,
-                                  int* scnt,
-                                  int* sdispl,
-                                  char* r,
-                                  int* rcnt,
-                                  int* rdispl) {
+                                       int* scnt,
+                                       int* sdispl,
+                                       char* r,
+                                       int* rcnt,
+                                       int* rdispl) {
     MPI_Alltoallv(s, scnt, sdispl, MPI_CHAR, r, rcnt, rdispl, MPI_CHAR, nrnmpi_comm);
 }
 
