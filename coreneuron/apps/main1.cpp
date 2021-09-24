@@ -45,6 +45,8 @@
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/io/core2nrn_data_return.hpp"
+#include "coreneuron/mpi/nrnmpi_def_cinc.h"
+#include "coreneuron/utils/utils.hpp"
 
 extern "C" {
 const char* corenrn_version() {

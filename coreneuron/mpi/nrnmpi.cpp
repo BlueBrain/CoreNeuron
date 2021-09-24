@@ -10,14 +10,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <sys/time.h>
 
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/mpispike.hpp"
-#include "coreneuron/mpi/nrnmpi_def_cinc.h"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/utils/utils.hpp"
 #if _OPENMP
 #include <omp.h>
 #endif
@@ -138,47 +137,20 @@ int nrnmpi_wrap_mpi_init_impl(int* flag) {
 
 #endif
 
-// TODO nrn_wtime(), nrn_abort(int) and nrn_fatal_error() to be moved to tools
-
-double nrn_wtime() {
-#if NRNMPI
-    if (nrnmpi_use) {
-        return MPI_Wtime();
-    } else
-#endif
-    {
-        struct timeval time1;
-        gettimeofday(&time1, nullptr);
-        return (time1.tv_sec + time1.tv_usec / 1.e6);
-    }
-}
-
-void nrn_abort(int errcode) {
-#if NRNMPI
-    int flag;
-    MPI_Initialized(&flag);
-    if (flag) {
-        MPI_Abort(MPI_COMM_WORLD, errcode);
-    } else
-#endif
-    {
-        abort();
-    }
-}
-
-void nrn_fatal_error(const char* msg) {
-    if (nrnmpi_myid == 0) {
-        printf("%s\n", msg);
-    }
-    nrn_abort(-1);
-}
-
 int nrnmpi_initialized_impl() {
     int flag = 0;
 #if NRNMPI
     MPI_Initialized(&flag);
 #endif
     return flag;
+}
+
+void nrnmpi_abort_impl(int errcode) {
+    MPI_Abort(MPI_COMM_WORLD, errcode);
+}
+
+double nrnmpi_wtime_impl() {
+    return MPI_Wtime();
 }
 
 /**

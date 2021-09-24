@@ -25,9 +25,11 @@
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
+#include "coreneuron/utils/utils.hpp"
 
 #if NRNMPI
 #include "coreneuron/mpi/mpispike.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
 #endif
 
 namespace coreneuron {
@@ -45,8 +47,6 @@ void nrn_spike_exchange_init();
 
 void nrn_timeout(int);
 void nrn_spike_exchange(NrnThread*);
-extern int nrnmpi_int_allmax(int);
-extern void nrnmpi_int_allgather(int*, int*, int);
 void nrn2ncs_outputevent(int netcon_output_index, double firetime);
 
 // for compressed gid info during spike exchange

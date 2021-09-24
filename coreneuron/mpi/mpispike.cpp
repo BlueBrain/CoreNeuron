@@ -500,7 +500,7 @@ void nrnmpi_dbl_allreduce_vec_impl(double* src, double* dest, int cnt, int type)
     return;
 }
 
-void nrnmpi_long_allreduce_vec(long* src, long* dest, int cnt, int type) {
+void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
     if (nrnmpi_numprocs < 2) {
@@ -518,7 +518,7 @@ void nrnmpi_long_allreduce_vec(long* src, long* dest, int cnt, int type) {
     return;
 }
 
-void nrnmpi_dbl_allgather(double* s, double* r, int n) {
+void nrnmpi_dbl_allgather_impl(double* s, double* r, int n) {
     MPI_Allgather(s, n, MPI_DOUBLE, r, n, MPI_DOUBLE, nrnmpi_comm);
 }
 
@@ -526,13 +526,13 @@ void nrnmpi_dbl_allgather(double* s, double* r, int n) {
 
 static MPI_Comm multisend_comm;
 
-void nrnmpi_multisend_comm() {
+void nrnmpi_multisend_comm_impl() {
     if (!multisend_comm) {
         MPI_Comm_dup(MPI_COMM_WORLD, &multisend_comm);
     }
 }
 
-void nrnmpi_multisend(NRNMPI_Spike* spk, int n, int* hosts) {
+void nrnmpi_multisend_impl(NRNMPI_Spike* spk, int n, int* hosts) {
     MPI_Request r;
     for (int i = 0; i < n; ++i) {
         MPI_Isend(spk, 1, spike_type, hosts[i], 1, multisend_comm, &r);
@@ -540,7 +540,7 @@ void nrnmpi_multisend(NRNMPI_Spike* spk, int n, int* hosts) {
     }
 }
 
-int nrnmpi_multisend_single_advance(NRNMPI_Spike* spk) {
+int nrnmpi_multisend_single_advance_impl(NRNMPI_Spike* spk) {
     int flag = 0;
     MPI_Status status;
     MPI_Iprobe(MPI_ANY_SOURCE, 1, multisend_comm, &flag, &status);
@@ -550,7 +550,7 @@ int nrnmpi_multisend_single_advance(NRNMPI_Spike* spk) {
     return flag;
 }
 
-int nrnmpi_multisend_conserve(int nsend, int nrecv) {
+int nrnmpi_multisend_conserve_impl(int nsend, int nrecv) {
     int tcnts[2];
     tcnts[0] = nsend - nrecv;
     MPI_Allreduce(tcnts, tcnts + 1, 1, MPI_INT, MPI_SUM, multisend_comm);

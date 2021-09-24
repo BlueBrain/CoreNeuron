@@ -15,6 +15,7 @@
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/utils/memory_utils.h"
+#include "coreneuron/utils/utils.hpp"
 /*
 For very large numbers of processors and cells and fanout, it is taking
 a long time to figure out each cells target list given the input gids

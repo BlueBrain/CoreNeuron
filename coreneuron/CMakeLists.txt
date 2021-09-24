@@ -168,6 +168,7 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 # mpi related target, this is a separate library for dynamic MPI
 if (CORENRN_ENABLE_DYNAMIC_MPI)
   add_library(corenrn_mpi SHARED ${MPI_CODE_FILES})
+  set(OBJ_MPI "mpi/nrnmpidec.cpp")
 else()
   add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES})
   set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)

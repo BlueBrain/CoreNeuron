@@ -22,6 +22,7 @@
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/memory.h"
+#include "coreneuron/utils/utils.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/network/partrans.hpp"

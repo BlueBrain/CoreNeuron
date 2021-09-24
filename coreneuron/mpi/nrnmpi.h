@@ -30,9 +30,6 @@ extern int nrnmpi_myid;           /* rank in subworld */
 extern int nrnmpi_numprocs_bbs;   /* number of subworlds */
 extern int nrnmpi_myid_bbs;       /* rank in nrn_bbs_comm of rank 0 of a subworld */
 
-extern void nrn_abort(int errcode);
-extern void nrn_fatal_error(const char* msg);
-extern double nrn_wtime(void);
 extern int nrnmpi_local_rank();
 extern int nrnmpi_local_size();
 }  // namespace coreneuron
@@ -46,9 +43,6 @@ typedef struct {
 } NRNMPI_Spike;
 
 extern bool nrnmpi_use; /* NEURON does MPI init and terminate?*/
-
-// Write given buffer to a new file using MPI collective I/O
-extern void nrnmpi_write_file(const std::string& filename, const char* buffer, size_t length);
 
 // Those functions and classes are part of a mechanism to dynamically or statically load mpi functions
 struct mpi_function_base;
