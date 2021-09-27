@@ -60,8 +60,10 @@ static void* load_dynamic_mpi() {
  */
 int solve_core(int argc, char** argv) {
 #ifdef CORENRN_ENABLE_DYNAMIC_MPI
-    auto mpi_handle = load_dynamic_mpi();
-    coreneuron::mpi_manager().resolve_symbols(mpi_handle);
+    if (!coreneuron::mpi_manager().symbols_resolved()) {
+        auto mpi_handle = load_dynamic_mpi();
+        coreneuron::mpi_manager().resolve_symbols(mpi_handle);
+    }
 #endif
 
     mk_mech_init(argc, argv);

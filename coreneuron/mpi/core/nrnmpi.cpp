@@ -10,6 +10,7 @@ void mpi_manager_t::resolve_symbols(void* handle) {
         ptr->resolve(handle);
         assert(*ptr);
     }
+    symbols_resolved_ = true;
 }
 
 void mpi_function_base::resolve(void* handle) {

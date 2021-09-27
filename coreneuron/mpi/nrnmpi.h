@@ -49,8 +49,13 @@ struct mpi_manager_t {
     m_function_ptrs.push_back(ptr);
   }
   void resolve_symbols(void* dlsym_handle);
+  bool symbols_resolved() const {
+      return symbols_resolved_;
+  }
 private:
   std::vector<mpi_function_base*> m_function_ptrs;
+  // true when symbols are resolved
+  bool symbols_resolved_ = false;
 };
 
 inline mpi_manager_t& mpi_manager() {

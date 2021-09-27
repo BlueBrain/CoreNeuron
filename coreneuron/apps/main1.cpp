@@ -492,8 +492,10 @@ static void* load_dynamic_mpi() {
 
 extern "C" int run_solve_core(int argc, char** argv) {
 #ifdef CORENRN_ENABLE_DYNAMIC_MPI
-    auto mpi_handle = load_dynamic_mpi();
-    mpi_manager().resolve_symbols(mpi_handle);
+    if (!mpi_manager().symbols_resolved()) {
+        auto mpi_handle = load_dynamic_mpi();
+        mpi_manager().resolve_symbols(mpi_handle);
+    }
 #endif
 
     Instrumentor::phase_begin("main");
