@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <climits>
+#include <dlfcn.h>
 #include <memory>
 #include <vector>
 
