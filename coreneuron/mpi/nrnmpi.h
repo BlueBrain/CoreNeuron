@@ -29,9 +29,6 @@ extern int nrnmpi_numprocs;       /* size of subworld */
 extern int nrnmpi_myid;           /* rank in subworld */
 extern int nrnmpi_numprocs_bbs;   /* number of subworlds */
 extern int nrnmpi_myid_bbs;       /* rank in nrn_bbs_comm of rank 0 of a subworld */
-
-extern int nrnmpi_local_rank();
-extern int nrnmpi_local_size();
 }  // namespace coreneuron
 
 #ifdef NRNMPI

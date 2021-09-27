@@ -135,6 +135,10 @@ mpi_function<cnrn_make_integral_constant_t(nrnmpi_initialized_impl)> nrnmpi_init
     "nrnmpi_initialized_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_abort_impl)> nrnmpi_abort{"nrnmpi_abort_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_wtime_impl)> nrnmpi_wtime{"nrnmpi_wtime_impl"};
+mpi_function<cnrn_make_integral_constant_t(nrnmpi_local_rank_impl)> nrnmpi_local_rank{
+    "nrnmpi_local_rank_impl"};
+mpi_function<cnrn_make_integral_constant_t(nrnmpi_local_size_impl)> nrnmpi_local_size{
+    "nrnmpi_local_size_impl"};
 #if NRN_MULTISEND
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_multisend_comm_impl)> nrnmpi_multisend_comm{
     "nrnmpi_multisend_comm_impl"};
