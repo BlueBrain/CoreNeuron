@@ -6,7 +6,6 @@
 # =============================================================================.
 */
 
-#include <dlfcn.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -14,7 +13,7 @@
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/mpispike.hpp"
+#include "coreneuron/mpi/lib/mpispike.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/utils.hpp"
 #if _OPENMP
@@ -32,27 +31,6 @@ MPI_Comm nrn_bbs_comm;
 static MPI_Group grp_bbs;
 static MPI_Group grp_net;
 
-// Those functions are part of a mechanism to dinamically load mpi or not
-void mpi_manager_t::resolve_symbols(void* handle) {
-    for (auto* ptr: m_function_ptrs) {
-        assert(!(*ptr));
-        ptr->resolve(handle);
-        assert(*ptr);
-    }
-}
-
-void mpi_function_base::resolve(void* handle) {
-    dlerror();
-    void* ptr = dlsym(handle, m_name);
-    const char* error = dlerror();
-    if (error) {
-        std::ostringstream oss;
-        oss << "Could not get symbol " << m_name << " from handle " << handle << ": " << error;
-        throw std::runtime_error(oss.str());
-    }
-    assert(ptr);
-    m_fptr = ptr;
-}
 extern void nrnmpi_spike_initialize_impl();
 
 static int nrnmpi_under_nrncontrol_;

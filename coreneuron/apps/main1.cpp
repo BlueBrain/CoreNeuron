@@ -481,7 +481,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 static void* load_dynamic_mpi() {
     dlerror();
-    void* handle = dlopen("libmpiimpl.so", RTLD_NOW);
+    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW);
     const char* error = dlerror();
     if (error) {
         std::string err_msg = "Could not open dynamic MPI library.\n";
@@ -493,7 +493,7 @@ static void* load_dynamic_mpi() {
 extern "C" int run_solve_core(int argc, char** argv) {
 #ifdef CORENRN_ENABLE_DYNAMIC_MPI
     auto mpi_handle = load_dynamic_mpi();
-    coreneuron::mpi_manager().resolve_symbols(mpi_handle);
+    mpi_manager().resolve_symbols(mpi_handle);
 #endif
 
     Instrumentor::phase_begin("main");

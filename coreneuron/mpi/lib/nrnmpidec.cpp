@@ -12,7 +12,7 @@ the prototypes be of the form "type foo(type arg, ...)"
 */
 
 #if NRNMPI
-#include "nrnmpi.h"
+#include "../nrnmpi.h"
 
 namespace coreneuron {
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_newbuf_impl)> nrnmpi_newbuf{"nrnmpi_newbuf_impl"};

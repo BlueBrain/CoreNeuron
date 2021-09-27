@@ -34,6 +34,8 @@ file(
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
 file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.cpp")
 file(GLOB MPI_CODE_FILES "mpi/*.cpp")
+file(GLOB MPI_LIB_FILES "mpi/lib/*.cpp")
+file(GLOB MPI_CORE_FILES "mpi/core/*.cpp")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
      DESTINATION ${CMAKE_BINARY_DIR}/include)
 list(APPEND CORENEURON_CODE_FILES ${PROJECT_BINARY_DIR}/coreneuron/config/config.cpp)
@@ -167,10 +169,10 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # mpi related target, this is a separate library for dynamic MPI
 if(CORENRN_ENABLE_DYNAMIC_MPI)
-  add_library(corenrn_mpi SHARED ${MPI_CODE_FILES})
-  set(OBJ_MPI "mpi/nrnmpidec.cpp")
+  add_library(corenrn_mpi SHARED ${MPI_CODE_FILES} ${MPI_LIB_FILES})
+  set(OBJ_MPI ${MPI_CORE_FILES})
 else()
-  add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES})
+  add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES} ${MPI_CORE_FILES} ${MPI_LIB_FILES})
   set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)
 endif()
 target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
@@ -186,6 +188,12 @@ add_library(
   ${cudacorenrn_objs}
   ${NMODL_INBUILT_MOD_OUTPUTS}
   ${OBJ_MPI})
+if(CORENRN_ENABLE_DYNAMIC_MPI)
+  target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
+  target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
+else()
+  target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
+endif()
 # Prevent CMake from running a device code link step when assembling libcoreneuron.a in GPU builds.
 # The device code linking needs to be deferred to the final step, where it is done by `nvc++ -cuda`.
 set_target_properties(coreneuron PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
@@ -200,7 +208,7 @@ add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 
 target_link_libraries(coreneuron ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
-                      ${likwid_LIBRARIES} ${MPI_CXX_LIBRARIES})
+                      ${likwid_LIBRARIES})
 
 target_include_directories(coreneuron SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
