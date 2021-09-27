@@ -28,7 +28,7 @@
 #include "coreneuron/utils/utils.hpp"
 
 #if NRNMPI
-#include "coreneuron/mpi/lib/mpispike.hpp"
+#include "coreneuron/mpi/core/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #endif
 
