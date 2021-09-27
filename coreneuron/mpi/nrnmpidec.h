@@ -29,55 +29,6 @@ struct bbsmpibuf {
     int refcount;
 };
 
-extern "C" bbsmpibuf* nrnmpi_newbuf_impl(int size);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_newbuf_impl)> nrnmpi_newbuf;
-extern "C" void nrnmpi_copy_impl(bbsmpibuf* dest, bbsmpibuf* src);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_copy_impl)> nrnmpi_copy;
-extern "C" void nrnmpi_ref_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_ref_impl)> nrnmpi_ref;
-extern "C" void nrnmpi_unref_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_unref_impl)> nrnmpi_unref;
-
-extern "C" void nrnmpi_upkbegin_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkbegin_impl)> nrnmpi_upkbegin;
-extern "C" char* nrnmpi_getkey_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_getkey_impl)> nrnmpi_getkey;
-extern "C" int nrnmpi_getid_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_getid_impl)> nrnmpi_getid;
-extern "C" int nrnmpi_upkint_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkint_impl)> nrnmpi_upkint;
-extern "C" double nrnmpi_upkdouble_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkdouble_impl)> nrnmpi_upkdouble;
-extern "C" void nrnmpi_upkvec_impl(int n, double* x, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkvec_impl)> nrnmpi_upkvec;
-extern "C" char* nrnmpi_upkstr_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkstr_impl)> nrnmpi_upkstr;
-extern "C" char* nrnmpi_upkpickle_impl(size_t* size, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkpickle_impl)> nrnmpi_upkpickle;
-
-extern "C" void nrnmpi_pkbegin_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkbegin_impl)> nrnmpi_pkbegin;
-extern "C" void nrnmpi_enddata_impl(bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_enddata_impl)> nrnmpi_enddata;
-extern "C" void nrnmpi_pkint_impl(int i, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkint_impl)> nrnmpi_pkint;
-extern "C" void nrnmpi_pkdouble_impl(double x, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkdouble_impl)> nrnmpi_pkdouble;
-extern "C" void nrnmpi_pkvec_impl(int n, double* x, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkvec_impl)> nrnmpi_pkvec;
-extern "C" void nrnmpi_pkstr_impl(const char* s, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkstr_impl)> nrnmpi_pkstr;
-extern "C" void nrnmpi_pkpickle_impl(const char* s, size_t size, bbsmpibuf* buf);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkpickle_impl)> nrnmpi_pkpickle;
-
-extern "C" int nrnmpi_iprobe_impl(int* size, int* tag, int* source);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_iprobe_impl)> nrnmpi_iprobe;
-extern "C" void nrnmpi_bbssend_impl(int dest, int tag, bbsmpibuf* r);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbssend_impl)> nrnmpi_bbssend;
-extern "C" int nrnmpi_bbsrecv_impl(int source, bbsmpibuf* r);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbsrecv_impl)> nrnmpi_bbsrecv;
-extern "C" int nrnmpi_bbssendrecv_impl(int dest, int tag, bbsmpibuf* s, bbsmpibuf* r);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbssendrecv_impl)> nrnmpi_bbssendrecv;
 
 /* from nrnmpi.cpp */
 extern "C" void nrnmpi_init_impl(int* pargc, char*** pargv);
@@ -88,10 +39,6 @@ extern "C" void nrnmpi_finalize_impl(void);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_finalize_impl)> nrnmpi_finalize;
 extern "C" void nrnmpi_terminate_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_terminate_impl)> nrnmpi_terminate;
-extern "C" void nrnmpi_subworld_size_impl(int n);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_subworld_size_impl)> nrnmpi_subworld_size;
-extern "C" int nrn_wrap_mpi_init_impl(int* flag);
-extern mpi_function<cnrn_make_integral_constant_t(nrn_wrap_mpi_init_impl)> nrn_wrap_mpi_init;
 extern "C" void nrnmpi_check_threading_support_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_check_threading_support_impl)>
     nrnmpi_check_threading_support;

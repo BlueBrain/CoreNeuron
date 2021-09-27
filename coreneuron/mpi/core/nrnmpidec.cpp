@@ -15,42 +15,7 @@ the prototypes be of the form "type foo(type arg, ...)"
 #include "../nrnmpi.h"
 
 namespace coreneuron {
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_newbuf_impl)> nrnmpi_newbuf{"nrnmpi_newbuf_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_copy_impl)> nrnmpi_copy{"nrnmpi_copy_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_ref_impl)> nrnmpi_ref{"nrnmpi_ref_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_unref_impl)> nrnmpi_unref{"nrnmpi_unref_impl"};
 
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkbegin_impl)> nrnmpi_upkbegin{
-    "nrnmpi_upkbegin_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_getkey_impl)> nrnmpi_getkey{"nrnmpi_getkey_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_getid_impl)> nrnmpi_getid{"nrnmpi_getid_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkint_impl)> nrnmpi_upkint{"nrnmpi_upkint_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkdouble_impl)> nrnmpi_upkdouble{
-    "nrnmpi_upkdouble_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkvec_impl)> nrnmpi_upkvec{"nrnmpi_upkvec_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkstr_impl)> nrnmpi_upkstr{"nrnmpi_upkstr_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_upkpickle_impl)> nrnmpi_upkpickle{
-    "nrnmpi_upkpickle_impl"};
-
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkbegin_impl)> nrnmpi_pkbegin{
-    "nrnmpi_pkbegin_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_enddata_impl)> nrnmpi_enddata{
-    "nrnmpi_enddata_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkint_impl)> nrnmpi_pkint{"nrnmpi_pkint_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkdouble_impl)> nrnmpi_pkdouble{
-    "nrnmpi_pkdouble_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkvec_impl)> nrnmpi_pkvec{"nrnmpi_pkvec_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkstr_impl)> nrnmpi_pkstr{"nrnmpi_pkstr_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_pkpickle_impl)> nrnmpi_pkpickle{
-    "nrnmpi_pkpickle_impl"};
-
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_iprobe_impl)> nrnmpi_iprobe{"nrnmpi_iprobe_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbssend_impl)> nrnmpi_bbssend{
-    "nrnmpi_bbssend_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbsrecv_impl)> nrnmpi_bbsrecv{
-    "nrnmpi_bbsrecv_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_bbssendrecv_impl)> nrnmpi_bbssendrecv{
-    "nrnmpi_bbssendrecv_impl"};
 
 /* from nrnmpi.cpp */
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_init_impl)> nrnmpi_init{"nrnmpi_init_impl"};
@@ -60,10 +25,6 @@ mpi_function<cnrn_make_integral_constant_t(nrnmpi_finalize_impl)> nrnmpi_finaliz
     "nrnmpi_finalize_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_terminate_impl)> nrnmpi_terminate{
     "nrnmpi_terminate_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_subworld_size_impl)> nrnmpi_subworld_size{
-    "nrnmpi_subworld_size_impl"};
-mpi_function<cnrn_make_integral_constant_t(nrn_wrap_mpi_init_impl)> nrn_wrap_mpi_init{
-    "nrn_wrap_mpi_init_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_check_threading_support_impl)>
     nrnmpi_check_threading_support{"nrnmpi_check_threading_support_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_write_file_impl)> nrnmpi_write_file{
