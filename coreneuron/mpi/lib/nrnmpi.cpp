@@ -13,7 +13,7 @@
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/core/mpispike.hpp"
+#include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/utils.hpp"
 #if _OPENMP
