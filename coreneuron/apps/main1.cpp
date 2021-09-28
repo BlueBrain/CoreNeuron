@@ -451,6 +451,20 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
 
 using namespace coreneuron;
 
+static void* load_dynamic_mpi() {
+    dlerror();
+#if defined(__APPLE__) && defined(__MACH__)
+    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW | RTLD_GLOBAL);
+#else
+    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW | RTLD_GLOBAL);
+#endif
+    const char* error = dlerror();
+    if (error) {
+        std::string err_msg = "Could not open dynamic MPI library.\n";
+        throw std::runtime_error(err_msg);
+    }
+    return handle;
+}
 
 extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
@@ -458,6 +472,10 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
+#ifdef CORENRN_ENABLE_DYNAMIC_MPI
+        auto mpi_handle = load_dynamic_mpi();
+        mpi_manager().resolve_symbols(mpi_handle);
+#endif
         nrnmpi_init(&argc, &argv);
     }
 #endif
@@ -479,29 +497,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     mk_mech((corenrn_param.datpath).c_str());
 }
 
-static void* load_dynamic_mpi() {
-    dlerror();
-#if defined(__APPLE__) && defined(__MACH__)
-    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW | RTLD_GLOBAL);
-#else
-    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW | RTLD_GLOBAL);
-#endif
-    const char* error = dlerror();
-    if (error) {
-        std::string err_msg = "Could not open dynamic MPI library.\n";
-        throw std::runtime_error(err_msg);
-    }
-    return handle;
-}
-
 extern "C" int run_solve_core(int argc, char** argv) {
-#ifdef CORENRN_ENABLE_DYNAMIC_MPI
-    if (corenrn_param.mpi_enable) {
-        auto mpi_handle = load_dynamic_mpi();
-        mpi_manager().resolve_symbols(mpi_handle);
-    }
-#endif
-
     Instrumentor::phase_begin("main");
 
     std::vector<ReportConfiguration> configs;
