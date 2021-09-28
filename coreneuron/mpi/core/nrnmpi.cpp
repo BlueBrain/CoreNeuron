@@ -25,6 +25,4 @@ void mpi_function_base::resolve(void* handle) {
     assert(ptr);
     m_fptr = ptr;
 }
-}
-
-
+}  // namespace coreneuron
