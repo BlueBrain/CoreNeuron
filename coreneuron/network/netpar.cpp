@@ -25,6 +25,7 @@
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
+#include "coreneuron/utils/profile/profiler_interface.h"
 
 #if NRNMPI
 #include "coreneuron/mpi/mpispike.hpp"
@@ -288,6 +289,7 @@ void nrn_spike_exchange_init() {
 
 #if NRNMPI
 void nrn_spike_exchange(NrnThread* nt) {
+    Instrumentor::phase p_nrn_spike_exchange("nrn_spike_exchange");
     if (!active_) {
         return;
     }
@@ -327,6 +329,7 @@ void nrn_spike_exchange(NrnThread* nt) {
     if (n == 0) {
         return;
     }
+    Instrumentor::phase_begin("presyn-transfer");
 #if nrn_spikebuf_size > 0
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
         int nn = spbufin_[i].nspike;
@@ -351,6 +354,7 @@ void nrn_spike_exchange(NrnThread* nt) {
         }
     }
     wt1_ = nrn_wtime() - wt;
+    Instrumentor::phase_end("presyn-transfer");
 }
 
 void nrn_spike_exchange_compressed(NrnThread* nt) {

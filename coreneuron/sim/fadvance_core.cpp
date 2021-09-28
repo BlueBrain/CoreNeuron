@@ -93,7 +93,10 @@ void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
     nrn_thread_table_check();
     nrn_multithread_job(nrn_fixed_step_thread);
     if (nrn_have_gaps) {
-        nrnmpi_v_transfer();
+        {
+            Instrumentor::phase p("gap-v-transfer");
+            nrnmpi_v_transfer();
+        }
         nrn_multithread_job(nrn_fixed_step_lastpart);
     }
 #if NRNMPI
