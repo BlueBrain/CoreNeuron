@@ -129,7 +129,8 @@ jobs:
               cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DPYTHON_EXECUTABLE=$(which python3) ..;
           fi
           make
-          ctest --output-on-failure
+          echo ${PWD}/lib && ls ${PWD}/lib
+          ctest -VV
           make install
         env:
           cmake_option: ${{ matrix.config.cmake_option }}
