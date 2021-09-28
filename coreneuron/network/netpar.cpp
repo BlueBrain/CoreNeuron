@@ -276,11 +276,11 @@ void nrn_spike_exchange_init() {
             usable_mindelay_ = floor(mindelay_ * dt1_ + 1e-9) * dt;
             assert(usable_mindelay_ >= dt && (usable_mindelay_ * dt1_) < 255);
         } else {
-    #if nrn_spikebuf_size > 0
+#if nrn_spikebuf_size > 0
             if (spbufout_) {
                 spbufout_->nspike = 0;
             }
-    #endif
+#endif
         }
         nout_ = 0;
     }
@@ -589,7 +589,8 @@ void BBS_netpar_solve(double tstop) {
         if (!npe_.empty()) {
             npe_[0].wx_ = npe_[0].ws_ = 0.;
         };
-        // printf("%d netpar_solve exit t=%g tstop=%g mindelay_=%g\n",nrnmpi_myid, t, tstop, mindelay_);
+        // printf("%d netpar_solve exit t=%g tstop=%g mindelay_=%g\n",nrnmpi_myid, t, tstop,
+        // mindelay_);
         nrnmpi_barrier();
     } else
 #endif
@@ -665,7 +666,8 @@ double set_mindelay(double maxdelay) {
             }
         }
 
-        // printf("%d netpar_mindelay local %g now calling nrnmpi_mindelay\n", nrnmpi_myid, mindelay);
+        // printf("%d netpar_mindelay local %g now calling nrnmpi_mindelay\n", nrnmpi_myid,
+        // mindelay);
         //	double st = time();
         mindelay_ = nrnmpi_dbl_allmin(mindelay);
         //	add_wait_time(st);
@@ -720,12 +722,12 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
         if (nrnmpi_numprocs < 2) {
             return 0;
         }
-    #if NRN_MULTISEND
+#if NRN_MULTISEND
         if (xchng_meth > 0) {
             use_multisend_ = 1;
             return 0;
         }
-    #endif
+#endif
         nrn_assert(xchng_meth == 0);
         if (nspike >= 0) {
             ag_send_nspike_ = 0;
@@ -755,7 +757,8 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
                 mk_localgid_rep();
                 if (!nrn_use_localgid_ && nrnmpi_myid == 0) {
                     printf(
-                        "Notice: gid compression did not succeed. Probably more than 255 cells on one "
+                        "Notice: gid compression did not succeed. Probably more than 255 cells on "
+                        "one "
                         "cpu.\n");
                 }
             }

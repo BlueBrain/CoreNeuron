@@ -242,7 +242,7 @@ void output_spikes(const char* outpath, const std::string& population_name) {
     }
 #if NRNMPI
     if (corenrn_param.mpi_enable && nrnmpi_initialized()) {
-            output_spikes_parallel(outpath, population_name);
+        output_spikes_parallel(outpath, population_name);
     } else
 #endif
     {

@@ -88,7 +88,7 @@ void nrnmpi_v_transfer() {
     // transfer
     int n_insrc_buf = insrcdspl_[nrnmpi_numprocs];
 #if NRNMPI
-    if (corenrn_param.mpi_enable) { // otherwise insrc_buf_ == outsrc_buf_
+    if (corenrn_param.mpi_enable) {  // otherwise insrc_buf_ == outsrc_buf_
         nrnmpi_barrier();
         nrnmpi_dbl_alltoallv(
             outsrc_buf_, outsrccnt_, outsrcdspl_, insrc_buf_, insrccnt_, insrcdspl_);
