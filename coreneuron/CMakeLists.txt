@@ -33,7 +33,6 @@ file(
   "utils/*/*.cpp")
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
 file(GLOB SCOPMATH_CODE_FILES "sim/scopmath/*.cpp")
-file(GLOB MPI_CODE_FILES "mpi/*.cpp")
 file(GLOB MPI_LIB_FILES "mpi/lib/*.cpp")
 file(GLOB MPI_CORE_FILES "mpi/core/*.cpp")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
@@ -169,10 +168,9 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # mpi related target, this is a separate library for dynamic MPI
 if(CORENRN_ENABLE_DYNAMIC_MPI)
-  add_library(corenrn_mpi SHARED ${MPI_CODE_FILES} ${MPI_LIB_FILES})
-  set(OBJ_MPI ${MPI_CORE_FILES})
+  add_library(corenrn_mpi SHARED ${MPI_LIB_FILES})
 else()
-  add_library(corenrn_mpi OBJECT ${MPI_CODE_FILES} ${MPI_CORE_FILES} ${MPI_LIB_FILES})
+  add_library(corenrn_mpi OBJECT ${MPI_LIB_FILES})
   set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)
 endif()
 target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
@@ -187,6 +185,7 @@ add_library(
   ${CORENEURON_CODE_FILES}
   ${cudacorenrn_objs}
   ${NMODL_INBUILT_MOD_OUTPUTS}
+  ${MPI_CORE_FILES}
   ${OBJ_MPI})
 if(CORENRN_ENABLE_DYNAMIC_MPI)
   target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
