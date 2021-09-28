@@ -80,7 +80,7 @@ static OMP_Mutex mut;
 /// coming from nrnmpi.h and array of int of the global domain size
 static void alloc_mpi_space() {
 #if NRNMPI
-    if (!spikeout_) {
+    if (corenrn_param.mpi_enable && !spikeout_) {
         ocapacity_ = 100;
         spikeout_ = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
         icapacity_ = 100;
@@ -268,20 +268,22 @@ void nrn_spike_exchange_init() {
         npe_[i].send(t, net_cvode_instance, nrn_threads + i);
     }
 #if NRNMPI
-    if (use_compress_) {
-        idxout_ = 2;
-        t_exchange_ = t;
-        dt1_ = rev_dt;
-        usable_mindelay_ = floor(mindelay_ * dt1_ + 1e-9) * dt;
-        assert(usable_mindelay_ >= dt && (usable_mindelay_ * dt1_) < 255);
-    } else {
-#if nrn_spikebuf_size > 0
-        if (spbufout_) {
-            spbufout_->nspike = 0;
+    if (corenrn_param.mpi_enable) {
+        if (use_compress_) {
+            idxout_ = 2;
+            t_exchange_ = t;
+            dt1_ = rev_dt;
+            usable_mindelay_ = floor(mindelay_ * dt1_ + 1e-9) * dt;
+            assert(usable_mindelay_ >= dt && (usable_mindelay_ * dt1_) < 255);
+        } else {
+    #if nrn_spikebuf_size > 0
+            if (spbufout_) {
+                spbufout_->nspike = 0;
+            }
+    #endif
         }
-#endif
+        nout_ = 0;
     }
-    nout_ = 0;
 #endif  // NRNMPI
         // if (nrnmpi_myid == 0){printf("usable_mindelay_ = %g\n", usable_mindelay_);}
 }
@@ -568,29 +570,32 @@ void BBS_netpar_solve(double tstop) {
     double time = nrn_wtime();
 
 #if NRNMPI
-    tstopunset;
-    double mt = dt;
-    double md = mindelay_ - 1e-10;
-    if (md < mt) {
-        if (nrnmpi_myid == 0) {
-            hoc_execerror("mindelay is 0", "(or less than dt for fixed step method)");
-        } else {
-            return;
+    if (corenrn_param.mpi_enable) {
+        tstopunset;
+        double mt = dt;
+        double md = mindelay_ - 1e-10;
+        if (md < mt) {
+            if (nrnmpi_myid == 0) {
+                hoc_execerror("mindelay is 0", "(or less than dt for fixed step method)");
+            } else {
+                return;
+            }
         }
-    }
 
-    nrn_timeout(timeout_);
-    ncs2nrn_integrate(tstop * (1. + 1e-11));
-    nrn_spike_exchange(nrn_threads);
-    nrn_timeout(0);
-    if (!npe_.empty()) {
-        npe_[0].wx_ = npe_[0].ws_ = 0.;
-    };
-    // printf("%d netpar_solve exit t=%g tstop=%g mindelay_=%g\n",nrnmpi_myid, t, tstop, mindelay_);
-    nrnmpi_barrier();
-#else  // not NRNMPI
-    ncs2nrn_integrate(tstop);
+        nrn_timeout(timeout_);
+        ncs2nrn_integrate(tstop * (1. + 1e-11));
+        nrn_spike_exchange(nrn_threads);
+        nrn_timeout(0);
+        if (!npe_.empty()) {
+            npe_[0].wx_ = npe_[0].ws_ = 0.;
+        };
+        // printf("%d netpar_solve exit t=%g tstop=%g mindelay_=%g\n",nrnmpi_myid, t, tstop, mindelay_);
+        nrnmpi_barrier();
+    } else
 #endif
+    {
+        ncs2nrn_integrate(tstop);
+    }
     tstopunset;
 
     if (nrnmpi_myid == 0 && !corenrn_param.is_quiet()) {
@@ -650,24 +655,27 @@ double set_mindelay(double maxdelay) {
     }
 
 #if NRNMPI
-    if (nrnmpi_use) {
-        active_ = true;
-    }
-    if (use_compress_) {
-        if (mindelay / dt > 255) {
-            mindelay = 255 * dt;
+    if (corenrn_param.mpi_enable) {
+        if (nrnmpi_use) {
+            active_ = true;
         }
-    }
+        if (use_compress_) {
+            if (mindelay / dt > 255) {
+                mindelay = 255 * dt;
+            }
+        }
 
-    // printf("%d netpar_mindelay local %g now calling nrnmpi_mindelay\n", nrnmpi_myid, mindelay);
-    //	double st = time();
-    mindelay_ = nrnmpi_dbl_allmin(mindelay);
-    //	add_wait_time(st);
-    // printf("%d local min=%g  global min=%g\n", nrnmpi_myid, mindelay, mindelay_);
-    errno = 0;
-#else
-    mindelay_ = mindelay;
+        // printf("%d netpar_mindelay local %g now calling nrnmpi_mindelay\n", nrnmpi_myid, mindelay);
+        //	double st = time();
+        mindelay_ = nrnmpi_dbl_allmin(mindelay);
+        //	add_wait_time(st);
+        // printf("%d local min=%g  global min=%g\n", nrnmpi_myid, mindelay, mindelay_);
+        errno = 0;
+    } else
 #endif  // NRNMPI
+    {
+        mindelay_ = mindelay;
+    }
     return mindelay_;
 }
 
@@ -708,61 +716,64 @@ two phase multisend distributes the injection.
 
 int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
 #if NRNMPI
-    if (nrnmpi_numprocs < 2) {
-        return 0;
-    }
-#if NRN_MULTISEND
-    if (xchng_meth > 0) {
-        use_multisend_ = 1;
-        return 0;
-    }
-#endif
-    nrn_assert(xchng_meth == 0);
-    if (nspike >= 0) {
-        ag_send_nspike_ = 0;
-        if (spfixout_) {
-            free(spfixout_);
-            spfixout_ = 0;
+    if (corenrn_param.mpi_enable) {
+        if (nrnmpi_numprocs < 2) {
+            return 0;
         }
-        if (spfixin_) {
-            free(spfixin_);
-            spfixin_ = 0;
+    #if NRN_MULTISEND
+        if (xchng_meth > 0) {
+            use_multisend_ = 1;
+            return 0;
         }
-        if (spfixin_ovfl_) {
-            free(spfixin_ovfl_);
-            spfixin_ovfl_ = 0;
-        }
-        localmaps.clear();
-    }
-    if (nspike == 0) {  // turn off
-        use_compress_ = false;
-        nrn_use_localgid_ = false;
-    } else if (nspike > 0) {  // turn on
-        use_compress_ = true;
-        ag_send_nspike_ = nspike;
-        nrn_use_localgid_ = false;
-        if (gid_compress) {
-            // we can only do this after everything is set up
-            mk_localgid_rep();
-            if (!nrn_use_localgid_ && nrnmpi_myid == 0) {
-                printf(
-                    "Notice: gid compression did not succeed. Probably more than 255 cells on one "
-                    "cpu.\n");
+    #endif
+        nrn_assert(xchng_meth == 0);
+        if (nspike >= 0) {
+            ag_send_nspike_ = 0;
+            if (spfixout_) {
+                free(spfixout_);
+                spfixout_ = 0;
             }
+            if (spfixin_) {
+                free(spfixin_);
+                spfixin_ = 0;
+            }
+            if (spfixin_ovfl_) {
+                free(spfixin_ovfl_);
+                spfixin_ovfl_ = 0;
+            }
+            localmaps.clear();
         }
-        if (!nrn_use_localgid_) {
-            localgid_size_ = sizeof(unsigned int);
+        if (nspike == 0) {  // turn off
+            use_compress_ = false;
+            nrn_use_localgid_ = false;
+        } else if (nspike > 0) {  // turn on
+            use_compress_ = true;
+            ag_send_nspike_ = nspike;
+            nrn_use_localgid_ = false;
+            if (gid_compress) {
+                // we can only do this after everything is set up
+                mk_localgid_rep();
+                if (!nrn_use_localgid_ && nrnmpi_myid == 0) {
+                    printf(
+                        "Notice: gid compression did not succeed. Probably more than 255 cells on one "
+                        "cpu.\n");
+                }
+            }
+            if (!nrn_use_localgid_) {
+                localgid_size_ = sizeof(unsigned int);
+            }
+            ag_send_size_ = 2 + ag_send_nspike_ * (1 + localgid_size_);
+            spfixout_capacity_ = ag_send_size_ + 50 * (1 + localgid_size_);
+            spfixout_ = (unsigned char*) emalloc(spfixout_capacity_);
+            spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size_);
+            ovfl_capacity_ = 100;
+            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size_));
         }
-        ag_send_size_ = 2 + ag_send_nspike_ * (1 + localgid_size_);
-        spfixout_capacity_ = ag_send_size_ + 50 * (1 + localgid_size_);
-        spfixout_ = (unsigned char*) emalloc(spfixout_capacity_);
-        spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size_);
-        ovfl_capacity_ = 100;
-        spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size_));
-    }
-    return ag_send_nspike_;
-#else
-    return 0;
+        return ag_send_nspike_;
+    } else
 #endif
+    {
+        return 0;
+    }
 }
 }  // namespace coreneuron

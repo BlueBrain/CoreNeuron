@@ -1,11 +1,13 @@
 #include <sys/time.h>
 #include "utils.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {
+extern corenrn_parameters corenrn_param;
 void nrn_abort(int errcode) {
 #if NRNMPI
-    if (nrnmpi_initialized()) {
+    if (corenrn_param.mpi_enable && nrnmpi_initialized()) {
         nrnmpi_abort(errcode);
     } else
 #endif
@@ -23,7 +25,7 @@ void nrn_fatal_error(const char* msg) {
 
 double nrn_wtime() {
 #if NRNMPI
-    if (nrnmpi_use) {
+    if (corenrn_param.mpi_enable) {
         return nrnmpi_wtime();
     } else
 #endif

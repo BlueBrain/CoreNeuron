@@ -10,12 +10,14 @@
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/network/partrans.hpp"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 // This is the computational code for src->target transfer (e.g. gap junction)
 // simulation.
 // The setup code is in partrans_setup.cpp
 
 namespace coreneuron {
+extern corenrn_parameters corenrn_param;
 bool nrn_have_gaps;
 
 using namespace nrn_partrans;
@@ -86,7 +88,7 @@ void nrnmpi_v_transfer() {
     // transfer
     int n_insrc_buf = insrcdspl_[nrnmpi_numprocs];
 #if NRNMPI
-    if (nrnmpi_numprocs > 1) {  // otherwise insrc_buf_ == outsrc_buf_
+    if (corenrn_param.mpi_enable) { // otherwise insrc_buf_ == outsrc_buf_
         nrnmpi_barrier();
         nrnmpi_dbl_alltoallv(
             outsrc_buf_, outsrccnt_, outsrcdspl_, insrc_buf_, insrccnt_, insrcdspl_);

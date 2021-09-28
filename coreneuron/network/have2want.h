@@ -19,6 +19,7 @@ Need to define HAVEWANT_t, HAVEWANT_alltoallv, and HAVEWANT2Int
 #define have2want_h
 
 #include "coreneuron/utils/nrnoc_aux.hpp"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 
 /*
 
@@ -49,6 +50,8 @@ and minimize memory usage so that no single rank ever needs to know all keys.
 #define HAVEWANT_t int
 #endif
 namespace coreneuron {
+extern corenrn_parameters corenrn_param;
+
 // round robin default rendezvous rank function
 static int default_rendezvous(HAVEWANT_t key) {
     return key % nrnmpi_numprocs;
@@ -66,7 +69,7 @@ static int* cnt2displ(int* cnt) {
 static int* srccnt2destcnt(int* srccnt) {
     int* destcnt = new int[nrnmpi_numprocs];
 #if NRNMPI
-    if (nrnmpi_numprocs > 1) {
+    if (corenrn_param.mpi_enable) {
         nrnmpi_int_alltoall(srccnt, destcnt, 1);
     } else
 #endif
@@ -114,7 +117,7 @@ static void rendezvous_rank_get(HAVEWANT_t* data,
         ++scnt[r];
     }
 #if NRNMPI
-    if (nhost > 1) {
+    if (corenrn_param.mpi_enable) {
         HAVEWANT_alltoallv(sdata, scnt, sdispl, rdata, rcnt, rdispl);
     } else
 #endif
@@ -268,7 +271,7 @@ static void have_to_want(HAVEWANT_t* have,
     want_r_displ = cnt2displ(want_r_cnt);
     want_r_data = new HAVEWANT_t[want_r_displ[nhost]];
 #if NRNMPI
-    if (nhost > 1) {
+    if (corenrn_param.mpi_enable) {
         HAVEWANT_alltoallv(
             want_s_data, want_s_cnt, want_s_displ, want_r_data, want_r_cnt, want_r_displ);
     } else

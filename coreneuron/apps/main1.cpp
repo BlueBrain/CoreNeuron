@@ -204,7 +204,7 @@ void nrn_init_and_load_data(int argc,
 
 // if multi-threading enabled, make sure mpi library supports it
 #if NRNMPI
-    if (corenrn_param.threading) {
+    if (corenrn_param.mpi_enable && corenrn_param.threading) {
         nrnmpi_check_threading_support();
     }
 #endif
@@ -535,7 +535,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
         mkdir_p(output_dir.c_str());
     }
 #if NRNMPI
-    nrnmpi_barrier();
+    if (corenrn_param.mpi_enable) {
+        nrnmpi_barrier();
+    }
 #endif
     bool compute_gpu = corenrn_param.gpu;
     bool skip_mpi_finalize = corenrn_param.skip_mpi_finalize;
@@ -664,7 +666,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
 // mpi finalize
 #if NRNMPI
-    if (!skip_mpi_finalize) {
+    if (corenrn_param.mpi_enable && !skip_mpi_finalize) {
         nrnmpi_finalize();
     }
 #endif
