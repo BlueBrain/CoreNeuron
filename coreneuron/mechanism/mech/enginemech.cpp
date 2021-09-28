@@ -45,11 +45,11 @@ extern void nrn_cleanup_ion_map();
 
 static void* load_dynamic_mpi() {
     dlerror();
-   #if defined(__APPLE__) && defined(__MACH__)
-       void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW);
-   #else
-       void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW);
-   #endif
+#if defined(__APPLE__) && defined(__MACH__)
+    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW | RTLD_GLOBAL);
+#else
+    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW | RTLD_GLOBAL);
+#endif
     const char* error = dlerror();
     if (error) {
         std::string err_msg = "Could not open dynamic MPI library.\n";
