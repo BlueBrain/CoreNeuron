@@ -36,11 +36,11 @@ void write_mech_report() {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-    /// get global sum of all mechanism instances
-    nrnmpi_long_allreduce_vec(&local_mech_count[0],
-                              &total_mech_count[0],
-                              local_mech_count.size(),
-                              1);
+        /// get global sum of all mechanism instances
+        nrnmpi_long_allreduce_vec(&local_mech_count[0],
+                                  &total_mech_count[0],
+                                  local_mech_count.size(),
+                                  1);
 
     } else
 #endif
