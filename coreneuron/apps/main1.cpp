@@ -481,7 +481,11 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 static void* load_dynamic_mpi() {
     dlerror();
+#if defined(__APPLE__) && defined(__MACH__)
+    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW);
+#else
     void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW);
+#endif
     const char* error = dlerror();
     if (error) {
         std::string err_msg = "Could not open dynamic MPI library.\n";
