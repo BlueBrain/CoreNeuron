@@ -43,33 +43,11 @@ extern bool nrn_use_fast_imem;
 extern void nrn_cleanup_ion_map();
 }  // namespace coreneuron
 
-static void* load_dynamic_mpi() {
-    dlerror();
-#if defined(__APPLE__) && defined(__MACH__)
-    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW | RTLD_GLOBAL);
-#else
-    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW | RTLD_GLOBAL);
-#endif
-    const char* error = dlerror();
-    if (error) {
-        std::string err_msg = "Could not open dynamic MPI library.\n";
-        throw std::runtime_error(err_msg);
-    }
-    return handle;
-}
-
 /** Initialize mechanisms and run simulation using CoreNEURON
  *
  * This is mainly used to build nrniv-core executable
  */
 int solve_core(int argc, char** argv) {
-#ifdef CORENRN_ENABLE_DYNAMIC_MPI
-    if (!coreneuron::mpi_manager().symbols_resolved()) {
-        auto mpi_handle = load_dynamic_mpi();
-        coreneuron::mpi_manager().resolve_symbols(mpi_handle);
-    }
-#endif
-
     mk_mech_init(argc, argv);
     coreneuron::modl_reg();
     int ret = run_solve_core(argc, argv);
