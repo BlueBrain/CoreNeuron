@@ -46,7 +46,7 @@
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/io/core2nrn_data_return.hpp"
-#include "coreneuron/mpi/nrnmpi_def_cinc.h"
+#include "coreneuron/mpi/core/nrnmpi_def_cinc.h"
 #include "coreneuron/utils/utils.hpp"
 
 extern "C" {
@@ -460,7 +460,7 @@ static void* load_dynamic_mpi() {
 #endif
     const char* error = dlerror();
     if (error) {
-        std::string err_msg = "Could not open dynamic MPI library.\n";
+        std::string err_msg = std::string("Could not open dynamic MPI library: ") + error + "\n";
         throw std::runtime_error(err_msg);
     }
     return handle;

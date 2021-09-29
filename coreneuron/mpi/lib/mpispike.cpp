@@ -244,9 +244,6 @@ int nrnmpi_spike_exchange_compressed_impl() {
 
 int nrnmpi_int_allmax_impl(int x) {
     int result;
-    if (nrnmpi_numprocs < 2) {
-        return x;
-    }
     MPI_Allreduce(&x, &result, 1, MPI_INT, MPI_MAX, nrnmpi_comm);
     return result;
 }
@@ -324,12 +321,7 @@ int nrnmpi_int_sum_reduce_impl(int in) {
 
 void nrnmpi_assert_opstep_impl(int opstep, double tt) {
     /* all machines in comm should have same opstep and same tt. */
-    double buf[2];
-    if (nrnmpi_numprocs < 2) {
-        return;
-    }
-    buf[0] = (double) opstep;
-    buf[1] = tt;
+    double buf[2] = {(double) opstep, tt};
     MPI_Bcast(buf, 2, MPI_DOUBLE, 0, nrnmpi_comm);
     if (opstep != (int) buf[0] || tt != buf[1]) {
         printf("%d opstep=%d %d  t=%g t-troot=%g\n",
@@ -437,17 +429,12 @@ void nrnmpi_wait_impl(void** request) {
 }
 
 void nrnmpi_barrier_impl() {
-    if (nrnmpi_numprocs > 1) {
-        MPI_Barrier(nrnmpi_comm);
-    }
+    MPI_Barrier(nrnmpi_comm);
 }
 
 double nrnmpi_dbl_allreduce_impl(double x, int type) {
     double result;
     MPI_Op tt;
-    if (nrnmpi_numprocs < 2) {
-        return x;
-    }
     if (type == 1) {
         tt = MPI_SUM;
     } else if (type == 2) {
@@ -462,9 +449,6 @@ double nrnmpi_dbl_allreduce_impl(double x, int type) {
 long nrnmpi_long_allreduce_impl(long x, int type) {
     long result;
     MPI_Op tt;
-    if (nrnmpi_numprocs < 2) {
-        return x;
-    }
     if (type == 1) {
         tt = MPI_SUM;
     } else if (type == 2) {
@@ -479,10 +463,6 @@ long nrnmpi_long_allreduce_impl(long x, int type) {
 void nrnmpi_dbl_allreduce_vec_impl(double* src, double* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
-    if (nrnmpi_numprocs < 2) {
-        std::memcpy(dest, src, cnt * sizeof(double));
-        return;
-    }
     if (type == 1) {
         tt = MPI_SUM;
     } else if (type == 2) {
@@ -497,10 +477,6 @@ void nrnmpi_dbl_allreduce_vec_impl(double* src, double* dest, int cnt, int type)
 void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
-    if (nrnmpi_numprocs < 2) {
-        std::memcpy(dest, src, cnt * sizeof(long));
-        return;
-    }
     if (type == 1) {
         tt = MPI_SUM;
     } else if (type == 2) {
