@@ -36,7 +36,6 @@ extern void nrnmpi_spike_initialize_impl();
 static int nrnmpi_under_nrncontrol_;
 
 void nrnmpi_init_impl(int* pargc, char*** pargv) {
-    nrnmpi_use = true;
     nrnmpi_under_nrncontrol_ = 1;
 
     int flag = 0;
@@ -87,24 +86,19 @@ void nrnmpi_finalize_impl(void) {
 }
 
 void nrnmpi_terminate_impl() {
-    if (nrnmpi_use) {
-        if (nrnmpi_under_nrncontrol_) {
-            MPI_Finalize();
-        }
-        nrnmpi_use = false;
+    if (nrnmpi_under_nrncontrol_) {
+        MPI_Finalize();
     }
 }
 
 // check if appropriate threading level supported (i.e. MPI_THREAD_FUNNELED)
 void nrnmpi_check_threading_support_impl() {
     int th = 0;
-    if (nrnmpi_use) {
-        MPI_Query_thread(&th);
-        if (th < MPI_THREAD_FUNNELED) {
-            nrn_fatal_error(
-                "\n Current MPI library doesn't support MPI_THREAD_FUNNELED,\
-                        \n Run without enabling multi-threading!");
-        }
+    MPI_Query_thread(&th);
+    if (th < MPI_THREAD_FUNNELED) {
+        nrn_fatal_error(
+            "\n Current MPI library doesn't support MPI_THREAD_FUNNELED,\
+                    \n Run without enabling multi-threading!");
     }
 }
 

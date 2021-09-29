@@ -226,7 +226,6 @@ void nrn_spike_exchange_init() {
         return;
     }
     alloc_mpi_space();
-    // printf("nrnmpi_use=%d active=%d\n", nrnmpi_use, active_);
     usable_mindelay_ = mindelay_;
 #if NRN_MULTISEND
     if (use_multisend_ && n_multisend_interval == 2) {
@@ -657,9 +656,7 @@ double set_mindelay(double maxdelay) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-        if (nrnmpi_use) {
-            active_ = true;
-        }
+        active_ = true;
         if (use_compress_) {
             if (mindelay / dt > 255) {
                 mindelay = 255 * dt;

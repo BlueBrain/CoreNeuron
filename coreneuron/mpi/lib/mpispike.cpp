@@ -344,18 +344,12 @@ void nrnmpi_assert_opstep_impl(int opstep, double tt) {
 
 double nrnmpi_dbl_allmin_impl(double x) {
     double result;
-    if (!nrnmpi_use || (nrnmpi_numprocs < 2)) {
-        return x;
-    }
     MPI_Allreduce(&x, &result, 1, MPI_DOUBLE, MPI_MIN, nrnmpi_comm);
     return result;
 }
 
 double nrnmpi_dbl_allmax_impl(double x) {
     double result;
-    if (!nrnmpi_use || (nrnmpi_numprocs < 2)) {
-        return x;
-    }
     MPI_Allreduce(&x, &result, 1, MPI_DOUBLE, MPI_MAX, nrnmpi_comm);
     return result;
 }
@@ -363,9 +357,9 @@ double nrnmpi_dbl_allmax_impl(double x) {
 static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr) {
     int r = 0;
     if (*dptr != MPI_DOUBLE)
-        printf("ERROR in mpispike.c! *dptr should be MPI_DOUBLE.");
+        printf("ERROR in mpispike.cpp! *dptr should be MPI_DOUBLE.");
     if (*len != 4)
-        printf("ERROR in mpispike.c! *len should be 4.");
+        printf("ERROR in mpispike.cpp! *len should be 4.");
     if (in[0] < inout[0]) {
         /* least time has highest priority */
         r = 1;

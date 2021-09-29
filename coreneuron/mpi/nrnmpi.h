@@ -39,8 +39,6 @@ typedef struct {
     double spiketime;
 } NRNMPI_Spike;
 
-extern bool nrnmpi_use; /* NEURON does MPI init and terminate?*/
-
 // Those functions and classes are part of a mechanism to dynamically or statically load mpi functions
 struct mpi_function_base;
 
