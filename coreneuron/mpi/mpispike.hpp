@@ -38,7 +38,6 @@ extern NRNMPI_Spike* spikein_;
 
 #define spfixout_       nrnmpi_spikeout_fixed_
 #define spfixin_        nrnmpi_spikein_fixed_
-#define spfixin_ovfl_   nrnmpi_spikein_fixed_ovfl_
 #define ag_send_size_   nrnmpi_ag_send_size_
 #define ag_send_nspike_ nrnmpi_send_nspike_
 #define ovfl_capacity_  nrnmpi_ovfl_capacity_
@@ -49,7 +48,6 @@ extern int ovfl_capacity_;  /* spikes */
 extern int ovfl_;           /* spikes */
 extern unsigned char* spfixout_;
 extern unsigned char* spfixin_;
-extern unsigned char* spfixin_ovfl_;
 
 #if nrn_spikebuf_size > 0
 #define spbufout_ nrnmpi_spbufout_

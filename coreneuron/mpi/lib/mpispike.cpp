@@ -199,7 +199,7 @@ a sequence of spiketime, localgid pairs. There are nspike of them.
 The allgather sends the first part of the buf and the allgatherv buffer
 sends any overflow.
 */
-int nrnmpi_spike_exchange_compressed_impl(int localgid_size) {
+int nrnmpi_spike_exchange_compressed_impl(int localgid_size, unsigned char* spfixin_ovfl) {
     if (!displs) {
         np = nrnmpi_numprocs;
         displs = (int*) emalloc(np * sizeof(int));
@@ -231,21 +231,21 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size) {
     if (novfl) {
         if (ovfl_capacity_ < novfl) {
             ovfl_capacity_ = novfl + 10;
-            free(spfixin_ovfl_);
-            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size) *
+            free(spfixin_ovfl);
+            spfixin_ovfl = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size) *
                                                      sizeof(unsigned char));
         }
         int bs = byteovfl[nrnmpi_myid];
         /*
         note that the spfixout_ buffer is one since the overflow
-        is contiguous to the first part. But the spfixin_ovfl_ is
+        is contiguous to the first part. But the spfixin_ovfl is
         completely separate from the spfixin_ since the latter
         dynamically changes its size during a run.
         */
         MPI_Allgatherv(spfixout_ + ag_send_size_,
                        bs,
                        MPI_BYTE,
-                       spfixin_ovfl_,
+                       spfixin_ovfl,
                        byteovfl,
                        displs,
                        MPI_BYTE,
