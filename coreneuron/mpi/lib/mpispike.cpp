@@ -73,10 +73,9 @@ void nrnmpi_spike_initialize() {
     MPI_Get_address(&(s.gid), &addresses[1]);
     MPI_Get_address(&(s.spiketime), &addresses[2]);
 
-    MPI_Aint displacements[2] = {addresses[1] - addresses[0],
-                                 addresses[2] - addresses[1]};
+    MPI_Aint displacements[2] = {addresses[1] - addresses[0], addresses[2] - addresses[1]};
 
-    MPI_Datatype typelist[2] = {MPI_INT, MPI_DBOULE};
+    MPI_Datatype typelist[2] = {MPI_INT, MPI_DOUBLE};
     MPI_Type_create_struct(2, block_lengths, displacements, typelist, &spike_type);
     MPI_Type_commit(&spike_type);
 
