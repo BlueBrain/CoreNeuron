@@ -16,6 +16,7 @@
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/netpar.hpp"
 #include "coreneuron/utils/ivocvect.hpp"
+#include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/io/output_spikes.hpp"
 #include "coreneuron/utils/nrn_assert.h"
@@ -443,6 +444,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
     nt->_t = tt;
 
     // printf("NetCon::deliver t=%g tt=%g %s\n", t, tt, pnt_name(target_));
+    Instrumentor::phase p_get_pnt_receive("net_receive_mod_files");
     (*corenrn.get_pnt_receive()[typ])(target_, u.weight_index_, 0);
 #ifdef DEBUG
     if (errno && nrn_errno_check(typ))
@@ -580,6 +582,7 @@ double PreSyn::value(NrnThread* nt) {
 }
 
 void NetCvode::check_thresh(NrnThread* nt) {  // for default method
+    Instrumentor::phase p("check_thresh_netcvode");
     int i;
     double teps = 1e-10;
 
@@ -709,6 +712,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
 
 // events including binqueue events up to t+dt/2
 void NetCvode::deliver_net_events(NrnThread* nt) {  // for default method
+    Instrumentor::phase p_deliver_net_events("deliver_net_events_netcvode");
     TQItem* q;
 #if NRN_MULTISEND
     if (use_multisend_ && nt->id == 0) {
@@ -745,7 +749,10 @@ tryagain:
         // assert(int(tm/nt->_dt)%1000 == p[tid].tqe_->nshift_);
     }
 
-    deliver_events(tm, nt);
+    {
+        Instrumentor::phase p_deliver_net_events("deliver_events_netcvode");
+        deliver_events(tm, nt);
+    }
 
     if (nrn_use_bin_queue_) {
         if (p[tid].tqe_->top()) {
@@ -757,10 +764,16 @@ tryagain:
     nt->_t = tsav;
 
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
-    update_net_receive_buffer(nt);
+    {
+        Instrumentor::phase p_update_net_receive_buffer("update_net_rcv_buf_netcvode");
+        update_net_receive_buffer(nt);
+    }
 
-    for (auto& net_buf_receive: corenrn.get_net_buf_receive()) {
-        (*net_buf_receive.first)(nt);
+    {
+        Instrumentor::phase p_coreneuron_net_buf_receive("coreneuron_net_buf_receive");
+        for (auto& net_buf_receive: corenrn.get_net_buf_receive()) {
+            (*net_buf_receive.first)(nt);
+        }
     }
 }
 }  // namespace coreneuron
