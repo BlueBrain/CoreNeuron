@@ -30,6 +30,7 @@
 #if NRNMPI
 #include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+int localgid_size_;
 #endif
 
 namespace coreneuron {
@@ -367,7 +368,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     spfixout_[0] = (unsigned char) (nout_ >> 8);
 
     double wt = nrn_wtime();
-    int n = nrnmpi_spike_exchange_compressed();
+    int n = nrnmpi_spike_exchange_compressed(localgid_size_);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE

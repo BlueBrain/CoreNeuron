@@ -19,7 +19,6 @@ NRNMPI_Spike* nrnmpi_spikeout_;
 NRNMPI_Spike* nrnmpi_spikein_;
 #endif
 
-int nrnmpi_localgid_size_;
 int nrnmpi_ag_send_size_;
 int nrnmpi_send_nspike_;
 int nrnmpi_ovfl_capacity_;

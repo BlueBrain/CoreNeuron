@@ -199,7 +199,7 @@ a sequence of spiketime, localgid pairs. There are nspike of them.
 The allgather sends the first part of the buf and the allgatherv buffer
 sends any overflow.
 */
-int nrnmpi_spike_exchange_compressed_impl() {
+int nrnmpi_spike_exchange_compressed_impl(int localgid_size) {
     if (!displs) {
         np = nrnmpi_numprocs;
         displs = (int*) emalloc(np * sizeof(int));
@@ -220,7 +220,7 @@ int nrnmpi_spike_exchange_compressed_impl() {
         ntot += n;
         nin_[i] = n;
         if (n > ag_send_nspike_) {
-            int bs = 2 + n * (1 + localgid_size_) - ag_send_size_;
+            int bs = 2 + n * (1 + localgid_size) - ag_send_size_;
             byteovfl[i] = bs;
             bstot += bs;
             novfl += n - ag_send_nspike_;
@@ -232,7 +232,7 @@ int nrnmpi_spike_exchange_compressed_impl() {
         if (ovfl_capacity_ < novfl) {
             ovfl_capacity_ = novfl + 10;
             free(spfixin_ovfl_);
-            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size_) *
+            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size) *
                                                      sizeof(unsigned char));
         }
         int bs = byteovfl[nrnmpi_myid];
