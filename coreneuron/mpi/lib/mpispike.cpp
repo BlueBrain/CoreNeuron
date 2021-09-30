@@ -11,7 +11,7 @@
 #include "coreneuron/mpi/nrnmpiuse.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
-#include "coreneuron/mpi/nrnmpi_impl.h"
+#include "nrnmpi_impl.h"
 #include "../mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"
@@ -27,36 +27,60 @@ static int* displs;
 static int* byteovfl; /* for the compressed transfer method */
 static MPI_Datatype spike_type;
 
-static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr);
+static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr) {
+    bool copy = false;
+    if (*dptr != MPI_DOUBLE)
+        printf("ERROR in mpispike.cpp! *dptr should be MPI_DOUBLE.");
+    if (*len != 4)
+        printf("ERROR in mpispike.cpp! *len should be 4.");
+    if (in[0] < inout[0]) {
+        /* least time has highest priority */
+        copy = true;
+    } else if (in[0] == inout[0]) {
+        /* when times are equal then */
+        if (in[1] < inout[1]) {
+            /* NetParEvent done last */
+            copy = true;
+        } else if (in[1] == inout[1]) {
+            /* when times and ops are equal then */
+            if (in[2] < inout[2]) {
+                /* init done next to last.*/
+                copy = true;
+            } else if (in[2] == inout[2]) {
+                /* when times, ops, and inits are equal then */
+                if (in[3] < inout[3]) {
+                    /* choose lowest rank */
+                    copy = true;
+                }
+            }
+        }
+    }
+    if (copy) {
+        for (int i = 0; i < 4; ++i) {
+            inout[i] = in[i];
+        }
+    }
+}
+
 static MPI_Op mpi_pgvts_op;
 
-static void make_spike_type() {
+void nrnmpi_spike_initialize() {
     NRNMPI_Spike s;
-    int block_lengths[2];
-    MPI_Aint displacements[2];
+    int block_lengths[2] = {1, 1};
     MPI_Aint addresses[3];
-    MPI_Datatype typelist[2];
-
-    typelist[0] = MPI_INT;
-    typelist[1] = MPI_DOUBLE;
-
-    block_lengths[0] = block_lengths[1] = 1;
 
     MPI_Get_address(&s, &addresses[0]);
     MPI_Get_address(&(s.gid), &addresses[1]);
     MPI_Get_address(&(s.spiketime), &addresses[2]);
 
-    displacements[0] = addresses[1] - addresses[0];
-    displacements[1] = addresses[2] - addresses[0];
+    MPI_Aint displacements[2] = {addresses[1] - addresses[0],
+                                 addresses[2] - addresses[1]};
 
+    MPI_Datatype typelist[2] = {MPI_INT, MPI_DBOULE};
     MPI_Type_create_struct(2, block_lengths, displacements, typelist, &spike_type);
     MPI_Type_commit(&spike_type);
 
     MPI_Op_create((MPI_User_function*) pgvts_op, 1, &mpi_pgvts_op);
-}
-
-void nrnmpi_spike_initialize_impl() {
-    make_spike_type();
 }
 
 #if nrn_spikebuf_size > 0
@@ -65,27 +89,18 @@ static MPI_Datatype spikebuf_type;
 
 static void make_spikebuf_type() {
     NRNMPI_Spikebuf s;
-    int block_lengths[3];
-    MPI_Aint displacements[3];
+    int block_lengths[3] = {1, nrn_spikebuf_size, nrn_spikebuf_size};
+    MPI_Datatype typelist[3] = {MPI_INT_ MPI_INT, MPI_DOUBLE};
+
     MPI_Aint addresses[4];
-    MPI_Datatype typelist[3];
-
-    typelist[0] = MPI_INT;
-    typelist[1] = MPI_INT;
-    typelist[2] = MPI_DOUBLE;
-
-    block_lengths[0] = 1;
-    block_lengths[1] = nrn_spikebuf_size;
-    block_lengths[2] = nrn_spikebuf_size;
-
     MPI_Get_address(&s, &addresses[0]);
     MPI_Get_address(&(s.nspike), &addresses[1]);
     MPI_Get_address(&(s.gid[0]), &addresses[2]);
     MPI_Get_address(&(s.spiketime[0]), &addresses[3]);
 
-    displacements[0] = addresses[1] - addresses[0];
-    displacements[1] = addresses[2] - addresses[0];
-    displacements[2] = addresses[3] - addresses[0];
+    MPI_Aint displacements[3] = {addresses[1] - addresses[0],
+                                 addresses[2] - addresses[0],
+                                 addresses[3] - addresses[0]};
 
     MPI_Type_create_struct(3, block_lengths, displacements, typelist, &spikebuf_type);
     MPI_Type_commit(&spikebuf_type);
@@ -97,7 +112,6 @@ void wait_before_spike_exchange() {
 }
 
 int nrnmpi_spike_exchange_impl() {
-    int n;
     Instrumentor::phase_begin("spike-exchange");
 
     {
@@ -116,7 +130,7 @@ int nrnmpi_spike_exchange_impl() {
     }
 #if nrn_spikebuf_size == 0
     MPI_Allgather(&nout_, 1, MPI_INT, nin_, 1, MPI_INT, nrnmpi_comm);
-    n = nin_[0];
+    int n = nin_[0];
     for (int i = 1; i < np; ++i) {
         displs[i] = n;
         n += nin_[i];
@@ -133,7 +147,7 @@ int nrnmpi_spike_exchange_impl() {
 #else
     MPI_Allgather(spbufout_, 1, spikebuf_type, spbufin_, 1, spikebuf_type, nrnmpi_comm);
     int novfl = 0;
-    n = spbufin_[0].nspike;
+    int n = spbufin_[0].nspike;
     if (n > nrn_spikebuf_size) {
         nin_[0] = n - nrn_spikebuf_size;
         novfl += nin_[0];
@@ -344,41 +358,6 @@ double nrnmpi_dbl_allmax_impl(double x) {
     double result;
     MPI_Allreduce(&x, &result, 1, MPI_DOUBLE, MPI_MAX, nrnmpi_comm);
     return result;
-}
-
-static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr) {
-    int r = 0;
-    if (*dptr != MPI_DOUBLE)
-        printf("ERROR in mpispike.cpp! *dptr should be MPI_DOUBLE.");
-    if (*len != 4)
-        printf("ERROR in mpispike.cpp! *len should be 4.");
-    if (in[0] < inout[0]) {
-        /* least time has highest priority */
-        r = 1;
-    } else if (in[0] == inout[0]) {
-        /* when times are equal then */
-        if (in[1] < inout[1]) {
-            /* NetParEvent done last */
-            r = 1;
-        } else if (in[1] == inout[1]) {
-            /* when times and ops are equal then */
-            if (in[2] < inout[2]) {
-                /* init done next to last.*/
-                r = 1;
-            } else if (in[2] == inout[2]) {
-                /* when times, ops, and inits are equal then */
-                if (in[3] < inout[3]) {
-                    /* choose lowest rank */
-                    r = 1;
-                }
-            }
-        }
-    }
-    if (r) {
-        for (int i = 0; i < 4; ++i) {
-            inout[i] = in[i];
-        }
-    }
 }
 
 int nrnmpi_pgvts_least_impl(double* tt, int* op, int* init) {

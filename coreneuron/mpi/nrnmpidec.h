@@ -37,9 +37,6 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_write_file_impl)> nrnmp
 
 
 /* from mpispike.c */
-extern "C" void nrnmpi_spike_initialize_impl(void);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_initialize_impl)>
-    nrnmpi_spike_initialize;
 extern "C" int nrnmpi_spike_exchange_impl(void);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_impl)>
     nrnmpi_spike_exchange;

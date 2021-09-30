@@ -16,6 +16,7 @@
 #include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/utils.hpp"
+#include "nrnmpi.hpp"
 #if _OPENMP
 #include <omp.h>
 #endif
@@ -27,8 +28,6 @@ namespace coreneuron {
 #if NRNMPI
 MPI_Comm nrnmpi_world_comm;
 MPI_Comm nrnmpi_comm;
-
-extern void nrnmpi_spike_initialize_impl();
 
 static int nrnmpi_under_nrncontrol_;
 

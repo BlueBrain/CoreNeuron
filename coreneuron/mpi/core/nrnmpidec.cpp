@@ -31,8 +31,6 @@ mpi_function<cnrn_make_integral_constant_t(nrnmpi_write_file_impl)> nrnmpi_write
     "nrnmpi_write_file_impl"};
 
 /* from mpispike.c */
-mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_initialize_impl)> nrnmpi_spike_initialize{
-    "nrnmpi_spike_initialize_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_impl)> nrnmpi_spike_exchange{
     "nrnmpi_spike_exchange_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_compressed_impl)>

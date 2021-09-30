@@ -27,7 +27,6 @@ BEGIN_INCLUDE_LIST
  void coreneuron::deliver_net_events(coreneuron::NrnThread *)
  void coreneuron::determine_inputpresyn()
  void coreneuron::finitialize(void)
- void coreneuron::make_spike_type()
  void coreneuron::ncs2nrn_integrate(double)
  void coreneuron::nonvint(coreneuron::NrnThread *)
  void coreneuron::nrn2ncs_outputevent(int, double)
