@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
+#include <tuple>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
@@ -29,10 +29,11 @@ namespace coreneuron {
 MPI_Comm nrnmpi_world_comm;
 MPI_Comm nrnmpi_comm;
 int nrnmpi_numprocs;
+int nrnmpi_myid;
 
 static int nrnmpi_under_nrncontrol_;
 
-int nrnmpi_init_impl(int* pargc, char*** pargv) {
+std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
     nrnmpi_under_nrncontrol_ = 1;
 
     int flag = 0;
@@ -63,7 +64,7 @@ int nrnmpi_init_impl(int* pargc, char*** pargv) {
 #endif
     }
 
-    return  nrnmpi_numprocs;
+    return std::make_tuple(nrnmpi_numprocs, nrnmpi_myid);
 }
 
 void nrnmpi_finalize_impl(void) {

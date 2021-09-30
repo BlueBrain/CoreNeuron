@@ -20,7 +20,7 @@ the prototypes be of the form "type foo(type arg, ...)"
 
 namespace coreneuron {
 /* from nrnmpi.cpp */
-extern "C" int nrnmpi_init_impl(int* pargc, char*** pargv);
+extern "C" std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_init_impl)> nrnmpi_init;
 extern "C" int nrnmpi_wrap_mpi_init_impl(int* flag);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_wrap_mpi_init_impl)> nrnmpi_wrap_mpi_init;
