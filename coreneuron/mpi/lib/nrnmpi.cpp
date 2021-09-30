@@ -126,7 +126,7 @@ double nrnmpi_wtime_impl() {
 int nrnmpi_local_rank_impl() {
     int local_rank = 0;
 #if NRNMPI
-    if (nrnmpi_initialized()) {
+    if (nrnmpi_initialized_impl()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
             MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
@@ -146,7 +146,7 @@ int nrnmpi_local_rank_impl() {
 int nrnmpi_local_size_impl() {
     int local_size = 1;
 #if NRNMPI
-    if (nrnmpi_initialized()) {
+    if (nrnmpi_initialized_impl()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
             MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
