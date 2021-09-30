@@ -18,13 +18,6 @@
 #include "coreneuron/mpi/nrnmpiuse.h"
 
 namespace coreneuron {
-/* by default nrnmpi_numprocs_world = nrnmpi_numprocs = nrnmpi_numsubworlds and
-   nrnmpi_myid_world = nrnmpi_myid and the bulletin board and network communication do
-   not easily coexist. ParallelContext.subworlds(nsmall) divides the world into
-   nrnmpi_numprocs_world/small subworlds of size nsmall.
-*/
-extern int nrnmpi_numprocs_world; /* size of entire world. total size of all subworlds */
-extern int nrnmpi_myid_world;     /* rank in entire world */
 extern int nrnmpi_numprocs;       /* size of subworld */
 extern int nrnmpi_myid;           /* rank in subworld */
 }  // namespace coreneuron

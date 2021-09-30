@@ -51,17 +51,15 @@ void nrnmpi_init_impl(int* pargc, char*** pargv) {
     }
     nrn_assert(MPI_Comm_dup(MPI_COMM_WORLD, &nrnmpi_world_comm) == MPI_SUCCESS);
     nrn_assert(MPI_Comm_dup(nrnmpi_world_comm, &nrnmpi_comm) == MPI_SUCCESS);
-    nrn_assert(MPI_Comm_rank(nrnmpi_world_comm, &nrnmpi_myid_world) == MPI_SUCCESS);
-    nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs_world) == MPI_SUCCESS);
-    nrnmpi_numprocs = nrnmpi_numprocs_world;
-    nrnmpi_myid = nrnmpi_myid_world;
-    nrnmpi_spike_initialize_impl();
+    nrn_assert(MPI_Comm_rank(nrnmpi_world_comm, &nrnmpi_myid) == MPI_SUCCESS);
+    nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs) == MPI_SUCCESS);
+    nrnmpi_spike_initialize();
 
     if (nrnmpi_myid == 0) {
 #if defined(_OPENMP)
-        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs_world, omp_get_max_threads());
+        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs, omp_get_max_threads());
 #else
-        printf(" num_mpi=%d\n\n", nrnmpi_numprocs_world);
+        printf(" num_mpi=%d\n\n", nrnmpi_numprocs);
 #endif
     }
 }
@@ -129,7 +127,7 @@ int nrnmpi_local_rank_impl() {
     if (nrnmpi_initialized()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
-            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
         MPI_Comm_rank(local_comm, &local_rank);
         MPI_Comm_free(&local_comm);
     }
@@ -149,7 +147,7 @@ int nrnmpi_local_size_impl() {
     if (nrnmpi_initialized()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
-            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_world, MPI_INFO_NULL, &local_comm);
+            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
         MPI_Comm_size(local_comm, &local_size);
         MPI_Comm_free(&local_comm);
     }

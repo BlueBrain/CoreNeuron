@@ -9,8 +9,6 @@
 namespace coreneuron {
 int nrnmpi_numprocs = 1; /* size */
 int nrnmpi_myid = 0;     /* rank */
-int nrnmpi_numprocs_world = 1;
-int nrnmpi_myid_world = 0;
 
 int nrnmpi_nout_;
 int* nrnmpi_nin_;
