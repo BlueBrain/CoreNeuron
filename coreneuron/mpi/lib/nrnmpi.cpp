@@ -27,9 +27,6 @@ namespace coreneuron {
 #if NRNMPI
 MPI_Comm nrnmpi_world_comm;
 MPI_Comm nrnmpi_comm;
-MPI_Comm nrn_bbs_comm;
-static MPI_Group grp_bbs;
-static MPI_Group grp_net;
 
 extern void nrnmpi_spike_initialize_impl();
 
@@ -52,15 +49,12 @@ void nrnmpi_init_impl(int* pargc, char*** pargv) {
         nrn_assert(MPI_Init(pargc, pargv) == MPI_SUCCESS);
 #endif
     }
-    grp_bbs = MPI_GROUP_NULL;
-    grp_net = MPI_GROUP_NULL;
     nrn_assert(MPI_Comm_dup(MPI_COMM_WORLD, &nrnmpi_world_comm) == MPI_SUCCESS);
     nrn_assert(MPI_Comm_dup(nrnmpi_world_comm, &nrnmpi_comm) == MPI_SUCCESS);
-    nrn_assert(MPI_Comm_dup(nrnmpi_world_comm, &nrn_bbs_comm) == MPI_SUCCESS);
     nrn_assert(MPI_Comm_rank(nrnmpi_world_comm, &nrnmpi_myid_world) == MPI_SUCCESS);
     nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs_world) == MPI_SUCCESS);
-    nrnmpi_numprocs = nrnmpi_numprocs_bbs = nrnmpi_numprocs_world;
-    nrnmpi_myid = nrnmpi_myid_bbs = nrnmpi_myid_world;
+    nrnmpi_numprocs = nrnmpi_numprocs_world;
+    nrnmpi_myid = nrnmpi_myid_world;
     nrnmpi_spike_initialize_impl();
 
     if (nrnmpi_myid == 0) {
@@ -79,7 +73,6 @@ void nrnmpi_finalize_impl(void) {
         if (flag) {
             MPI_Comm_free(&nrnmpi_world_comm);
             MPI_Comm_free(&nrnmpi_comm);
-            MPI_Comm_free(&nrn_bbs_comm);
             MPI_Finalize();
         }
     }

@@ -19,17 +19,6 @@ the prototypes be of the form "type foo(type arg, ...)"
 #include <stdlib.h>
 
 namespace coreneuron {
-/* from bbsmpipack.c */
-struct bbsmpibuf {
-    char* buf;
-    int size;
-    int pkposition;
-    int upkpos;
-    int keypos;
-    int refcount;
-};
-
-
 /* from nrnmpi.cpp */
 extern "C" void nrnmpi_init_impl(int* pargc, char*** pargv);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_init_impl)> nrnmpi_init;
