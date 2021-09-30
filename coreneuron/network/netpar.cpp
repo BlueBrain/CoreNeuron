@@ -15,7 +15,6 @@
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/sim/multicore.hpp"
-#include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 
 #include "coreneuron/network/netcon.hpp"
@@ -30,6 +29,7 @@
 #if NRNMPI
 #include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 int localgid_size_;
 unsigned char* spfixin_ovfl_;
 #endif

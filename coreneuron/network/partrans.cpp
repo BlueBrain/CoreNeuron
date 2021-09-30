@@ -9,6 +9,7 @@
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/apps/corenrn_parameters.hpp"
 

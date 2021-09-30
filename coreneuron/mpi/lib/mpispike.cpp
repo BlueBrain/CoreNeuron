@@ -12,6 +12,7 @@
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "nrnmpi_impl.h"
+#include "nrnmpi.hpp"
 #include "../mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/utils/nrnoc_aux.hpp"

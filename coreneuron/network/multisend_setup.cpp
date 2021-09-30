@@ -14,6 +14,7 @@
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/mpi/nrnmpidec.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/utils/memory_utils.h"
 #include "coreneuron/utils/utils.hpp"
 /*

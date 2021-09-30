@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include "coreneuron/utils/memory_utils.h"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 #if defined(__APPLE__) && defined(__MACH__)

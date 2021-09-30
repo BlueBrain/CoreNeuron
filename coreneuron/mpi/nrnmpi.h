@@ -18,7 +18,6 @@
 #include "coreneuron/mpi/nrnmpiuse.h"
 
 namespace coreneuron {
-extern int nrnmpi_numprocs;       /* size of subworld */
 extern int nrnmpi_myid;           /* rank in subworld */
 }  // namespace coreneuron
 

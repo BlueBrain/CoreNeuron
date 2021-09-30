@@ -24,6 +24,7 @@
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/utils/utils.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/io/nrn_checkpoint.hpp"

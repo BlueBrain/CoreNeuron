@@ -28,10 +28,11 @@ namespace coreneuron {
 #if NRNMPI
 MPI_Comm nrnmpi_world_comm;
 MPI_Comm nrnmpi_comm;
+int nrnmpi_numprocs;
 
 static int nrnmpi_under_nrncontrol_;
 
-void nrnmpi_init_impl(int* pargc, char*** pargv) {
+int nrnmpi_init_impl(int* pargc, char*** pargv) {
     nrnmpi_under_nrncontrol_ = 1;
 
     int flag = 0;
@@ -61,6 +62,8 @@ void nrnmpi_init_impl(int* pargc, char*** pargv) {
         printf(" num_mpi=%d\n\n", nrnmpi_numprocs);
 #endif
     }
+
+    return  nrnmpi_numprocs;
 }
 
 void nrnmpi_finalize_impl(void) {

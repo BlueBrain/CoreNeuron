@@ -20,6 +20,7 @@ Need to define HAVEWANT_t, HAVEWANT_alltoallv, and HAVEWANT2Int
 
 #include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/apps/corenrn_parameters.hpp"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 
 /*
 
