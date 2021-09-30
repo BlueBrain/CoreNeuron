@@ -28,8 +28,8 @@ namespace coreneuron {
 #if NRNMPI
 MPI_Comm nrnmpi_world_comm;
 MPI_Comm nrnmpi_comm;
-int nrnmpi_numprocs;
-int nrnmpi_myid;
+int nrnmpi_numprocs_;
+int nrnmpi_myid_;
 
 static int nrnmpi_under_nrncontrol_;
 
@@ -52,19 +52,19 @@ std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
     }
     nrn_assert(MPI_Comm_dup(MPI_COMM_WORLD, &nrnmpi_world_comm) == MPI_SUCCESS);
     nrn_assert(MPI_Comm_dup(nrnmpi_world_comm, &nrnmpi_comm) == MPI_SUCCESS);
-    nrn_assert(MPI_Comm_rank(nrnmpi_world_comm, &nrnmpi_myid) == MPI_SUCCESS);
-    nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs) == MPI_SUCCESS);
+    nrn_assert(MPI_Comm_rank(nrnmpi_world_comm, &nrnmpi_myid_) == MPI_SUCCESS);
+    nrn_assert(MPI_Comm_size(nrnmpi_world_comm, &nrnmpi_numprocs_) == MPI_SUCCESS);
     nrnmpi_spike_initialize();
 
-    if (nrnmpi_myid == 0) {
+    if (nrnmpi_myid_ == 0) {
 #if defined(_OPENMP)
-        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs, omp_get_max_threads());
+        printf(" num_mpi=%d\n num_omp_thread=%d\n\n", nrnmpi_numprocs_, omp_get_max_threads());
 #else
-        printf(" num_mpi=%d\n\n", nrnmpi_numprocs);
+        printf(" num_mpi=%d\n\n", nrnmpi_numprocs_);
 #endif
     }
 
-    return std::make_tuple(nrnmpi_numprocs, nrnmpi_myid);
+    return std::make_tuple(nrnmpi_numprocs_, nrnmpi_myid_);
 }
 
 void nrnmpi_finalize_impl(void) {
@@ -130,7 +130,7 @@ int nrnmpi_local_rank_impl() {
     if (nrnmpi_initialized_impl()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
-            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
+            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_, MPI_INFO_NULL, &local_comm);
         MPI_Comm_rank(local_comm, &local_rank);
         MPI_Comm_free(&local_comm);
     }
@@ -150,7 +150,7 @@ int nrnmpi_local_size_impl() {
     if (nrnmpi_initialized_impl()) {
         MPI_Comm local_comm;
         MPI_Comm_split_type(
-            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid, MPI_INFO_NULL, &local_comm);
+            MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, nrnmpi_myid_, MPI_INFO_NULL, &local_comm);
         MPI_Comm_size(local_comm, &local_size);
         MPI_Comm_free(&local_comm);
     }
@@ -183,13 +183,13 @@ void nrnmpi_write_file_impl(const std::string& filename, const char* buffer, siz
 
     int op_status = MPI_File_open(
         nrnmpi_comm, filename.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-    if (op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
+    if (op_status != MPI_SUCCESS && nrnmpi_myid_ == 0) {
         std::cerr << "Error while opening output file " << filename << std::endl;
         abort();
     }
 
     op_status = MPI_File_write_at_all(fh, offset, buffer, length, MPI_BYTE, &status);
-    if (op_status != MPI_SUCCESS && nrnmpi_myid == 0) {
+    if (op_status != MPI_SUCCESS && nrnmpi_myid_ == 0) {
         std::cerr << "Error while writing output " << std::endl;
         abort();
     }

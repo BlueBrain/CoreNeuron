@@ -121,7 +121,7 @@ int nrnmpi_spike_exchange_impl() {
 
     Instrumentor::phase_begin("communication");
     if (!displs) {
-        np = nrnmpi_numprocs;
+        np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
         displs[0] = 0;
 #if nrn_spikebuf_size > 0
@@ -204,7 +204,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           unsigned char* spfixin_ovfl,
                                           int send_nspike) {
     if (!displs) {
-        np = nrnmpi_numprocs;
+        np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
         displs[0] = 0;
         byteovfl = (int*) emalloc(np * sizeof(int));
@@ -238,7 +238,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
             spfixin_ovfl = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size) *
                                                     sizeof(unsigned char));
         }
-        int bs = byteovfl[nrnmpi_myid];
+        int bs = byteovfl[nrnmpi_myid_];
         /*
         note that the spfixout_ buffer is one since the overflow
         is contiguous to the first part. But the spfixin_ovfl is
@@ -310,11 +310,11 @@ void nrnmpi_int_allgather_impl(int* s, int* r, int n) {
 }
 
 void nrnmpi_int_allgatherv_impl(int* s, int* r, int* n, int* dspl) {
-    MPI_Allgatherv(s, n[nrnmpi_myid], MPI_INT, r, n, dspl, MPI_INT, nrnmpi_comm);
+    MPI_Allgatherv(s, n[nrnmpi_myid_], MPI_INT, r, n, dspl, MPI_INT, nrnmpi_comm);
 }
 
 void nrnmpi_dbl_allgatherv_impl(double* s, double* r, int* n, int* dspl) {
-    MPI_Allgatherv(s, n[nrnmpi_myid], MPI_DOUBLE, r, n, dspl, MPI_DOUBLE, nrnmpi_comm);
+    MPI_Allgatherv(s, n[nrnmpi_myid_], MPI_DOUBLE, r, n, dspl, MPI_DOUBLE, nrnmpi_comm);
 }
 
 void nrnmpi_dbl_broadcast_impl(double* buf, int cnt, int root) {
@@ -341,7 +341,7 @@ void nrnmpi_assert_opstep_impl(int opstep, double tt) {
     MPI_Bcast(buf, 2, MPI_DOUBLE, 0, nrnmpi_comm);
     if (opstep != (int) buf[0] || tt != buf[1]) {
         printf("%d opstep=%d %d  t=%g t-troot=%g\n",
-               nrnmpi_myid,
+               nrnmpi_myid_,
                opstep,
                (int) buf[0],
                tt,
@@ -367,7 +367,7 @@ int nrnmpi_pgvts_least_impl(double* tt, int* op, int* init) {
     ibuf[0] = *tt;
     ibuf[1] = (double) (*op);
     ibuf[2] = (double) (*init);
-    ibuf[3] = (double) nrnmpi_myid;
+    ibuf[3] = (double) nrnmpi_myid_;
     std::memcpy(obuf, ibuf, 4 * sizeof(double));
 
     MPI_Allreduce(ibuf, obuf, 4, MPI_DOUBLE, mpi_pgvts_op, nrnmpi_comm);
@@ -377,14 +377,14 @@ int nrnmpi_pgvts_least_impl(double* tt, int* op, int* init) {
         if ((int) obuf[1] == *op) {
             assert((int) obuf[2] <= *init);
             if ((int) obuf[2] == *init) {
-                assert((int) obuf[3] <= nrnmpi_myid);
+                assert((int) obuf[3] <= nrnmpi_myid_);
             }
         }
     }
     *tt = obuf[0];
     *op = (int) obuf[1];
     *init = (int) obuf[2];
-    if (nrnmpi_myid == (int) obuf[3]) {
+    if (nrnmpi_myid_ == (int) obuf[3]) {
         return 1;
     }
     return 0;
