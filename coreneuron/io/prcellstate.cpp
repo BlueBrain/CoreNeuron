@@ -92,8 +92,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
 
     // List of NetCon for each of the NET_RECEIVE point process instances
     // Also create the initial map of NetCon <-> DiscreteEvent (PreSyn)
-    std::vector<std::vector<NetCon*>> nclist;
-    nclist.resize(pntindex);
+    std::vector<std::vector<NetCon*>> nclist(pntindex);
     map_nc2src.clear();
     int nc_cnt = 0;
     for (int i = 0; i < nt.n_netcon; ++i) {
