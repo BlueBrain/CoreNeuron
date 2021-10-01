@@ -49,8 +49,7 @@ spack_setup:
 .gpu_node:
   variables:
     # All GPU nodes are fair game
-    bb5_partition: uc2_all
-    # This is *probably* not needed given the partition above.
+    bb5_partition: prod_p2,prod_p1,interactive
     bb5_constraint: volta
 
 build:nmodl:intel:
