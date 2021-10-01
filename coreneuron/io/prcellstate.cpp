@@ -111,7 +111,6 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
 
     /// Fill the NetCon <-> DiscreteEvent map with PreSyn-s
     DiscreteEvent* de;
-    std::map<NetCon*, DiscreteEvent*>::iterator it_nc2src;
     // presyns can come from any thread
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& ntps = nrn_threads[ith];
@@ -119,7 +118,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
             PreSyn* ps = ntps.presyns + i;
             for (int j = 0; j < ps->nc_cnt_; ++j) {
                 NetCon* nc = netcon_in_presyn_order_[ps->nc_index_ + j];
-                it_nc2src = map_nc2src.find(nc);
+                auto it_nc2src = map_nc2src.find(nc);
                 if (it_nc2src != map_nc2src.end()) {
                     it_nc2src->second = ps;
                 }
@@ -132,12 +131,11 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
     /// correspondent InputPreSyn. If NetCon is in the nc2src map,
     /// remember its ips and the gid
     std::map<NetCon*, int> map_nc2gid;
-    std::map<int, InputPreSyn*>::iterator it_gid2in = gid2in.begin();
-    for (; it_gid2in != gid2in.end(); ++it_gid2in) {
+    for (auto it_gid2in = gid2in.begin(); it_gid2in != gid2in.end(); ++it_gid2in) {
         InputPreSyn* ips = it_gid2in->second;  /// input presyn
         for (int i = 0; i < ips->nc_cnt_; ++i) {
             NetCon* nc = netcon_in_presyn_order_[ips->nc_index_ + i];
-            it_nc2src = map_nc2src.find(nc);
+            auto it_nc2src = map_nc2src.find(nc);
             if (it_nc2src != map_nc2src.end()) {
                 it_nc2src->second = ips;
                 map_nc2gid[nc] = it_gid2in->first;  /// src gid of the input presyn
@@ -149,7 +147,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
         for (int j = 0; j < (int) (nclist[i].size()); ++j) {
             NetCon* nc = nclist[i][j];
             int srcgid = -3;
-            it_nc2src = map_nc2src.find(nc);
+            auto it_nc2src = map_nc2src.find(nc);
             if (it_nc2src != map_nc2src.end()) {  // seems like there should be no NetCon which is
                                                   // not in the map
                 de = it_nc2src->second;

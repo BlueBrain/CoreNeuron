@@ -231,8 +231,7 @@ void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
         if (gid2out_it != gid2out.end()) {
             *ps = gid2out_it->second;
         } else {
-            std::map<int, InputPreSyn*>::iterator gid2in_it;
-            gid2in_it = gid2in.find(gid);
+            auto gid2in_it = gid2in.find(gid);
             if (gid2in_it != gid2in.end()) {
                 *psi = gid2in_it->second;
             }
