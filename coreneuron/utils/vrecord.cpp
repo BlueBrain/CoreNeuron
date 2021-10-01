@@ -16,9 +16,6 @@
 namespace coreneuron {
 extern NetCvode* net_cvode_instance;
 
-PlayRecordEvent::PlayRecordEvent() {}
-PlayRecordEvent::~PlayRecordEvent() {}
-
 void PlayRecordEvent::deliver(double tt, NetCvode* ns, NrnThread*) {
     plr_->deliver(tt, ns);
 }
@@ -32,15 +29,9 @@ void PlayRecordEvent::pr(const char* s, double tt, NetCvode*) {
     plr_->pr();
 }
 
-PlayRecord::PlayRecord(double* pd, int ith) {
-    // printf("PlayRecord::PlayRecord %p\n", this);
-    pd_ = pd;
-    ith_ = ith;
-}
-
-PlayRecord::~PlayRecord() {
-    // printf("PlayRecord::~PlayRecord %p\n", this);
-}
+PlayRecord::PlayRecord(double* pd, int ith)
+    : pd_(pd), ith_(ith)
+{}
 
 void PlayRecord::pr() {
     printf("PlayRecord\n");
@@ -54,16 +45,8 @@ VecPlayContinuous::VecPlayContinuous(double* pd,
     : PlayRecord(pd, ith)
     , y_(std::move(yvec))
     , t_(std::move(tvec))
-    , discon_indices_(discon)
-    , last_index_(0)
-    , discon_index_(0)
-    , ubound_index_(0)
-    , e_(new PlayRecordEvent{}) {
+    , discon_indices_(discon) {
     e_->plr_ = this;
-}
-
-VecPlayContinuous::~VecPlayContinuous() {
-    delete e_;
 }
 
 void VecPlayContinuous::play_init() {
