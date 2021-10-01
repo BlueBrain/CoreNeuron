@@ -171,18 +171,17 @@ void output_spike_populations(
         std::string population_name = cur_pop.first;
         int population_offset = cur_pop.second;
         int gid_lower = population_offset;
-        int gid_upper = -1;
+        int gid_upper = std::numeric_limits<int>::max();
         if (idx != n_populations - 1) {
             gid_upper = population_name_offset[idx + 1].second - 1;
         }
         std::vector<double> pop_spikevec_time;
         std::vector<int> pop_spikevec_gid;
         for (int j = 0; j < spikevec_gid.size(); j++) {
-            if (spikevec_gid[j] < gid_lower || spikevec_gid[j] > gid_upper && gid_upper >= 0) {
-                continue;
+            if (spikevec_gid[j] >= gid_lower && spikevec_gid[j] <= gid_upper) {
+                pop_spikevec_time.push_back(spikevec_time[j]);
+                pop_spikevec_gid.push_back(spikevec_gid[j]);
             }
-            pop_spikevec_time.push_back(spikevec_time[j]);
-            pop_spikevec_gid.push_back(spikevec_gid[j]);
         }
         sonata_add_spikes_population(population_name.data(),
                                      population_offset,
