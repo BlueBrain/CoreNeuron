@@ -212,11 +212,11 @@ void nrn_wrote_conc(int type,
                     double celsius,
                     int _cntml_padded) {
 #ifndef _OPENACC
-    static int flag = 1;
+    static bool flag = true;
     if (flag && nrnmpi_myid == 0) {
         /** need to check this as this kernel was failing */
         printf("\n WARNING: nrn_nrn_wrote_conc support on GPU need to validate!\n");
-        flag = 0;
+        flag = false;
     }
 #endif
     if (it & 040) {

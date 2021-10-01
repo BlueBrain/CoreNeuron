@@ -54,10 +54,10 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
     if (is_art)
         return;
 
-    int header_printed = 0;
+    bool header_printed = false;
     int size = corenrn.get_prop_param_size()[type];
     int psize = corenrn.get_prop_dparam_size()[type];
-    int receives_events = corenrn.get_pnt_receive()[type] ? 1 : 0;
+    bool receives_events = corenrn.get_pnt_receive()[type];
     int layout = corenrn.get_mech_data_layout()[type];
     int cnt = ml->nodecount;
     for (int iorig = 0; iorig < ml->nodecount; ++iorig) {  // original index
@@ -66,7 +66,7 @@ static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE
         int cix = cellnodes[inv_permute(inode, nt)];       // original index relative to this cell
         if (cix >= 0) {
             if (!header_printed) {
-                header_printed = 1;
+                header_printed = true;
                 fprintf(f, "type=%d %s size=%d\n", type, corenrn.get_memb_func(type).sym, size);
             }
             if (receives_events) {
