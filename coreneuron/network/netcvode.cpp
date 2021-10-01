@@ -412,14 +412,10 @@ void DiscreteEvent::send(double tt, NetCvode* ns, NrnThread* nt) {
     ns->event(tt, this, nt);
 }
 
-void DiscreteEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
-    (void) tt;
-    (void) ns;
-    (void) nt;
-}
+void DiscreteEvent::deliver(double /* tt */, NetCvode* /* ns */, NrnThread* /* nt */)
+{}
 
-void DiscreteEvent::pr(const char* s, double tt, NetCvode* ns) {
-    (void) ns;
+void DiscreteEvent::pr(const char* s, double tt, NetCvode* /* ns */) {
     printf("%s DiscreteEvent %.15g\n", s, tt);
 }
 
@@ -430,8 +426,7 @@ void NetCon::send(double tt, NetCvode* ns, NrnThread* nt) {
     }
 }
 
-void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
-    (void) ns;
+void NetCon::deliver(double tt, NetCvode* /* ns */, NrnThread* nt) {
     nrn_assert(target_);
 
     if (PP2NT(target_) != nt)
@@ -449,8 +444,7 @@ void NetCon::deliver(double tt, NetCvode* ns, NrnThread* nt) {
 #endif
 }
 
-void NetCon::pr(const char* s, double tt, NetCvode* ns) {
-    (void) ns;
+void NetCon::pr(const char* s, double tt, NetCvode* /* ns */) {
     Point_process* pp = target_;
     printf("%s NetCon target=%s[%d] %.15g\n",
            s,

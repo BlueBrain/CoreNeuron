@@ -76,8 +76,7 @@ for pure implicit fixed step it is 1/dt
 It used to be static but is now a thread data variable
 */
 
-void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
-    (void) type;
+void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
     int _iml;
@@ -106,13 +105,10 @@ void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     }
 }
 
-void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
-    (void) type;
+void nrn_init_capacitance(NrnThread* /* _nt */, Memb_list* ml, int /* type */) {
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
     double* vdata;
-    (void) _nt;
-    (void) type;
     (void) _cntml_padded; /* unused */
 
     // skip initialization if restoring from checkpoint
@@ -132,8 +128,7 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     }
 }
 
-void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
-    (void) type;
+void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
     double* vdata;
