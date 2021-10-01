@@ -611,7 +611,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         update_weights_from_gpu(nrn_threads, nrn_nthread);
 
         // store weight pointers
-        std::vector<double*> weights(nrn_nthread, NULL);
+        std::vector<double*> weights(nrn_nthread, nullptr);
 
         // could be one thread more (empty) than in NEURON but does not matter
         for (int i = 0; i < nrn_nthread; ++i) {

@@ -102,7 +102,7 @@ void ion_reg(const char* name, double valence) {
     for (i = 0; i < 7; i++) {
         mechanism[i + 1] = buf[i];
     }
-    mechanism[5] = (char*) 0; /* buf[4] not used above */
+    mechanism[5] = nullptr; /* buf[4] not used above */
     mechtype = nrn_get_mechtype(buf[0]);
     if (mechtype >= nrn_ion_global_map_size ||
         nrn_ion_global_map[mechtype] == nullptr) {  // if hasn't yet been allocated
