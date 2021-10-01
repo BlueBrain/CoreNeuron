@@ -581,10 +581,6 @@ void setup_ThreadData(NrnThread& nt) {
 }
 
 void read_phasegap(NrnThread& nt, UserParams& userParams) {
-    auto& si = nrn_partrans::setup_info_[nt.id];
-    size_t ntar = 0;
-    size_t nsrc = 0;
-
     auto& F = userParams.file_reader[nt.id];
     if (F.fail()) {
         return;
@@ -595,9 +591,10 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
 
     int sidt_size = F.read_int();
     assert(sidt_size == int(sizeof(nrn_partrans::sgid_t)));
-    ntar = size_t(F.read_int());
-    nsrc = size_t(F.read_int());
+    size_t ntar = size_t(F.read_int());
+    size_t nsrc = size_t(F.read_int());
 
+    auto& si = nrn_partrans::setup_info_[nt.id];
     si.src_sid.resize(nsrc);
     si.src_type.resize(nsrc);
     si.src_index.resize(nsrc);

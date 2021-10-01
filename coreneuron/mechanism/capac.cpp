@@ -52,7 +52,6 @@ void nrn_mul_capacity(NrnThread*, Memb_list*, int);
 #define nparm 2
 
 void capacitance_reg(void) {
-    int mechtype;
     /* all methods deal with capacitance in special ways */
     register_mech(mechanism,
                   nrn_alloc_capacitance,
@@ -62,7 +61,7 @@ void capacitance_reg(void) {
                   (mod_f_t) nrn_init_capacitance,
                   -1,
                   1);
-    mechtype = nrn_get_mechtype(mechanism[1]);
+    int mechtype = nrn_get_mechtype(mechanism[1]);
     _nrn_layout_reg(mechtype, LAYOUT);
     hoc_register_prop_size(mechtype, nparm, 0);
 }

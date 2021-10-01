@@ -110,7 +110,6 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
     fprintf(f, " pntindex srcgid active delay weights\n");
 
     /// Fill the NetCon <-> DiscreteEvent map with PreSyn-s
-    DiscreteEvent* de;
     // presyns can come from any thread
     for (int ith = 0; ith < nrn_nthread; ++ith) {
         NrnThread& ntps = nrn_threads[ith];
@@ -150,7 +149,7 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
             auto it_nc2src = map_nc2src.find(nc);
             if (it_nc2src != map_nc2src.end()) {  // seems like there should be no NetCon which is
                                                   // not in the map
-                de = it_nc2src->second;
+                DiscreteEvent* de = it_nc2src->second;
                 if (de && de->type() == PreSynType) {
                     PreSyn* ps = (PreSyn*) de;
                     srcgid = ps->gid_;

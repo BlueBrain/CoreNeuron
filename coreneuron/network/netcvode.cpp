@@ -97,8 +97,7 @@ void net_send(void** v, int weight_index_, Point_process* pnt, double td, double
         abort();
         hoc_execerror("net_send delay < 0", 0);
     }
-    TQItem* q;
-    q = net_cvode_instance->event(td, se, nt);
+    TQItem* q = net_cvode_instance->event(td, se, nt);
     if (flag == 1.0 && v >= nt->_vdata) {
         *v = (void*) q;
     }
@@ -708,7 +707,6 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
 
 // events including binqueue events up to t+dt/2
 void NetCvode::deliver_net_events(NrnThread* nt) {  // for default method
-    TQItem* q;
 #if NRN_MULTISEND
     if (use_multisend_ && nt->id == 0) {
         nrn_multisend_advance();
@@ -729,6 +727,7 @@ tryagain:
     // but I do not want to affect the case of not using a bin queue.
 
     if (nrn_use_bin_queue_) {
+        TQItem* q;
         while ((q = p[tid].tqe_->dequeue_bin()) != 0) {
             DiscreteEvent* db = (DiscreteEvent*) q->data_;
 

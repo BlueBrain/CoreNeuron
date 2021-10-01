@@ -89,7 +89,6 @@ double nrn_ion_charge(int type) {
 
 void ion_reg(const char* name, double valence) {
     char buf[7][50];
-    double val;
 #define VAL_SENTINAL -10000.
 
     sprintf(buf[0], "%s_ion", name);
@@ -156,7 +155,7 @@ void ion_reg(const char* name, double valence) {
             global_charge(mechtype) = VAL_SENTINAL;
         }
     }
-    val = global_charge(mechtype);
+    double val = global_charge(mechtype);
     if (valence != VAL_SENTINAL && val != VAL_SENTINAL && valence != val) {
         fprintf(stderr,
                 "%s ion valence defined differently in\n\
@@ -243,10 +242,9 @@ static double efun(double x) {
 }
 
 double nrn_ghk(double v, double ci, double co, double z) {
-    double eco, eci, temp;
-    temp = z * v / ktf;
-    eco = co * efun(temp);
-    eci = ci * efun(-temp);
+    double temp = z * v / ktf;
+    double eco = co * efun(temp);
+    double eci = ci * efun(-temp);
     return (.001) * z * FARADAY * (eci - eco);
 }
 
@@ -370,11 +368,9 @@ void nrn_alloc_ion(double* p, Datum* ppvar, int _type) {
 }
 
 void second_order_cur(NrnThread* _nt, int secondorder) {
-    Memb_list* ml;
 #if LAYOUT == 0
     int _cntml_padded;
 #endif
-    int* ni;
     double* pd;
     (void) _nt; /* unused */
 #if defined(_OPENACC)
@@ -385,9 +381,9 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
     if (secondorder == 2) {
         for (NrnThreadMembList* tml = _nt->tml; tml; tml = tml->next)
             if (nrn_is_ion(tml->index)) {
-                ml = tml->ml;
-                ni = ml->nodeindices;
+                Memb_list* ml = tml->ml;
                 int _cntml_actual = ml->nodecount;
+                int* ni = ml->nodeindices;
 // AoS
 #if LAYOUT == 1
                 for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
