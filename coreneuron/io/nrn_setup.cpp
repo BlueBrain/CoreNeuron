@@ -476,8 +476,7 @@ void nrn_setup(const char* filesdat,
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
         nrn_multithread_job([](NrnThread* n) {
-            Phase1 p1;
-            p1.read_direct(n->id);
+            Phase1 p1(n->id);
             NrnThread& nt = *n;
             p1.populate(nt, mut);
         });
@@ -898,8 +897,7 @@ void delete_trajectory_requests(NrnThread& nt) {
 }
 
 void read_phase1(NrnThread& nt, UserParams& userParams) {
-    Phase1 p1;
-    p1.read_file(userParams.file_reader[nt.id]);
+    Phase1 p1(userParams.file_reader[nt.id]);
 
     // Protect gid2in, gid2out and neg_gid2out
     p1.populate(nt, mut);
