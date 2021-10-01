@@ -50,8 +50,7 @@ static int ml_permute(int i, Memb_list* ml) {
 // Note: cellnodes array is in unpermuted order.
 
 static void pr_memb(int type, Memb_list* ml, int* cellnodes, NrnThread& nt, FILE* f) {
-    int is_art = corenrn.get_is_artificial()[type];
-    if (is_art)
+    if (corenrn.get_is_artificial()[type])
         return;
 
     bool header_printed = false;

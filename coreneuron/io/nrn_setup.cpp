@@ -586,7 +586,6 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
         return;
     }
 
-    int chkpntsave = F.checkpoint();
     F.checkpoint(0);
 
     int sidt_size = F.read_int();

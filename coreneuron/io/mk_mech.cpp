@@ -144,9 +144,9 @@ int nrn_get_mechtype(const char* name) {
 }
 
 const char* nrn_get_mechname(int type) {
-    for (std::map<std::string, int>::iterator i = mech2type.begin(); i != mech2type.end(); ++i) {
-        if (type == i->second) {
-            return i->first.c_str();
+    for (const auto& item: mech2type) {
+        if (type == item.second) {
+            return item.first.c_str();
         }
     }
     return nullptr;
