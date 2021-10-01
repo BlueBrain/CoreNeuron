@@ -580,7 +580,6 @@ double PreSyn::value(NrnThread* nt) {
 }
 
 void NetCvode::check_thresh(NrnThread* nt) {  // for default method
-    int i;
     double teps = 1e-10;
 
     nt->_net_send_buffer_cnt = 0;
@@ -611,7 +610,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
         copy(net_send_buf_count) if (nt->compute_gpu)   \
         async(stream_id)
     // clang-format on
-    for (i = 0; i < nt->ncell; ++i) {
+    for (int i = 0; i < nt->ncell; ++i) {
         PreSyn* ps = presyns + i;
         PreSynHelper* psh = presyns_helper + i;
         int idx = 0;
@@ -658,7 +657,7 @@ void NetCvode::check_thresh(NrnThread* nt) {  // for default method
     }
 
     // on CPU...
-    for (i = 0; i < nt->_net_send_buffer_cnt; ++i) {
+    for (int i = 0; i < nt->_net_send_buffer_cnt; ++i) {
         PreSyn* ps = nt->presyns + nt->_net_send_buffer[i];
         ps->send(nt->_t + teps, net_cvode_instance, nt);
     }

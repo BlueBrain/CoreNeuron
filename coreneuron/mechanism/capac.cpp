@@ -111,7 +111,6 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     (void) type;
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
-    int _iml;
     double* vdata;
     (void) _nt;
     (void) type;
@@ -123,12 +122,12 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     }
 
 #if LAYOUT == 1 /*AoS*/
-    for (_iml = 0; _iml < _cntml_actual; _iml++) {
+    for (int _iml = 0; _iml < _cntml_actual; _iml++) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
     _PRAGMA_FOR_INIT_ACC_LOOP_
-    for (_iml = 0; _iml < _cntml_actual; _iml++) {
+    for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         i_cap = 0;
     }
@@ -138,7 +137,6 @@ void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
     (void) type;
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
-    int _iml;
     double* vdata;
     double cfac = .001 * _nt->cj;
 
@@ -156,12 +154,12 @@ void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int type) {
 #endif
 
 #if LAYOUT == 1 /*AoS*/
-    for (_iml = 0; _iml < _cntml_actual; _iml++) {
+    for (int _iml = 0; _iml < _cntml_actual; _iml++) {
         vdata = ml->data + _iml * nparm;
 #else
     vdata = ml->data;
     _PRAGMA_FOR_CUR_ACC_LOOP_
-    for (_iml = 0; _iml < _cntml_actual; _iml++) {
+    for (int _iml = 0; _iml < _cntml_actual; _iml++) {
 #endif
         i_cap = cfac * cm * _vec_rhs[ni[_iml]];
     }
