@@ -497,7 +497,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         configs = create_report_configurations(corenrn_param.reportfilepath,
                                                corenrn_param.outpath,
                                                spikes_population_name);
-        reports_needs_finalize = configs.size();
+        reports_needs_finalize = !configs.empty();
     }
 
     CheckPoints checkPoints{corenrn_param.checkpointpath, corenrn_param.restorepath};

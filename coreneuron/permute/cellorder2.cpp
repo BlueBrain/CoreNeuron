@@ -210,7 +210,7 @@ static void how_many_warpsize_groups_have_only_leaves(VTN& nodes) {
     for (size_t i = 0; i < nodes.size(); i += warpsize) {
         bool r = true;
         for (size_t j = 0; j < warpsize; ++j) {
-            if (nodes[i + j]->children.size() != 0) {
+            if (!nodes[i + j]->children.empty()) {
                 r = false;
                 break;
             }
@@ -256,7 +256,7 @@ static void pr_race_situation(VTN& nodes) {
 static size_t next_leaf(TNode* nd, VTN& nodes) {
     size_t i = 0;
     for (i = nd->nodevec_index - 1; i > 0; --i) {
-        if (nodes[i]->children.size() == 0) {
+        if (nodes[i]->children.empty()) {
             return i;
         }
     }
@@ -285,7 +285,7 @@ static bool eliminate_race(TNode* nd, size_t d, VTN& nodes, TNode* look) {
             return false;
         }
         size_t n = 1;
-        while (nodes[i - 1]->children.size() == 0 && n < d) {
+        while (nodes[i - 1]->children.empty() && n < d) {
             --i;
             ++n;
         }
