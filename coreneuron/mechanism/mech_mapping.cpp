@@ -16,9 +16,9 @@
 #include "coreneuron/permute/data_layout.hpp"
 
 namespace coreneuron {
-using Offset = size_t;
 using MechId = int;
 using VariableName = const char*;
+using Offset = size_t;
 
 struct cmp_str {
     bool operator()(char const* a, char const* b) const {
