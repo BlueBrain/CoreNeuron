@@ -42,11 +42,11 @@ enum { BAR_DRAW_INTERVAL = 1, BAR_DRAW_INTERVAL_NOTTY = 5 };
 /// should be less than the
 /// number of seconds in one minute, and the number of minutes should be less than the number of
 /// minutes in one hour.
-typedef struct {
+struct progressbar_time_components {
     int hours;
     int minutes;
     int seconds;
-} progressbar_time_components;
+};
 
 static void progressbar_draw(const progressbar* bar);
 static int progressbar_remaining_seconds(const progressbar* bar);
