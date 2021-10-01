@@ -591,7 +591,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
 
         // Report global cell statistics
-        report_cell_stats();
+        if (!corenrn_param.is_quiet()) {
+            report_cell_stats();
+        }
 
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(corenrn_param.prcellgid, compute_gpu, 0);

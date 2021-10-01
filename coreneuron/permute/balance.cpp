@@ -25,15 +25,14 @@ int cellorder_nwarp = 0;  // 0 means do not balance
 
 // ordering by warp, then old order
 bool warpcmp(const TNode* a, const TNode* b) {
-    bool res = false;
     if (a->groupindex < b->groupindex) {
-        res = true;
+        return true;
     } else if (a->groupindex == b->groupindex) {
         if (a->nodevec_index < b->nodevec_index) {
-            res = true;
+            return true;
         }
     }
-    return res;
+    return false;
 }
 
 // order the ncell nodevec roots for balance and return a displacement
@@ -53,7 +52,7 @@ size_t warp_balance(size_t ncell, VecTNode& nodevec) {
     }
     size_t nwarp = size_t(cellorder_nwarp);
     // cannot be more warps than cells
-    nwarp = (ncell < nwarp) ? ncell : nwarp;
+    nwarp = std::min(ncell, nwarp);
 
     // cellsize vector and location of types.
     std::vector<size_t> cellsize(ncell);
