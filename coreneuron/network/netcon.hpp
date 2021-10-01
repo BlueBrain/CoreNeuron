@@ -48,18 +48,18 @@ class DiscreteEvent {
 
 class NetCon: public DiscreteEvent {
   public:
-    bool active_;
-    double delay_;
-    Point_process* target_;
+    bool active_ = false;
+    double delay_ = 1.0;
+    Point_process* target_ = nullptr;
     union {
-        int weight_index_;
+        int weight_index_ = 0;
         int srcgid_;  // only to help InputPreSyn during setup
         // before weights are read and stored. Saves on transient
         // memory requirements by avoiding storage of all group file
         // netcon_srcgid lists. ie. that info is copied into here.
     } u;
 
-    NetCon();
+    NetCon() = default;
     virtual ~NetCon() = default;
     virtual void send(double sendtime, NetCvode*, NrnThread*) override;
     virtual void deliver(double, NetCvode* ns, NrnThread*) override;
@@ -106,15 +106,15 @@ class ConditionEvent: public DiscreteEvent {
 class PreSyn: public ConditionEvent {
   public:
 #if NRNMPI
-    unsigned char localgid_;  // compressed gid for spike transfer
+    unsigned char localgid_ = 0;  // compressed gid for spike transfer
 #endif
-    int nc_index_;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
-    int nc_cnt_;    // how many netcon starting at nc_index_
-    int output_index_;
-    int gid_;
-    double threshold_;
-    int thvar_index_;  // >=0 points into NrnThread._actual_v
-    Point_process* pntsrc_;
+    int nc_index_ = 0;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
+    int nc_cnt_ = 0;    // how many netcon starting at nc_index_
+    int output_index_ = 0;
+    int gid_ = -1;
+    double threshold_ = 10.;
+    int thvar_index_ = -1;  // >=0 points into NrnThread._actual_v
+    Point_process* pntsrc_ = nullptr;
 
     PreSyn();
     virtual ~PreSyn();
@@ -127,16 +127,16 @@ class PreSyn: public ConditionEvent {
     virtual double value(NrnThread*) override;
     void record(double t);
 #if NRN_MULTISEND
-    int multisend_index_;
+    int multisend_index_ = -1;
 #endif
 };
 
 class InputPreSyn: public DiscreteEvent {
   public:
-    int nc_index_;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
-    int nc_cnt_;    // how many netcon starting at nc_index_
+    int nc_index_ = -1;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
+    int nc_cnt_ = 0;    // how many netcon starting at nc_index_
 
-    InputPreSyn();
+    InputPreSyn() = default;
     virtual ~InputPreSyn() = default;
     virtual void send(double sendtime, NetCvode*, NrnThread*) override;
     virtual void deliver(double, NetCvode*, NrnThread*) override;
@@ -144,7 +144,7 @@ class InputPreSyn: public DiscreteEvent {
         return InputPreSynType;
     }
 #if NRN_MULTISEND
-    int multisend_phase2_index_;
+    int multisend_phase2_index_ = -1;
 #endif
 };
 

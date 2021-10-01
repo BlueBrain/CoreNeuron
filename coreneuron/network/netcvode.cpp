@@ -123,9 +123,8 @@ void net_event(Point_process* pnt, double time) {
     }
 }
 
-NetCvodeThreadData::NetCvodeThreadData() {
-    tqe_ = new TQueue<QTYPE>();
-    unreffed_event_cnt_ = 0;
+NetCvodeThreadData::NetCvodeThreadData()
+    : tqe_(new TQueue<QTYPE>()) {
     inter_thread_events_.reserve(1000);
 }
 
@@ -166,8 +165,9 @@ NetCvode::NetCvode() {
 }
 
 NetCvode::~NetCvode() {
-    if (net_cvode_instance == (NetCvode*) this)
+    if (net_cvode_instance == (NetCvode*) this) {
         net_cvode_instance = nullptr;
+    }
 
     p_construct(0);
 }
@@ -338,36 +338,8 @@ void NetCvode::deliver_events(double til, NrnThread* nt) {
         ;
 }
 
-NetCon::NetCon() {
-    active_ = false;
-    u.weight_index_ = 0;
-    target_ = nullptr;
-    delay_ = 1.0;
-}
-
 PreSyn::PreSyn() {
-    nc_index_ = 0;
-    nc_cnt_ = 0;
     flag_ = false;
-    thvar_index_ = -1;
-    pntsrc_ = nullptr;
-    threshold_ = 10.;
-    gid_ = -1;
-#if NRNMPI
-    localgid_ = 0;
-#endif
-#if NRN_MULTISEND
-    multisend_index_ = -1;
-#endif
-    output_index_ = 0;
-}
-
-InputPreSyn::InputPreSyn() {
-    nc_index_ = -1;
-    nc_cnt_ = 0;
-#if NRN_MULTISEND
-    multisend_phase2_index_ = -1;
-#endif
 }
 
 PreSyn::~PreSyn() {

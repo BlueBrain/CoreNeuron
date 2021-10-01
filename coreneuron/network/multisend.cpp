@@ -92,22 +92,22 @@ class Multisend_ReceiveBuffer {
     void incoming(int gid, double spiketime);
     void enqueue();
     int index_;
-    int size_;
-    int count_;
-    int maxcount_;
+    int size_ = MULTISEND_RECEIVEBUFFER_SIZE;
+    int count_ = 0;
+    int maxcount_ = 0;
     bool busy_ = false;
-    int nsend_, nrecv_;  // for checking conservation
-    int nsend_cell_;     // cells that spiked this interval.
+    int nsend_ = 0, nrecv_ = 0;  // for checking conservation
+    int nsend_cell_ = 0;     // cells that spiked this interval.
     NRNMPI_Spike** buffer_;
 
     void enqueue1();
     void enqueue2();
-    InputPreSyn** psbuf_;
+    InputPreSyn** psbuf_ = nullptr;
 
     void phase2send();
-    int phase2_head_;
-    int phase2_tail_;
-    int phase2_nsend_cell_, phase2_nsend_;
+    int phase2_head_ = 0;
+    int phase2_tail_ = 0;
+    int phase2_nsend_cell_ = 0, phase2_nsend_ = 0;
     Phase2Buffer* phase2_buffer_;
 };
 
@@ -160,18 +160,14 @@ static void multisend_send_phase2(InputPreSyn* ps, int gid, double t) {
     nrnmpi_multisend(&spk, cnt_phase2, ranks);
 }
 
-Multisend_ReceiveBuffer::Multisend_ReceiveBuffer() {
-    busy_ = false;
-    count_ = 0;
-    size_ = MULTISEND_RECEIVEBUFFER_SIZE;
-    buffer_ = new NRNMPI_Spike*[size_];
-    psbuf_ = 0;
+Multisend_ReceiveBuffer::Multisend_ReceiveBuffer()
+    : buffer_(new NRNMPI_Spike*[size_])
 #if ENQUEUE == 1
-    psbuf_ = new InputPreSyn*[size_];
+    , psbuf_(new InputPreSyn*[size_])
 #endif
-    phase2_buffer_ = new Phase2Buffer[PHASE2BUFFER_SIZE];
-    phase2_head_ = phase2_tail_ = 0;
-}
+    , phase2_buffer_(new Phase2Buffer[PHASE2BUFFER_SIZE])
+{}
+
 Multisend_ReceiveBuffer::~Multisend_ReceiveBuffer() {
     nrn_assert(!busy_);
     for (int i = 0; i < count_; ++i) {
