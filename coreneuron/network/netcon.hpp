@@ -33,8 +33,8 @@ class NetCvode;
 
 class DiscreteEvent {
   public:
-    DiscreteEvent();
-    virtual ~DiscreteEvent();
+    DiscreteEvent() = default;
+    virtual ~DiscreteEvent() = default;
     virtual void send(double deliverytime, NetCvode*, NrnThread*);
     virtual void deliver(double t, NetCvode*, NrnThread*);
     virtual int type() const {
@@ -60,7 +60,7 @@ class NetCon: public DiscreteEvent {
     } u;
 
     NetCon();
-    virtual ~NetCon();
+    virtual ~NetCon() = default;
     virtual void send(double sendtime, NetCvode*, NrnThread*) override;
     virtual void deliver(double, NetCvode* ns, NrnThread*) override;
     virtual int type() const override {
@@ -76,8 +76,8 @@ class SelfEvent: public DiscreteEvent {
     void** movable_;  // actually a TQItem**
     int weight_index_;
 
-    SelfEvent();
-    virtual ~SelfEvent();
+    SelfEvent() = default;
+    virtual ~SelfEvent() = default;
     virtual void deliver(double, NetCvode*, NrnThread*) override;
     virtual int type() const override {
         return SelfEventType;
@@ -92,8 +92,8 @@ class SelfEvent: public DiscreteEvent {
 class ConditionEvent: public DiscreteEvent {
   public:
     // condition detection factored out of PreSyn for re-use
-    ConditionEvent();
-    virtual ~ConditionEvent();
+    ConditionEvent() = default;
+    virtual ~ConditionEvent() = default;
     virtual bool check(NrnThread*);
     virtual double value(NrnThread*) {
         return -1.;
@@ -137,7 +137,7 @@ class InputPreSyn: public DiscreteEvent {
     int nc_cnt_;    // how many netcon starting at nc_index_
 
     InputPreSyn();
-    virtual ~InputPreSyn();
+    virtual ~InputPreSyn() = default;
     virtual void send(double sendtime, NetCvode*, NrnThread*) override;
     virtual void deliver(double, NetCvode*, NrnThread*) override;
     virtual int type() const override {
