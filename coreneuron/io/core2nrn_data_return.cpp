@@ -410,7 +410,7 @@ std::map<int, int*> type2invperm;
 
 static void clear_inv_perm_for_selfevent_targets() {
     for (auto it: type2invperm) {
-        delete [] it.second;
+        delete[] it.second;
     }
     type2invperm.clear();
 }
