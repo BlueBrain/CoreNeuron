@@ -116,8 +116,8 @@ void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
         return;
     }
 
-#if LAYOUT == 1 /*AoS*/
-    (void) _nt; // Only use by _PRAGMA_FOR_INIT_ACC_LOOP_
+#if LAYOUT == 1  /*AoS*/
+    (void) _nt;  // Only use by _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
         vdata = ml->data + _iml * nparm;
 #else
