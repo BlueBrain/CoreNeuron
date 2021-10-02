@@ -54,12 +54,12 @@ static int progressbar_remaining_seconds(const progressbar* bar);
 /**
  * Create a new progress bar with the specified label, max number of steps, and format string.
  * Note that `format` must be exactly three characters long, e.g. "<->" to render a progress
- * bar like "<---------->". Returns NULL if there isn't enough memory to allocate a progressbar
+ * bar like "<---------->". Returns nullptr if there isn't enough memory to allocate a progressbar
  */
 progressbar* progressbar_new_with_format(const char* label, unsigned long max, const char* format) {
     auto* new_bar = static_cast<progressbar*>(malloc(sizeof(progressbar)));
-    if (new_bar == NULL) {
-        return NULL;
+    if (new_bar == nullptr) {
+        return nullptr;
     }
 
     new_bar->max = max;
@@ -67,7 +67,7 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
     new_bar->draw_time_interval = isatty(STDOUT_FILENO) ? BAR_DRAW_INTERVAL
                                                         : BAR_DRAW_INTERVAL_NOTTY;
     new_bar->t = 0;
-    new_bar->start = time(NULL);
+    new_bar->start = time(nullptr);
     assert(3 == strlen(format) && "format must be 3 characters in length");
     new_bar->format.begin = format[0];
     new_bar->format.fill = format[1];
@@ -75,7 +75,7 @@ progressbar* progressbar_new_with_format(const char* label, unsigned long max, c
 
     progressbar_update_label(new_bar, label);
     progressbar_draw(new_bar);
-    new_bar->prev_t = difftime(time(NULL), new_bar->start);
+    new_bar->prev_t = difftime(time(nullptr), new_bar->start);
     new_bar->drawn_count = 1;
 
     return new_bar;
@@ -109,7 +109,7 @@ void progressbar_free(progressbar* bar) {
 void progressbar_update(progressbar* bar, unsigned long value, double t) {
     bar->value = value;
     bar->t = t;
-    int sim_time = difftime(time(NULL), bar->start);
+    int sim_time = difftime(time(nullptr), bar->start);
 
     // If there is not enough time passed to redraw the progress bar return
     if ((sim_time - bar->prev_t) < bar->draw_time_interval) {
@@ -181,7 +181,7 @@ static int progressbar_label_width(int screen_width, int label_length, int bar_w
 }
 
 static int progressbar_remaining_seconds(const progressbar* bar) {
-    double offset = difftime(time(NULL), bar->start);
+    double offset = difftime(time(nullptr), bar->start);
     if (bar->value > 0 && offset > 0) {
         return (offset / (double) bar->value) * (bar->max - bar->value);
     } else {
@@ -213,7 +213,7 @@ static void progressbar_draw(const progressbar* bar) {
 
     progressbar_time_components eta =
         (progressbar_completed)
-            ? progressbar_calc_time_components(difftime(time(NULL), bar->start))
+            ? progressbar_calc_time_components(difftime(time(nullptr), bar->start))
             : progressbar_calc_time_components(progressbar_remaining_seconds(bar));
 
     if (label_width == 0) {

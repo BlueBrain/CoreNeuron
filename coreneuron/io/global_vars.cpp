@@ -148,7 +148,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                             "CORENRN_ENABLE_LEGACY_UNITS not"
                             " consistent with NEURON value of"
                             " nrnunit_use_legacy()",
-                            NULL);
+                            nullptr);
                     }
                 }
             }
