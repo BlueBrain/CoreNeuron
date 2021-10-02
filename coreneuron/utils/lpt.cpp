@@ -6,8 +6,9 @@
 # =============================================================================
 */
 
-#include <functional>
 #include <algorithm>
+#include <functional>
+#include <numeric>
 #include <queue>
 
 #include "coreneuron/nrnconf.h"  // for size_t
@@ -64,12 +65,7 @@ std::vector<size_t> lpt(size_t nbag, std::vector<size_t>& pieces, double* bal) {
 }
 
 double load_balance(std::vector<size_t>& v) {
-    size_t sum = 0;
-    size_t max = 1;
-    for (size_t i = 0; i < v.size(); ++i) {
-        size_t val = v[i];
-        sum += val;
-        max = std::max(max, val);
-    }
+    size_t sum = std::accumulate(v.begin(), v.end(), 0);
+    size_t max = *std::max_element(v.begin(), v.end());
     return (double(sum) / v.size()) / max;
 }

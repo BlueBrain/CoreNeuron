@@ -24,8 +24,8 @@ int (*nrn2core_get_global_int_item_)(const char* name);
 
 using namespace std;
 namespace coreneuron {
-using PSD = pair<size_t, double*>;
-using N2V = map<string, PSD>;
+using PSD = std::pair<size_t, double*>;
+using N2V = std::map<string, PSD>;
 
 static N2V* n2v;
 
@@ -163,8 +163,8 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
     }
 
 #if DEBUG
-    for (N2V::iterator i = n2v->begin(); i != n2v->end(); ++i) {
-        printf("%s %ld %p\n", i->first.c_str(), i->second.first, i->second.second);
+    for (const auto& item: n2v) {
+        printf("%s %ld %p\n", item.first.c_str(), item.second.first, item.second.second);
     }
 #endif
 

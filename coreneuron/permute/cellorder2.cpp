@@ -11,6 +11,7 @@
 #include <set>
 #include <algorithm>
 #include <cstring>
+#include <numeric>
 
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/permute/cellorder.hpp"
@@ -72,9 +73,8 @@ static void sortlevel(VTN& level) {
 
 static void set_treenode_order(VVTN& levels) {
     size_t order = 0;
-    for (size_t i = 0; i < levels.size(); ++i) {
-        for (size_t j = 0; j < levels[i].size(); ++j) {
-            TNode* nd = levels[i][j];
+    for (auto& level: levels) {
+        for (auto& nd: level) {
             nd->treenode_order = order++;
         }
     }
@@ -90,8 +90,8 @@ static size_t g32(TNode* nd) {
 
 static bool is_parent_race(TNode* nd) {  // vitiating
     size_t pg = g32(nd);
-    for (size_t i = 0; i < nd->children.size(); ++i) {
-        if (pg == g32(nd->children[i])) {
+    for (const auto& child: nd->children) {
+        if (pg == g32(nd->child)) {
             return true;
         }
     }
@@ -102,8 +102,8 @@ static bool is_parent_race(TNode* nd) {  // vitiating
 // less than 32 apart
 static bool is_parent_race2(TNode* nd) {  // vitiating
     size_t pi = nd->nodevec_index;
-    for (size_t i = 0; i < nd->children.size(); ++i) {
-        if (nd->children[i]->nodevec_index - pi < warpsize) {
+    for (const auto& child: nd->children) {
+        if (child->nodevec_index - pi < warpsize) {
             return true;
         }
     }
@@ -119,8 +119,8 @@ static bool is_child_race(TNode* nd) {  // potentially handleable by atomic
         return g32(nd->children[0]) == g32(nd->children[1]);
     }
     std::set<size_t> s;
-    for (size_t i = 0; i < nd->children.size(); ++i) {
-        size_t gc = g32(nd->children[i]);
+    for (const auto& child: nd->children) {
+        size_t gc = g32(child);
         if (s.find(gc) != s.end()) {
             return true;
         }
@@ -154,8 +154,8 @@ static bool is_child_race2(TNode* nd) {  // potentially handleable by atomic
 size_t dist2child(TNode* nd) {
     size_t d = 1000;
     size_t pi = nd->nodevec_index;
-    for (size_t i = 0; i < nd->children.size(); ++i) {
-        size_t d1 = nd->children[i]->nodevec_index - pi;
+    for (const auto& child: nd->children) {
+        size_t d1 = child->nodevec_index - pi;
         if (d1 < d) {
             d = d1;
         }
@@ -238,8 +238,7 @@ static void pr_race_situation(VTN& nodes) {
                    nd->nodevec_index,
                    dist2child(nd),
                    need2move(nd));
-            for (size_t j = 0; j < nd->children.size(); ++j) {
-                TNode* cnd = nd->children[j];
+            for (const auto& cnd: nd->children) {
                 printf("   %ld %ld", cnd->level, cnd->nodevec_index);
             }
             printf("\n");
@@ -265,11 +264,9 @@ static size_t next_leaf(TNode* nd, VTN& nodes) {
 }
 
 static void checkrace(TNode* nd, VTN& nodes) {
-    bool res = true;
     for (size_t i = nd->nodevec_index; i < nodes.size(); ++i) {
         if (is_parent_race2(nodes[i])) {
             //      printf("checkrace %ld\n", i);
-            res = false;
         }
     }
 }
@@ -327,16 +324,15 @@ static void eliminate_crace(TNode* nd, VTN& nodes) {
 }
 
 static void question2(VVTN& levels) {
-    size_t nnode = 0;
     // number of compartments in the group
-    for (size_t i = 0; i < levels.size(); ++i) {
-        nnode += levels[i].size();
-    }
+    size_t nnode = std::accumulate(levels.begin(), levels.end(), 0, [](size_t s, const VTN& l) {
+        return s + l.size();
+    });
     VTN nodes(nnode);  // store the sorted nodes from analyze function
     nnode = 0;
-    for (size_t i = 0; i < levels.size(); ++i) {
-        for (size_t j = 0; j < levels[i].size(); ++j) {
-            nodes[nnode++] = levels[i][j];
+    for (const auto& level: levels) {
+        for (const auto& l: level) {
+            nodes[nnode++] = l;
         }
     }
     for (size_t i = 0; i < nodes.size(); ++i) {
@@ -413,19 +409,18 @@ static void analyze(VVTN& levels) {
     // treenode order can be anything as long as first children < second
     // children etc.. After sorting a level, the order will be correct for
     // that level, ranging from [0:level.size]
-    for (size_t i = 0; i < levels.size(); ++i) {
-        chklevel(levels[i]);  // does nothing
-        for (size_t j = 0; j < levels[i].size(); ++j) {
-            TNode* nd = levels[i][j];
+    for (auto& level: levels) {
+        chklevel(level);  // does nothing
+        for (const auto& nd: level) {
             for (size_t k = 0; k < nd->children.size(); ++k) {
                 nd->children[k]->treenode_order = k;
             }
         }
     }
 
-    for (size_t i = 0; i < levels.size(); ++i) {
-        sortlevel(levels[i]);
-        chklevel(levels[i]);  // does nothing
+    for (auto& level: levels) {
+        sortlevel(level);
+        chklevel(level);  // does nothing
     }
 
     set_treenode_order(levels);
@@ -435,8 +430,8 @@ void prgroupsize(VVVTN& groups) {
 #if DEBUG
     for (size_t i = 0; i < groups[0].size(); ++i) {
         printf("%5ld\n", i);
-        for (size_t j = 0; j < groups.size(); ++j) {
-            printf(" %5ld", groups[j][i].size());
+        for (const auto& group: groups) {
+            printf(" %5ld", group[i].size());
         }
         printf("\n");
     }
@@ -476,23 +471,22 @@ void group_order2(VecTNode& nodevec, size_t groupsize, size_t ncell) {
     // algo)
     VVVTN groups(nwarp ? nwarp : (ncell / groupsize + ((ncell % groupsize) ? 1 : 0)));
 
-    for (size_t i = 0; i < groups.size(); ++i) {
-        groups[i].resize(maxlevel + 1);
+    for (auto& group: groups) {
+        group.resize(maxlevel + 1);
     }
 
     // group the cells according to their groupindex and according to their level (see
     // level_from_root)
-    for (size_t i = 0; i < nodevec.size(); ++i) {
-        TNode* nd = nodevec[i];
+    for (const auto& nd: nodevec) {
         groups[nd->groupindex][nd->level].push_back(nd);
     }
 
     prgroupsize(groups);  // debugging
 
     // deal with each group
-    for (size_t i = 0; i < groups.size(); ++i) {
-        analyze(groups[i]);
-        question2(groups[i]);
+    for (auto& group: groups) {
+        analyze(group);
+        question2(group);
     }
 
     // final nodevec order according to group_index and treenode_order

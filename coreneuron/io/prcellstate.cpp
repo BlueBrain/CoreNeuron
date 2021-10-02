@@ -128,14 +128,14 @@ static void pr_netcon(NrnThread& nt, FILE* f) {
     /// correspondent InputPreSyn. If NetCon is in the nc2src map,
     /// remember its ips and the gid
     std::map<NetCon*, int> map_nc2gid;
-    for (auto it_gid2in = gid2in.begin(); it_gid2in != gid2in.end(); ++it_gid2in) {
-        InputPreSyn* ips = it_gid2in->second;  /// input presyn
+    for (const auto& gid: gid2in) {
+        InputPreSyn* ips = gid.second;  /// input presyn
         for (int i = 0; i < ips->nc_cnt_; ++i) {
             NetCon* nc = netcon_in_presyn_order_[ips->nc_index_ + i];
             auto it_nc2src = map_nc2src.find(nc);
             if (it_nc2src != map_nc2src.end()) {
                 it_nc2src->second = ips;
-                map_nc2gid[nc] = it_gid2in->first;  /// src gid of the input presyn
+                map_nc2gid[nc] = gid.first;  /// src gid of the input presyn
             }
         }
     }
