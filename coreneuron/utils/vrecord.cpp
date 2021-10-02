@@ -45,8 +45,13 @@ VecPlayContinuous::VecPlayContinuous(double* pd,
     : PlayRecord(pd, ith)
     , y_(std::move(yvec))
     , t_(std::move(tvec))
-    , discon_indices_(discon) {
+    , discon_indices_(discon)
+    , e_(new PlayRecordEvent{}) {
     e_->plr_ = this;
+}
+
+VecPlayContinuous::~VecPlayContinuous() {
+    delete e_;
 }
 
 void VecPlayContinuous::play_init() {

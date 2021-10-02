@@ -58,11 +58,11 @@ class PlayRecord {
 class VecPlayContinuous: public PlayRecord {
   public:
     VecPlayContinuous(double*, IvocVect&& yvec, IvocVect&& tvec, IvocVect* discon, int ith);
-    virtual ~VecPlayContinuous() = default;
+    virtual ~VecPlayContinuous();
     virtual void play_init() override;
     virtual void deliver(double tt, NetCvode*) override;
     virtual PlayRecordEvent* event() override {
-        return e_.get();
+        return e_;
     }
     virtual void pr() override;
 
@@ -84,7 +84,7 @@ class VecPlayContinuous: public PlayRecord {
     size_t discon_index_ = 0;
     size_t ubound_index_ = 0;
 
-    std::unique_ptr<PlayRecordEvent> e_;
+    PlayRecordEvent* e_ = nullptr; // Need to be a raw pointer for acc
 };
 }  // namespace coreneuron
 #endif
