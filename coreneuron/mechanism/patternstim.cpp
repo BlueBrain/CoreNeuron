@@ -121,7 +121,9 @@ size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double t
     // pattern.mod expects sorted spike raster (this is to avoid
     // injecting all events at the begining of the simulation).
     // sort spikes according to time
-    std::sort(spikes.begin(), spikes.end(), [](const auto& a, const auto& b){return a.first < b.first;});
+    std::sort(spikes.begin(), spikes.end(), [](const auto& a, const auto& b) {
+        return a.first < b.first;
+    });
 
     // fill gid and time vectors
     *tvec = (double*) emalloc(spikes.size() * sizeof(double));

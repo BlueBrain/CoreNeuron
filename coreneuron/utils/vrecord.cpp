@@ -30,8 +30,8 @@ void PlayRecordEvent::pr(const char* s, double tt, NetCvode*) {
 }
 
 PlayRecord::PlayRecord(double* pd, int ith)
-    : pd_(pd), ith_(ith)
-{}
+    : pd_(pd)
+    , ith_(ith) {}
 
 void PlayRecord::pr() {
     printf("PlayRecord\n");

@@ -372,8 +372,7 @@ void DiscreteEvent::send(double tt, NetCvode* ns, NrnThread* nt) {
     ns->event(tt, this, nt);
 }
 
-void DiscreteEvent::deliver(double /* tt */, NetCvode* /* ns */, NrnThread* /* nt */)
-{}
+void DiscreteEvent::deliver(double /* tt */, NetCvode* /* ns */, NrnThread* /* nt */) {}
 
 void DiscreteEvent::pr(const char* s, double tt, NetCvode* /* ns */) {
     printf("%s DiscreteEvent %.15g\n", s, tt);

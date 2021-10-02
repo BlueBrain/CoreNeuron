@@ -134,7 +134,7 @@ class PreSyn: public ConditionEvent {
 class InputPreSyn: public DiscreteEvent {
   public:
     int nc_index_ = -1;  // replaces dil_, index into global NetCon** netcon_in_presyn_order_
-    int nc_cnt_ = 0;    // how many netcon starting at nc_index_
+    int nc_cnt_ = 0;     // how many netcon starting at nc_index_
 
     InputPreSyn() = default;
     virtual ~InputPreSyn() = default;

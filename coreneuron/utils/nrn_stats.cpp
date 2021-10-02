@@ -45,13 +45,15 @@ void report_cell_stats() {
     }
     stat_array[5] = spikevec_gid.size();  // number of spikes
 
-    stat_array[6] = std::count_if(spikevec_gid.cbegin(), spikevec_gid.cend(), [](const int& s){return s > -1;});  // number of non-negative gid spikes
+    stat_array[6] = std::count_if(spikevec_gid.cbegin(), spikevec_gid.cend(), [](const int& s) {
+        return s > -1;
+    });  // number of non-negative gid spikes
 
 #if NRNMPI
     long gstat_array[NUM_STATS];
     nrnmpi_long_allreduce_vec(stat_array, gstat_array, NUM_STATS, 1);
 #else
-    const long (&gstat_array)[NUM_STATS] = stat_array;
+    const long(&gstat_array)[NUM_STATS] = stat_array;
 #endif
 
     if (nrnmpi_myid == 0) {

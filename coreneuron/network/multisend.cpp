@@ -97,7 +97,7 @@ class Multisend_ReceiveBuffer {
     int maxcount_ = 0;
     bool busy_ = false;
     int nsend_ = 0, nrecv_ = 0;  // for checking conservation
-    int nsend_cell_ = 0;     // cells that spiked this interval.
+    int nsend_cell_ = 0;         // cells that spiked this interval.
     NRNMPI_Spike** buffer_;
 
     void enqueue1();
@@ -165,8 +165,8 @@ Multisend_ReceiveBuffer::Multisend_ReceiveBuffer()
 #if ENQUEUE == 1
     , psbuf_(new InputPreSyn*[size_])
 #endif
-    , phase2_buffer_(new Phase2Buffer[PHASE2BUFFER_SIZE])
-{}
+    , phase2_buffer_(new Phase2Buffer[PHASE2BUFFER_SIZE]) {
+}
 
 Multisend_ReceiveBuffer::~Multisend_ReceiveBuffer() {
     nrn_assert(!busy_);

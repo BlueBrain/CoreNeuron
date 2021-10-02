@@ -30,7 +30,7 @@ std::vector<size_t> lpt(size_t nbag, std::vector<size_t>& pieces, double* bal) {
         pvec.push_back(P(i, pieces[i]));
     }
 
-    auto P_comp = [](const P& a, const P& b) {return a.second > b.second;};
+    auto P_comp = [](const P& a, const P& b) { return a.second > b.second; };
 
     std::sort(pvec.begin(), pvec.end(), P_comp);
 
@@ -51,7 +51,7 @@ std::vector<size_t> lpt(size_t nbag, std::vector<size_t>& pieces, double* bal) {
 
     // load balance average/max (1.0 is perfect)
     std::vector<size_t> v(bagq.size());
-    for (auto &item: v) {
+    for (auto& item: v) {
         item = bagq.top().second;
         bagq.pop();
     }
