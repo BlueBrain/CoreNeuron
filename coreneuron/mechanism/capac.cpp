@@ -105,7 +105,7 @@ void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     }
 }
 
-void nrn_init_capacitance(NrnThread* /* _nt */, Memb_list* ml, int /* type */) {
+void nrn_init_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     int _cntml_actual = ml->nodecount;
     int _cntml_padded = ml->_nodecount_padded;
     double* vdata;
@@ -117,6 +117,7 @@ void nrn_init_capacitance(NrnThread* /* _nt */, Memb_list* ml, int /* type */) {
     }
 
 #if LAYOUT == 1 /*AoS*/
+    (void) _nt; // Only use by _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
         vdata = ml->data + _iml * nparm;
 #else
