@@ -46,6 +46,11 @@ spack_setup:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
+.gpu_node:
+  variables:
+    # All GPU nodes are fair game
+    bb5_partition: prod_p2,prod_p1,interactive
+    bb5_constraint: volta
 
 build:nmodl:intel:
   stage: build_nmodl
@@ -115,19 +120,11 @@ test:coreneuron:intel:
   needs: ["build:coreneuron:intel"]
 
 test:coreneuron+nmodl:gpu:
-  extends:
-    - .ctest
-  variables:
-    # GPU tests need to run on nodes with GPUs.
-    bb5_constraint: volta
+  extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron+nmodl:gpu"]
 
 test:coreneuron:gpu:
-  extends:
-    - .ctest
-  variables:
-    # GPU tests need to run on nodes with GPUs.
-    bb5_constraint: volta
+  extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:gpu"]
 
 build:neuron+nmodl:intel:
@@ -182,16 +179,10 @@ test:neuron:intel:
 
 test:neuron+nmodl:gpu:
   stage: test_neuron
-  extends: [.ctest]
-  variables:
-    # GPU tests need to run on nodes with GPUs.
-    bb5_constraint: volta
+  extends: [.ctest, .gpu_node]
   needs: ["build:neuron+nmodl:gpu"]
 
 test:neuron:gpu:
   stage: test_neuron
-  extends: [.ctest]
-  variables:
-    # GPU tests need to run on nodes with GPUs.
-    bb5_constraint: volta
+  extends: [.ctest, .gpu_node]
   needs: ["build:neuron:gpu"]
