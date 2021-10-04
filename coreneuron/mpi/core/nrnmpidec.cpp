@@ -6,11 +6,6 @@
 # =============================================================================.
 */
 
-/*
-This file is processed by mkdynam.sh and so it is important that
-the prototypes be of the form "type foo(type arg, ...)"
-*/
-
 #if NRNMPI
 #include "../nrnmpi.h"
 
