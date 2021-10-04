@@ -203,7 +203,8 @@ sends any overflow.
 int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           unsigned char* spfixin_ovfl,
                                           int send_nspike,
-                                          int* nin) {
+                                          int* nin,
+                                          int ovfl_capacity) {
     if (!displs) {
         np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
@@ -233,10 +234,10 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
         }
     }
     if (novfl) {
-        if (ovfl_capacity_ < novfl) {
-            ovfl_capacity_ = novfl + 10;
+        if (ovfl_capacity < novfl) {
+            ovfl_capacity = novfl + 10;
             free(spfixin_ovfl);
-            spfixin_ovfl = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size) *
+            spfixin_ovfl = (unsigned char*) emalloc(ovfl_capacity * (1 + localgid_size) *
                                                     sizeof(unsigned char));
         }
         int bs = byteovfl[nrnmpi_myid_];

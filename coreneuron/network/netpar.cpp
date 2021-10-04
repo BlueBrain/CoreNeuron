@@ -34,6 +34,7 @@ int localgid_size_;
 unsigned char* spfixin_ovfl_;
 int send_nspike;
 int* nrnmpi_nin_;
+int ovfl_capacity;
 #endif
 
 namespace coreneuron {
@@ -372,7 +373,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
 
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange_compressed(localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_);
+    int n = nrnmpi_spike_exchange_compressed(localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_, ovfl_capacity);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
@@ -771,8 +772,8 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
             spfixout_capacity_ = ag_send_size_ + 50 * (1 + localgid_size_);
             spfixout_ = (unsigned char*) emalloc(spfixout_capacity_);
             spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size_);
-            ovfl_capacity_ = 100;
-            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity_ * (1 + localgid_size_));
+            ovfl_capacity = 100;
+            spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity * (1 + localgid_size_));
         }
         return send_nspike;
     } else
