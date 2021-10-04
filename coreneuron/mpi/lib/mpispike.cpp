@@ -90,7 +90,7 @@ static MPI_Datatype spikebuf_type;
 static void make_spikebuf_type() {
     NRNMPI_Spikebuf s;
     int block_lengths[3] = {1, nrn_spikebuf_size, nrn_spikebuf_size};
-    MPI_Datatype typelist[3] = {MPI_INT_ MPI_INT, MPI_DOUBLE};
+    MPI_Datatype typelist[3] = {MPI_INT, MPI_INT, MPI_DOUBLE};
 
     MPI_Aint addresses[4];
     MPI_Get_address(&s, &addresses[0]);
