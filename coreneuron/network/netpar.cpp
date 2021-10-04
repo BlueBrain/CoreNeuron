@@ -37,6 +37,7 @@ int* nrnmpi_nin_;
 int ovfl_capacity;
 int icapacity;
 unsigned char* spikeout_fixed;
+int ag_send_size;
 #endif
 
 namespace coreneuron {
@@ -377,8 +378,13 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
 
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange_compressed(
-        localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_, ovfl_capacity, spikeout_fixed);
+    int n = nrnmpi_spike_exchange_compressed(localgid_size_,
+                                             spfixin_ovfl_,
+                                             send_nspike,
+                                             nrnmpi_nin_,
+                                             ovfl_capacity,
+                                             spikeout_fixed,
+                                             ag_send_size);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
@@ -413,7 +419,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                 } else {
                     nnn = nn;
                 }
-                int idx = 2 + i * ag_send_size_;
+                int idx = 2 + i * ag_send_size;
                 for (j = 0; j < nnn; ++j) {
                     // order is (firetime,gid) pairs.
                     double firetime = spfixin_[idx++] * dt + t_exchange_;
@@ -443,7 +449,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
             if (nn > send_nspike) {
                 nn = send_nspike;
             }
-            int idx = 2 + i * ag_send_size_;
+            int idx = 2 + i * ag_send_size;
             for (int j = 0; j < nn; ++j) {
                 // order is (firetime,gid) pairs.
                 double firetime = spfixin_[idx++] * dt + t_exchange_;
@@ -773,10 +779,10 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
             if (!nrn_use_localgid_) {
                 localgid_size_ = sizeof(unsigned int);
             }
-            ag_send_size_ = 2 + send_nspike * (1 + localgid_size_);
-            spfixout_capacity_ = ag_send_size_ + 50 * (1 + localgid_size_);
+            ag_send_size = 2 + send_nspike * (1 + localgid_size_);
+            spfixout_capacity_ = ag_send_size + 50 * (1 + localgid_size_);
             spikeout_fixed = (unsigned char*) emalloc(spfixout_capacity_);
-            spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size_);
+            spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size);
             ovfl_capacity = 100;
             spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity * (1 + localgid_size_));
         }

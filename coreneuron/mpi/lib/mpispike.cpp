@@ -207,7 +207,8 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           int send_nspike,
                                           int* nin,
                                           int ovfl_capacity,
-                                          unsigned char* spikeout_fixed) {
+                                          unsigned char* spikeout_fixed,
+                                          int ag_send_size) {
     if (!displs) {
         np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
@@ -216,19 +217,19 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
     }
 
     MPI_Allgather(
-        spikeout_fixed, ag_send_size_, MPI_BYTE, spfixin_, ag_send_size_, MPI_BYTE, nrnmpi_comm);
+        spikeout_fixed, ag_send_size, MPI_BYTE, spfixin_, ag_send_size, MPI_BYTE, nrnmpi_comm);
     int novfl = 0;
     int ntot = 0;
     int bstot = 0;
     for (int i = 0; i < np; ++i) {
         displs[i] = bstot;
-        int idx = i * ag_send_size_;
+        int idx = i * ag_send_size;
         int n = spfixin_[idx++] * 256;
         n += spfixin_[idx++];
         ntot += n;
         nin[i] = n;
         if (n > send_nspike) {
-            int bs = 2 + n * (1 + localgid_size) - ag_send_size_;
+            int bs = 2 + n * (1 + localgid_size) - ag_send_size;
             byteovfl[i] = bs;
             bstot += bs;
             novfl += n - send_nspike;
@@ -250,7 +251,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
         completely separate from the spfixin_ since the latter
         dynamically changes its size during a run.
         */
-        MPI_Allgatherv(spikeout_fixed + ag_send_size_,
+        MPI_Allgatherv(spikeout_fixed + ag_send_size,
                        bs,
                        MPI_BYTE,
                        spfixin_ovfl,
