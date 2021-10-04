@@ -49,6 +49,7 @@ static double dt1_;  // 1/dt
 void nrn_spike_exchange_init();
 
 #if NRNMPI
+NRNMPI_Spike* spikeout;
 
 void nrn_timeout(int);
 void nrn_spike_exchange(NrnThread*);
@@ -59,7 +60,7 @@ bool nrn_use_localgid_;
 void nrn_outputevent(unsigned char localgid, double firetime);
 std::vector<std::map<int, InputPreSyn*>> localmaps;
 
-static int ocapacity_;  // for spikeout_
+static int ocapacity_;  // for spikeout
 // require it to be smaller than  min_interprocessor_delay.
 static double wt_;   // wait time for nrnmpi_spike_exchange
 static double wt1_;  // time to find the PreSyns and send the spikes.
@@ -85,9 +86,9 @@ static OMP_Mutex mut;
 /// coming from nrnmpi.h and array of int of the global domain size
 static void alloc_mpi_space() {
 #if NRNMPI
-    if (corenrn_param.mpi_enable && !spikeout_) {
+    if (corenrn_param.mpi_enable && !spikeout) {
         ocapacity_ = 100;
-        spikeout_ = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
+        spikeout = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
         icapacity_ = 100;
         spikein_ = (NRNMPI_Spike*) malloc(icapacity_ * sizeof(NRNMPI_Spike));
         nrnmpi_nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
@@ -181,23 +182,23 @@ void nrn2ncs_outputevent(int gid, double firetime) {
         int i = nout_++;
         if (i >= ocapacity_) {
             ocapacity_ *= 2;
-            spikeout_ = (NRNMPI_Spike*) erealloc(spikeout_, ocapacity_ * sizeof(NRNMPI_Spike));
+            spikeout = (NRNMPI_Spike*) erealloc(spikeout, ocapacity_ * sizeof(NRNMPI_Spike));
         }
         // printf("%d cell %d in slot %d fired at %g\n", nrnmpi_myid, gid, i, firetime);
-        spikeout_[i].gid = gid;
-        spikeout_[i].spiketime = firetime;
+        spikeout[i].gid = gid;
+        spikeout[i].spiketime = firetime;
 #else
         int i = nout_++;
         if (i >= nrn_spikebuf_size) {
             i -= nrn_spikebuf_size;
             if (i >= ocapacity_) {
                 ocapacity_ *= 2;
-                spikeout_ = (NRNMPI_Spike*) hoc_Erealloc(spikeout_,
-                                                         ocapacity_ * sizeof(NRNMPI_Spike));
+                spikeout = (NRNMPI_Spike*) hoc_Erealloc(spikeout,
+                                                        ocapacity_ * sizeof(NRNMPI_Spike));
                 hoc_malchk();
             }
-            spikeout_[i].gid = gid;
-            spikeout_[i].spiketime = firetime;
+            spikeout[i].gid = gid;
+            spikeout[i].spiketime = firetime;
         } else {
             spbufout_->gid[i] = gid;
             spbufout_->spiketime[i] = firetime;
@@ -316,7 +317,7 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();

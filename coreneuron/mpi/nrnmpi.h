@@ -20,10 +20,10 @@
 #ifdef NRNMPI
 
 namespace coreneuron {
-typedef struct {
+struct NRNMPI_Spike {
     int gid;
     double spiketime;
-} NRNMPI_Spike;
+};
 
 // Those functions and classes are part of a mechanism to dynamically or statically load mpi functions
 struct mpi_function_base;

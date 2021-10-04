@@ -14,7 +14,6 @@ int nrnmpi_nout_;
 int nrnmpi_i_capacity_;
 
 #if NRNMPI
-NRNMPI_Spike* nrnmpi_spikeout_;
 NRNMPI_Spike* nrnmpi_spikein_;
 #endif
 
