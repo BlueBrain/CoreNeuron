@@ -347,7 +347,7 @@ int nrnmpi_int_sum_reduce_impl(int in) {
 
 void nrnmpi_assert_opstep_impl(int opstep, double tt) {
     /* all machines in comm should have same opstep and same tt. */
-    double buf[2] = {(double) opstep, tt};
+    double buf[2] = {static_cast<double>(opstep), tt};
     MPI_Bcast(buf, 2, MPI_DOUBLE, 0, nrnmpi_comm);
     if (opstep != (int) buf[0] || tt != buf[1]) {
         printf("%d opstep=%d %d  t=%g t-troot=%g\n",
