@@ -62,7 +62,7 @@ void report_cell_stats(void) {
 #endif
     {
         assert(sizeof(stat_array) == sizeof(gstat_array));
-        memcpy(gstat_array, stat_array, sizeof(stat_array));
+        std::memcpy(gstat_array, stat_array, sizeof(stat_array));
     }
 
     if (nrnmpi_myid == 0 && !corenrn_param.is_quiet()) {
