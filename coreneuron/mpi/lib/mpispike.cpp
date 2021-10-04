@@ -114,7 +114,8 @@ void wait_before_spike_exchange() {
 int nrnmpi_spike_exchange_impl(int* nin,
                                NRNMPI_Spike* spikeout,
                                int icapacity,
-                               NRNMPI_Spike* spikein) {
+                               NRNMPI_Spike* spikein,
+                               int& ovfl) {
     Instrumentor::phase_begin("spike-exchange");
 
     {
@@ -177,7 +178,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
         int n1 = (nout_ > nrn_spikebuf_size) ? nout_ - nrn_spikebuf_size : 0;
         MPI_Allgatherv(spikeout, n1, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
     }
-    ovfl_ = novfl;
+    ovfl = novfl;
 #endif
     Instrumentor::phase_end("communication");
     Instrumentor::phase_end("spike-exchange");
@@ -209,7 +210,8 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           int ovfl_capacity,
                                           unsigned char* spikeout_fixed,
                                           int ag_send_size,
-                                          unsigned char* spikein_fixed) {
+                                          unsigned char* spikein_fixed,
+                                          int& ovfl) {
     if (!displs) {
         np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
@@ -261,7 +263,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                        MPI_BYTE,
                        nrnmpi_comm);
     }
-    ovfl_ = novfl;
+    ovfl = novfl;
     return ntot;
 }
 

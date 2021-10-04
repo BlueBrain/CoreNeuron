@@ -13,6 +13,5 @@ int nrnmpi_myid = 0;     /* rank */
 int nrnmpi_nout_;
 
 int nrnmpi_send_nspike_;
-int nrnmpi_ovfl_;
 unsigned char* nrnmpi_spikein_fixed_ovfl_;
 }  // namespace coreneuron

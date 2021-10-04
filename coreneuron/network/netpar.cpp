@@ -39,6 +39,7 @@ int icapacity;
 unsigned char* spikeout_fixed;
 int ag_send_size;
 unsigned char* spikein_fixed;
+int ovfl;
 #endif
 
 namespace coreneuron {
@@ -322,7 +323,7 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
@@ -353,7 +354,7 @@ void nrn_spike_exchange(NrnThread* nt) {
             }
         }
     }
-    n = ovfl_;
+    n = ovfl;
 #endif  // nrn_spikebuf_size > 0
     for (int i = 0; i < n; ++i) {
         auto gid2in_it = gid2in.find(spikein[i].gid);
@@ -386,7 +387,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                                              ovfl_capacity,
                                              spikeout_fixed,
                                              ag_send_size,
-                                             spikein_fixed);
+                                             spikein_fixed,
+                                             ovfl);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
@@ -464,7 +466,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                 }
             }
         }
-        n = ovfl_;
+        n = ovfl;
         int idx = 0;
         for (int i = 0; i < n; ++i) {
             double firetime = spfixin_ovfl_[idx++] * dt + t_exchange_;

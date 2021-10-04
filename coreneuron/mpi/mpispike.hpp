@@ -28,9 +28,6 @@ struct NRNMPI_Spikebuf {
 #define nout_ nrnmpi_nout_
 extern int nout_;
 
-#define ovfl_ nrnmpi_ovfl_
-extern int ovfl_; /* spikes */
-
 #if nrn_spikebuf_size > 0
 #define spbufout_ nrnmpi_spbufout_
 #define spbufin_  nrnmpi_spbufin_
