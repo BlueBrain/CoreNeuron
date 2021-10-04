@@ -23,7 +23,6 @@ namespace coreneuron {
 // check thresholds and deliver all (including binqueue) events
 // up to t+dt/2
 void deliver_net_events(NrnThread* nt) {
-    Instrumentor::phase p("deliver_net_events");
     if (net_cvode_instance) {
         net_cvode_instance->check_thresh(nt);
         net_cvode_instance->deliver_net_events(nt);
@@ -32,19 +31,14 @@ void deliver_net_events(NrnThread* nt) {
 
 // deliver events (but not binqueue)  up to nt->_t
 void nrn_deliver_events(NrnThread* nt) {
-    Instrumentor::phase p("nrn_deliver_events");
     double tsav = nt->_t;
     if (net_cvode_instance) {
-        Instrumentor::phase p_cvode_instance_deliver_events("cvode_instance_deliver_events");
         net_cvode_instance->deliver_events(tsav, nt);
     }
     nt->_t = tsav;
 
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
-    {
-        Instrumentor::phase p_update_net_receive_buffer("update_net_receive_buffer");
-        update_net_receive_buffer(nt);
-    }
+    update_net_receive_buffer(nt);
 
     for (auto& net_buf_receive: corenrn.get_net_buf_receive()) {
         (*net_buf_receive.first)(nt);
