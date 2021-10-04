@@ -25,9 +25,6 @@ struct NRNMPI_Spikebuf {
 };
 #endif
 
-#define nout_ nrnmpi_nout_
-extern int nout_;
-
 #if nrn_spikebuf_size > 0
 #define spbufout_ nrnmpi_spbufout_
 #define spbufin_  nrnmpi_spbufin_

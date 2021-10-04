@@ -115,7 +115,8 @@ int nrnmpi_spike_exchange_impl(int* nin,
                                NRNMPI_Spike* spikeout,
                                int icapacity,
                                NRNMPI_Spike* spikein,
-                               int& ovfl) {
+                               int& ovfl,
+                               int nout) {
     Instrumentor::phase_begin("spike-exchange");
 
     {
@@ -133,7 +134,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
 #endif
     }
 #if nrn_spikebuf_size == 0
-    MPI_Allgather(&nout_, 1, MPI_INT, nin, 1, MPI_INT, nrnmpi_comm);
+    MPI_Allgather(&nout, 1, MPI_INT, nin, 1, MPI_INT, nrnmpi_comm);
     int n = nin[0];
     for (int i = 1; i < np; ++i) {
         displs[i] = n;
@@ -145,7 +146,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
             free(spikein);
             spikein = (NRNMPI_Spike*) emalloc(icapacity * sizeof(NRNMPI_Spike));
         }
-        MPI_Allgatherv(spikeout, nout_, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
+        MPI_Allgatherv(spikeout, nout, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
     }
 #else
     MPI_Allgather(spbufout_, 1, spikebuf_type, spbufin_, 1, spikebuf_type, nrnmpi_comm);
@@ -175,7 +176,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
             spikein = (NRNMPI_Spike*) hoc_Emalloc(icapacity * sizeof(NRNMPI_Spike));
             hoc_malchk();
         }
-        int n1 = (nout_ > nrn_spikebuf_size) ? nout_ - nrn_spikebuf_size : 0;
+        int n1 = (nout > nrn_spikebuf_size) ? nout - nrn_spikebuf_size : 0;
         MPI_Allgatherv(spikeout, n1, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
     }
     ovfl = novfl;

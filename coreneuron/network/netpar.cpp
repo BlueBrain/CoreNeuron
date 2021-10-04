@@ -40,6 +40,7 @@ unsigned char* spikeout_fixed;
 int ag_send_size;
 unsigned char* spikein_fixed;
 int ovfl;
+int nout;
 #endif
 
 namespace coreneuron {
@@ -147,7 +148,7 @@ void nrn_outputevent(unsigned char localgid, double firetime) {
         return;
     }
     std::lock_guard<OMP_Mutex> lock(mut);
-    nout_++;
+    nout++;
     int i = idxout_;
     idxout_ += 2;
     if (idxout_ >= spfixout_capacity_) {
@@ -167,7 +168,7 @@ void nrn2ncs_outputevent(int gid, double firetime) {
     }
     std::lock_guard<OMP_Mutex> lock(mut);
     if (use_compress_) {
-        nout_++;
+        nout++;
         int i = idxout_;
         idxout_ += 1 + localgid_size_;
         if (idxout_ >= spfixout_capacity_) {
@@ -185,7 +186,7 @@ void nrn2ncs_outputevent(int gid, double firetime) {
         // printf("%d idx=%d gid=%d spupk=%d\n", nrnmpi_myid, i, gid, spupk(spikeout_fixed+i));
     } else {
 #if nrn_spikebuf_size == 0
-        int i = nout_++;
+        int i = nout++;
         if (i >= ocapacity_) {
             ocapacity_ *= 2;
             spikeout = (NRNMPI_Spike*) erealloc(spikeout, ocapacity_ * sizeof(NRNMPI_Spike));
@@ -194,7 +195,7 @@ void nrn2ncs_outputevent(int gid, double firetime) {
         spikeout[i].gid = gid;
         spikeout[i].spiketime = firetime;
 #else
-        int i = nout_++;
+        int i = nout++;
         if (i >= nrn_spikebuf_size) {
             i -= nrn_spikebuf_size;
             if (i >= ocapacity_) {
@@ -293,7 +294,7 @@ void nrn_spike_exchange_init() {
             }
 #endif
         }
-        nout_ = 0;
+        nout = 0;
     }
 #endif  // NRNMPI
         // if (nrnmpi_myid == 0){printf("usable_mindelay_ = %g\n", usable_mindelay_);}
@@ -319,24 +320,24 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
 
 #if nrn_spikebuf_size > 0
-    spbufout_->nspike = nout_;
+    spbufout_->nspike = nout;
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl, nout);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
-    tbuf_[itbuf_++] = (unsigned long) nout_;
+    tbuf_[itbuf_++] = (unsigned long) nout;
     tbuf_[itbuf_++] = (unsigned long) n;
 #endif
 
     errno = 0;
     // if (n > 0) {
-    // printf("%d nrn_spike_exchange sent %d received %d\n", nrnmpi_myid, nout_, n);
+    // printf("%d nrn_spike_exchange sent %d received %d\n", nrnmpi_myid, nout, n);
     //}
-    nout_ = 0;
+    nout = 0;
     if (n == 0) {
         return;
     }
@@ -374,9 +375,9 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     nrnmpi_barrier();
 #endif
 
-    assert(nout_ < 0x10000);
-    spikeout_fixed[1] = (unsigned char) (nout_ & 0xff);
-    spikeout_fixed[0] = (unsigned char) (nout_ >> 8);
+    assert(nout < 0x10000);
+    spikeout_fixed[1] = (unsigned char) (nout & 0xff);
+    spikeout_fixed[0] = (unsigned char) (nout >> 8);
 
     double wt = nrn_wtime();
 
@@ -392,14 +393,14 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
-    tbuf_[itbuf_++] = (unsigned long) nout_;
+    tbuf_[itbuf_++] = (unsigned long) nout;
     tbuf_[itbuf_++] = (unsigned long) n;
 #endif
     errno = 0;
     // if (n > 0) {
-    // printf("%d nrn_spike_exchange sent %d received %d\n", nrnmpi_myid, nout_, n);
+    // printf("%d nrn_spike_exchange sent %d received %d\n", nrnmpi_myid, nout, n);
     //}
-    nout_ = 0;
+    nout = 0;
     idxout_ = 2;
     if (n == 0) {
         t_exchange_ = nrn_threads->_t;
