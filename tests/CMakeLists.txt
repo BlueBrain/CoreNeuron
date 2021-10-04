@@ -29,7 +29,8 @@ if(Boost_FOUND)
     add_subdirectory(unit/interleave_info)
     add_subdirectory(unit/alignment)
     add_subdirectory(unit/queueing)
-    # lfp test directly uses MPI functions, disable it in case of dynamic MPI case
+    # lfp test uses nrnmpi_* wrappers but does not load the dynamic MPI library
+    # TODO: re-enable after NEURON and CoreNEURON dynamic MPI are merged
     if(NOT CORENRN_ENABLE_DYNAMIC_MPI)
       add_subdirectory(unit/lfp)
     endif()
