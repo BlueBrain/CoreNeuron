@@ -342,7 +342,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
     /* check thresholds and deliver all (including binqueue)
        events up to t+dt/2 */
     {
-        Instrumentor::phase p("deliver_events");
+        Instrumentor::phase p("deliver-events");
         deliver_net_events(nth);
     }
 
@@ -361,7 +361,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         fixed_play_continuous(nth);
 
         {
-            Instrumentor::phase p("setup_tree_matrix");
+            Instrumentor::phase p("setup-tree-matrix");
             setup_tree_matrix_minimal(nth);
         }
 
@@ -371,7 +371,7 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
         }
 
         {
-            Instrumentor::phase p("second_order_cur");
+            Instrumentor::phase p("second-order-cur");
             second_order_cur(nth, secondorder);
         }
 
@@ -407,7 +407,7 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
     }
 
     {
-        Instrumentor::phase p("deliver_events");
+        Instrumentor::phase p("deliver-events");
         nrn_deliver_events(nth); /* up to but not past texit */
     }
 

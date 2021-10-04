@@ -98,8 +98,6 @@ void wait_before_spike_exchange() {
 
 int nrnmpi_spike_exchange() {
     int n;
-    Instrumentor::phase_begin("spike-exchange");
-
     {
         Instrumentor::phase p("imbalance");
         wait_before_spike_exchange();
@@ -164,7 +162,6 @@ int nrnmpi_spike_exchange() {
     ovfl_ = novfl;
 #endif
     Instrumentor::phase_end("communication");
-    Instrumentor::phase_end("spike-exchange");
     return n;
 }
 
