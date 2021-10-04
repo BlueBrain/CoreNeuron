@@ -12,10 +12,6 @@ int nrnmpi_myid = 0;     /* rank */
 
 int nrnmpi_nout_;
 
-#if NRNMPI
-NRNMPI_Spike* nrnmpi_spikein_;
-#endif
-
 int nrnmpi_ag_send_size_;
 int nrnmpi_send_nspike_;
 int nrnmpi_ovfl_;

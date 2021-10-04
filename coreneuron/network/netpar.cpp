@@ -51,6 +51,7 @@ void nrn_spike_exchange_init();
 
 #if NRNMPI
 NRNMPI_Spike* spikeout;
+NRNMPI_Spike* spikein;
 
 void nrn_timeout(int);
 void nrn_spike_exchange(NrnThread*);
@@ -91,7 +92,7 @@ static void alloc_mpi_space() {
         ocapacity_ = 100;
         spikeout = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
         icapacity = 100;
-        spikein_ = (NRNMPI_Spike*) malloc(icapacity * sizeof(NRNMPI_Spike));
+        spikein = (NRNMPI_Spike*) malloc(icapacity * sizeof(NRNMPI_Spike));
         nrnmpi_nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
 #if nrn_spikebuf_size > 0
         spbufout_ = (NRNMPI_Spikebuf*) emalloc(sizeof(NRNMPI_Spikebuf));
@@ -318,7 +319,7 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
@@ -352,10 +353,10 @@ void nrn_spike_exchange(NrnThread* nt) {
     n = ovfl_;
 #endif  // nrn_spikebuf_size > 0
     for (int i = 0; i < n; ++i) {
-        auto gid2in_it = gid2in.find(spikein_[i].gid);
+        auto gid2in_it = gid2in.find(spikein[i].gid);
         if (gid2in_it != gid2in.end()) {
             InputPreSyn* ps = gid2in_it->second;
-            ps->send(spikein_[i].spiketime, net_cvode_instance, nt);
+            ps->send(spikein[i].spiketime, net_cvode_instance, nt);
         }
     }
     wt1_ = nrn_wtime() - wt;
@@ -375,7 +376,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
 
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange_compressed(localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_, ovfl_capacity);
+    int n = nrnmpi_spike_exchange_compressed(
+        localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_, ovfl_capacity);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
