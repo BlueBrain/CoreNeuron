@@ -64,7 +64,7 @@ std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
 #endif
     }
 
-    return std::make_tuple(nrnmpi_numprocs_, nrnmpi_myid_);
+    return {nrnmpi_numprocs_, nrnmpi_myid_};
 }
 
 void nrnmpi_finalize_impl(void) {
