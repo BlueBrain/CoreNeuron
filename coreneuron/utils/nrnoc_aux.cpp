@@ -16,7 +16,6 @@
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
 bool stoprun;
 int v_structure_change;
 int diam_changed;

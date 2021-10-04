@@ -18,7 +18,6 @@
 // The setup code is in partrans_setup.cpp
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
 bool nrn_have_gaps;
 
 using namespace nrn_partrans;

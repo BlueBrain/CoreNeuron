@@ -41,8 +41,6 @@ static bool all_spikes_return(std::vector<double>& spiketvec, std::vector<int>& 
 }
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 /// --> Coreneuron as SpikeBuffer class
 std::vector<double> spikevec_time;
 std::vector<int> spikevec_gid;

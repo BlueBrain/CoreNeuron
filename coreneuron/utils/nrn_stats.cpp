@@ -24,8 +24,6 @@
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/io/output_spikes.hpp"
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 const int NUM_STATS = 13;
 enum event_type { enq = 0, spike, ite };
 

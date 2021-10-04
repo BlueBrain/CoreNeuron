@@ -26,8 +26,6 @@
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 // Those functions comes from mod file directly
 extern int checkpoint_save_patternstim(_threadargsproto_);
 extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);

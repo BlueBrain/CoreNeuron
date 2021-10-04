@@ -148,8 +148,6 @@ void (*nrn2core_all_weights_return_)(std::vector<double*>& weights);
 // files with the first containing output_gids and netcon_srcgid which are
 // stored in the nt.presyns array and nt.netcons array respectively
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 static OMP_Mutex mut;
 
 /// Vector of maps for negative presyns

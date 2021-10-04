@@ -14,8 +14,6 @@
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 /** display global mechanism count */
 void write_mech_report() {
     /// mechanim count across all gids, local to rank

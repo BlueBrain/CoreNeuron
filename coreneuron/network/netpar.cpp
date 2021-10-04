@@ -44,8 +44,6 @@ int nout;
 #endif
 
 namespace coreneuron {
-
-extern corenrn_parameters corenrn_param;
 class PreSyn;
 class InputPreSyn;
 

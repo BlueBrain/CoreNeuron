@@ -5,7 +5,6 @@
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
 void nrn_abort(int errcode) {
 #if NRNMPI
     if (corenrn_param.mpi_enable && nrnmpi_initialized()) {

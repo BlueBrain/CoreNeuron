@@ -36,8 +36,6 @@
 #endif
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 double nrn_mallinfo(void) {
     // -ve mem usage for non-supported platforms
     double mbs = -1.0;

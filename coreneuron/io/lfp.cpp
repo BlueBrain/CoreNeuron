@@ -7,8 +7,6 @@
 
 
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 // extern variables require acc declare
 #pragma acc declare create(pi)
 
