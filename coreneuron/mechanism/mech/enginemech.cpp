@@ -15,12 +15,8 @@
  * models via in-memory transfer.
  */
 
-#include <dlfcn.h>
-#include <stdexcept>
-#include <string>
 #include <cstdlib>
 #include <coreneuron/engine.h>
-#include "coreneuron/mpi/nrnmpi.h"
 
 namespace coreneuron {
 
