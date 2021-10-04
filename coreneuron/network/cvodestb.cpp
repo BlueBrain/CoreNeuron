@@ -12,7 +12,6 @@
 // solver CVode stub to allow cvode as dll for mswindows version.
 
 #include "coreneuron/network/netcvode.hpp"
-#include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/utils/vrecitem.h"
 
 #include "coreneuron/gpu/nrn_acc_manager.hpp"

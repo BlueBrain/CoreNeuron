@@ -764,7 +764,6 @@ tryagain:
     /*before executing on gpu, we have to update the NetReceiveBuffer_t on GPU */
     update_net_receive_buffer(nt);
 
-
     for (auto& net_buf_receive: corenrn.get_net_buf_receive()) {
         std::string ss("net-buf-receive-");
         ss += nrn_get_mechname(net_buf_receive.second);
