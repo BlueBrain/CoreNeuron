@@ -10,7 +10,6 @@
 #define nrnmpi_h
 
 #include <cassert>
-#include <iostream>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -71,11 +70,9 @@ struct mpi_function<std::integral_constant<function_ptr, fptr>> : mpi_function_b
 #ifdef CORENRN_ENABLE_DYNAMIC_MPI
         // Dynamic MPI, m_fptr should have been initialised via dlsym.
         assert(m_fptr);
-        std::cout << "Calling dynamically loaded " << m_name << std::endl;
         return (*reinterpret_cast<decltype(fptr)>(m_fptr))(std::forward<Args>( args )...);
 #else
         // No dynamic MPI, use `fptr` directly. Will produce link errors if libmpi.so is not linked.
-        std::cout << "Calling directly linked " << m_name << std::endl;
         return (*fptr)(std::forward<Args>(args)...);
 #endif
     }
