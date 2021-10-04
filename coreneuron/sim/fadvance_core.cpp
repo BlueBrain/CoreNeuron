@@ -85,6 +85,7 @@ void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
 }
 
 void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
+    Instrumentor::phase p_timestep("timestep");
     if (t != nrn_threads->_t) {
         dt2thread(-1.);
     } else {
@@ -94,7 +95,7 @@ void nrn_fixed_step_minimal() { /* not so minimal anymore with gap junctions */
     nrn_multithread_job(nrn_fixed_step_thread);
     if (nrn_have_gaps) {
         {
-            Instrumentor::phase p("gap-v-transfer");
+            Instrumentor::phase p_gap("gap-v-transfer");
             nrnmpi_v_transfer();
         }
         nrn_multithread_job(nrn_fixed_step_lastpart);
@@ -122,7 +123,6 @@ integration interval before joining
 
 void nrn_fixed_single_steps_minimal(int total_sim_steps, double tstop) {
     ProgressBar progress_bar(total_sim_steps);
-    Instrumentor::phase_begin("timestep");
 #if NRNMPI
     double updated_tstop = tstop - dt;
     nrn_assert(nrn_threads->_t <= tstop);
@@ -138,7 +138,6 @@ void nrn_fixed_single_steps_minimal(int total_sim_steps, double tstop) {
         }
         progress_bar.step(nrn_threads[0]._t);
     }
-    Instrumentor::phase_end("timestep");
 }
 
 
@@ -150,7 +149,6 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
     int step_group_end = 0;
 
     ProgressBar progress_bar(step_group_n);
-    Instrumentor::phase_begin("timestep");
     while (step_group_end < step_group_n) {
         nrn_multithread_job(nrn_fixed_step_group_thread,
                             step_group_n,
@@ -173,7 +171,6 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
         progress_bar.update(step_group_end, nrn_threads[0]._t);
     }
     t = nrn_threads[0]._t;
-    Instrumentor::phase_end("timestep");
 }
 
 static void* nrn_fixed_step_group_thread(NrnThread* nth,
@@ -182,6 +179,7 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth,
                                          int& step_group_end) {
     nth->_stop_stepping = 0;
     for (int i = step_group_begin; i < step_group_max; ++i) {
+        Instrumentor::phase p_timestep("timestep");
         nrn_fixed_step_thread(nth);
         if (nth->_stop_stepping) {
             if (nth->id == 0) {
