@@ -333,7 +333,9 @@ set(NMODL_ENABLE_LEGACY_UNITS
     CACHE BOOL "" FORCE)
 
 if(CORENRN_ENABLE_DYNAMIC_MPI)
-  option(CORENRN_ENABLE_MPI "Enable MPI is dynamic loading is asked" ON)
+  if(NOT CORENRN_ENABLE_MPI)
+    message(FATAL_ERROR "Cannot enable dynamic mpi without mpi")
+  endif()
   add_compile_definitions(CORENRN_ENABLE_DYNAMIC_MPI)
 endif()
 
