@@ -35,6 +35,7 @@ unsigned char* spfixin_ovfl_;
 int send_nspike;
 int* nrnmpi_nin_;
 int ovfl_capacity;
+int icapacity;
 #endif
 
 namespace coreneuron {
@@ -89,8 +90,8 @@ static void alloc_mpi_space() {
     if (corenrn_param.mpi_enable && !spikeout) {
         ocapacity_ = 100;
         spikeout = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
-        icapacity_ = 100;
-        spikein_ = (NRNMPI_Spike*) malloc(icapacity_ * sizeof(NRNMPI_Spike));
+        icapacity = 100;
+        spikein_ = (NRNMPI_Spike*) malloc(icapacity * sizeof(NRNMPI_Spike));
         nrnmpi_nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
 #if nrn_spikebuf_size > 0
         spbufout_ = (NRNMPI_Spikebuf*) emalloc(sizeof(NRNMPI_Spikebuf));
@@ -317,7 +318,7 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();

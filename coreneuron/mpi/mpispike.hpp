@@ -25,11 +25,9 @@ struct NRNMPI_Spikebuf {
 };
 #endif
 
-#define icapacity_ nrnmpi_i_capacity_
 #define spikein_   nrnmpi_spikein_
 #define nout_      nrnmpi_nout_
 extern int nout_;
-extern int icapacity_;
 extern NRNMPI_Spike* spikein_;
 
 #define spfixout_      nrnmpi_spikeout_fixed_
