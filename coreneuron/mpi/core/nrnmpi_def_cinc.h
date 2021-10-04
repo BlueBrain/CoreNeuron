@@ -14,6 +14,5 @@ int nrnmpi_nout_;
 
 int nrnmpi_send_nspike_;
 int nrnmpi_ovfl_;
-unsigned char* nrnmpi_spikein_fixed_;
 unsigned char* nrnmpi_spikein_fixed_ovfl_;
 }  // namespace coreneuron

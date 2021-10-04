@@ -208,7 +208,8 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           int* nin,
                                           int ovfl_capacity,
                                           unsigned char* spikeout_fixed,
-                                          int ag_send_size) {
+                                          int ag_send_size,
+                                          unsigned char* spikein_fixed) {
     if (!displs) {
         np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
@@ -217,15 +218,15 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
     }
 
     MPI_Allgather(
-        spikeout_fixed, ag_send_size, MPI_BYTE, spfixin_, ag_send_size, MPI_BYTE, nrnmpi_comm);
+        spikeout_fixed, ag_send_size, MPI_BYTE, spikein_fixed, ag_send_size, MPI_BYTE, nrnmpi_comm);
     int novfl = 0;
     int ntot = 0;
     int bstot = 0;
     for (int i = 0; i < np; ++i) {
         displs[i] = bstot;
         int idx = i * ag_send_size;
-        int n = spfixin_[idx++] * 256;
-        n += spfixin_[idx++];
+        int n = spikein_fixed[idx++] * 256;
+        n += spikein_fixed[idx++];
         ntot += n;
         nin[i] = n;
         if (n > send_nspike) {
@@ -248,7 +249,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
         /*
         note that the spikeout_fixed buffer is one since the overflow
         is contiguous to the first part. But the spfixin_ovfl is
-        completely separate from the spfixin_ since the latter
+        completely separate from the spikein_fixed since the latter
         dynamically changes its size during a run.
         */
         MPI_Allgatherv(spikeout_fixed + ag_send_size,

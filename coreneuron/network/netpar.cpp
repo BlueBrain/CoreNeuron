@@ -38,6 +38,7 @@ int ovfl_capacity;
 int icapacity;
 unsigned char* spikeout_fixed;
 int ag_send_size;
+unsigned char* spikein_fixed;
 #endif
 
 namespace coreneuron {
@@ -384,7 +385,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                                              nrnmpi_nin_,
                                              ovfl_capacity,
                                              spikeout_fixed,
-                                             ag_send_size);
+                                             ag_send_size,
+                                             spikein_fixed);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
@@ -422,8 +424,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
                 int idx = 2 + i * ag_send_size;
                 for (j = 0; j < nnn; ++j) {
                     // order is (firetime,gid) pairs.
-                    double firetime = spfixin_[idx++] * dt + t_exchange_;
-                    int lgid = (int) spfixin_[idx];
+                    double firetime = spikein_fixed[idx++] * dt + t_exchange_;
+                    int lgid = (int) spikein_fixed[idx];
                     idx += localgid_size_;
                     auto gid2in_it = gps.find(lgid);
                     if (gid2in_it != gps.end()) {
@@ -452,8 +454,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
             int idx = 2 + i * ag_send_size;
             for (int j = 0; j < nn; ++j) {
                 // order is (firetime,gid) pairs.
-                double firetime = spfixin_[idx++] * dt + t_exchange_;
-                int gid = spupk(spfixin_ + idx);
+                double firetime = spikein_fixed[idx++] * dt + t_exchange_;
+                int gid = spupk(spikein_fixed + idx);
                 idx += localgid_size_;
                 auto gid2in_it = gid2in.find(gid);
                 if (gid2in_it != gid2in.end()) {
@@ -749,9 +751,9 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
                 free(spikeout_fixed);
                 spikeout_fixed = 0;
             }
-            if (spfixin_) {
-                free(spfixin_);
-                spfixin_ = 0;
+            if (spikein_fixed) {
+                free(spikein_fixed);
+                spikein_fixed = 0;
             }
             if (spfixin_ovfl_) {
                 free(spfixin_ovfl_);
@@ -782,7 +784,7 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
             ag_send_size = 2 + send_nspike * (1 + localgid_size_);
             spfixout_capacity_ = ag_send_size + 50 * (1 + localgid_size_);
             spikeout_fixed = (unsigned char*) emalloc(spfixout_capacity_);
-            spfixin_ = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size);
+            spikein_fixed = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size);
             ovfl_capacity = 100;
             spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity * (1 + localgid_size_));
         }
