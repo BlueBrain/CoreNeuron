@@ -3,7 +3,7 @@ BEGIN_INCLUDE_LIST
  int coreneuron::main(int, char **, char **)
  int coreneuron::nrnmpi_bgp_conserve(int, int)
  int coreneuron::nrnmpi_bgp_single_advance(NRNMPI_Spike *)
- int coreneuron::nrnmpi_spike_exchange()
+ int coreneuron::nrnmpi_spike_exchange(int*)
  int main(int, char **, char **)
  size_t nrnbbcore_write()
  void coreneuron::*nrn_fixed_step_group_thread(coreneuron::NrnThread *)

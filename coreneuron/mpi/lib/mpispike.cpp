@@ -111,7 +111,7 @@ void wait_before_spike_exchange() {
     MPI_Barrier(nrnmpi_comm);
 }
 
-int nrnmpi_spike_exchange_impl() {
+int nrnmpi_spike_exchange_impl(int* nin) {
     Instrumentor::phase_begin("spike-exchange");
 
     {
@@ -129,11 +129,11 @@ int nrnmpi_spike_exchange_impl() {
 #endif
     }
 #if nrn_spikebuf_size == 0
-    MPI_Allgather(&nout_, 1, MPI_INT, nin_, 1, MPI_INT, nrnmpi_comm);
-    int n = nin_[0];
+    MPI_Allgather(&nout_, 1, MPI_INT, nin, 1, MPI_INT, nrnmpi_comm);
+    int n = nin[0];
     for (int i = 1; i < np; ++i) {
         displs[i] = n;
-        n += nin_[i];
+        n += nin[i];
     }
     if (n) {
         if (icapacity_ < n) {
@@ -142,27 +142,27 @@ int nrnmpi_spike_exchange_impl() {
             spikein_ = (NRNMPI_Spike*) emalloc(icapacity_ * sizeof(NRNMPI_Spike));
         }
         MPI_Allgatherv(
-            spikeout_, nout_, spike_type, spikein_, nin_, displs, spike_type, nrnmpi_comm);
+            spikeout_, nout_, spike_type, spikein_, nin, displs, spike_type, nrnmpi_comm);
     }
 #else
     MPI_Allgather(spbufout_, 1, spikebuf_type, spbufin_, 1, spikebuf_type, nrnmpi_comm);
     int novfl = 0;
     int n = spbufin_[0].nspike;
     if (n > nrn_spikebuf_size) {
-        nin_[0] = n - nrn_spikebuf_size;
-        novfl += nin_[0];
+        nin[0] = n - nrn_spikebuf_size;
+        novfl += nin[0];
     } else {
-        nin_[0] = 0;
+        nin[0] = 0;
     }
     for (int i = 1; i < np; ++i) {
         displs[i] = novfl;
         int n1 = spbufin_[i].nspike;
         n += n1;
         if (n1 > nrn_spikebuf_size) {
-            nin_[i] = n1 - nrn_spikebuf_size;
-            novfl += nin_[i];
+            nin[i] = n1 - nrn_spikebuf_size;
+            novfl += nin[i];
         } else {
-            nin_[i] = 0;
+            nin[i] = 0;
         }
     }
     if (novfl) {
@@ -173,7 +173,7 @@ int nrnmpi_spike_exchange_impl() {
             hoc_malchk();
         }
         int n1 = (nout_ > nrn_spikebuf_size) ? nout_ - nrn_spikebuf_size : 0;
-        MPI_Allgatherv(spikeout_, n1, spike_type, spikein_, nin_, displs, spike_type, nrnmpi_comm);
+        MPI_Allgatherv(spikeout_, n1, spike_type, spikein_, nin, displs, spike_type, nrnmpi_comm);
     }
     ovfl_ = novfl;
 #endif
@@ -202,7 +202,8 @@ sends any overflow.
 */
 int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
                                           unsigned char* spfixin_ovfl,
-                                          int send_nspike) {
+                                          int send_nspike,
+                                          int* nin) {
     if (!displs) {
         np = nrnmpi_numprocs_;
         displs = (int*) emalloc(np * sizeof(int));
@@ -221,7 +222,7 @@ int nrnmpi_spike_exchange_compressed_impl(int localgid_size,
         int n = spfixin_[idx++] * 256;
         n += spfixin_[idx++];
         ntot += n;
-        nin_[i] = n;
+        nin[i] = n;
         if (n > send_nspike) {
             int bs = 2 + n * (1 + localgid_size) - ag_send_size_;
             byteovfl[i] = bs;

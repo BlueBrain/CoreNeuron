@@ -33,6 +33,7 @@
 int localgid_size_;
 unsigned char* spfixin_ovfl_;
 int send_nspike;
+int* nrnmpi_nin_;
 #endif
 
 namespace coreneuron {
@@ -88,7 +89,7 @@ static void alloc_mpi_space() {
         spikeout_ = (NRNMPI_Spike*) emalloc(ocapacity_ * sizeof(NRNMPI_Spike));
         icapacity_ = 100;
         spikein_ = (NRNMPI_Spike*) malloc(icapacity_ * sizeof(NRNMPI_Spike));
-        nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
+        nrnmpi_nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
 #if nrn_spikebuf_size > 0
         spbufout_ = (NRNMPI_Spikebuf*) emalloc(sizeof(NRNMPI_Spikebuf));
         spbufin_ = (NRNMPI_Spikebuf*) emalloc(nrnmpi_numprocs * sizeof(NRNMPI_Spikebuf));
@@ -314,7 +315,7 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange();
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
@@ -371,7 +372,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
 
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange_compressed(localgid_size_, spfixin_ovfl_, send_nspike);
+    int n = nrnmpi_spike_exchange_compressed(localgid_size_, spfixin_ovfl_, send_nspike, nrnmpi_nin_);
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
 #if TBUFSIZE
@@ -392,7 +393,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
         int idxov = 0;
         for (int i = 0; i < nrnmpi_numprocs; ++i) {
             int j, nnn;
-            int nn = nin_[i];
+            int nn = nrnmpi_nin_[i];
             if (nn) {
                 if (i == nrnmpi_myid) {  // skip but may need to increment idxov.
                     if (nn > send_nspike) {
@@ -432,7 +433,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
         }
     } else {
         for (int i = 0; i < nrnmpi_numprocs; ++i) {
-            int nn = nin_[i];
+            int nn = nrnmpi_nin_[i];
             if (nn > send_nspike) {
                 nn = send_nspike;
             }

@@ -29,9 +29,7 @@ struct NRNMPI_Spikebuf {
 #define spikeout_  nrnmpi_spikeout_
 #define spikein_   nrnmpi_spikein_
 #define nout_      nrnmpi_nout_
-#define nin_       nrnmpi_nin_
 extern int nout_;
-extern int* nin_;
 extern int icapacity_;
 extern NRNMPI_Spike* spikeout_;
 extern NRNMPI_Spike* spikein_;

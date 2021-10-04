@@ -11,7 +11,6 @@ int nrnmpi_numprocs = 1; /* size */
 int nrnmpi_myid = 0;     /* rank */
 
 int nrnmpi_nout_;
-int* nrnmpi_nin_;
 int nrnmpi_i_capacity_;
 
 #if NRNMPI
