@@ -40,7 +40,7 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_write_file_impl)> nrnmp
 extern "C" int nrnmpi_spike_exchange_impl(int* nin, NRNMPI_Spike* spikeout, int icapacity, NRNMPI_Spike* spikein);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_impl)>
     nrnmpi_spike_exchange;
-extern "C" int nrnmpi_spike_exchange_compressed_impl(int, unsigned char*, int, int*, int);
+extern "C" int nrnmpi_spike_exchange_compressed_impl(int, unsigned char*, int, int*, int, unsigned char*);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_compressed_impl)>
     nrnmpi_spike_exchange_compressed;
 extern "C" int nrnmpi_int_allmax_impl(int i);
