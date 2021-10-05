@@ -24,7 +24,7 @@ namespace coreneuron {
 extern MPI_Comm nrnmpi_comm;
 
 static int np;
-static int* displs;
+static int* displs{nullptr};
 static int* byteovfl; /* for the compressed transfer method */
 static MPI_Datatype spike_type;
 

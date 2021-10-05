@@ -11,9 +11,7 @@ This file is processed by mkdynam.sh and so it is important that
 the prototypes be of the form "type foo(type arg, ...)"
 */
 
-#ifndef nrnmpidec_h
-#define nrnmpidec_h
-
+#pragma once
 
 #if NRNMPI
 #include <stdlib.h>
@@ -71,7 +69,7 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_vec_impl)
 extern "C" void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_allreduce_vec_impl)>
     nrnmpi_long_allreduce_vec;
-extern "C" int nrnmpi_initialized_impl();
+extern "C" bool nrnmpi_initialized_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_initialized_impl)> nrnmpi_initialized;
 extern "C" void nrnmpi_abort_impl(int);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_abort_impl)> nrnmpi_abort;
@@ -96,5 +94,4 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_multisend_conserve_impl
 #endif
 
 }  // namespace coreneuron
-#endif
 #endif

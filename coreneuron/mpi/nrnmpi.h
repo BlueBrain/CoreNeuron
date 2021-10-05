@@ -6,8 +6,7 @@
 # =============================================================================.
 */
 
-#ifndef nrnmpi_h
-#define nrnmpi_h
+#pragma once
 
 #include <cassert>
 #include <string>
@@ -81,4 +80,3 @@ struct mpi_function<std::integral_constant<function_ptr, fptr>> : mpi_function_b
 #include "coreneuron/mpi/nrnmpidec.h"
 
 #endif /*NRNMPI*/
-#endif /*nrnmpi_h*/
