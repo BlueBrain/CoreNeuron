@@ -11,7 +11,6 @@
 #include "coreneuron/mpi/nrnmpiuse.h"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
-#include "nrnmpi_impl.h"
 #include "nrnmpi.hpp"
 #include "mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
@@ -22,6 +21,8 @@
 #include <cstring>
 
 namespace coreneuron {
+extern MPI_Comm nrnmpi_comm;
+
 static int np;
 static int* displs;
 static int* byteovfl; /* for the compressed transfer method */

@@ -6,8 +6,7 @@
 # =============================================================================.
 */
 
-#ifndef nrnmpispike_h
-#define nrnmpispike_h
+#pragma once
 
 #if NRNMPI
 
@@ -16,7 +15,6 @@
 #endif
 
 namespace coreneuron {
-
 #if nrn_spikebuf_size > 0
 struct NRNMPI_Spikebuf {
     int nspike;
@@ -35,4 +33,3 @@ extern NRNMPI_Spikebuf* spbufin_;
 }  // namespace coreneuron
 
 #endif  // NRNMPI
-#endif
