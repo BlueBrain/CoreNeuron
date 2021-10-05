@@ -28,13 +28,13 @@ static int* byteovfl; /* for the compressed transfer method */
 static MPI_Datatype spike_type;
 
 static void* emalloc(size_t size) {
-   void* memptr = malloc(size);
-   assert(memptr);
-   return memptr;
+    void* memptr = malloc(size);
+    assert(memptr);
+    return memptr;
 }
 
 static void hoc_execerror(const char* s1, const char* s2) {
-    printf("error: %s %s\n", s1, s2 ? s2: "");
+    printf("error: %s %s\n", s1, s2 ? s2 : "");
     abort();
 }
 
