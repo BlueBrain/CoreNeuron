@@ -32,7 +32,9 @@ file(
   "utils/*/*.c"
   "utils/*/*.cpp")
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
-set(SCOPMATH_CODE_FILES "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp" "sim/scopmath/sparse_thread.cpp" "sim/scopmath/ssimplic_thread.cpp")
+set(SCOPMATH_CODE_FILES
+    "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp"
+    "sim/scopmath/sparse_thread.cpp" "sim/scopmath/ssimplic_thread.cpp")
 set(MPI_LIB_FILES "mpi/lib/mpispike.cpp" "mpi/lib/nrnmpi.cpp")
 set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp" "mpi/core/nrnmpi.cpp" "mpi/core/nrnmpidec.cpp")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
