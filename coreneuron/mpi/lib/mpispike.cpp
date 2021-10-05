@@ -13,9 +13,8 @@
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "nrnmpi_impl.h"
 #include "nrnmpi.hpp"
-#include "../mpispike.hpp"
+#include "mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
-#include "coreneuron/utils/nrnoc_aux.hpp"
 
 #if NRNMPI
 #include <mpi.h>
@@ -27,6 +26,17 @@ static int np;
 static int* displs;
 static int* byteovfl; /* for the compressed transfer method */
 static MPI_Datatype spike_type;
+
+static void* emalloc(size_t size) {
+   void* memptr = malloc(size);
+   assert(memptr);
+   return memptr;
+}
+
+static void hoc_execerror(const char* s1, const char* s2) {
+    printf("error: %s %s\n", s1, s2 ? s2: "");
+    abort();
+}
 
 static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr) {
     bool copy = false;
@@ -356,7 +366,7 @@ void nrnmpi_assert_opstep_impl(int opstep, double tt) {
                (int) buf[0],
                tt,
                tt - buf[1]);
-        hoc_execerror("nrnmpi_assert_opstep failed", (char*) 0);
+        hoc_execerror("nrnmpi_assert_opstep failed", nullptr);
     }
 }
 

@@ -27,18 +27,17 @@
 #include "coreneuron/utils/utils.hpp"
 
 #if NRNMPI
-#include "coreneuron/mpi/mpispike.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/core/nrnmpi.hpp"
 int localgid_size_;
-unsigned char* spfixin_ovfl_;
 int send_nspike;
 int* nrnmpi_nin_;
 int ovfl_capacity;
 int icapacity;
 unsigned char* spikeout_fixed;
-int ag_send_size;
+unsigned char* spfixin_ovfl_;
 unsigned char* spikein_fixed;
+int ag_send_size;
 int ovfl;
 int nout;
 #endif

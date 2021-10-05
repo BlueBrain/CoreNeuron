@@ -13,9 +13,8 @@
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "coreneuron/mpi/mpispike.hpp"
+#include "mpispike.hpp"
 #include "coreneuron/utils/nrn_assert.h"
-#include "coreneuron/utils/utils.hpp"
 #include "nrnmpi.hpp"
 #if _OPENMP
 #include <omp.h>
@@ -32,6 +31,13 @@ int nrnmpi_numprocs_;
 int nrnmpi_myid_;
 
 static int nrnmpi_under_nrncontrol_;
+
+static void nrn_fatal_error(const char* msg) {
+    if (nrnmpi_myid_ == 0) {
+        printf("%s\n", msg);
+    }
+    nrnmpi_abort(-1);
+}
 
 std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
     nrnmpi_under_nrncontrol_ = 1;
