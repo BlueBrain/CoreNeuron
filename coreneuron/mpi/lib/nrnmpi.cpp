@@ -36,7 +36,7 @@ static void nrn_fatal_error(const char* msg) {
     if (nrnmpi_myid_ == 0) {
         printf("%s\n", msg);
     }
-    nrnmpi_abort(-1);
+    nrnmpi_abort_impl(-1);
 }
 
 std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
