@@ -85,12 +85,6 @@ void nrnmpi_finalize_impl(void) {
     }
 }
 
-void nrnmpi_terminate_impl() {
-    if (nrnmpi_under_nrncontrol_) {
-        MPI_Finalize();
-    }
-}
-
 // check if appropriate threading level supported (i.e. MPI_THREAD_FUNNELED)
 void nrnmpi_check_threading_support_impl() {
     int th = 0;
@@ -100,11 +94,6 @@ void nrnmpi_check_threading_support_impl() {
             "\n Current MPI library doesn't support MPI_THREAD_FUNNELED,\
                     \n Run without enabling multi-threading!");
     }
-}
-
-/* so src/nrnpython/inithoc.cpp does not have to include a c++ mpi.h */
-int nrnmpi_wrap_mpi_init_impl(int* flag) {
-    return MPI_Initialized(flag);
 }
 
 int nrnmpi_initialized_impl() {

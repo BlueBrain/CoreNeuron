@@ -22,12 +22,8 @@ namespace coreneuron {
 /* from nrnmpi.cpp */
 extern "C" std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_init_impl)> nrnmpi_init;
-extern "C" int nrnmpi_wrap_mpi_init_impl(int* flag);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_wrap_mpi_init_impl)> nrnmpi_wrap_mpi_init;
 extern "C" void nrnmpi_finalize_impl(void);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_finalize_impl)> nrnmpi_finalize;
-extern "C" void nrnmpi_terminate_impl();
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_terminate_impl)> nrnmpi_terminate;
 extern "C" void nrnmpi_check_threading_support_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_check_threading_support_impl)>
     nrnmpi_check_threading_support;
@@ -36,7 +32,7 @@ extern "C" void nrnmpi_write_file_impl(const std::string& filename, const char* 
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_write_file_impl)> nrnmpi_write_file;
 
 
-/* from mpispike.c */
+/* from mpispike.cpp */
 extern "C" int nrnmpi_spike_exchange_impl(int* nin, NRNMPI_Spike* spikeout, int icapacity, NRNMPI_Spike* spikein, int& ovfl, int nout);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_impl)>
     nrnmpi_spike_exchange;
@@ -45,15 +41,8 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_spike_exchange_compress
     nrnmpi_spike_exchange_compressed;
 extern "C" int nrnmpi_int_allmax_impl(int i);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_allmax_impl)> nrnmpi_int_allmax;
-extern "C" void nrnmpi_int_gather_impl(int* s, int* r, int cnt, int root);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_gather_impl)> nrnmpi_int_gather;
-extern "C" void nrnmpi_int_gatherv_impl(int* s, int scnt, int* r, int* rcnt, int* rdispl, int root);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_gatherv_impl)> nrnmpi_int_gatherv;
 extern "C" void nrnmpi_int_allgather_impl(int* s, int* r, int n);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_allgather_impl)> nrnmpi_int_allgather;
-extern "C" void nrnmpi_int_allgatherv_impl(int* s, int* r, int* n, int* dspl);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_allgatherv_impl)>
-    nrnmpi_int_allgatherv;
 extern "C" void nrnmpi_int_alltoall_impl(int* s, int* r, int n);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_alltoall_impl)> nrnmpi_int_alltoall;
 extern "C" void nrnmpi_int_alltoallv_impl(const int* s,
@@ -63,9 +52,6 @@ extern "C" void nrnmpi_int_alltoallv_impl(const int* s,
                                       int* rcnt,
                                       int* rdispl);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_alltoallv_impl)> nrnmpi_int_alltoallv;
-extern "C" void nrnmpi_dbl_allgatherv_impl(double* s, double* r, int* n, int* dspl);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allgatherv_impl)>
-    nrnmpi_dbl_allgatherv;
 extern "C" void nrnmpi_dbl_alltoallv_impl(double* s,
                                       int* scnt,
                                       int* sdispl,
@@ -73,56 +59,18 @@ extern "C" void nrnmpi_dbl_alltoallv_impl(double* s,
                                       int* rcnt,
                                       int* rdispl);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_alltoallv_impl)> nrnmpi_dbl_alltoallv;
-extern "C" void nrnmpi_char_alltoallv_impl(char* s,
-                                       int* scnt,
-                                       int* sdispl,
-                                       char* r,
-                                       int* rcnt,
-                                       int* rdispl);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_char_alltoallv_impl)>
-    nrnmpi_char_alltoallv;
-extern "C" void nrnmpi_dbl_broadcast_impl(double* buf, int cnt, int root);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_broadcast_impl)> nrnmpi_dbl_broadcast;
-extern "C" void nrnmpi_int_broadcast_impl(int* buf, int cnt, int root);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_broadcast_impl)> nrnmpi_int_broadcast;
-extern "C" void nrnmpi_char_broadcast_impl(char* buf, int cnt, int root);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_char_broadcast_impl)>
-    nrnmpi_char_broadcast;
-extern "C" int nrnmpi_int_sum_reduce_impl(int in);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_int_sum_reduce_impl)>
-    nrnmpi_int_sum_reduce;
-extern "C" void nrnmpi_assert_opstep_impl(int opstep, double t);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_assert_opstep_impl)> nrnmpi_assert_opstep;
 extern "C" double nrnmpi_dbl_allmin_impl(double x);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmin_impl)> nrnmpi_dbl_allmin;
-extern "C" double nrnmpi_dbl_allmax_impl(double x);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmax_impl)> nrnmpi_dbl_allmax;
-extern "C" int nrnmpi_pgvts_least_impl(double* t, int* op, int* init);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_pgvts_least_impl)> nrnmpi_pgvts_least;
-extern "C" void nrnmpi_send_doubles_impl(double* pd, int cnt, int dest, int tag);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_send_doubles_impl)> nrnmpi_send_doubles;
-extern "C" void nrnmpi_recv_doubles_impl(double* pd, int cnt, int src, int tag);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_recv_doubles_impl)> nrnmpi_recv_doubles;
-extern "C" void nrnmpi_postrecv_doubles_impl(double* pd, int cnt, int src, int tag, void** request);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_postrecv_doubles_impl)>
-    nrnmpi_postrecv_doubles;
-extern "C" void nrnmpi_wait_impl(void** request);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_wait_impl)> nrnmpi_wait;
 extern "C" void nrnmpi_barrier_impl(void);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_barrier_impl)> nrnmpi_barrier;
 extern "C" double nrnmpi_dbl_allreduce_impl(double x, int type);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_impl)> nrnmpi_dbl_allreduce;
-extern "C" long nrnmpi_long_allreduce_impl(long x, int type);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_allreduce_impl)>
-    nrnmpi_long_allreduce;
 extern "C" void nrnmpi_dbl_allreduce_vec_impl(double* src, double* dest, int cnt, int type);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_vec_impl)>
     nrnmpi_dbl_allreduce_vec;
 extern "C" void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_allreduce_vec_impl)>
     nrnmpi_long_allreduce_vec;
-extern "C" void nrnmpi_dbl_allgather_impl(double* s, double* r, int n);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allgather_impl)> nrnmpi_dbl_allgather;
 extern "C" int nrnmpi_initialized_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_initialized_impl)> nrnmpi_initialized;
 extern "C" void nrnmpi_abort_impl(int);
