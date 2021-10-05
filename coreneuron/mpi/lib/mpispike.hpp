@@ -22,14 +22,6 @@ struct NRNMPI_Spikebuf {
     double spiketime[nrn_spikebuf_size];
 };
 #endif
-
-#if nrn_spikebuf_size > 0
-#define spbufout_ nrnmpi_spbufout_
-#define spbufin_  nrnmpi_spbufin_
-extern NRNMPI_Spikebuf* spbufout_;
-extern NRNMPI_Spikebuf* spbufin_;
-#endif
-
 }  // namespace coreneuron
 
 #endif  // NRNMPI

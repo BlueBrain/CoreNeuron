@@ -40,6 +40,8 @@ unsigned char* spikein_fixed;
 int ag_send_size;
 int ovfl;
 int nout;
+NRNMPI_Spikebuf* spbufout;
+NRNMPI_Spikebuf* spbufin;
 #endif
 
 namespace coreneuron {
@@ -97,8 +99,8 @@ static void alloc_mpi_space() {
         spikein = (NRNMPI_Spike*) malloc(icapacity * sizeof(NRNMPI_Spike));
         nrnmpi_nin_ = (int*) emalloc(nrnmpi_numprocs * sizeof(int));
 #if nrn_spikebuf_size > 0
-        spbufout_ = (NRNMPI_Spikebuf*) emalloc(sizeof(NRNMPI_Spikebuf));
-        spbufin_ = (NRNMPI_Spikebuf*) emalloc(nrnmpi_numprocs * sizeof(NRNMPI_Spikebuf));
+        spbufout = (NRNMPI_Spikebuf*) emalloc(sizeof(NRNMPI_Spikebuf));
+        spbufin = (NRNMPI_Spikebuf*) emalloc(nrnmpi_numprocs * sizeof(NRNMPI_Spikebuf));
 #endif
     }
 #endif
@@ -204,8 +206,8 @@ void nrn2ncs_outputevent(int gid, double firetime) {
             spikeout[i].gid = gid;
             spikeout[i].spiketime = firetime;
         } else {
-            spbufout_->gid[i] = gid;
-            spbufout_->spiketime[i] = firetime;
+            spbufout->gid[i] = gid;
+            spbufout->spiketime[i] = firetime;
         }
 #endif
     }
@@ -286,8 +288,8 @@ void nrn_spike_exchange_init() {
             assert(usable_mindelay_ >= dt && (usable_mindelay_ * dt1_) < 255);
         } else {
 #if nrn_spikebuf_size > 0
-            if (spbufout_) {
-                spbufout_->nspike = 0;
+            if (spbufout) {
+                spbufout->nspike = 0;
             }
 #endif
         }
@@ -317,11 +319,11 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
 
 #if nrn_spikebuf_size > 0
-    spbufout_->nspike = nout;
+    spbufout->nspike = nout;
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl, nout);
+    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl, nout, spbufout, spbufin);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
@@ -340,15 +342,15 @@ void nrn_spike_exchange(NrnThread* nt) {
     }
 #if nrn_spikebuf_size > 0
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
-        int nn = spbufin_[i].nspike;
+        int nn = spbufin[i].nspike;
         if (nn > nrn_spikebuf_size) {
             nn = nrn_spikebuf_size;
         }
         for (int j = 0; j < nn; ++j) {
-            auto gid2in_it = gid2in.find(spbufin_[i].gid[j]);
+            auto gid2in_it = gid2in.find(spbufin[i].gid[j]);
             if (gid2in_it != gid2in.end()) {
                 InputPreSyn* ps = gid2in_it->second;
-                ps->send(spbufin_[i].spiketime[j], net_cvode_instance, nt);
+                ps->send(spbufin[i].spiketime[j], net_cvode_instance, nt);
             }
         }
     }

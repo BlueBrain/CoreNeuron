@@ -127,7 +127,9 @@ int nrnmpi_spike_exchange_impl(int* nin,
                                int icapacity,
                                NRNMPI_Spike* spikein,
                                int& ovfl,
-                               int nout) {
+                               int nout,
+                               NRNMPI_Spikebuf* spbufout,
+                               NRNMPI_Spikebuf* spbufin) {
     Instrumentor::phase_begin("spike-exchange");
 
     {
@@ -160,9 +162,9 @@ int nrnmpi_spike_exchange_impl(int* nin,
         MPI_Allgatherv(spikeout, nout, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
     }
 #else
-    MPI_Allgather(spbufout_, 1, spikebuf_type, spbufin_, 1, spikebuf_type, nrnmpi_comm);
+    MPI_Allgather(spbufout, 1, spikebuf_type, spbufin, 1, spikebuf_type, nrnmpi_comm);
     int novfl = 0;
-    int n = spbufin_[0].nspike;
+    int n = spbufin[0].nspike;
     if (n > nrn_spikebuf_size) {
         nin[0] = n - nrn_spikebuf_size;
         novfl += nin[0];
@@ -171,7 +173,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
     }
     for (int i = 1; i < np; ++i) {
         displs[i] = novfl;
-        int n1 = spbufin_[i].nspike;
+        int n1 = spbufin[i].nspike;
         n += n1;
         if (n1 > nrn_spikebuf_size) {
             nin[i] = n1 - nrn_spikebuf_size;
