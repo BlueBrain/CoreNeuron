@@ -118,7 +118,7 @@ static bool is_child_race(TNode* nd) {  // potentially handleable by atomic
     }
     std::set<size_t> s;
     for (const auto& child: nd->children) {
-        size_t gc = g32(child);
+        std::size_t gc = g32(child);
         if (s.find(gc) != s.end()) {
             return true;
         }
@@ -153,7 +153,7 @@ size_t dist2child(TNode* nd) {
     size_t d = 1000;
     size_t pi = nd->nodevec_index;
     for (const auto& child: nd->children) {
-        size_t d1 = child->nodevec_index - pi;
+        std::size_t d1 = child->nodevec_index - pi;
         if (d1 < d) {
             d = d1;
         }
@@ -323,7 +323,7 @@ static void eliminate_crace(TNode* nd, VTN& nodes) {
 
 static void question2(VVTN& levels) {
     // number of compartments in the group
-    size_t nnode = std::accumulate(levels.begin(), levels.end(), 0, [](size_t s, const VTN& l) {
+    std::size_t nnode = std::accumulate(levels.begin(), levels.end(), 0, [](std::size_t s, const VTN& l) {
         return s + l.size();
     });
     VTN nodes(nnode);  // store the sorted nodes from analyze function

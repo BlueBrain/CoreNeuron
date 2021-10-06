@@ -80,9 +80,9 @@ class VecPlayContinuous: public PlayRecord {
     IvocVect y_;
     IvocVect t_;
     IvocVect* discon_indices_;
-    size_t last_index_ = 0;
-    size_t discon_index_ = 0;
-    size_t ubound_index_ = 0;
+    std::size_t last_index_{};
+    std::size_t discon_index_{};
+    std::size_t ubound_index_{};
 
     PlayRecordEvent* e_ = nullptr; // Need to be a raw pointer for acc
 };

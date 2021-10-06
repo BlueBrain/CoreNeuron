@@ -122,7 +122,7 @@ void net_event(Point_process* pnt, double time) {
 }
 
 NetCvodeThreadData::NetCvodeThreadData()
-    : tqe_(new TQueue<QTYPE>()) {
+    : tqe_{new TQueue<QTYPE>()} {
     inter_thread_events_.reserve(1000);
 }
 
