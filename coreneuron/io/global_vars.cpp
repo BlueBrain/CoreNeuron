@@ -162,7 +162,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
     }
 
 #if DEBUG
-    for (const auto& item: n2v) {
+    for (const auto& item: *n2v) {
         printf("%s %ld %p\n", item.first.c_str(), item.second.first, item.second.second);
     }
 #endif

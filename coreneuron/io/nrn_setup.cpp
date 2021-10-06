@@ -614,10 +614,10 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
 
 #if DEBUG
     printf("%d read_phasegap tid=%d nsrc=%d ntar=%d\n", nrnmpi_myid, nt.id, nsrc, ntar);
-    for (int i = 0; i < si.nsrc; ++i) {
+    for (int i = 0; i < nsrc; ++i) {
         printf("src %z %d %d\n", size_t(si.src_sid[i]), si.src_type[i], si.src_index[i]);
     }
-    for (int i = 0; i < si.ntar; ++i) {
+    for (int i = 0; i < ntar; ++i) {
         printf("tar %z %d %d\n", size_t(si.src_sid[i]), si.src_type[i], si.src_index[i]);
     }
 #endif
@@ -1035,13 +1035,13 @@ size_t model_size(bool detailed_report) {
         printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
         printf("ndata=%ld nidata=%ld nvdata=%ld\n", nt._ndata, nt._nidata, nt._nvdata);
         printf("nbyte so far %ld\n", nb_nt);
-        printf("n_presyn = %d sz=%ld nbyte=%ld\n", nt.n_presyn, sz_ps, nt.n_presyn * sz_ps);
+        printf("n_presyn = %d sz=%ld nbyte=%ld\n", nt.n_presyn, sz_presyn, nt.n_presyn * sz_presyn);
         printf("n_input_presyn = %d sz=%ld nbyte=%ld\n",
                nt.n_input_presyn,
-               sz_psi,
-               nt.n_input_presyn * sz_psi);
-        printf("n_pntproc=%d sz=%ld nbyte=%ld\n", nt.n_pntproc, sz_pp, nt.n_pntproc * sz_pp);
-        printf("n_netcon=%d sz=%ld nbyte=%ld\n", nt.n_netcon, sz_nc, nt.n_netcon * sz_nc);
+               sz_input_presyn,
+               nt.n_input_presyn * sz_input_presyn);
+        printf("n_pntproc=%d sz=%ld nbyte=%ld\n", nt.n_pntproc, sz_pntproc, nt.n_pntproc * sz_pntproc);
+        printf("n_netcon=%d sz=%ld nbyte=%ld\n", nt.n_netcon, sz_netcon, nt.n_netcon * sz_netcon);
         printf("n_weight = %d\n", nt.n_weight);
 
         printf("%d thread %d total bytes %ld\n", nrnmpi_myid, i, nb_nt);
