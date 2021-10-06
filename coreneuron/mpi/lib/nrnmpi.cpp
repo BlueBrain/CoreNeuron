@@ -40,7 +40,7 @@ static void nrn_fatal_error(const char* msg) {
 std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
     nrnmpi_under_nrncontrol_ = true;
 
-    if (nrnmpi_initialized_impl()) {
+    if (!nrnmpi_initialized_impl()) {
 #if defined(_OPENMP)
         int required = MPI_THREAD_FUNNELED;
         int provided;
