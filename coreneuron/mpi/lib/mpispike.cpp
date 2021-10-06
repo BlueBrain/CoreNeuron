@@ -12,7 +12,6 @@
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "nrnmpi.hpp"
-#include "mpispike.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
 
 #if NRNMPI
@@ -186,8 +185,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
         if (icapacity < novfl) {
             icapacity = novfl + 10;
             free(spikein);
-            spikein = (NRNMPI_Spike*) hoc_Emalloc(icapacity * sizeof(NRNMPI_Spike));
-            hoc_malchk();
+            spikein = (NRNMPI_Spike*) emalloc(icapacity * sizeof(NRNMPI_Spike));
         }
         int n1 = (nout > nrn_spikebuf_size) ? nout - nrn_spikebuf_size : 0;
         MPI_Allgatherv(spikeout, n1, spike_type, spikein, nin, displs, spike_type, nrnmpi_comm);
@@ -318,6 +316,12 @@ void nrnmpi_int_allgather_impl(int* s, int* r, int n) {
 double nrnmpi_dbl_allmin_impl(double x) {
     double result;
     MPI_Allreduce(&x, &result, 1, MPI_DOUBLE, MPI_MIN, nrnmpi_comm);
+    return result;
+}
+
+double nrnmpi_dbl_allmax_impl(double x) {
+    double result;
+    MPI_Allreduce(&x, &result, 1, MPI_DOUBLE, MPI_MAX, nrnmpi_comm);
     return result;
 }
 

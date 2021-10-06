@@ -38,6 +38,8 @@ mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_alltoallv_impl)> nrnmpi_db
     "nrnmpi_dbl_alltoallv_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmin_impl)> nrnmpi_dbl_allmin{
     "nrnmpi_dbl_allmin_impl"};
+mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmax_impl)> nrnmpi_dbl_allmax{
+    "nrnmpi_dbl_allmax_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_barrier_impl)> nrnmpi_barrier{
     "nrnmpi_barrier_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_impl)> nrnmpi_dbl_allreduce{

@@ -59,6 +59,8 @@ extern "C" void nrnmpi_dbl_alltoallv_impl(double* s,
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_alltoallv_impl)> nrnmpi_dbl_alltoallv;
 extern "C" double nrnmpi_dbl_allmin_impl(double x);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmin_impl)> nrnmpi_dbl_allmin;
+extern "C" double nrnmpi_dbl_allmax_impl(double x);
+extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allmax_impl)> nrnmpi_dbl_allmax;
 extern "C" void nrnmpi_barrier_impl(void);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_barrier_impl)> nrnmpi_barrier;
 extern "C" double nrnmpi_dbl_allreduce_impl(double x, int type);

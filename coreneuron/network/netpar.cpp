@@ -40,8 +40,8 @@ unsigned char* spikein_fixed;
 int ag_send_size;
 int ovfl;
 int nout;
-NRNMPI_Spikebuf* spbufout;
-NRNMPI_Spikebuf* spbufin;
+coreneuron::NRNMPI_Spikebuf* spbufout;
+coreneuron::NRNMPI_Spikebuf* spbufin;
 #endif
 
 namespace coreneuron {
