@@ -323,7 +323,8 @@ void nrn_spike_exchange(NrnThread* nt) {
 #endif
     double wt = nrn_wtime();
 
-    int n = nrnmpi_spike_exchange(nrnmpi_nin_, spikeout, icapacity, spikein, ovfl, nout, spbufout, spbufin);
+    int n = nrnmpi_spike_exchange(
+        nrnmpi_nin_, spikeout, icapacity, spikein, ovfl, nout, spbufout, spbufin);
 
     wt_ = nrn_wtime() - wt;
     wt = nrn_wtime();
