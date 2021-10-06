@@ -22,10 +22,9 @@
 void* (*nrn2core_get_global_dbl_item_)(void*, const char*& name, int& size, double*& val);
 int (*nrn2core_get_global_int_item_)(const char* name);
 
-using namespace std;
 namespace coreneuron {
-using PSD = std::pair<size_t, double*>;
-using N2V = std::map<string, PSD>;
+using PSD = std::pair<std::size_t, double*>;
+using N2V = std::map<std::string, PSD>;
 
 static N2V* n2v;
 

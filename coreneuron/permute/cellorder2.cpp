@@ -74,7 +74,7 @@ static void sortlevel(VTN& level) {
 static void set_treenode_order(VVTN& levels) {
     size_t order = 0;
     for (auto& level: levels) {
-        for (auto& nd: level) {
+        for (auto* nd: level) {
             nd->treenode_order = order++;
         }
     }
@@ -91,7 +91,7 @@ static size_t g32(TNode* nd) {
 static bool is_parent_race(TNode* nd) {  // vitiating
     size_t pg = g32(nd);
     for (const auto& child: nd->children) {
-        if (pg == g32(nd->child)) {
+        if (pg == g32(child)) {
             return true;
         }
     }

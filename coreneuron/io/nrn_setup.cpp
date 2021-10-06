@@ -476,7 +476,7 @@ void nrn_setup(const char* filesdat,
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
         nrn_multithread_job([](NrnThread* n) {
-            Phase1 p1(n->id);
+            Phase1 p1{n->id};
             NrnThread& nt = *n;
             p1.populate(nt, mut);
         });
@@ -590,8 +590,8 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
 
     int sidt_size = F.read_int();
     assert(sidt_size == int(sizeof(nrn_partrans::sgid_t)));
-    size_t ntar = size_t(F.read_int());
-    size_t nsrc = size_t(F.read_int());
+    std::size_t ntar = F.read_int();
+    std::size_t nsrc = F.read_int();
 
     auto& si = nrn_partrans::setup_info_[nt.id];
     si.src_sid.resize(nsrc);
@@ -893,7 +893,7 @@ void delete_trajectory_requests(NrnThread& nt) {
 }
 
 void read_phase1(NrnThread& nt, UserParams& userParams) {
-    Phase1 p1(userParams.file_reader[nt.id]);
+    Phase1 p1{userParams.file_reader[nt.id]};
 
     // Protect gid2in, gid2out and neg_gid2out
     p1.populate(nt, mut);

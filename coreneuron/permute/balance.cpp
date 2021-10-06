@@ -27,10 +27,8 @@ int cellorder_nwarp = 0;  // 0 means do not balance
 bool warpcmp(const TNode* a, const TNode* b) {
     if (a->groupindex < b->groupindex) {
         return true;
-    } else if (a->groupindex == b->groupindex) {
-        if (a->nodevec_index < b->nodevec_index) {
-            return true;
-        }
+    } else if (a->groupindex == b->groupindex && a->nodevec_index < b->nodevec_index) {
+        return true;
     }
     return false;
 }

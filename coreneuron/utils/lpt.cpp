@@ -52,19 +52,22 @@ std::vector<size_t> lpt(size_t nbag, std::vector<size_t>& pieces, double* bal) {
 
     // load balance average/max (1.0 is perfect)
     std::vector<size_t> v(bagq.size());
-    for (auto& item: v) {
-        item = bagq.top().second;
+    for (size_t i = 1; i < nbag; ++i) {
+        v[i] = bagq.top().second;
         bagq.pop();
     }
     double b = load_balance(v);
     if (bal) {
         *bal = b;
+    } else {
+        printf("load balance = %g for %ld pieces in %ld bags\n", b, pieces.size(), nbag);
     }
 
     return bagindices;
 }
 
 double load_balance(std::vector<size_t>& v) {
+    nrn_assert(!v.empty());
     size_t sum = std::accumulate(v.begin(), v.end(), 0);
     size_t max = *std::max_element(v.begin(), v.end());
     return (double(sum) / v.size()) / max;

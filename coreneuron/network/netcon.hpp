@@ -99,8 +99,8 @@ class ConditionEvent: public DiscreteEvent {
         return -1.;
     }
 
-    int flag_;  // true when below, false when above. (changed from bool to int to avoid cray acc
-                // bug(?))
+    int flag_{};  // true when below, false when above. (changed from bool to int to avoid cray acc
+                  // bug(?))
 };
 
 class PreSyn: public ConditionEvent {
@@ -116,8 +116,8 @@ class PreSyn: public ConditionEvent {
     int thvar_index_ = -1;  // >=0 points into NrnThread._actual_v
     Point_process* pntsrc_ = nullptr;
 
-    PreSyn();
-    virtual ~PreSyn();
+    PreSyn() = default;
+    virtual ~PreSyn() = default;
     virtual void send(double sendtime, NetCvode*, NrnThread*) override;
     virtual void deliver(double, NetCvode*, NrnThread*) override;
     virtual int type() const override {

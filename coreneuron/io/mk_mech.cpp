@@ -136,8 +136,7 @@ static void mk_mech(std::istream& s) {
 
 /// Get mechanism type by the mechanism name
 int nrn_get_mechtype(const char* name) {
-    std::string str(name);
-    auto mapit = mech2type.find(str);
+    auto mapit = mech2type.find(name);
     if (mapit == mech2type.end())
         return -1;  // Could not find the mechanism
     return mapit->second;

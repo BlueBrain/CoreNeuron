@@ -163,7 +163,7 @@ NetCvode::NetCvode() {
 }
 
 NetCvode::~NetCvode() {
-    if (net_cvode_instance == (NetCvode*) this) {
+    if (net_cvode_instance == this) {
         net_cvode_instance = nullptr;
     }
 
@@ -334,17 +334,6 @@ void NetCvode::deliver_events(double til, NrnThread* nt) {
     /// Deliver events. When the map is used, the loop is explicit
     while (deliver_event(til, nt))
         ;
-}
-
-PreSyn::PreSyn() {
-    flag_ = false;
-}
-
-PreSyn::~PreSyn() {
-    //	printf("~PreSyn %p\n", this);
-    if (pntsrc_) {
-        pntsrc_ = nullptr;
-    }
 }
 
 void PreSyn::record(double tt) {
