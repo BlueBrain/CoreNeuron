@@ -85,7 +85,7 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
         nrnran123_set_globalindex((*nrn2core_get_global_int_item_)("Random123_global_index"));
 
     } else {  // get the info from the globals.dat file
-        string fname = string(path) + string("/globals.dat");
+        std::string fname = std::string(path) + std::string("/globals.dat");
         FILE* f = fopen(fname.c_str(), "r");
         if (!f) {
             printf("ignore: could not open %s\n", fname.c_str());

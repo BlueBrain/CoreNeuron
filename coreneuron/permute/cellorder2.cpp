@@ -18,15 +18,13 @@
 #include "coreneuron/network/tnode.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 
-using namespace std;
-
 // experiment starting with identical cell ordering
 // groupindex aleady defined that keeps identical cells together
 // begin with leaf to root ordering
 namespace coreneuron {
 using VTN = VecTNode;        // level of nodes
-using VVTN = vector<VTN>;    // group of levels
-using VVVTN = vector<VVTN>;  // groups
+using VVTN = std::vector<VTN>;    // group of levels
+using VVVTN = std::vector<VVTN>;  // groups
 
 // verify level in groups of nident identical nodes
 void chklevel(VTN& level, size_t nident = 8) {}
