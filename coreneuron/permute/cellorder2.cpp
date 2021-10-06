@@ -22,7 +22,7 @@
 // groupindex aleady defined that keeps identical cells together
 // begin with leaf to root ordering
 namespace coreneuron {
-using VTN = VecTNode;        // level of nodes
+using VTN = VecTNode;             // level of nodes
 using VVTN = std::vector<VTN>;    // group of levels
 using VVVTN = std::vector<VVTN>;  // groups
 

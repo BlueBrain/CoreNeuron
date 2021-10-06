@@ -1040,7 +1040,10 @@ size_t model_size(bool detailed_report) {
                nt.n_input_presyn,
                sz_input_presyn,
                nt.n_input_presyn * sz_input_presyn);
-        printf("n_pntproc=%d sz=%ld nbyte=%ld\n", nt.n_pntproc, sz_pntproc, nt.n_pntproc * sz_pntproc);
+        printf("n_pntproc=%d sz=%ld nbyte=%ld\n",
+               nt.n_pntproc,
+               sz_pntproc,
+               nt.n_pntproc * sz_pntproc);
         printf("n_netcon=%d sz=%ld nbyte=%ld\n", nt.n_netcon, sz_netcon, nt.n_netcon * sz_netcon);
         printf("n_weight = %d\n", nt.n_weight);
 
