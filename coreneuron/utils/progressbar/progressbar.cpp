@@ -11,8 +11,9 @@
  */
 #include "coreneuron/utils/progressbar/progressbar.hpp"
 
-#include <assert.h>
-#include <limits.h>
+#include <cassert>
+#include <cstddef>
+#include <climits>
 #include <unistd.h>
 
 ///  How wide we assume the screen is if termcap fails.
