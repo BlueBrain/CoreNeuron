@@ -323,9 +323,10 @@ static void eliminate_crace(TNode* nd, VTN& nodes) {
 
 static void question2(VVTN& levels) {
     // number of compartments in the group
-    std::size_t nnode = std::accumulate(levels.begin(), levels.end(), 0, [](std::size_t s, const VTN& l) {
-        return s + l.size();
-    });
+    std::size_t nnode = std::accumulate(levels.begin(),
+                                        levels.end(),
+                                        0,
+                                        [](std::size_t s, const VTN& l) { return s + l.size(); });
     VTN nodes(nnode);  // store the sorted nodes from analyze function
     nnode = 0;
     for (const auto& level: levels) {
