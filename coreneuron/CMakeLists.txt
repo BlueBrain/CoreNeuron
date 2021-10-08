@@ -170,14 +170,14 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # mpi related target, this is a separate library for dynamic MPI
 if(CORENRN_ENABLE_MPI)
-if(CORENRN_ENABLE_DYNAMIC_MPI)
-  add_library(corenrn_mpi SHARED ${MPI_LIB_FILES})
-else()
-  add_library(corenrn_mpi OBJECT ${MPI_LIB_FILES})
-  set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)
-endif()
-target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
-set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
+  if(CORENRN_ENABLE_DYNAMIC_MPI)
+    add_library(corenrn_mpi SHARED ${MPI_LIB_FILES})
+  else()
+    add_library(corenrn_mpi OBJECT ${MPI_LIB_FILES})
+    set(OBJ_MPI $<TARGET_OBJECTS:corenrn_mpi>)
+  endif()
+  target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
+  set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
 
 # main coreneuron library
@@ -192,12 +192,12 @@ add_library(
   ${MPI_CORE_FILES}
   ${OBJ_MPI})
 if(CORENRN_ENABLE_MPI)
-if(CORENRN_ENABLE_DYNAMIC_MPI)
-  target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
-  target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
-else()
-  target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
-endif()
+  if(CORENRN_ENABLE_DYNAMIC_MPI)
+    target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
+    target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
+  else()
+    target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
+  endif()
 endif()
 # Prevent CMake from running a device code link step when assembling libcoreneuron.a in GPU builds.
 # The device code linking needs to be deferred to the final step, where it is done by `nvc++ -cuda`.
@@ -221,11 +221,11 @@ target_include_directories(coreneuron SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 
 if(CORENRN_ENABLE_MPI)
-set_target_properties(
-  corenrn_mpi
-  PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-             POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(
+    corenrn_mpi
+    PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+               POSITION_INDEPENDENT_CODE ON)
 endif()
 
 set_target_properties(
