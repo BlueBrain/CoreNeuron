@@ -30,7 +30,7 @@
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mpi/core/nrnmpi.hpp"
 int localgid_size_;
-int send_nspike;
+int ag_send_nspike;
 int* nrnmpi_nin_;
 int ovfl_capacity;
 int icapacity;
@@ -383,7 +383,7 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
 
     int n = nrnmpi_spike_exchange_compressed(localgid_size_,
                                              spfixin_ovfl_,
-                                             send_nspike,
+                                             ag_send_nspike,
                                              nrnmpi_nin_,
                                              ovfl_capacity,
                                              spikeout_fixed,
@@ -413,14 +413,14 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
             int nn = nrnmpi_nin_[i];
             if (nn) {
                 if (i == nrnmpi_myid) {  // skip but may need to increment idxov.
-                    if (nn > send_nspike) {
-                        idxov += (nn - send_nspike) * (1 + localgid_size_);
+                    if (nn > ag_send_nspike) {
+                        idxov += (nn - ag_send_nspike) * (1 + localgid_size_);
                     }
                     continue;
                 }
                 std::map<int, InputPreSyn*> gps = localmaps[i];
-                if (nn > send_nspike) {
-                    nnn = send_nspike;
+                if (nn > ag_send_nspike) {
+                    nnn = ag_send_nspike;
                 } else {
                     nnn = nn;
                 }
@@ -451,8 +451,8 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
     } else {
         for (int i = 0; i < nrnmpi_numprocs; ++i) {
             int nn = nrnmpi_nin_[i];
-            if (nn > send_nspike) {
-                nn = send_nspike;
+            if (nn > ag_send_nspike) {
+                nn = ag_send_nspike;
             }
             int idx = 2 + i * ag_send_size;
             for (int j = 0; j < nn; ++j) {
@@ -749,18 +749,18 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
 #endif
         nrn_assert(xchng_meth == 0);
         if (nspike >= 0) {
-            send_nspike = 0;
+            ag_send_nspike = 0;
             if (spikeout_fixed) {
                 free(spikeout_fixed);
-                spikeout_fixed = 0;
+                spikeout_fixed = nullptr;
             }
             if (spikein_fixed) {
                 free(spikein_fixed);
-                spikein_fixed = 0;
+                spikein_fixed = nullptr;
             }
             if (spfixin_ovfl_) {
                 free(spfixin_ovfl_);
-                spfixin_ovfl_ = 0;
+                spfixin_ovfl_ = nullptr;
             }
             localmaps.clear();
         }
@@ -769,7 +769,7 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
             nrn_use_localgid_ = false;
         } else if (nspike > 0) {  // turn on
             use_compress_ = true;
-            send_nspike = nspike;
+            ag_send_nspike = nspike;
             nrn_use_localgid_ = false;
             if (gid_compress) {
                 // we can only do this after everything is set up
@@ -784,14 +784,14 @@ int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
             if (!nrn_use_localgid_) {
                 localgid_size_ = sizeof(unsigned int);
             }
-            ag_send_size = 2 + send_nspike * (1 + localgid_size_);
+            ag_send_size = 2 + ag_send_nspike * (1 + localgid_size_);
             spfixout_capacity_ = ag_send_size + 50 * (1 + localgid_size_);
             spikeout_fixed = (unsigned char*) emalloc(spfixout_capacity_);
             spikein_fixed = (unsigned char*) emalloc(nrnmpi_numprocs * ag_send_size);
             ovfl_capacity = 100;
             spfixin_ovfl_ = (unsigned char*) emalloc(ovfl_capacity * (1 + localgid_size_));
         }
-        return send_nspike;
+        return ag_send_nspike;
     } else
 #endif
     {

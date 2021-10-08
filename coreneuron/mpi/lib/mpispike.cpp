@@ -38,43 +38,7 @@ static void hoc_execerror(const char* s1, const char* s2) {
     abort();
 }
 
-static void pgvts_op(double* in, double* inout, int* len, MPI_Datatype* dptr) {
-    bool copy = false;
-    if (*dptr != MPI_DOUBLE)
-        printf("ERROR in mpispike.cpp! *dptr should be MPI_DOUBLE.");
-    if (*len != 4)
-        printf("ERROR in mpispike.cpp! *len should be 4.");
-    if (in[0] < inout[0]) {
-        /* least time has highest priority */
-        copy = true;
-    } else if (in[0] == inout[0]) {
-        /* when times are equal then */
-        if (in[1] < inout[1]) {
-            /* NetParEvent done last */
-            copy = true;
-        } else if (in[1] == inout[1]) {
-            /* when times and ops are equal then */
-            if (in[2] < inout[2]) {
-                /* init done next to last.*/
-                copy = true;
-            } else if (in[2] == inout[2]) {
-                /* when times, ops, and inits are equal then */
-                if (in[3] < inout[3]) {
-                    /* choose lowest rank */
-                    copy = true;
-                }
-            }
-        }
-    }
-    if (copy) {
-        for (int i = 0; i < 4; ++i) {
-            inout[i] = in[i];
-        }
-    }
-}
-
-static MPI_Op mpi_pgvts_op;
-
+// Register type NRNMPI_Spike
 void nrnmpi_spike_initialize() {
     NRNMPI_Spike s;
     int block_lengths[2] = {1, 1};
@@ -89,14 +53,13 @@ void nrnmpi_spike_initialize() {
     MPI_Datatype typelist[2] = {MPI_INT, MPI_DOUBLE};
     MPI_Type_create_struct(2, block_lengths, displacements, typelist, &spike_type);
     MPI_Type_commit(&spike_type);
-
-    MPI_Op_create((MPI_User_function*) pgvts_op, 1, &mpi_pgvts_op);
 }
 
 #if nrn_spikebuf_size > 0
 
 static MPI_Datatype spikebuf_type;
 
+// Register type NRNMPI_Spikebuf
 static void make_spikebuf_type() {
     NRNMPI_Spikebuf s;
     int block_lengths[3] = {1, nrn_spikebuf_size, nrn_spikebuf_size};
