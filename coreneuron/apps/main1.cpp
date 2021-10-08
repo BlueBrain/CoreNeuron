@@ -452,10 +452,11 @@ using namespace coreneuron;
 
 #if NRNMPI
 #define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+#define TOSTRING(x)  STRINGIFY(x)
 static void* load_dynamic_mpi() {
     dlerror();
-    void* handle = dlopen("libcorenrn_mpi" TOSTRING(CMAKE_SHARED_LIBRARY_SUFFIX), RTLD_NOW | RTLD_GLOBAL);
+    void* handle = dlopen("libcorenrn_mpi" TOSTRING(CMAKE_SHARED_LIBRARY_SUFFIX),
+                          RTLD_NOW | RTLD_GLOBAL);
     const char* error = dlerror();
     if (error) {
         std::string err_msg = std::string("Could not open dynamic MPI library: ") + error + "\n";
