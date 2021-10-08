@@ -23,6 +23,7 @@
 #include "coreneuron/network/netcvode.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/io/output_spikes.hpp"
+#include "coreneuron/apps/corenrn_parameters.hpp"
 namespace coreneuron {
 const int NUM_STATS = 13;
 
@@ -53,14 +54,13 @@ void report_cell_stats() {
     long gstat_array[NUM_STATS];
     if (corenrn_param.mpi_enable) {
         nrnmpi_long_allreduce_vec(stat_array, gstat_array, NUM_STATS, 1);
-    } else
-#else
-    const long(&gstat_array)[NUM_STATS] = stat_array;
-#endif
-    {
+    } else {
         assert(sizeof(stat_array) == sizeof(gstat_array));
         std::memcpy(gstat_array, stat_array, sizeof(stat_array));
     }
+#else
+    const long(&gstat_array)[NUM_STATS] = stat_array;
+#endif
 
     if (nrnmpi_myid == 0) {
         printf("\n\n Simulation Statistics\n");
