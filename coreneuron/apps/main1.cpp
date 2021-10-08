@@ -450,13 +450,12 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
 
 using namespace coreneuron;
 
+#if NRNMPI
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 static void* load_dynamic_mpi() {
     dlerror();
-#if defined(__APPLE__) && defined(__MACH__)
-    void* handle = dlopen("libcorenrn_mpi.dylib", RTLD_NOW | RTLD_GLOBAL);
-#else
-    void* handle = dlopen("libcorenrn_mpi.so", RTLD_NOW | RTLD_GLOBAL);
-#endif
+    void* handle = dlopen("libcorenrn_mpi" TOSTRING(CMAKE_SHARED_LIBRARY_SUFFIX), RTLD_NOW | RTLD_GLOBAL);
     const char* error = dlerror();
     if (error) {
         std::string err_msg = std::string("Could not open dynamic MPI library: ") + error + "\n";
@@ -464,6 +463,7 @@ static void* load_dynamic_mpi() {
     }
     return handle;
 }
+#endif
 
 extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
