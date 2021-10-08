@@ -13,7 +13,6 @@ the prototypes be of the form "type foo(type arg, ...)"
 
 #pragma once
 
-#if NRNMPI
 #include <stdlib.h>
 
 namespace coreneuron {
@@ -94,6 +93,4 @@ extern "C" int nrnmpi_multisend_conserve_impl(int nsend, int nrecv);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_multisend_conserve_impl)>
     nrnmpi_multisend_conserve;
 #endif
-
 }  // namespace coreneuron
-#endif

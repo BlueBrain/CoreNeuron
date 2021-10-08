@@ -15,10 +15,8 @@
 
 #include "coreneuron/mpi/nrnmpiuse.h"
 
-#if NRNMPI
 #ifndef nrn_spikebuf_size
 #define nrn_spikebuf_size 0
-#endif
 
 namespace coreneuron {
 struct NRNMPI_Spikebuf {
