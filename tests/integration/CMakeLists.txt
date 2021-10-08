@@ -87,6 +87,9 @@ endforeach()
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer/")
 
+# names of all tests added
+set(CORENRN_TEST_NAMES "")
+
 # Configure test scripts
 foreach(args_line ${TEST_CASES_WITH_ARGS})
   string(REPLACE "!" ";" string_line ${args_line})
@@ -109,6 +112,7 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
   set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
+  list(APPEND CORENRN_TEST_NAMES ${TEST_NAME}_TEST)
 endforeach()
 
 foreach(args_line ${NEGATIVE_TEST_CASES})
@@ -127,6 +131,7 @@ foreach(args_line ${NEGATIVE_TEST_CASES})
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/negative_integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
   set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
+  list(APPEND CORENRN_TEST_NAMES ${TEST_NAME}_TEST)
 endforeach()
 
 if(CORENRN_ENABLE_REPORTING)
@@ -141,5 +146,13 @@ if(CORENRN_ENABLE_REPORTING)
       NAME ${SIM_NAME}
       COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
+    list(APPEND CORENRN_TEST_NAMES ${SIM_NAME})
   endforeach()
+endif()
+
+# DYLD_LIBRARY_PATH.LD_LIBRARY_PATH for dynamic MPI build
+if(CORENRN_ENABLE_DYNAMIC_MPI)
+  set(TEST_ENV LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}
+               DYLD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/lib:$ENV{DYLD_LIBRARY_PATH})
+  set_tests_properties(${CORENRN_TEST_NAMES} PROPERTIES ENVIRONMENT "${TEST_ENV}")
 endif()

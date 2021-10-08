@@ -51,10 +51,16 @@ void report_cell_stats() {
 
 #if NRNMPI
     long gstat_array[NUM_STATS];
-    nrnmpi_long_allreduce_vec(stat_array, gstat_array, NUM_STATS, 1);
+    if (corenrn_param.mpi_enable) {
+        nrnmpi_long_allreduce_vec(stat_array, gstat_array, NUM_STATS, 1);
+    } else
 #else
     const long(&gstat_array)[NUM_STATS] = stat_array;
 #endif
+    {
+        assert(sizeof(stat_array) == sizeof(gstat_array));
+        std::memcpy(gstat_array, stat_array, sizeof(stat_array));
+    }
 
     if (nrnmpi_myid == 0) {
         printf("\n\n Simulation Statistics\n");

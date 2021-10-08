@@ -36,6 +36,8 @@ jobs:
         config:
           # Defaults: CORENRN_ENABLE_SOA=ON CORENRN_ENABLE_MPI=ON
           - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON}
+          - {cmake_option: "-DCORENRN_ENABLE_DYNAMIC_MPI=ON"}
+          - {cmake_option: "-DCORENRN_ENABLE_DYNAMIC_MPI=ON -DCORENRN_ENABLE_SHARED=OFF"}
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
           - {cmake_option: "-DCORENRN_ENABLE_SOA=OFF"}
           - {use_nmodl: ON, py_version: 3.6.7}
