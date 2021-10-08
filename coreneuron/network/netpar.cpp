@@ -738,9 +738,6 @@ two phase multisend distributes the injection.
 int nrnmpi_spike_compress(int nspike, bool gid_compress, int xchng_meth) {
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-        if (nrnmpi_numprocs < 2) {
-            return 0;
-        }
 #if NRN_MULTISEND
         if (xchng_meth > 0) {
             use_multisend_ = 1;
