@@ -475,7 +475,9 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         auto mpi_handle = load_dynamic_mpi();
         mpi_manager().resolve_symbols(mpi_handle);
 #endif
-        std::tie(nrnmpi_numprocs, nrnmpi_myid) = nrnmpi_init(&argc, &argv);
+        auto ret = nrnmpi_init(&argc, &argv);
+        nrnmpi_numprocs = ret.numprocs;
+        nrnmpi_myid = ret.myid;
     }
 #endif
 
