@@ -7,13 +7,11 @@
 */
 
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <tuple>
 
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/mpi/nrnmpi.h"
-#include "mpispike.hpp"
 #include "coreneuron/utils/nrn_assert.h"
 #include "nrnmpi.hpp"
 #if _OPENMP
@@ -30,7 +28,7 @@ MPI_Comm nrnmpi_comm;
 int nrnmpi_numprocs_;
 int nrnmpi_myid_;
 
-static int nrnmpi_under_nrncontrol_;
+static bool nrnmpi_under_nrncontrol_{false};
 
 static void nrn_fatal_error(const char* msg) {
     if (nrnmpi_myid_ == 0) {
@@ -40,12 +38,9 @@ static void nrn_fatal_error(const char* msg) {
 }
 
 std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
-    nrnmpi_under_nrncontrol_ = 1;
+    nrnmpi_under_nrncontrol_ = true;
 
-    int flag = 0;
-    MPI_Initialized(&flag);
-
-    if (!flag) {
+    if (!nrnmpi_initialized_impl()) {
 #if defined(_OPENMP)
         int required = MPI_THREAD_FUNNELED;
         int provided;
@@ -75,19 +70,11 @@ std::tuple<int, int> nrnmpi_init_impl(int* pargc, char*** pargv) {
 
 void nrnmpi_finalize_impl(void) {
     if (nrnmpi_under_nrncontrol_) {
-        int flag = 0;
-        MPI_Initialized(&flag);
-        if (flag) {
+        if (nrnmpi_initialized_impl()) {
             MPI_Comm_free(&nrnmpi_world_comm);
             MPI_Comm_free(&nrnmpi_comm);
             MPI_Finalize();
         }
-    }
-}
-
-void nrnmpi_terminate_impl() {
-    if (nrnmpi_under_nrncontrol_) {
-        MPI_Finalize();
     }
 }
 
@@ -102,15 +89,10 @@ void nrnmpi_check_threading_support_impl() {
     }
 }
 
-/* so src/nrnpython/inithoc.cpp does not have to include a c++ mpi.h */
-int nrnmpi_wrap_mpi_init_impl(int* flag) {
-    return MPI_Initialized(flag);
-}
-
-int nrnmpi_initialized_impl() {
+bool nrnmpi_initialized_impl() {
     int flag = 0;
     MPI_Initialized(&flag);
-    return flag;
+    return flag != 0;
 }
 
 void nrnmpi_abort_impl(int errcode) {

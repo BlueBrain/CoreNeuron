@@ -6,8 +6,7 @@
 # =============================================================================.
 */
 
-#ifndef usenrnmpi_h
-#define usenrnmpi_h
+#pragma once
 
 /* define to 1 if you want MPI specific features activated
    (optionally provided by CMake option NRNMPI) */
@@ -34,5 +33,3 @@
 
 /* Define to 1 for possibility of rank 0 xopen/ropen a file and broadcast everywhere */
 #undef USE_NRNFILEWRAP
-
-#endif
