@@ -196,7 +196,7 @@ if(CORENRN_ENABLE_MPI)
     target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
     target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
     target_compile_definitions(coreneuron
-                               PUBLIC CMAKE_SHARED_LIBRARY_SUFFIX=${CMAKE_SHARED_LIBRARY_SUFFIX})
+                               PUBLIC CORENRN_SHARED_LIBRARY_SUFFIX=${CMAKE_SHARED_LIBRARY_SUFFIX})
   else()
     target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
   endif()
