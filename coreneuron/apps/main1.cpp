@@ -473,7 +473,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-#ifdef CORENRN_ENABLE_DYNAMIC_MPI
+#ifdef CORENRN_ENABLE_MPI_DYNAMIC
         auto mpi_handle = load_dynamic_mpi();
         mpi_manager().resolve_symbols(mpi_handle);
 #endif

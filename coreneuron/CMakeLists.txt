@@ -170,7 +170,7 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # mpi related target, this is a separate library for dynamic MPI
 if(CORENRN_ENABLE_MPI)
-  if(CORENRN_ENABLE_DYNAMIC_MPI)
+  if(CORENRN_ENABLE_MPI_DYNAMIC)
     add_library(corenrn_mpi SHARED ${MPI_LIB_FILES})
   else()
     add_library(corenrn_mpi OBJECT ${MPI_LIB_FILES})
@@ -192,7 +192,7 @@ add_library(
   ${MPI_CORE_FILES}
   ${OBJ_MPI})
 if(CORENRN_ENABLE_MPI)
-  if(CORENRN_ENABLE_DYNAMIC_MPI)
+  if(CORENRN_ENABLE_MPI_DYNAMIC)
     target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
     target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
     target_compile_definitions(coreneuron
