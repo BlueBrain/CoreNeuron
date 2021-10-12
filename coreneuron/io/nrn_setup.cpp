@@ -22,7 +22,9 @@
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/utils/nrnmutdec.h"
 #include "coreneuron/utils/memory.h"
+#include "coreneuron/utils/utils.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/io/nrn_setup.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/io/nrn_checkpoint.hpp"
@@ -47,8 +49,9 @@ int corenrn_embedded_nthread;
 void (*nrn2core_group_ids_)(int*);
 
 extern "C" {
-coreneuron::nrn_partrans::SetupTransferInfo* (
-    *nrn2core_get_partrans_setup_info_)(int ngroup, int cn_nthread, size_t cn_sidt_size);
+SetupTransferInfo* (*nrn2core_get_partrans_setup_info_)(int ngroup,
+                                                        int cn_nthread,
+                                                        size_t cn_sidt_size);
 }
 
 void (*nrn2core_get_trajectory_requests_)(int tid,
@@ -146,8 +149,6 @@ void (*nrn2core_all_weights_return_)(std::vector<double*>& weights);
 // files with the first containing output_gids and netcon_srcgid which are
 // stored in the nt.presyns array and nt.netcons array respectively
 namespace coreneuron {
-extern corenrn_parameters corenrn_param;
-
 static OMP_Mutex mut;
 
 /// Vector of maps for negative presyns
@@ -231,8 +232,7 @@ void netpar_tid_gid2ps(int tid, int gid, PreSyn** ps, InputPreSyn** psi) {
         if (gid2out_it != gid2out.end()) {
             *ps = gid2out_it->second;
         } else {
-            std::map<int, InputPreSyn*>::iterator gid2in_it;
-            gid2in_it = gid2in.find(gid);
+            auto gid2in_it = gid2in.find(gid);
             if (gid2in_it != gid2in.end()) {
                 *psi = gid2in_it->second;
             }
@@ -477,8 +477,7 @@ void nrn_setup(const char* filesdat,
         coreneuron::phase_wrapper<coreneuron::phase::one>(userParams);
     } else {
         nrn_multithread_job([](NrnThread* n) {
-            Phase1 p1;
-            p1.read_direct(n->id);
+            Phase1 p1{n->id};
             NrnThread& nt = *n;
             p1.populate(nt, mut);
         });
@@ -500,11 +499,12 @@ void nrn_setup(const char* filesdat,
     if (nrn_have_gaps) {
         nrn_partrans::transfer_thread_data_ = new nrn_partrans::TransferThreadData[nrn_nthread];
         if (!corenrn_embedded) {
-            nrn_partrans::setup_info_ = new nrn_partrans::SetupTransferInfo[nrn_nthread];
+            nrn_partrans::setup_info_ = new SetupTransferInfo[nrn_nthread];
             coreneuron::phase_wrapper<coreneuron::gap>(userParams);
         } else {
-            nrn_partrans::setup_info_ = (*nrn2core_get_partrans_setup_info_)(
-                userParams.ngroup, nrn_nthread, sizeof(nrn_partrans::sgid_t));
+            nrn_partrans::setup_info_ = (*nrn2core_get_partrans_setup_info_)(userParams.ngroup,
+                                                                             nrn_nthread,
+                                                                             sizeof(sgid_t));
         }
 
         nrn_multithread_job(nrn_partrans::gap_data_indices_setup);
@@ -583,28 +583,24 @@ void setup_ThreadData(NrnThread& nt) {
 }
 
 void read_phasegap(NrnThread& nt, UserParams& userParams) {
-    auto& si = nrn_partrans::setup_info_[nt.id];
-    size_t ntar = 0;
-    size_t nsrc = 0;
-
     auto& F = userParams.file_reader[nt.id];
     if (F.fail()) {
         return;
     }
 
-    int chkpntsave = F.checkpoint();
     F.checkpoint(0);
 
     int sidt_size = F.read_int();
-    assert(sidt_size == int(sizeof(nrn_partrans::sgid_t)));
-    ntar = size_t(F.read_int());
-    nsrc = size_t(F.read_int());
+    assert(sidt_size == int(sizeof(sgid_t)));
+    std::size_t ntar = F.read_int();
+    std::size_t nsrc = F.read_int();
 
+    auto& si = nrn_partrans::setup_info_[nt.id];
     si.src_sid.resize(nsrc);
     si.src_type.resize(nsrc);
     si.src_index.resize(nsrc);
     if (nsrc) {
-        F.read_array<nrn_partrans::sgid_t>(si.src_sid.data(), nsrc);
+        F.read_array<sgid_t>(si.src_sid.data(), nsrc);
         F.read_array<int>(si.src_type.data(), nsrc);
         F.read_array<int>(si.src_index.data(), nsrc);
     }
@@ -613,17 +609,17 @@ void read_phasegap(NrnThread& nt, UserParams& userParams) {
     si.tar_type.resize(ntar);
     si.tar_index.resize(ntar);
     if (ntar) {
-        F.read_array<nrn_partrans::sgid_t>(si.tar_sid.data(), ntar);
+        F.read_array<sgid_t>(si.tar_sid.data(), ntar);
         F.read_array<int>(si.tar_type.data(), ntar);
         F.read_array<int>(si.tar_index.data(), ntar);
     }
 
 #if DEBUG
     printf("%d read_phasegap tid=%d nsrc=%d ntar=%d\n", nrnmpi_myid, nt.id, nsrc, ntar);
-    for (int i = 0; i < si.nsrc; ++i) {
+    for (int i = 0; i < nsrc; ++i) {
         printf("src %z %d %d\n", size_t(si.src_sid[i]), si.src_type[i], si.src_index[i]);
     }
-    for (int i = 0; i < si.ntar; ++i) {
+    for (int i = 0; i < ntar; ++i) {
         printf("tar %z %d %d\n", size_t(si.src_sid[i]), si.src_type[i], si.src_index[i]);
     }
 #endif
@@ -759,11 +755,13 @@ void nrn_cleanup() {
                     free_memory(nrb->_nrb_index);
                 }
                 free_memory(nrb);
+                ml->_net_receive_buffer = nullptr;
             }
 
             NetSendBuffer_t* nsb = ml->_net_send_buffer;
             if (nsb) {
                 delete nsb;
+                ml->_net_send_buffer = nullptr;
             }
 
             if (tml->dependencies)
@@ -899,8 +897,7 @@ void delete_trajectory_requests(NrnThread& nt) {
 }
 
 void read_phase1(NrnThread& nt, UserParams& userParams) {
-    Phase1 p1;
-    p1.read_file(userParams.file_reader[nt.id]);
+    Phase1 p1{userParams.file_reader[nt.id]};
 
     // Protect gid2in, gid2out and neg_gid2out
     p1.populate(nt, mut);
@@ -1042,13 +1039,16 @@ size_t model_size(bool detailed_report) {
         printf("ncell=%d end=%d nmech=%d\n", nt.ncell, nt.end, nmech);
         printf("ndata=%ld nidata=%ld nvdata=%ld\n", nt._ndata, nt._nidata, nt._nvdata);
         printf("nbyte so far %ld\n", nb_nt);
-        printf("n_presyn = %d sz=%ld nbyte=%ld\n", nt.n_presyn, sz_ps, nt.n_presyn * sz_ps);
+        printf("n_presyn = %d sz=%ld nbyte=%ld\n", nt.n_presyn, sz_presyn, nt.n_presyn * sz_presyn);
         printf("n_input_presyn = %d sz=%ld nbyte=%ld\n",
                nt.n_input_presyn,
-               sz_psi,
-               nt.n_input_presyn * sz_psi);
-        printf("n_pntproc=%d sz=%ld nbyte=%ld\n", nt.n_pntproc, sz_pp, nt.n_pntproc * sz_pp);
-        printf("n_netcon=%d sz=%ld nbyte=%ld\n", nt.n_netcon, sz_nc, nt.n_netcon * sz_nc);
+               sz_input_presyn,
+               nt.n_input_presyn * sz_input_presyn);
+        printf("n_pntproc=%d sz=%ld nbyte=%ld\n",
+               nt.n_pntproc,
+               sz_pntproc,
+               nt.n_pntproc * sz_pntproc);
+        printf("n_netcon=%d sz=%ld nbyte=%ld\n", nt.n_netcon, sz_netcon, nt.n_netcon * sz_netcon);
         printf("n_weight = %d\n", nt.n_weight);
 
         printf("%d thread %d total bytes %ld\n", nrnmpi_myid, i, nb_nt);
@@ -1087,18 +1087,21 @@ size_t model_size(bool detailed_report) {
     if (detailed_report) {
         size_data[12] = nbyte;
 #if NRNMPI
-        // last arg is op type where 1 is sum, 2 is max and any other value is min
-        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
-        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
-        nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
-        for (int i = 0; i < 13; i++) {
-            global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
-        }
-#else
-        global_size_data_max = size_data;
-        global_size_data_min = size_data;
-        global_size_data_avg.assign(size_data.cbegin(), size_data.cend());
+        if (corenrn_param.mpi_enable) {
+            // last arg is op type where 1 is sum, 2 is max and any other value is min
+            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
+            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
+            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
+            for (int i = 0; i < 13; i++) {
+                global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
+            }
+        } else
 #endif
+        {
+            global_size_data_max = size_data;
+            global_size_data_min = size_data;
+            global_size_data_avg.assign(size_data.cbegin(), size_data.cend());
+        }
         // now print the collected data:
         if (nrnmpi_myid == 0) {
             printf("Memory size information for all NrnThreads per rank\n");
@@ -1193,9 +1196,11 @@ size_t model_size(bool detailed_report) {
     }
 
 #if NRNMPI
-    long global_nbyte = 0;
-    nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
-    nbyte = global_nbyte;
+    if (corenrn_param.mpi_enable) {
+        long global_nbyte = 0;
+        nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
+        nbyte = global_nbyte;
+    }
 #endif
 
     return nbyte;

@@ -10,11 +10,17 @@
 #include <cmath>
 #include <numeric>
 
+#if DEBUG
+#include <fstream>
+#endif
+
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
 #include "coreneuron/network/multisend.hpp"
 #include "coreneuron/mpi/nrnmpidec.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/utils/memory_utils.h"
+#include "coreneuron/utils/utils.hpp"
 /*
 For very large numbers of processors and cells and fanout, it is taking
 a long time to figure out each cells target list given the input gids
@@ -41,7 +47,6 @@ static void celldebug(const char* p, T& map) {
     for (const auto& m: map) {
         int gid = m.first;
         f << "  " << std::setw(2) << std::setfill('0') << gid << ":";
-        fprintf(f, " %2d", gid);
     }
     f << std::endl;
 }

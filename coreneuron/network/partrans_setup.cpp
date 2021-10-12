@@ -13,13 +13,14 @@
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/network/partrans.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
 
 namespace coreneuron {
 using namespace coreneuron::nrn_partrans;
 
-nrn_partrans::SetupTransferInfo* nrn_partrans::setup_info_;
+SetupTransferInfo* nrn_partrans::setup_info_;
 
 class SidInfo {
   public:

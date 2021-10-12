@@ -13,6 +13,7 @@
 #include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/permute/node_permute.h"
+#include "coreneuron/utils/utils.hpp"
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/io/mem_layout_util.hpp"
 #include "coreneuron/io/setup_fornetcon.hpp"
@@ -258,6 +259,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
     nodecounts = std::vector<int>(nodecounts_, nodecounts_ + n_mech);
     delete[] nodecounts_;
 
+    check_mechanism();
 
     // TODO: fix it in the future
     int n_data_padded = nrn_soa_padded_size(n_node, MATRIX_LAYOUT);
@@ -458,6 +460,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
         if (ml) {  // needs a NetReceiveBuffer
             NetReceiveBuffer_t* nrb =
                 (NetReceiveBuffer_t*) ecalloc_align(1, sizeof(NetReceiveBuffer_t));
+            assert(!ml->_net_receive_buffer);
             ml->_net_receive_buffer = nrb;
             nrb->_pnt_offset = pnt_offset[type];
 
@@ -467,7 +470,6 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
             nrb->_size = std::max(8, nrb->_size);
             // but not more than nodecount
             nrb->_size = std::min(ml->nodecount, nrb->_size);
-
             nrb->_pnt_index = (int*) ecalloc_align(nrb->_size, sizeof(int));
             nrb->_displ = (int*) ecalloc_align(nrb->_size + 1, sizeof(int));
             nrb->_nrb_index = (int*) ecalloc_align(nrb->_size, sizeof(int));
@@ -482,6 +484,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
         // Does this thread have this type.
         Memb_list* ml = ml_list[type];
         if (ml) {  // needs a NetSendBuffer
+            assert(!ml->_net_send_buffer);
             // begin with a size equal to twice number of instances
             NetSendBuffer_t* nsb = new NetSendBuffer_t(ml->nodecount * 2);
             ml->_net_send_buffer = nsb;

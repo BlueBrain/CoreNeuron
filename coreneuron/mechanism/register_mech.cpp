@@ -346,7 +346,6 @@ int point_register_mech(const char** m,
                         mod_f_t constructor,
                         mod_f_t destructor,
                         int vectorized) {
-    (void) constructor;
     const Symbol* s = m[1];
     register_mech(m, alloc, cur, jacob, stat, initialize, nrnpointerindex, vectorized);
     register_constructor(constructor);
@@ -426,4 +425,14 @@ void _nrn_setdata_reg(int i, void (*call)(double*, Datum*)) {
 
     corenrn.get_memb_func(i).setdata_ = call;
 }
+
+Memb_func::~Memb_func() {
+    if (sym != nullptr) {
+        free(sym);
+    }
+    if (dparam_semantics != nullptr) {
+        free(dparam_semantics);
+    }
+}
+
 }  // namespace coreneuron

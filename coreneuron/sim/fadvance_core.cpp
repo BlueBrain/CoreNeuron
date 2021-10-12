@@ -25,10 +25,8 @@
 #include "coreneuron/io/nrn2core_direct.h"
 
 namespace coreneuron {
-
-extern corenrn_parameters corenrn_param;
 static void* nrn_fixed_step_thread(NrnThread*);
-static void* nrn_fixed_step_group_thread(NrnThread*, int, int, int&);
+static void nrn_fixed_step_group_thread(NrnThread*, int, int, int&);
 
 
 namespace {
@@ -173,10 +171,10 @@ void nrn_fixed_step_group_minimal(int total_sim_steps) {
     t = nrn_threads[0]._t;
 }
 
-static void* nrn_fixed_step_group_thread(NrnThread* nth,
-                                         int step_group_max,
-                                         int step_group_begin,
-                                         int& step_group_end) {
+static void nrn_fixed_step_group_thread(NrnThread* nth,
+                                        int step_group_max,
+                                        int step_group_begin,
+                                        int& step_group_end) {
     nth->_stop_stepping = 0;
     for (int i = step_group_begin; i < step_group_max; ++i) {
         Instrumentor::phase p_timestep("timestep");
@@ -186,13 +184,12 @@ static void* nrn_fixed_step_group_thread(NrnThread* nth,
                 step_group_end = i + 1;
             }
             nth->_stop_stepping = 0;
-            return nullptr;
+            return;
         }
     }
     if (nth->id == 0) {
         step_group_end = step_group_max;
     }
-    return nullptr;
 }
 
 void update(NrnThread* _nt) {

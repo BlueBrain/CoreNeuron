@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <climits>
+#include <dlfcn.h>
 #include <memory>
 #include <vector>
 
@@ -45,6 +46,7 @@
 #include "coreneuron/io/file_utils.hpp"
 #include "coreneuron/io/nrn2core_direct.h"
 #include "coreneuron/io/core2nrn_data_return.hpp"
+#include "coreneuron/utils/utils.hpp"
 
 extern "C" {
 const char* corenrn_version() {
@@ -201,7 +203,7 @@ void nrn_init_and_load_data(int argc,
 
 // if multi-threading enabled, make sure mpi library supports it
 #if NRNMPI
-    if (corenrn_param.threading) {
+    if (corenrn_param.mpi_enable && corenrn_param.threading) {
         nrnmpi_check_threading_support();
     }
 #endif
@@ -448,6 +450,21 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
 
 using namespace coreneuron;
 
+#if NRNMPI
+#define STRINGIFY(x) #x
+#define TOSTRING(x)  STRINGIFY(x)
+static void* load_dynamic_mpi() {
+    dlerror();
+    void* handle = dlopen("libcorenrn_mpi" TOSTRING(CORENRN_SHARED_LIBRARY_SUFFIX),
+                          RTLD_NOW | RTLD_GLOBAL);
+    const char* error = dlerror();
+    if (error) {
+        std::string err_msg = std::string("Could not open dynamic MPI library: ") + error + "\n";
+        throw std::runtime_error(err_msg);
+    }
+    return handle;
+}
+#endif
 
 extern "C" void mk_mech_init(int argc, char** argv) {
     // read command line parameters and parameter config files
@@ -455,7 +472,13 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-        nrnmpi_init(&argc, &argv);
+#ifdef CORENRN_ENABLE_DYNAMIC_MPI
+        auto mpi_handle = load_dynamic_mpi();
+        mpi_manager().resolve_symbols(mpi_handle);
+#endif
+        auto ret = nrnmpi_init(&argc, &argv);
+        nrnmpi_numprocs = ret.numprocs;
+        nrnmpi_myid = ret.myid;
     }
 #endif
 
@@ -481,7 +504,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     std::vector<ReportConfiguration> configs;
     std::vector<std::unique_ptr<ReportHandler>> report_handlers;
-    std::string spikes_population_name;
+    std::vector<std::pair<std::string, int>> spikes_population_name_offset;
     bool reports_needs_finalize = false;
 
     if (!corenrn_param.is_quiet()) {
@@ -496,8 +519,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
     if (!corenrn_param.reportfilepath.empty()) {
         configs = create_report_configurations(corenrn_param.reportfilepath,
                                                corenrn_param.outpath,
-                                               spikes_population_name);
-        reports_needs_finalize = configs.size();
+                                               spikes_population_name_offset);
+        reports_needs_finalize = !configs.empty();
     }
 
     CheckPoints checkPoints{corenrn_param.checkpointpath, corenrn_param.restorepath};
@@ -514,7 +537,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
         mkdir_p(output_dir.c_str());
     }
 #if NRNMPI
-    nrnmpi_barrier();
+    if (corenrn_param.mpi_enable) {
+        nrnmpi_barrier();
+    }
 #endif
     bool compute_gpu = corenrn_param.gpu;
     bool skip_mpi_finalize = corenrn_param.skip_mpi_finalize;
@@ -592,7 +617,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
         }
 
         // Report global cell statistics
-        report_cell_stats();
+        if (!corenrn_param.is_quiet()) {
+            report_cell_stats();
+        }
 
         // prcellstate after end of solver
         call_prcellstate_for_prcellgid(corenrn_param.prcellgid, compute_gpu, 0);
@@ -601,7 +628,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     // write spike information to outpath
     {
         Instrumentor::phase p("output-spike");
-        output_spikes(output_dir.c_str(), spikes_population_name);
+        output_spikes(output_dir.c_str(), spikes_population_name_offset);
     }
 
     // copy weights back to NEURON NetCon
@@ -610,7 +637,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         update_weights_from_gpu(nrn_threads, nrn_nthread);
 
         // store weight pointers
-        std::vector<double*> weights(nrn_nthread, NULL);
+        std::vector<double*> weights(nrn_nthread, nullptr);
 
         // could be one thread more (empty) than in NEURON but does not matter
         for (int i = 0; i < nrn_nthread; ++i) {
@@ -644,7 +671,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
 // mpi finalize
 #if NRNMPI
-    if (!skip_mpi_finalize) {
+    if (corenrn_param.mpi_enable && !skip_mpi_finalize) {
         nrnmpi_finalize();
     }
 #endif
