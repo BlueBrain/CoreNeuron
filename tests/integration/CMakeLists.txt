@@ -16,7 +16,8 @@ if(CORENRN_ENABLE_MPI_DYNAMIC)
     return()
   else()
     set(CORENRN_MPI_LIB_ARG
-        "--corenrn-mpi-lib ${PROJECT_BINARY_DIR}/lib/libcorenrn_mpi${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        "--mpi-lib ${PROJECT_BINARY_DIR}/lib/lib${CORENRN_MPI_LIB_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
+    )
   endif()
 endif()
 

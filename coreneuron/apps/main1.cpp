@@ -83,11 +83,7 @@ void set_openmp_threads(int nthread) {
  * Convert char* containing arguments from neuron to char* argv[] for
  * coreneuron command line argument parser.
  */
-char* prepare_args(int& argc,
-                   char**& argv,
-                   int use_mpi,
-                   const char* corenrn_mpi_lib,
-                   const char* arg) {
+char* prepare_args(int& argc, char**& argv, int use_mpi, const char* mpi_lib, const char* arg) {
     // first construct all arguments as string
     std::string args(arg);
     args.insert(0, " coreneuron ");
@@ -97,11 +93,11 @@ char* prepare_args(int& argc,
     }
 
     // if neuron has passed name of MPI library then add it to CLI
-    std::string mpi_lib(corenrn_mpi_lib);
-    if (!mpi_lib.empty()) {
-        args.append(" --corenrn-mpi-lib ");
-        mpi_lib += " ";
-        args.append(mpi_lib);
+    std::string corenrn_mpi_lib(mpi_lib);
+    if (!corenrn_mpi_lib.empty()) {
+        args.append(" --mpi-lib ");
+        corenrn_mpi_lib += " ";
+        args.append(corenrn_mpi_lib);
     }
 
     // we can't modify string with strtok, make copy
@@ -486,19 +482,19 @@ extern "C" void mk_mech_init(int argc, char** argv) {
     if (corenrn_param.mpi_enable) {
 #ifdef CORENRN_ENABLE_MPI_DYNAMIC
         // coreneuron rely on neuron to detect mpi library distribution and
-        // the name of library itself. Make sure the library name is specified
+        // the name of the library itself. Make sure the library name is specified
         // via CLI option.
-        if (corenrn_param.corenrn_mpi_lib.empty()) {
+        if (corenrn_param.mpi_lib.empty()) {
             throw std::runtime_error(
-                "For dynamic MPI support you must pass '--corenrn-mpi-lib "
-                "/path/libcorenrnmpi_<name>.<suffix>` argument\n");
+                "For dynamic MPI support you must pass '--mpi-lib "
+                "/path/libcorenrnmpi_<name>.<suffix>` argument!\n");
         }
 
         // neuron can call coreneuron multiple times and hence we do not
         // want to initialize/load mpi library multiple times
         static bool mpi_lib_loaded = false;
         if (!mpi_lib_loaded) {
-            auto mpi_handle = load_dynamic_mpi(corenrn_param.corenrn_mpi_lib);
+            auto mpi_handle = load_dynamic_mpi(corenrn_param.mpi_lib);
             mpi_manager().resolve_symbols(mpi_handle);
             mpi_lib_loaded = true;
         }

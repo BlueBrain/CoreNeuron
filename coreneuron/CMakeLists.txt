@@ -168,12 +168,17 @@ add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 # create libraries
 # =============================================================================
 
+# name of coreneuron mpi objects or dynamic library
+set(CORENRN_MPI_LIB_NAME
+    "corenrn_mpi"
+    CACHE INTERNAL "")
+
 # for non-dynamic mpi mode just build object files
 if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
-  add_library(corenrn_mpi OBJECT ${MPI_LIB_FILES})
-  target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
-  set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
-  set(CORENRN_MPI_OBJ $<TARGET_OBJECTS:corenrn_mpi>)
+  add_library(${CORENRN_MPI_LIB_NAME} OBJECT ${MPI_LIB_FILES})
+  target_include_directories(${CORENRN_MPI_LIB_NAME} PRIVATE ${MPI_INCLUDE_PATH})
+  set_property(TARGET ${CORENRN_MPI_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set(CORENRN_MPI_OBJ $<TARGET_OBJECTS:${CORENRN_MPI_LIB_NAME}>)
 endif()
 
 # main coreneuron library
@@ -210,21 +215,24 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   # if coreneuron is built as a submodule of neuron then check if NEURON has created
   # list of libraries that needs to be built. We use neuron cmake variables here because
   # we don't need to duplicate CMake code into coreneuron (we want to have unified cmake
-  # project soon). In the absense of neuron just build a single library corenrn_mpi.
-  # This is mostly used for the testing. Should this be removed and make dynamic mpi
-  # only usable via neuron build?
+  # project soon). In the absense of neuron just build a single library libcorenrn_mpi.
+  # This is mostly used for the testing.
   # ~~~
   if(NOT CORENEURON_AS_SUBPROJECT)
-    add_library(corenrn_mpi SHARED ${MPI_LIB_FILES})
-    target_link_libraries(corenrn_mpi ${MPI_CXX_LIBRARIES})
-    target_include_directories(corenrn_mpi PRIVATE ${MPI_INCLUDE_PATH})
-    set_property(TARGET corenrn_mpi PROPERTY POSITION_INDEPENDENT_CODE ON)
-    list(APPEND corenrn_mpi_targets "corenrn_mpi")
+    add_library(${CORENRN_MPI_LIB_NAME} SHARED ${MPI_LIB_FILES})
+    target_link_libraries(${CORENRN_MPI_LIB_NAME} ${MPI_CXX_LIBRARIES})
+    target_include_directories(${CORENRN_MPI_LIB_NAME} PRIVATE ${MPI_INCLUDE_PATH})
+    set_property(TARGET ${CORENRN_MPI_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    list(APPEND corenrn_mpi_targets ${CORENRN_MPI_LIB_NAME})
   else()
     # ~~~
     # from neuron we know how many different libraries needs to be built, their names
     # include paths to be used for building shared libraries. Iterate through those
-    # and build separate library for each MPI distribution.
+    # and build separate library for each MPI distribution. For example, following
+    # libraries are created:
+    # - libcorenrn_mpich.so
+    # - libcorenrn_ompi.so
+    # - libcorenrn_mpt.so
     # ~~~
     list(LENGTH NRN_MPI_LIBNAME_LIST _num_mpi)
     math(EXPR num_mpi "${_num_mpi} - 1")
