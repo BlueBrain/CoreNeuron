@@ -4,7 +4,23 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 
-set(COMMON_ARGS "--tstop 100. --celsius 6.3 --mpi")
+if(CORENRN_ENABLE_MPI_DYNAMIC)
+  # ~~~
+  # In case of submodule building we don't know the MPI launcher and mpi
+  # distribution being used. So for now just skip these tests and rely on
+  # neuron to test dynamic mpi mode. For coreneuron build assume are just
+  # building single generic mpi library libcorenrn_mpi.<suffix>
+  # ~~~
+  if(CORENEURON_AS_SUBPROJECT)
+    message(INFO "CoreNEURON integration tests are disabled with dynamic MPI")
+    return()
+  else()
+    set(CORENRN_MPI_LIB_ARG
+        "--corenrn-mpi-lib ${PROJECT_BINARY_DIR}/lib/libcorenrn_mpi${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  endif()
+endif()
+
+set(COMMON_ARGS "--tstop 100. --celsius 6.3 --mpi ${CORENRN_MPI_LIB_ARG}")
 set(MODEL_STATS_ARG "--model-stats")
 set(RING_DATASET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ring")
 set(RING_COMMON_ARGS "--datpath ${RING_DATASET_DIR} ${COMMON_ARGS}")
@@ -148,11 +164,4 @@ if(CORENRN_ENABLE_REPORTING)
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
     list(APPEND CORENRN_TEST_NAMES ${SIM_NAME})
   endforeach()
-endif()
-
-# DYLD_LIBRARY_PATH.LD_LIBRARY_PATH for dynamic MPI build
-if(CORENRN_ENABLE_MPI_DYNAMIC)
-  set(TEST_ENV LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}
-               DYLD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/lib:$ENV{DYLD_LIBRARY_PATH})
-  set_tests_properties(${CORENRN_TEST_NAMES} PROPERTIES ENVIRONMENT "${TEST_ENV}")
 endif()

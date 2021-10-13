@@ -52,6 +52,7 @@ struct corenrn_parameters {
     int seed = -1;  /// Initialization seed for random number generator (int)
 
     bool mpi_enable = false;         /// Enable MPI flag.
+    std::string corenrn_mpi_lib;     /// Name of CoreNEURON MPI library to load dynamically.
     bool skip_mpi_finalize = false;  /// Skip MPI finalization
     bool multisend = false;          /// Use Multisend spike exchange instead of Allgather.
     bool threading = false;          /// Enable pthread/openmp
