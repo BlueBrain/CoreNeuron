@@ -500,7 +500,7 @@ message(STATUS "MPI                 | ${CORENRN_ENABLE_MPI}")
 if(CORENRN_ENABLE_MPI)
   message(STATUS "  INC               | ${MPI_CXX_INCLUDE_PATH}")
   message(STATUS "  DYNAMIC           | ${CORENRN_ENABLE_MPI_DYNAMIC}")
-  if(CORENRN_ENABLE_MPI_DYNAMIC)
+  if(CORENRN_ENABLE_MPI_DYNAMIC AND NRN_MPI_LIBNAME_LIST)
     # ~~~
     # for dynamic mpi, rely on neuron for list of libraries to build
     # this is to avoid cmake code duplication on the coreneuron side
