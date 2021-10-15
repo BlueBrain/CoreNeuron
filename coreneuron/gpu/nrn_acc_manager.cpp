@@ -1327,10 +1327,12 @@ void init_gpu() {
     // multiple threads within the node will use same device.
     int local_rank = 0;
     int local_size = 1;
+#if NRNMPI
     if (corenrn_param.mpi_enable) {
         local_rank = nrnmpi_local_rank();
         local_size = nrnmpi_local_size();
     }
+#endif
 
     int device_num = local_rank % num_devices;
     acc_set_device_num(device_num, device_type);
