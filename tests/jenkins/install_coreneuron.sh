@@ -31,7 +31,6 @@ echo "${CORENRN_TYPE} build"
 if [ "${CORENRN_TYPE}" = "GPU-non-unified" ]; then
     cmake \
         -DCORENRN_ENABLE_GPU=ON \
-        -DCORENRN_ENABLE_MPI=OFF \
         -DCMAKE_CUDA_COMPILER=nvcc \
         -DCORENRN_ENABLE_CUDA_UNIFIED_MEMORY=OFF \
         -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_${CORENRN_TYPE}/ \
@@ -43,7 +42,6 @@ if [ "${CORENRN_TYPE}" = "GPU-non-unified" ]; then
 elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
     cmake \
         -DCORENRN_ENABLE_GPU=ON \
-        -DCORENRN_ENABLE_MPI=OFF \
         -DCMAKE_CUDA_COMPILER=nvcc \
         -DCORENRN_ENABLE_CUDA_UNIFIED_MEMORY=ON \
         -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_${CORENRN_TYPE}/ \
