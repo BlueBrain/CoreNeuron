@@ -1316,11 +1316,15 @@ void init_gpu() {
     acc_device_t device_type = acc_device_nvidia;
 
     // check how many gpu devices available
-    int num_devices = acc_get_num_devices(device_type);
+    unsigned num_devices = acc_get_num_devices(device_type);
 
     // if no gpu found, can't run on GPU
     if (num_devices == 0) {
         nrn_fatal_error("\n ERROR : Enabled GPU execution but couldn't find NVIDIA GPU! \n");
+    }
+
+    if (corenrn_param.num_gpus != 0) {
+        num_devices = std::min(corenrn_param.num_gpus, num_devices);
     }
 
     // get local rank within a node and assign specific gpu gpu for this node.
@@ -1335,9 +1339,6 @@ void init_gpu() {
 #endif
 
     int device_num = local_rank % num_devices;
-    if (corenrn_param.acc_device_num != -1) {
-        device_num = std::min(corenrn_param.acc_device_num, device_num);
-    }
     acc_set_device_num(device_num, device_type);
 
     if (nrnmpi_myid == 0) {
