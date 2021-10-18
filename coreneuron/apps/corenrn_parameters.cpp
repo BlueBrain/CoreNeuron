@@ -55,6 +55,10 @@ corenrn_parameters::corenrn_parameters() {
     sub_gpu->add_flag("--cuda-interface",
                       this->cuda_interface,
                       "Activate CUDA branch of the code.");
+    sub_gpu->add_option("-n, --acc-device-num",
+                        this->acc_device_num,
+                        "Number of device to use with acc.",
+                        -1);
 
     auto sub_input = app.add_option_group("input", "Input dataset options.");
     sub_input->add_option("-d, --datpath", this->datpath, "Path containing CoreNeuron data files.")

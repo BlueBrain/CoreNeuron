@@ -1335,6 +1335,9 @@ void init_gpu() {
 #endif
 
     int device_num = local_rank % num_devices;
+    if (corenrn_param.acc_device_num != -1) {
+        device_num = std::min(corenrn_param.acc_device_num, device_num);
+    }
     acc_set_device_num(device_num, device_type);
 
     if (nrnmpi_myid == 0) {
