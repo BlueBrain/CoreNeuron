@@ -9,6 +9,8 @@
 #pragma once
 
 #include <utility>
+#include "coreneuron/mpi/nrnmpi.h"
+#include "coreneuron/mpi/core/nrnmpi.hpp"
 
 namespace coreneuron {
 extern void nrn_abort(int errcode);
