@@ -311,7 +311,7 @@ add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 
 if(CORENRN_ENABLE_GPU)
-  separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${CORENRN_ACC_FLAGS}")
+  separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
   target_compile_options(coreneuron PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
   target_compile_options(scopmath PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
 endif()
