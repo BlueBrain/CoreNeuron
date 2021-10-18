@@ -93,7 +93,7 @@ char* prepare_args(int& argc, char**& argv, int use_mpi, const char* mpi_lib, co
     }
 
     // if neuron has passed name of MPI library then add it to CLI
-    std::string corenrn_mpi_lib(mpi_lib);
+    std::string corenrn_mpi_lib{mpi_lib};
     if (!corenrn_mpi_lib.empty()) {
         args.append(" --mpi-lib ");
         corenrn_mpi_lib += " ";

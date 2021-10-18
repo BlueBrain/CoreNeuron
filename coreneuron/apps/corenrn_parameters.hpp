@@ -52,7 +52,6 @@ struct corenrn_parameters {
     int seed = -1;  /// Initialization seed for random number generator (int)
 
     bool mpi_enable = false;         /// Enable MPI flag.
-    std::string mpi_lib;             /// Name of CoreNEURON MPI library to load dynamically.
     bool skip_mpi_finalize = false;  /// Skip MPI finalization
     bool multisend = false;          /// Use Multisend spike exchange instead of Allgather.
     bool threading = false;          /// Enable pthread/openmp
@@ -86,6 +85,7 @@ struct corenrn_parameters {
     std::string reportfilepath;          /// Reports configuration file.
     std::string checkpointpath;  /// Enable checkpoint and specify directory to store related files.
     std::string writeParametersFilepath;  /// Write parameters to this file
+    std::string mpi_lib;                  /// Name of CoreNEURON MPI library to load dynamically.
 
     CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."};  /// CLI app that performs
                                                                           /// CLI parsing

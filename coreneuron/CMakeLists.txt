@@ -205,8 +205,6 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   # and should be aware of shared library suffix on different platforms.
   # ~~~
   target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
-  target_compile_definitions(coreneuron
-                             PUBLIC CORENRN_SHARED_LIBRARY_SUFFIX=${CMAKE_SHARED_LIBRARY_SUFFIX})
 
   # store mpi library targets that will be built
   list(APPEND corenrn_mpi_targets "")
@@ -312,8 +310,8 @@ include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 
 if(CORENRN_ENABLE_GPU)
   separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
-  target_compile_options(coreneuron PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
-  target_compile_options(scopmath PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
+  target_compile_options(coreneuron BEFORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
+  target_compile_options(scopmath BEFORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
 endif()
 
 # =============================================================================
