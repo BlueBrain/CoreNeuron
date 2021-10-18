@@ -1316,18 +1316,20 @@ void init_gpu() {
     acc_device_t device_type = acc_device_nvidia;
 
     // check how many gpu devices available per node
-    int num_devices = acc_get_num_devices(device_type);
+    int num_devices_per_node = acc_get_num_devices(device_type);
 
     // if no gpu found, can't run on GPU
-    if (num_devices == 0) {
-        nrn_fatal_error("\n ERROR : Enabled GPU execution but couldn't find NVIDIA GPU! \n");
+    if (num_devices_per_node == 0) {
+        nrn_fatal_error("\n ERROR : Enabled GPU execution but couldn't find NVIDIA GPU!\n");
     }
 
     if (corenrn_param.num_gpus != 0) {
-        if (corenrn_param.num_gpus > num_devices) {
-            std::cout << "Warning: asking for '" << corenrn_param.num_gpus << "' but only '" << num_devices << "' available.";
+        if (corenrn_param.num_gpus > num_devices_per_node) {
+            nrn_fatal_error("Warning: asking for '%d' but only '%d' available\n",
+                            corenrn_param.num_gpus,
+                            num_devices_per_node);
         } else {
-            num_devices = corenrn_param.num_gpus;
+            num_devices_per_node = corenrn_param.num_gpus;
         }
     }
 
@@ -1342,11 +1344,11 @@ void init_gpu() {
     }
 #endif
 
-    int device_num = local_rank % num_devices;
+    int device_num = local_rank % num_devices_per_node;
     acc_set_device_num(device_num, device_type);
 
     if (nrnmpi_myid == 0) {
-        std::cout << " Info : " << num_devices << " GPUs shared by " << local_size
+        std::cout << " Info : " << num_devices_per_node << " GPUs shared by " << local_size
                   << " ranks per node\n";
     }
 }

@@ -16,13 +16,6 @@ void nrn_abort(int errcode) {
     }
 }
 
-void nrn_fatal_error(const char* msg) {
-    if (nrnmpi_myid == 0) {
-        printf("%s\n", msg);
-    }
-    nrn_abort(-1);
-}
-
 double nrn_wtime() {
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
