@@ -245,21 +245,29 @@ static void nrn2core_tqueue() {
                     } break;
 
                     case 4: {  // PreSyn
-                        int ps_index = ncte->intdata[idat++];
+                        int output_index = ncte->intdata[idat++];
+                        if (output_index >= 0) {  // CoreNEURON PreSyn
+                            int ps_index = ncte->intdata[idat++];
 #if CORENRN_DEBUG_QUEUE
-                        printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g PreSyn %d\n",
-                               tid,
-                               i,
-                               ncte->type[i],
-                               ncte->td[i],
-                               ps_index);
+                            printf("nrn2core_tqueue tid=%d i=%zd type=%d tdeliver=%g PreSyn %d\n",
+                                   tid,
+                                   i,
+                                   ncte->type[i],
+                                   ncte->td[i],
+                                   ps_index);
 #endif
-                        PreSyn* ps = nt.presyns + ps_index;
-                        int gid = ps->output_index_;
-                        // Following assumes already sent to other machines.
-                        ps->output_index_ = -1;
-                        ps->send(ncte->td[i], net_cvode_instance, &nt);
-                        ps->output_index_ = gid;
+                            PreSyn* ps = nt.presyns + ps_index;
+                            int gid = ps->output_index_;
+                            assert(gid == output_index);
+                            // Following assumes already sent to other machines.
+                            ps->output_index_ = -1;
+                            ps->send(ncte->td[i], net_cvode_instance, &nt);
+                            ps->output_index_ = gid;
+                        } else {  // CoreNEURON InputPreSyn
+                            int gid = ncte->intdata[idat++];
+                            InputPreSyn* ps = gid2in[gid];
+                            ps->send(ncte->td[i], net_cvode_instance, &nt);
+                        }
                     } break;
 
                     case 6: {  // PlayRecordEvent
