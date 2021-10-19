@@ -1325,7 +1325,7 @@ void init_gpu() {
 
     if (corenrn_param.num_gpus != 0) {
         if (corenrn_param.num_gpus > num_devices_per_node) {
-            nrn_fatal_error("Warning: asking for '%d' GPUs per node but only '%d' available\n",
+            nrn_fatal_error("Fatal error: asking for '%d' GPUs per node but only '%d' available\n",
                             corenrn_param.num_gpus,
                             num_devices_per_node);
         } else {
