@@ -13,6 +13,7 @@
 #include "coreneuron/mpi/nrnmpidec.h"
 #include "nrnmpi.hpp"
 #include "coreneuron/utils/profile/profiler_interface.h"
+#include "coreneuron/utils/nrn_assert.h"
 
 #include <mpi.h>
 
@@ -86,6 +87,7 @@ int nrnmpi_spike_exchange_impl(int* nin,
                                int nout,
                                NRNMPI_Spikebuf* spbufout,
                                NRNMPI_Spikebuf* spbufin) {
+    nrn_assert(spikein);
     Instrumentor::phase_begin("spike-exchange");
 
     {
