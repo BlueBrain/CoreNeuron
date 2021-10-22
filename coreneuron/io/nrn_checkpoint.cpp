@@ -477,7 +477,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
             icnt = ml_pinv[mtype][icnt];
         }
         ix = nrn_i_layout(
-            icnt, ml->nodecount, isz, corenrn.get_prop_param_size()[mtype], 1 /*AOS_LAYOUT*/);
+            icnt, ml->nodecount, isz, corenrn.get_prop_param_size()[mtype], AOS_LAYOUT);
 
         fh << vtype << "\n";
         fh << mtype << "\n";
@@ -603,10 +603,6 @@ void CheckPoints::data_write(FileHandler& F, T* data, int cnt, int sz, int layou
 NrnThreadChkpnt* nrnthread_chkpnt;
 
 int patstimtype;
-
-#ifndef LAYOUT
-#define LAYOUT 1
-#endif
 
 void CheckPoints::write_tqueue(TQItem* q, NrnThread& nt, FileHandler& fh) const {
     DiscreteEvent* d = (DiscreteEvent*) q->data_;

@@ -266,12 +266,6 @@ void nrn_init_and_load_data(int argc,
     cellorder_nwarp = corenrn_param.nwarp;
     use_solve_interleave = corenrn_param.cell_interleave_permute;
 
-#if LAYOUT == 1
-    // permuting not allowed for AoS
-    interleave_permute_type = 0;
-    use_solve_interleave = false;
-#endif
-
     if (corenrn_param.gpu && interleave_permute_type == 0) {
         if (nrnmpi_myid == 0) {
             printf(
