@@ -31,10 +31,10 @@
 // clang-format on
 
 #if !defined(LAYOUT)
-/* 1 means AoS, >1 means AoSoA, <= 0 means SOA */
+/* 1 means AoS, <= 0 means SOA */
 #define LAYOUT 1
 #endif
-#if LAYOUT >= 1
+#if LAYOUT == 1
 #define _STRIDE LAYOUT
 #else
 #define _STRIDE _cntml_padded + _iml

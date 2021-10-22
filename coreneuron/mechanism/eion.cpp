@@ -17,10 +17,10 @@
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 #if !defined(LAYOUT)
-/* 1 means AoS, >1 means AoSoA, <= 0 means SOA */
+/* 1 means AoS, <= 0 means SOA */
 #define LAYOUT 1
 #endif
-#if LAYOUT >= 1
+#if LAYOUT == 1
 #define _STRIDE LAYOUT
 #else
 #define _STRIDE _cntml_padded + _iml
@@ -304,8 +304,6 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
     ppd = ml->pdata;
     _PRAGMA_FOR_CUR_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
-#else
-#error AoSoA not implemented.
 #endif
         dcurdv = 0.;
         cur = 0.;
@@ -342,8 +340,6 @@ void nrn_init_ion(NrnThread* nt, Memb_list* ml, int type) {
     ppd = ml->pdata;
     _PRAGMA_FOR_INIT_ACC_LOOP_
     for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
-#else
-#error AoSoA not implemented.
 #endif
         if (iontype & 04) {
             conci = conci0;
@@ -386,8 +382,6 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
                 pd = ml->data;
                 _PRAGMA_FOR_SEC_ORDER_CUR_ACC_LOOP_
                 for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
-#else
-#error AoSoA not implemented.
 #endif
                     cur += dcurdv * (_vec_rhs[ni[_iml]]);
                 }
