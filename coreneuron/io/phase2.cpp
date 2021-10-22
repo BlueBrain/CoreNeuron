@@ -12,6 +12,7 @@
 #include "coreneuron/io/nrn_checkpoint.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 #include "coreneuron/permute/cellorder.hpp"
+#include "coreneuron/permute/data_layout.hpp"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/utils/utils.hpp"
 #include "coreneuron/utils/vrecitem.h"

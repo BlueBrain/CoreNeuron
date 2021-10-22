@@ -14,6 +14,7 @@
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/mechanism/membfunc.hpp"
+#include "coreneuron/permute/data_layout.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 #define _STRIDE _cntml_padded + _iml
@@ -205,9 +206,9 @@ void nrn_wrote_conc(int type,
                     int _cntml_padded) {
     if (it & 040) {
         int _iml = 0;
-/* passing _nt to this function causes cray compiler to segfault during compilation
- * hence passing _cntml_padded
- */
+        /* passing _nt to this function causes cray compiler to segfault during compilation
+         * hence passing _cntml_padded
+         */
         double* pe = p1 - p2 * _STRIDE;
         pe[0] = nrn_nernst(pe[1 * _STRIDE], pe[2 * _STRIDE], gimap[type][2], celsius);
     }
@@ -279,7 +280,7 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
 #if defined(_OPENACC)
     int stream_id = nt->stream_id;
 #endif
-/*printf("ion_cur %s\n", memb_func[type].sym->name);*/
+    /*printf("ion_cur %s\n", memb_func[type].sym->name);*/
     int _cntml_padded = ml->_nodecount_padded;
     pd = ml->data;
     ppd = ml->pdata;
@@ -307,7 +308,7 @@ void nrn_init_ion(NrnThread* nt, Memb_list* ml, int type) {
         return;
     }
 
-/*printf("ion_init %s\n", memb_func[type].sym->name);*/
+    /*printf("ion_init %s\n", memb_func[type].sym->name);*/
     int _cntml_padded = ml->_nodecount_padded;
     pd = ml->data;
     ppd = ml->pdata;

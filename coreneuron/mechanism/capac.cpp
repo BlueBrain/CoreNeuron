@@ -10,6 +10,7 @@
 */
 
 #include "coreneuron/coreneuron.hpp"
+#include "coreneuron/permute/data_layout.hpp"
 
 // clang-format off
 

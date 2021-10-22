@@ -20,6 +20,7 @@
 #include "coreneuron/utils/vrecitem.h"
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/io/file_utils.hpp"
+#include "coreneuron/permute/data_layout.hpp"
 #include "coreneuron/permute/node_permute.h"
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
