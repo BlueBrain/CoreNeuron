@@ -266,6 +266,8 @@ if(CORENRN_ENABLE_OPENMP)
   endif()
 endif()
 
+add_definitions("-DLAYOUT=0")
+
 if(NOT CORENRN_ENABLE_HOC_EXP)
   add_definitions("-DDISABLE_HOC_EXP")
 endif()
