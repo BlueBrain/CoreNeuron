@@ -454,7 +454,7 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
 
 using namespace coreneuron;
 
-#if NRNMPI and defined CORENRN_ENABLE_MPI_DYNAMIC
+#if NRNMPI && defined CORENRN_ENABLE_MPI_DYNAMIC
 static void* load_dynamic_mpi(const std::string& libname) {
     dlerror();
     void* handle = dlopen(libname.c_str(), RTLD_NOW | RTLD_GLOBAL);
