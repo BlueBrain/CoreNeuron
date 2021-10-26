@@ -50,7 +50,7 @@ elif [ "${CORENRN_TYPE}" = "GPU-unified" ]; then
         -DAUTO_TEST_WITH_SLURM=OFF \
         -DAUTO_TEST_WITH_MPIEXEC=OFF \
         $WORKSPACE/
-else
+elif [ "${CORENRN_TYPE}" = "non-gpu" ]; then
     ENABLE_OPENMP=ON
     cmake  \
       -G 'Unix Makefiles'  \
