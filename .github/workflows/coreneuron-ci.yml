@@ -142,7 +142,7 @@ jobs:
       # To enable it, you have to:
       #   * add 'live-debug-ci' to your PR title
       #   * push something to your PR branch (note that just re-running the pipeline disregards the title update)
-      - name: live debug session on failure (manual steps required, check `.github/docs.yml`)
+      - name: live debug session on failure (manual steps required, check `.github/workflows/coreneuron-ci.yml`)
         if: failure() && contains(github.event.pull_request.title, 'live-debug-ci')
         uses: mxschmitt/action-tmate@v3
 
