@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <unordered_map>
 
 namespace coreneuron {
 
@@ -153,6 +154,12 @@ struct NrnThreadMappingInfo {
     /** list of cells mapping */
     std::vector<CellMapping*> mappingvec;
 
+    /** list of segment ids */
+    std::vector<int> segment_ids;
+
+    /** map containing segment ids an its respective lfp factors */
+    std::unordered_map<int, double> lfp_factors;
+
     /** @brief number of cells */
     size_t size() const {
         return mappingvec.size();
@@ -180,6 +187,16 @@ struct NrnThreadMappingInfo {
     /** @brief add mapping information of new cell */
     void add_cell_mapping(CellMapping* c) {
         mappingvec.push_back(c);
+    }
+
+    /** @brief add a new segment */
+    void add_segment_id(const int segment_id) {
+        segment_ids.push_back(segment_id);
+    }
+
+    /** @brief add the lfp factor of a segment_id */
+    void add_segment_lfp_factor(const int segment_id, double factor) {
+        lfp_factors.insert({segment_id, factor});
     }
 };
 }  // namespace coreneuron
