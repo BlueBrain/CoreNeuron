@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/io/nrnsection_mapping.hpp"
 
 namespace coreneuron {
 /** Encapsulate low-level reading of coreneuron input data files.
@@ -110,7 +111,7 @@ class FileHandler {
      * Read count no of mappings for section to segment
      */
     template <typename T>
-    int read_mapping_info(T* mapinfo) {
+    int read_mapping_info(T* mapinfo, NrnThreadMappingInfo* ntmapping) {
         int nsec, nseg, n_scan;
         char line_buf[max_line_length], name[max_line_length];
 
@@ -123,14 +124,19 @@ class FileHandler {
 
         if (nseg) {
             std::vector<int> sec, seg;
+            std::vector<double> lfp_factors;
             sec.reserve(nseg);
             seg.reserve(nseg);
+            lfp_factors.reserve(nseg);
 
             read_array<int>(&sec[0], nseg);
             read_array<int>(&seg[0], nseg);
+            read_array<double>(&lfp_factors[0], nseg);
 
             for (int i = 0; i < nseg; i++) {
                 mapinfo->add_segment(sec[i], seg[i]);
+                ntmapping->add_segment_id(seg[i]);
+                ntmapping->add_segment_lfp_factor(seg[i], lfp_factors[i]);
             }
         }
         return nseg;
