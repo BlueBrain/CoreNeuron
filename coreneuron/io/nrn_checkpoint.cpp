@@ -33,8 +33,7 @@ extern void checkpoint_restore_patternstim(int, double, _threadargsproto_);
 
 CheckPoints::CheckPoints(const std::string& save, const std::string& restore)
     : save_(save)
-    , restore_(restore)
-    , restored(false) {
+    , restore_(restore) {
     if (!save.empty()) {
         if (nrnmpi_myid == 0) {
             mkdir_p(save.c_str());
@@ -48,13 +47,7 @@ double CheckPoints::restore_time() const {
         return 0.;
     }
 
-    double rtime = 0.;
-    FileHandler f;
-    std::string filename = restore_ + "/time.dat";
-    f.open(filename, std::ios::in);
-    f.read_array(&rtime, 1);
-    f.close();
-    return rtime;
+    return FileHandler{restore_ + "/time.dat"}.read_vector<double>(1)[0];
 }
 
 void CheckPoints::write_checkpoint(NrnThread* nt, int nb_threads) const {
@@ -97,12 +90,9 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
     fh.open(filename, std::ios::out);
     fh.checkpoint(2);
 
-    int n_outputgid = 0;  // calculate PreSyn with gid >= 0
-    for (int i = 0; i < nt.n_presyn; ++i) {
-        if (nt.presyns[i].gid_ >= 0) {
-            ++n_outputgid;
-        }
-    }
+    int n_outputgid = std::count_if(nt.presyns, nt.presyns + nt.n_presyn, [](const auto& e) {
+        return e.gid_ >= 0;
+    });  // calculate PreSyn with gid >= 0
 
     fh << n_outputgid << " ngid\n";
 #if CHKPNTDEBUG
@@ -139,7 +129,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
     // see comment about parent in node_permute.cpp
     int* pinv_nt = nullptr;
     if (nt._permute) {
-        std::vector<int> d(nt.end, 0); // really value should be -1
+        std::vector<int> d(nt.end, 0);  // really value should be -1
         pinv_nt = inverse_permute(nt._permute, nt.end);
         for (int i = 0; i < nt.end; ++i) {
             int x = nt._v_parent_index[nt._permute[i]];
@@ -585,7 +575,8 @@ std::vector<T> CheckPoints::soa2aos(T* data, int cnt, int sz, int layout, int* p
 }
 
 template <typename T>
-void CheckPoints::data_write(FileHandler& F, T* data, int cnt, int sz, int layout, int* permute) const {
+void CheckPoints::data_write(FileHandler& F, T* data, int cnt, int sz, int layout, int* permute)
+    const {
     auto d = soa2aos(data, cnt, sz, layout, permute);
     F.write_vector<T>(d);
 }

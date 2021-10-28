@@ -41,7 +41,7 @@ class CheckPoints {
   private:
     const std::string save_;
     const std::string restore_;
-    bool restored;
+    bool restored = false;
     int patstim_index;
     double patstim_te;
 
