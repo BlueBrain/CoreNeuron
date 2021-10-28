@@ -1,5 +1,6 @@
 #include <sys/time.h>
 #include "utils.hpp"
+#include "coreneuron/mpi/nrnmpi.h"
 #include "coreneuron/apps/corenrn_parameters.hpp"
 
 namespace coreneuron {

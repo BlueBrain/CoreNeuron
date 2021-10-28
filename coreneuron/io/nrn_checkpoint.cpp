@@ -139,14 +139,12 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
     // see comment about parent in node_permute.cpp
     int* pinv_nt = nullptr;
     if (nt._permute) {
-        int* d = new int[nt.end];
+        std::vector<int> d(nt.end, 0); // really value should be -1
         pinv_nt = inverse_permute(nt._permute, nt.end);
         for (int i = 0; i < nt.end; ++i) {
             int x = nt._v_parent_index[nt._permute[i]];
             if (x >= 0) {
                 d[i] = pinv_nt[x];
-            } else {
-                d[i] = 0;  // really should be -1;
             }
         }
 #if CHKPNTDEBUG
@@ -154,8 +152,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
             assert(d[i] == ntc.parent[i]);
         }
 #endif
-        fh.write_array<int>(d, nt.end);
-        delete[] d;
+        fh.write_vector<int>(d);
     } else {
 #if CHKPNTDEBUG
         for (int i = 0; i < nt.end; ++i) {
@@ -169,8 +166,8 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
         }
     }
 
-    data_write(fh, nt._actual_a, nt.end, 1, 0, nt._permute);
-    data_write(fh, nt._actual_b, nt.end, 1, 0, nt._permute);
+    data_write(fh, nt._actual_a, nt.end, 1, SOA_LAYOUT, nt._permute);
+    data_write(fh, nt._actual_b, nt.end, 1, SOA_LAYOUT, nt._permute);
 
 #if CHKPNTDEBUG
     for (int i = 0; i < nt.end; ++i) {
@@ -178,11 +175,11 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
     }
 #endif
 
-    data_write(fh, nt._actual_area, nt.end, 1, 0, nt._permute);
-    data_write(fh, nt._actual_v, nt.end, 1, 0, nt._permute);
+    data_write(fh, nt._actual_area, nt.end, 1, SOA_LAYOUT, nt._permute);
+    data_write(fh, nt._actual_v, nt.end, 1, SOA_LAYOUT, nt._permute);
 
     if (nt._actual_diam) {
-        data_write(fh, nt._actual_diam, nt.end, 1, 0, nt._permute);
+        data_write(fh, nt._actual_diam, nt.end, 1, SOA_LAYOUT, nt._permute);
     }
 
     auto& memb_func = corenrn.get_memb_funcs();
@@ -210,21 +207,20 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
             // i.e. according to comment in node_permute.cpp
             // nodelist[p_m[i]] = p[nodelist_original[i]
             // so pinv[nodelist[p_m[i]] = nodelist_original[i]
-            int* nd_ix = new int[cnt];
+            std::vector<int> nd_ix(cnt);
             for (int i = 0; i < cnt; ++i) {
                 int ip = ml->_permute ? ml->_permute[i] : i;
                 int ipval = ml->nodeindices[ip];
                 nd_ix[i] = pinv_nt[ipval];
             }
-            fh.write_array<int>(nd_ix, cnt);
-            delete[] nd_ix;
+            fh.write_vector<int>(nd_ix);
         }
 
         data_write(fh, ml->data, cnt, sz, layout, ml->_permute);
 
         sz = nrn_prop_dparam_size_[type];
         if (sz) {
-            int* d = soa2aos(ml->pdata, cnt, sz, layout, ml->_permute);
+            auto d = soa2aos(ml->pdata, cnt, sz, layout, ml->_permute);
             // need to update some values according to Datum semantics.
             if (!nrn_is_artificial_[type])
                 for (int i_instance = 0; i_instance < cnt; ++i_instance) {
@@ -273,46 +269,46 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
 #endif
                     }
                 }
-            fh.write_array<int>(d, cnt * sz);
-            delete[] d;
+            fh.write_vector<int>(d);
         }
     }
 
     int nnetcon = nt.n_netcon;
 
-    int* output_vindex = new int[nt.n_presyn];
-    double* output_threshold = new double[nt.ncell];
-    for (int i = 0; i < nt.n_presyn; ++i) {
-        PreSyn* ps = nt.presyns + i;
-        if (ps->thvar_index_ >= 0) {
-            // real cell and index into (permuted) actual_v
-            // if any assert fails in this loop then we have faulty understanding
-            // of the for (int i = 0; i < nt.n_presyn; ++i) loop in nrn_setup.cpp
-            assert(ps->thvar_index_ < nt.end);
-            assert(ps->pntsrc_ == nullptr);
-            output_threshold[i] = ps->threshold_;
-            output_vindex[i] = pinv_nt[ps->thvar_index_];
-        } else if (i < nt.ncell) {      // real cell without a presyn
-            output_threshold[i] = 0.0;  // the way it was set in nrnbbcore_write.cpp
-            output_vindex[i] = -1;
-        } else {
-            Point_process* pnt = ps->pntsrc_;
-            assert(pnt);
-            output_vindex[i] = -(pnt->_i_instance * 1000 + pnt->_type);
+    {
+        std::vector<int> output_vindex(nt.n_presyn);
+        std::vector<double> output_threshold(nt.ncell);
+        for (int i = 0; i < nt.n_presyn; ++i) {
+            PreSyn* ps = nt.presyns + i;
+            if (ps->thvar_index_ >= 0) {
+                // real cell and index into (permuted) actual_v
+                // if any assert fails in this loop then we have faulty understanding
+                // of the for (int i = 0; i < nt.n_presyn; ++i) loop in nrn_setup.cpp
+                assert(ps->thvar_index_ < nt.end);
+                assert(ps->pntsrc_ == nullptr);
+                output_threshold[i] = ps->threshold_;
+                output_vindex[i] = pinv_nt[ps->thvar_index_];
+            } else if (i < nt.ncell) {      // real cell without a presyn
+                output_threshold[i] = 0.0;  // the way it was set in nrnbbcore_write.cpp
+                output_vindex[i] = -1;
+            } else {
+                Point_process* pnt = ps->pntsrc_;
+                assert(pnt);
+                output_vindex[i] = -(pnt->_i_instance * 1000 + pnt->_type);
+            }
         }
-    }
-    fh.write_array<int>(output_vindex, nt.n_presyn);
-    fh.write_array<double>(output_threshold, nt.ncell);
+        fh.write_vector<int>(output_vindex);
+        fh.write_vector<double>(output_threshold);
+
 #if CHKPNTDEBUG
-    for (int i = 0; i < nt.n_presyn; ++i) {
-        assert(ntc.output_vindex[i] == output_vindex[i]);
-    }
-    for (int i = 0; i < nt.ncell; ++i) {
-        assert(ntc.output_threshold[i] == output_threshold[i]);
-    }
+        for (int i = 0; i < nt.n_presyn; ++i) {
+            assert(ntc.output_vindex[i] == output_vindex[i]);
+        }
+        for (int i = 0; i < nt.ncell; ++i) {
+            assert(ntc.output_threshold[i] == output_threshold[i]);
+        }
 #endif
-    delete[] output_vindex;
-    delete[] output_threshold;
+    }
     delete[] pinv_nt;
 
     int synoffset = 0;
@@ -325,46 +321,41 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
         }
     }
 
-    int* pnttype = new int[nnetcon];
-    int* pntindex = new int[nnetcon];
-    double* delay = new double[nnetcon];
-    for (int i = 0; i < nnetcon; ++i) {
-        NetCon& nc = nt.netcons[i];
-        Point_process* pnt = nc.target_;
-        if (pnt == nullptr) {
-            // nrn_setup.cpp allows type <=0 which generates nullptr target.
-            pnttype[i] = 0;
-            pntindex[i] = -1;
-        } else {
-            pnttype[i] = pnt->_type;
+    {
+        std::vector<int> pnttype(nnetcon, 0);
+        std::vector<int> pntindex(nnetcon, -1);
+        std::vector<double> delay(nnetcon);
+        for (int i = 0; i < nnetcon; ++i) {
+            NetCon& nc = nt.netcons[i];
+            Point_process* pnt = nc.target_;
+            if (pnt != nullptr) {
+                pnttype[i] = pnt->_type;
 
-            // todo: this seems most natural, but does not work. Perhaps should look
-            // into how pntindex determined in nrnbbcore_write.cpp and change there.
-            // int ix = pnt->_i_instance;
-            // if (ml_pinv[pnt->_type]) {
-            //     ix = ml_pinv[pnt->_type][ix];
-            // }
+                // todo: this seems most natural, but does not work. Perhaps should look
+                // into how pntindex determined in nrnbbcore_write.cpp and change there.
+                // int ix = pnt->_i_instance;
+                // if (ml_pinv[pnt->_type]) {
+                //     ix = ml_pinv[pnt->_type][ix];
+                // }
 
-            // follow the inverse of nrn_setup.cpp using pnt_offset computed above.
-            int ix = (pnt - nt.pntprocs) - pnt_offset[pnt->_type];
-            pntindex[i] = ix;
+                // follow the inverse of nrn_setup.cpp using pnt_offset computed above.
+                int ix = (pnt - nt.pntprocs) - pnt_offset[pnt->_type];
+                pntindex[i] = ix;
+            }
+            delay[i] = nc.delay_;
         }
-        delay[i] = nc.delay_;
-    }
-    fh.write_array<int>(pnttype, nnetcon);
-    fh.write_array<int>(pntindex, nnetcon);
-    fh.write_array<double>(nt.weights, nt.n_weight);
-    fh.write_array<double>(delay, nnetcon);
+        fh.write_vector<int>(pnttype);
+        fh.write_vector<int>(pntindex);
+        fh.write_array<double>(nt.weights, nt.n_weight);
+        fh.write_vector<double>(delay);
 #if CHKPNTDEBUG
-    for (int i = 0; i < nnetcon; ++i) {
-        assert(ntc.pnttype[i] == pnttype[i]);
-        assert(ntc.pntindex[i] == pntindex[i]);
-        assert(ntc.delay[i] == delay[i]);
-    }
+        for (int i = 0; i < nnetcon; ++i) {
+            assert(ntc.pnttype[i] == pnttype[i]);
+            assert(ntc.pntindex[i] == pntindex[i]);
+            assert(ntc.delay[i] == delay[i]);
+        }
 #endif
-    delete[] pnttype;
-    delete[] pntindex;
-    delete[] delay;
+    }
 
     // BBCOREPOINTER
     int nbcp = 0;
@@ -569,11 +560,11 @@ bool CheckPoints::initialize() {
 }
 
 template <typename T>
-T* CheckPoints::soa2aos(T* data, int cnt, int sz, int layout, int* permute) const {
+std::vector<T> CheckPoints::soa2aos(T* data, int cnt, int sz, int layout, int* permute) const {
     // inverse of F -> data. Just a copy if layout=1. If SoA,
     // original file order depends on padding and permutation.
     // Good for a, b, area, v, diam, Memb_list.data, or anywhere values do not change.
-    T* d = new T[cnt * sz];
+    std::vector<T> d(cnt * sz);
     if (layout == Layout::AoS) {
         for (int i = 0; i < cnt * sz; ++i) {
             d[i] = data[i];
@@ -594,11 +585,9 @@ T* CheckPoints::soa2aos(T* data, int cnt, int sz, int layout, int* permute) cons
 }
 
 template <typename T>
-void CheckPoints::data_write(FileHandler& F, T* data, int cnt, int sz, int layout, int* permute)
-    const {
-    T* d = soa2aos(data, cnt, sz, layout, permute);
-    F.write_array<T>(d, cnt * sz);
-    delete[] d;
+void CheckPoints::data_write(FileHandler& F, T* data, int cnt, int sz, int layout, int* permute) const {
+    auto d = soa2aos(data, cnt, sz, layout, permute);
+    F.write_vector<T>(d);
 }
 
 NrnThreadChkpnt* nrnthread_chkpnt;

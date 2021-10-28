@@ -239,6 +239,18 @@ class FileHandler {
     }
 
     template <typename T>
+    void write_vector(const std::vector<T>& p) {
+        if (p.empty()) {
+            return;
+        }
+        nrn_assert(F.is_open());
+        nrn_assert(current_mode & std::ios::out);
+        write_checkpoint();
+        F.write(reinterpret_cast<const char*>(p.data()), p.size() * (sizeof(T)));
+        nrn_assert(!F.fail());
+    }
+
+    template <typename T>
     FileHandler& operator<<(const T& scalar) {
         nrn_assert(F.is_open());
         nrn_assert(current_mode & std::ios::out);
