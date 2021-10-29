@@ -745,9 +745,10 @@ void Phase2::get_info_from_bbcore(NrnThread& nt,
     // BBCOREPOINTER information
 #if CHKPNTDEBUG
     ntc.nbcp = num_point_process;
-    ntc.bcpicnt = new int[num_point_process];
-    ntc.bcpdcnt = new int[num_point_process];
-    ntc.bcptype = new int[num_point_process];
+    ntc.bcpicnt = new int[n_mech];
+    ntc.bcpdcnt = new int[n_mech];
+    ntc.bcptype = new int[n_mech];
+    size_t point_proc_id = 0;
 #endif
     for (size_t i = 0; i < n_mech; ++i) {
         int type = mech_types[i];
@@ -756,9 +757,10 @@ void Phase2::get_info_from_bbcore(NrnThread& nt,
         }
         type = tmls[i].type;  // This is not an error, but it has to be fixed I think
 #if CHKPNTDEBUG
-        ntc.bcptype[i] = type;
-        ntc.bcpicnt[i] = tmls[i].iArray.size();
-        ntc.bcpdcnt[i] = tmls[i].dArray.size();
+        ntc.bcptype[point_proc_id] = type;
+        ntc.bcpicnt[point_proc_id] = tmls[i].iArray.size();
+        ntc.bcpdcnt[point_proc_id] = tmls[i].dArray.size();
+        point_proc_id++;
 #endif
         int ik = 0;
         int dk = 0;
@@ -1066,7 +1068,7 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
         permute_ptr(nt._v_parent_index, nt.end, p);
         node_permute(nt._v_parent_index, nt.end, p);
 
-#if DEBUG
+#if CORENRN_DEBUG
         for (int i = 0; i < nt.end; ++i) {
             printf("parent[%d] = %d\n", i, nt._v_parent_index[i]);
         }

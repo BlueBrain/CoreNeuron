@@ -35,7 +35,7 @@ jobs:
         os: [ ubuntu-18.04, macOS-10.15 ]
         config:
           # Defaults: CORENRN_ENABLE_MPI=ON
-          - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON}
+          - {cmake_option: "-DCORENRN_ENABLE_MPI=ON -DCORENRN_ENABLE_DEBUG_CODE=ON", documentation: ON}
           - {cmake_option: "-DCORENRN_ENABLE_MPI_DYNAMIC=ON"}
           - {cmake_option: "-DCORENRN_ENABLE_MPI_DYNAMIC=ON -DCORENRN_ENABLE_SHARED=OFF"}
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}

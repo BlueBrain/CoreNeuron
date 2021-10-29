@@ -124,7 +124,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         assert(tar2info.find(sgid) != tar2info.end());
     }
 
-#if DEBUG
+#if CORENRN_DEBUG
     printf("%d mpi outsrccnt_, outsrcdspl_, insrccnt, insrcdspl_\n", nrnmpi_myid);
     for (int i = 0; i < nrnmpi_numprocs; ++i) {
         printf("%d : %d %d %d %d\n",
@@ -203,7 +203,7 @@ void nrn_partrans::gap_mpi_setup(int ngroup) {
         }
     }
 
-#if DEBUG
+#if CORENRN_DEBUG
     // things look ok so far?
     for (int tid = 0; tid < ngroup; ++tid) {
         SetupTransferInfo& si = setup_info_[tid];
