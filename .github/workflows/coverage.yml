@@ -36,7 +36,7 @@ jobs:
         working-directory: ${{runner.workspace}}/CoreNeuron
         run:  |
           mkdir build && cd build
-          cmake .. -DCORENRN_ENABLE_MPI=ON -DCMAKE_C_FLAGS="-coverage -O0" -DCMAKE_CXX_FLAGS="-coverage -O0";
+          cmake .. -DCORENRN_ENABLE_MPI=ON -DCORENRN_ENABLE_DEBUG_CODE=ON -DCMAKE_C_FLAGS="-coverage -O0" -DCMAKE_CXX_FLAGS="-coverage -O0";
           make -j2
           (cd ..;  lcov --capture  --initial --directory . --no-external --output-file build/coverage-base.info)
           make test
