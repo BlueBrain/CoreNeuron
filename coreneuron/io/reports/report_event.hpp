@@ -42,6 +42,7 @@ class ReportEvent: public DiscreteEvent {
     void deliver(double t, NetCvode* nc, NrnThread* nt) override;
     bool require_checkpoint() override;
     void summation_alu(NrnThread* nt);
+    void lfp_calc(NrnThread* nt);
 
   private:
     double dt;
