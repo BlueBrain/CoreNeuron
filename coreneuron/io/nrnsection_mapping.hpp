@@ -160,6 +160,8 @@ struct NrnThreadMappingInfo {
     /** map containing segment ids an its respective lfp factors */
     std::unordered_map<int, double> lfp_factors;
 
+    std::vector<double> _lfp;
+
     /** @brief number of cells */
     size_t size() const {
         return mappingvec.size();

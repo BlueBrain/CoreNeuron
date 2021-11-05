@@ -35,6 +35,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
             continue;
         }
         const std::vector<int>& nodes_to_gid = map_gids(nt);
+        auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
         VarsToReport vars_to_report;
         bool is_soma_target;
         switch (m_report_config.type) {
@@ -57,6 +58,13 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                               m_report_config,
                                                               nodes_to_gid);
                 register_custom_report(nt, m_report_config, vars_to_report);
+                break;
+            case LFPReport:
+                mapinfo->_lfp.resize(12);
+                vars_to_report = get_lfp_vars_to_report(nt, m_report_config, mapinfo->_lfp.data());
+                is_soma_target = m_report_config.section_type == SectionType::Soma ||
+                                 m_report_config.section_type == SectionType::Cell;
+                register_section_report(nt, m_report_config, vars_to_report, is_soma_target);
                 break;
             default:
                 vars_to_report = get_synapse_vars_to_report(nt, m_report_config, nodes_to_gid);
@@ -337,6 +345,34 @@ VarsToReport ReportHandler::get_synapse_vars_to_report(
         if (!to_report.empty()) {
             vars_to_report[gid] = to_report;
         }
+    }
+    return vars_to_report;
+}
+
+VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
+                                                   ReportConfiguration& report,
+                                                   double* report_variable) const {
+    VarsToReport vars_to_report;
+    /*const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
+    if (!mapinfo) {
+        std::cerr << "[LFP] Error : mapping information is missing for a Cell group "
+                  << nt.ncell << '\n';
+        nrn_abort(1);
+    }*/
+    for (int i = 0; i < nt.ncell; i++) {
+        int gid = nt.presyns[i].gid_;
+        if (report.target.find(gid) == report.target.end()) {
+            continue;
+        }
+
+        std::vector<VarWithMapping> to_report;
+        // Add all electrodes to the first gid for now
+        std::vector<int> electrode_ids = {0};
+        for (const auto& electrode_id : electrode_ids) {
+            double* variable = report_variable + electrode_id;
+            to_report.push_back(VarWithMapping(electrode_id, variable));
+        }
+        vars_to_report[gid] = to_report;
     }
     return vars_to_report;
 }

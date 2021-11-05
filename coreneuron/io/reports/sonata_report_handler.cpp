@@ -57,6 +57,7 @@ std::pair<std::string, int> SonataReportHandler::get_population_info(int gid) {
 void SonataReportHandler::register_report(const NrnThread& nt,
                                           ReportConfiguration& config,
                                           const VarsToReport& vars_to_report) {
+    std::cout << "Registering report " << config.output_path.data() << std::endl;
     sonata_create_report(config.output_path.data(),
                          config.start,
                          config.stop,

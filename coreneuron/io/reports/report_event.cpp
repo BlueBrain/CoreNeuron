@@ -10,6 +10,7 @@
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/io/reports/nrnreport.hpp"
 #include "coreneuron/utils/nrn_assert.h"
+#include "coreneuron/io/nrnsection_mapping.hpp"
 #ifdef ENABLE_BIN_REPORTS
 #include "reportinglib/Records.h"
 #endif  // ENABLE_BIN_REPORTS
@@ -72,12 +73,32 @@ void ReportEvent::summation_alu(NrnThread* nt) {
     }
 }
 
+void ReportEvent::lfp_calc(NrnThread* nt) {
+    // Calculate lfp only on reporting steps
+    if (step > 0 && (static_cast<int>(step) % reporting_period) == 0) {
+        auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt->mapping);
+        double sum = 0.0;
+        double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
+        for (const auto& kv: mapinfo->lfp_factors) {
+                int segment_id = kv.first;
+                double factor = kv.second;
+                if(std::isnan(factor)) {
+                    factor = 0.0;
+                }
+                std::cout << segment_id << " - " << factor << std::endl;
+                sum += fast_imem_rhs[segment_id] * factor;
+        }
+        mapinfo->_lfp[0] = sum;
+    }mdi
+}
+
 /** on deliver, call ReportingLib and setup next event */
 void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 /* reportinglib is not thread safe */
 #pragma omp critical
     {
         summation_alu(nt);
+        lfp_calc(nt);
         // each thread needs to know its own step
 #ifdef ENABLE_BIN_REPORTS
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
