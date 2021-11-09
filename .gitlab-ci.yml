@@ -48,8 +48,6 @@ spack_setup:
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
 .gpu_node:
   variables:
-    # All GPU nodes are fair game
-    bb5_partition: prod_p2,prod_p1,interactive
     bb5_constraint: volta
 
 build:nmodl:intel:
