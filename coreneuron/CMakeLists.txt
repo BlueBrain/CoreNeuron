@@ -293,6 +293,28 @@ set_target_properties(
 # =============================================================================
 # create special-core with halfgap.mod for tests
 # =============================================================================
+set(all_output_binaries)
+if(NOT ${CORENRN_EXTERNAL_BENCHMARK_DATA} STREQUAL "")
+  # Hack for the december 2021 hackathon, build an extra special-core with channel-benchmark
+  # mechanisms.
+  set(modfile_directory
+      "${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark/benchmark/channels/lib/modlib")
+  file(GLOB modfiles "${modfile_directory}/*.mod")
+  set(output_binaries "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core"
+                      "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech.a")
+  add_custom_command(
+    OUTPUT ${output_binaries}
+    DEPENDS scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
+    COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 1
+            "${modfile_directory}"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/benchmark
+    COMMENT "Running nrnivmodl-core for channel-benchmark mechanisms")
+  list(APPEND all_output_binaries ${output_binaries})
+  add_test(
+    NAME benchmark
+    COMMAND "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core" --datpath
+            "${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark-all-440-cells-2-ranks" --tstop 1)
+endif()
 set(modfile_directory "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod")
 file(GLOB modfiles "${modfile_directory}/*.mod")
 set(output_binaries "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-core"
@@ -304,7 +326,8 @@ add_custom_command(
           "${modfile_directory}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   COMMENT "Running nrnivmodl-core with halfgap.mod")
-add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
+list(APPEND all_output_binaries ${output_binaries})
+add_custom_target(nrniv-core ALL DEPENDS ${all_output_binaries})
 
 include_directories(${CORENEURON_PROJECT_SOURCE_DIR})
 

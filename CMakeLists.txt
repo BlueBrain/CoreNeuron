@@ -103,6 +103,9 @@ option(CORENRN_ENABLE_SHARED "Enable shared library build" ON)
 option(CORENRN_ENABLE_LEGACY_UNITS "Enable legacy FARADAY, R, etc" OFF)
 option(CORENRN_ENABLE_PRCELLSTATE "Enable NRN_PRCELLSTATE debug feature" OFF)
 
+set(CORENRN_EXTERNAL_BENCHMARK_DATA
+    ""
+    CACHE PATH "Path to input data files and mechanisms for benchmarks")
 set(CORENRN_NMODL_DIR
     ""
     CACHE PATH "Path to nmodl source-to-source compiler installation")
