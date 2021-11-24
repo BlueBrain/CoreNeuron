@@ -467,6 +467,8 @@ static void* load_dynamic_mpi(const std::string& libname) {
 #endif
 
 extern "C" void mk_mech_init(int argc, char** argv) {
+    corenrn_param.multisend = false;
+    corenrn_param.binqueue = false;
     // read command line parameters and parameter config files
     corenrn_param.parse(argc, argv);
 
