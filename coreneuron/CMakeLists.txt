@@ -302,10 +302,11 @@ if(NOT ${CORENRN_EXTERNAL_BENCHMARK_DATA} STREQUAL "")
   file(GLOB modfiles "${modfile_directory}/*.mod")
   set(output_binaries "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core"
                       "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech.a")
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/benchmark)
   add_custom_command(
     OUTPUT ${output_binaries}
     DEPENDS scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
-    COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 1
+    COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b STATIC -m ${CORENRN_MOD2CPP_BINARY} -p 6
             "${modfile_directory}"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/benchmark
     COMMENT "Running nrnivmodl-core for channel-benchmark mechanisms")
