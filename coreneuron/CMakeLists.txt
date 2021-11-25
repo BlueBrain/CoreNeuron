@@ -310,10 +310,15 @@ if(NOT ${CORENRN_EXTERNAL_BENCHMARK_DATA} STREQUAL "")
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/benchmark
     COMMENT "Running nrnivmodl-core for channel-benchmark mechanisms")
   list(APPEND all_output_binaries ${output_binaries})
-  add_test(
-    NAME benchmark
-    COMMAND "${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core" --datpath
-            "${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark-all-440-cells-2-ranks" --tstop 1)
+  string(
+    CONCAT
+      benchmark_command
+      "'${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core'"
+      " --datpath '${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark-all-440-cells-2-ranks'"
+      " --tstop 1 &&"
+      "diff out.dat '${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark-all-440-cells-2-ranks.gpu.spikes'"
+  )
+  add_test(NAME benchmark COMMAND sh -c "${benchmark_command}")
 endif()
 set(modfile_directory "${CORENEURON_PROJECT_SOURCE_DIR}/tests/integration/ring_gap/mod")
 file(GLOB modfiles "${modfile_directory}/*.mod")
