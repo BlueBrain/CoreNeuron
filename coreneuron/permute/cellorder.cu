@@ -72,25 +72,28 @@ __global__ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int
     int* rootbegin = ii->firstnode;      // nwarp+1 of these
     int* nodebegin = ii->lastnode;       // nwarp+1 of these
 
-    int iwarp = icore / warpsize;     // figure out the >> value
-    int ic = icore & (warpsize - 1);  // figure out the & mask
-    int ncycle = ncycles[iwarp];
-    int* stride = strides + stridedispl[iwarp];
-    int root = rootbegin[iwarp];
-    int lastroot = rootbegin[iwarp + 1];
-    int firstnode = nodebegin[iwarp];
-    int lastnode = nodebegin[iwarp + 1];
+    while (icore < ncore) {
+        int iwarp = icore / warpsize;     // figure out the >> value
+        int ic = icore & (warpsize - 1);  // figure out the & mask
+        int ncycle = ncycles[iwarp];
+        int* stride = strides + stridedispl[iwarp];
+        int root = rootbegin[iwarp];
+        int lastroot = rootbegin[iwarp + 1];
+        int firstnode = nodebegin[iwarp];
+        int lastnode = nodebegin[iwarp + 1];
 
-    triang_interleaved2_device(nt, ic, ncycle, stride, lastnode);
-    bksub_interleaved2_device(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
+        triang_interleaved2_device(nt, ic, ncycle, stride, lastnode);
+        bksub_interleaved2_device(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
+
+        icore += blockDim.x * gridDim.x;
+    }
 }
 
 void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream) {
     auto cuda_stream = static_cast<cudaStream_t>(stream);
 
-    int threadsPerBlock = warpsize;
-    // TODO: Should blocksPerGrid be a fixed number and have a while block inside the kernel?
-    int blocksPerGrid = (ncore + threadsPerBlock - 1) / threadsPerBlock;
+    int threadsPerBlock = 128;
+    int blocksPerGrid = 512;
 
     solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock, 0, cuda_stream>>>(nt, info, ncore);
 
