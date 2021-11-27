@@ -236,7 +236,7 @@ void NetCvode::clear_events() {
         d.unreffed_event_cnt_ = 0;
         d.inter_thread_events_.clear();
         d.tqe_->nshift_ = -1;
-        d.tqe_->shift_bin(nrn_threads->_t);
+        d.tqe_->shift_bin(nrn_threads->_t - 0.5*nrn_threads->_dt);
     }
 }
 
