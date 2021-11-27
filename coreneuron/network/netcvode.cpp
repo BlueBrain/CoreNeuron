@@ -138,6 +138,10 @@ void NetCvodeThreadData::interthread_send(double td, DiscreteEvent* db, NrnThrea
     inter_thread_events_.emplace_back(InterThreadEvent{db, td});
 }
 
+void interthread_enqueue(NrnThread* nt) {
+    net_cvode_instance->p[nt->id].enqueue(net_cvode_instance, nt);
+}
+
 void NetCvodeThreadData::enqueue(NetCvode* nc, NrnThread* nt) {
     std::lock_guard<OMP_Mutex> lock(mut);
     for (const auto& ite: inter_thread_events_) {

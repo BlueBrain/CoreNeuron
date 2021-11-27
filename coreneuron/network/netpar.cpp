@@ -482,6 +482,12 @@ void nrn_spike_exchange_compressed(NrnThread* nt) {
             }
         }
     }
+    // In case of multiple threads some above ps->send events put
+    // NetCon events into interthread buffers. Some of those may
+    // need to be delivered early enough that the interthread buffers
+    // need transfer to the thread event queues before the next dqueue_bin
+    // while loop in deliver_net_events. So enqueue now...
+    nrn_multithread_job(interthread_enqueue);
     t_exchange_ = nrn_threads->_t;
     wt1_ = nrn_wtime() - wt;
 }
