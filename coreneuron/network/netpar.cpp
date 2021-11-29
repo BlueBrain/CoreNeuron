@@ -287,7 +287,7 @@ void nrn_spike_exchange_init() {
             dt1_ = rev_dt;
             usable_mindelay_ = floor(mindelay_ * dt1_ + 1e-9) * dt;
             if (usable_mindelay_ * dt1_ >= 255.) {
-                usable_mindelay_ = 255./dt1_;
+                usable_mindelay_ = 255. / dt1_;
             }
             assert(usable_mindelay_ >= dt && (usable_mindelay_ * dt1_) <= 255.);
         } else {
