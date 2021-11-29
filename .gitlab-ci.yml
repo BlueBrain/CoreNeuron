@@ -63,7 +63,7 @@ build:coreneuron+nmodl:gpu:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +nmodl+gpu+tests~legacy-unit~report build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +nmodl+openmp+gpu+tests~legacy-unit~report build_type=RelWithDebInfo
   extends:
     - .spack_build
     - .spack_nvhpc
