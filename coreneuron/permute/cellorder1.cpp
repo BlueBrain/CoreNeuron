@@ -396,6 +396,7 @@ void check(VecTNode& nodevec) {
             ncell++;
         }
     }
+    ///  Check that the first compartments of nodevec are the root nodes (cells)
     for (size_t i = 0; i < ncell; ++i) {
         nrn_assert(nodevec[i]->parent == nullptr);
     }
