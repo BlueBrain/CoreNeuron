@@ -243,7 +243,7 @@ void NetCvode::clear_events() {
 void NetCvode::init_events() {
     for (int i = 0; i < nrn_nthread; ++i) {
         p[i].tqe_->nshift_ = -1;
-        p[i].tqe_->shift_bin(nrn_threads->_t);
+        p[i].tqe_->shift_bin(nrn_threads->_t - 0.5 * nrn_threads->_dt);
     }
 
     for (int tid = 0; tid < nrn_nthread; ++tid) {  // can be done in parallel
