@@ -10,13 +10,15 @@
 #include "coreneuron/utils/nrnmutdec.hpp"
 #include "coreneuron/utils/randoms/nrnran123.h"
 
-#include <boost/pool/pool_alloc.hpp>
-
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <mutex>
+
+#ifdef CORENEURON_USE_BOOST_POOL
+#include <boost/pool/pool_alloc.hpp>
 #include <unordered_map>
+#endif
 
 // In a GPU build this file will be compiled by NVCC as CUDA code
 // In a CPU build this file will be compiled by a C++ compiler as C++ code
@@ -27,6 +29,7 @@
 #endif
 
 namespace {
+#ifdef CORENEURON_USE_BOOST_POOL
 /** Tag type for use with boost::fast_pool_allocator that forwards to
  *  coreneuron::[de]allocate_unified(). Using a Random123-specific type here
  *  makes sure that allocations do not come from the same global pool as other
@@ -65,6 +68,9 @@ std::unordered_map<void*, std::size_t> random123_allocate_unified::m_block_sizes
 
 using random123_allocator =
     boost::fast_pool_allocator<coreneuron::nrnran123_State, random123_allocate_unified>;
+#else
+using random123_allocator = coreneuron::unified_allocator<nrnran123_State>;
+#endif
 /* Global data structure per process. Using a unique_ptr here causes [minor]
  * problems because its destructor can be called very late during application
  * shutdown. If the destructor calls cudaFree and the CUDA runtime has already
