@@ -74,6 +74,9 @@ struct CellMapping {
     /** list of section lists (like soma, axon, apic) */
     std::vector<SecMapping*> secmapvec;
 
+    /** map containing segment ids an its respective lfp factors */
+    std::unordered_map<int, double> lfp_factors;
+
     CellMapping(int g)
         : gid(g) {}
 
@@ -138,6 +141,11 @@ struct CellMapping {
         return count;
     }
 
+    /** @brief add the lfp factor of a segment_id */
+    void add_segment_lfp_factor(const int segment_id, double factor) {
+        lfp_factors.insert({segment_id, factor});
+    }
+
     ~CellMapping() {
         for (size_t i = 0; i < secmapvec.size(); i++) {
             delete secmapvec[i];
@@ -156,9 +164,6 @@ struct NrnThreadMappingInfo {
 
     /** list of segment ids */
     std::vector<int> segment_ids;
-
-    /** map containing segment ids an its respective lfp factors */
-    std::unordered_map<int, double> lfp_factors;
 
     std::vector<double> _lfp;
 
@@ -194,11 +199,6 @@ struct NrnThreadMappingInfo {
     /** @brief add a new segment */
     void add_segment_id(const int segment_id) {
         segment_ids.push_back(segment_id);
-    }
-
-    /** @brief add the lfp factor of a segment_id */
-    void add_segment_lfp_factor(const int segment_id, double factor) {
-        lfp_factors.insert({segment_id, factor});
     }
 };
 }  // namespace coreneuron

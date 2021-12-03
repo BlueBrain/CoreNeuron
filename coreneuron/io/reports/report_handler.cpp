@@ -60,7 +60,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_custom_report(nt, m_report_config, vars_to_report);
                 break;
             case LFPReport:
-                mapinfo->_lfp.resize(12);
+                // 1 lfp value per gid
+                mapinfo->_lfp.resize(nt.ncell);
                 vars_to_report = get_lfp_vars_to_report(nt, m_report_config, mapinfo->_lfp.data());
                 is_soma_target = m_report_config.section_type == SectionType::Soma ||
                                  m_report_config.section_type == SectionType::Cell;
@@ -75,7 +76,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                                                               t,
                                                               vars_to_report,
                                                               m_report_config.output_path.data(),
-                                                              m_report_config.report_dt);
+                                                              m_report_config.report_dt,
+                                                              m_report_config.type);
             report_event->send(t, net_cvode_instance, &nt);
             m_report_events.push_back(std::move(report_event));
         }
@@ -353,12 +355,6 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
                                                    ReportConfiguration& report,
                                                    double* report_variable) const {
     VarsToReport vars_to_report;
-    /*const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
-    if (!mapinfo) {
-        std::cerr << "[LFP] Error : mapping information is missing for a Cell group "
-                  << nt.ncell << '\n';
-        nrn_abort(1);
-    }*/
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
         if (report.target.find(gid) == report.target.end()) {
@@ -366,12 +362,8 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
         }
 
         std::vector<VarWithMapping> to_report;
-        // Add all electrodes to the first gid for now
-        std::vector<int> electrode_ids = {0};
-        for (const auto& electrode_id : electrode_ids) {
-            double* variable = report_variable + electrode_id;
-            to_report.push_back(VarWithMapping(electrode_id, variable));
-        }
+        double* variable = report_variable + i;
+        to_report.push_back(VarWithMapping(i, variable));
         vars_to_report[gid] = to_report;
     }
     return vars_to_report;

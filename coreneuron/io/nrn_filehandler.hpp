@@ -111,7 +111,7 @@ class FileHandler {
      * Read count no of mappings for section to segment
      */
     template <typename T>
-    int read_mapping_info(T* mapinfo, NrnThreadMappingInfo* ntmapping) {
+    int read_mapping_info(T* mapinfo, NrnThreadMappingInfo* ntmapping, CellMapping* cmap) {
         int nsec, nseg, n_scan;
         char line_buf[max_line_length], name[max_line_length];
 
@@ -133,13 +133,10 @@ class FileHandler {
             read_array<int>(&seg[0], nseg);
             read_array<double>(&lfp_factors[0], nseg);
 
-            std::cout << "=====> NEW CoreNEURON!" << std::endl;
-            std::cout << "nseg = " << nseg << std::endl;
-
             for (int i = 0; i < nseg; i++) {
                 mapinfo->add_segment(sec[i], seg[i]);
                 ntmapping->add_segment_id(seg[i]);
-                ntmapping->add_segment_lfp_factor(seg[i], lfp_factors[i]);
+                cmap->add_segment_lfp_factor(seg[i], lfp_factors[i]);
             }
         }
         return nseg;
