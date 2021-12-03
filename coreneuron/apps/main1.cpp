@@ -467,8 +467,15 @@ static void* load_dynamic_mpi(const std::string& libname) {
 #endif
 
 extern "C" void mk_mech_init(int argc, char** argv) {
+    // cannot corenrn_param = corenrn_parameters(), so unfortunately repeating
+    // some initialization values from corenrn_parameters.hpp to allow starting
+    // fresh with original defaults.
     corenrn_param.multisend = false;
     corenrn_param.binqueue = false;
+    corenrn_param.ms_phases = 2;
+    corenrn_param.ms_subint = 2;
+    corenrn_param.spkcompress = 0;
+
     // read command line parameters and parameter config files
     corenrn_param.parse(argc, argv);
 
