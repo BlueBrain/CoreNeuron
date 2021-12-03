@@ -25,11 +25,13 @@ ReportEvent::ReportEvent(double dt,
                          double tstart,
                          const VarsToReport& filtered_gids,
                          const char* name,
-                         double report_dt)
+                         double report_dt,
+                         ReportType type)
     : dt(dt)
     , tstart(tstart)
     , report_path(name)
     , report_dt(report_dt)
+    , report_type(type)
     , vars_to_report(filtered_gids) {
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
@@ -77,19 +79,27 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
     // Calculate lfp only on reporting steps
     if (step > 0 && (static_cast<int>(step) % reporting_period) == 0) {
         auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt->mapping);
-        double sum = 0.0;
         double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
-        for (const auto& kv: mapinfo->lfp_factors) {
-                int segment_id = kv.first;
-                double factor = kv.second;
-                if(std::isnan(factor)) {
-                    factor = 0.0;
-                }
-                std::cout << segment_id << " - " << factor << std::endl;
-                sum += fast_imem_rhs[segment_id] * factor;
+
+        for (const auto& kv: vars_to_report) {
+            int gid = kv.first;
+            const auto& to_report = kv.second;
+            const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
+
+            int count = 0;
+            double sum = 0.0;
+            for (const auto& kv: cell_mapping->lfp_factors) {
+                    int segment_id = kv.first;
+                    double factor = kv.second;
+                    if(std::isnan(factor)) {
+                        factor = 0.0;
+                    }
+                    sum += fast_imem_rhs[segment_id] * factor;
+                    count++;
+            }
+            *(to_report.front().var_value) = sum;
         }
-        mapinfo->_lfp[0] = sum;
-    }mdi
+    }
 }
 
 /** on deliver, call ReportingLib and setup next event */
@@ -98,7 +108,9 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 #pragma omp critical
     {
         summation_alu(nt);
-        lfp_calc(nt);
+        if (report_type == ReportType::LFPReport) {
+            lfp_calc(nt);
+        }
         // each thread needs to know its own step
 #ifdef ENABLE_BIN_REPORTS
         records_nrec(step, gids_to_report.size(), gids_to_report.data(), report_path.data());
