@@ -27,7 +27,7 @@
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
-#ifdef CORENRN_PREFER_OPENMP_OFFLOAD
+#ifdef CORENEURON_PREFER_OPENMP_OFFLOAD
 #include <omp.h>
 #endif
 
@@ -1302,7 +1302,7 @@ void init_gpu() {
 
     int device_num = local_rank % num_devices_per_node;
     acc_set_device_num(device_num, device_type);
-#ifdef CORENRN_PREFER_OPENMP_OFFLOAD
+#ifdef CORENEURON_PREFER_OPENMP_OFFLOAD
     omp_set_default_device(device_num);
 #endif
 

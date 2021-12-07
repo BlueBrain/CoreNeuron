@@ -114,7 +114,7 @@ void nrnthread_v_transfer(NrnThread* _nt) {
     int* insrc_indices = ttd.insrc_indices.data();
     double* tar_data = _nt->_data;
     // last element in the displacement vector gives total length
-#if defined(_OPENACC) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD)
+#if defined(_OPENACC) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD)
     int n_insrc_buf = insrcdspl_[nrnmpi_numprocs];
     int ndata = _nt->_ndata;
 #endif

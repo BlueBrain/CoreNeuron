@@ -66,7 +66,7 @@ if(CORENRN_ENABLE_GPU)
   if(CORENRN_ENABLE_OPENMP AND CORENRN_ENABLE_OPENMP_OFFLOAD)
     # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
     # for a region then prefer OpenMP.
-    add_compile_definitions(CORENRN_PREFER_OPENMP_OFFLOAD)
+    add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
     string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu -Minfo=mp")
   endif()
   # avoid PGI adding standard compliant "-A" flags

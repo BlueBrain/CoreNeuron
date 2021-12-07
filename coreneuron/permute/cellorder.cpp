@@ -596,7 +596,7 @@ void solve_interleaved2(int ith) {
         int* strides = ii.stride;           // sum ncycles of these (bad since ncompart/warpsize)
         int* rootbegin = ii.firstnode;      // nwarp+1 of these
         int* nodebegin = ii.lastnode;       // nwarp+1 of these
-#if defined(_OPENACC) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD)
+#if defined(_OPENACC) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD)
         int nstride = stridedispl[nwarp];
 #endif
         nrn_pragma_acc(parallel loop gang vector vector_length(
