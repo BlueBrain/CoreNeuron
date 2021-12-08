@@ -861,15 +861,17 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                     // The full buffers have `bsize` entries, but only `vsize`
                     // of them are valid.
                     for (int i = 0; i < tr->n_trajec; ++i) {
-                        acc_update_self(tr->varrays[i], tr->vsize * sizeof(double));
+                        nrn_pragma_acc(update self(
+                            tr->varrays[i][:tr->vsize]))
+                        nrn_pragma_omp(target update from(
+                            tr->varrays[i][:tr->vsize]))
                     }
                 }
             }
 
             /* dont update vdata, its pointer array
-               if(nt->_nvdata) {
-               acc_update_self(nt->_vdata, sizeof(double)*nt->_nvdata);
-               }
+               nrn_pragma_acc(update self(nt->_vdata[:nt->_nvdata) if nt->_nvdata)
+               nrn_pragma_omp(target update from(nt->_vdata[:nt->_nvdata) if (nt->_nvdata))
              */
         }
     }
@@ -991,15 +993,15 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                     // The full buffers have `bsize` entries, but only `vsize`
                     // of them are valid.
                     for (int i = 0; i < tr->n_trajec; ++i) {
-                        acc_update_device(tr->varrays[i], tr->vsize * sizeof(double));
+                        nrn_pragma_acc(update device(tr->varrays[i][:tr->vsize]))
+                        nrn_pragma_omp(target update to(tr->varrays[i][:tr->vsize]))
                     }
                 }
             }
 
             /* don't and don't update vdata, its pointer array
-               if(nt->_nvdata) {
-               acc_update_device(nt->_vdata, sizeof(double)*nt->_nvdata);
-               }
+               nrn_pragma_acc(update device(nt->_vdata[:nt->_nvdata) if nt->_nvdata)
+               nrn_pragma_omp(target update tp(nt->_vdata[:nt->_nvdata) if (nt->_nvdata))
              */
         }
     }
