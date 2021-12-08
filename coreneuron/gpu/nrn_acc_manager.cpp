@@ -751,7 +751,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                         nt->_actual_b[:ne],
                         nt->_actual_v[:ne],
                         nt->_actual_area[:ne]))
-            nrn_pragma_omp(target update to(
+            nrn_pragma_omp(target update from(
                         nt->_actual_rhs[:ne],
                         nt->_actual_d[:ne],
                         nt->_actual_a[:ne],
@@ -760,7 +760,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                         nt->_actual_area[:ne]))
 
             nrn_pragma_acc(update self(nt->_actual_diam[:ne]) if nt->_actual_diam)
-            nrn_pragma_omp(target update to(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
+            nrn_pragma_omp(target update from(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
 
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
 
@@ -770,7 +770,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
                 nrn_pragma_acc(update self(&tml->index,
                                            &ml->nodecount))
-                nrn_pragma_omp(target update to(tml->index,
+                nrn_pragma_omp(target update from(tml->index,
                             ml->nodecount))
 
                 int type = tml->index;
@@ -790,12 +790,12 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
                 nrn_pragma_acc(update self(ml->data[:pcnt],
                             ml->nodeindices[:n]))
-                nrn_pragma_omp(target update to(ml->data[:pcnt],
+                nrn_pragma_omp(target update from(ml->data[:pcnt],
                             ml->nodeindices[:n]))
 
                 int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
                 nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if szdp)
-                nrn_pragma_omp(target update to(ml->pdata[:dpcnt]) if (szdp))
+                nrn_pragma_omp(target update from(ml->pdata[:dpcnt]) if (szdp))
 
                 auto nrb = tml->ml->_net_receive_buffer;
 
@@ -810,7 +810,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                             nrb->_displ[:nrb->_size + 1],
                             nrb->_nrb_index[:nrb->_size])
                         if nrb)
-                nrn_pragma_omp(target update to(
+                nrn_pragma_omp(target update from(
                             nrb->_cnt,
                             nrb->_size,
                             nrb->_pnt_offset,
@@ -829,28 +829,28 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             nrn_pragma_acc(update self(nt->_shadow_rhs[:pcnt],
                         nt->_shadow_d[:pcnt])
                     if nt->shadow_rhs_cnt)
-                nrn_pragma_omp(target update to(nt->_shadow_rhs[:pcnt],
+                nrn_pragma_omp(target update from(nt->_shadow_rhs[:pcnt],
                             nt->_shadow_d[:pcnt])
                         if (nt->shadow_rhs_cnt))
 
             nrn_pragma_acc(update self(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
                     if nt->nrn_fast_imem)
-            nrn_pragma_omp(target update to(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
+            nrn_pragma_omp(target update from(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
                     if (nt->nrn_fast_imem != nullptr))
 
             nrn_pragma_acc(update self(nt->pntprocs[:nt->n_pntproc]) if nt->n_pntproc)
-            nrn_pragma_omp(target update to(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
+            nrn_pragma_omp(target update from(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
 
             nrn_pragma_acc(update self(nt->weights[:nt->n_weight]) if nt->n_weight)
-            nrn_pragma_omp(target update to(nt->weights[:nt->n_weight]) if (nt->n_weight))
+            nrn_pragma_omp(target update from(nt->weights[:nt->n_weight]) if (nt->n_weight))
 
             nrn_pragma_acc(update self(
                 nt->presyns_helper[:nt->n_presyn],
                 nt->presyns[:nt->n_presyn])
                     if nt->n_presyn)
-            nrn_pragma_omp(target update to(
+            nrn_pragma_omp(target update from(
                 nt->presyns_helper[:nt->n_presyn],
                 nt->presyns[:nt->n_presyn])
                     if (nt->n_presyn))
