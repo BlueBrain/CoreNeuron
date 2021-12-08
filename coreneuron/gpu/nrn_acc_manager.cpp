@@ -44,9 +44,9 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay);
 void nrn_VecPlay_delete_from_device(NrnThread* nt);
 
 void* cnrn_gpu_copyin(void* h_ptr, std::size_t len) {
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    return acc_copyin(p, len);
-#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
+    return acc_copyin(h_ptr, len);
+#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     auto host_id = omp_get_initial_device();
     auto device_id = omp_get_default_device();
     auto* d_ptr = omp_target_alloc(len, device_id);
@@ -59,9 +59,9 @@ void* cnrn_gpu_copyin(void* h_ptr, std::size_t len) {
 }
 
 void cnrn_memcpy_to_device(void* d_ptr, void* h_ptr, size_t len) {
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
     acc_memcpy_to_device(d_ptr, h_ptr, len);
-#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
+#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     auto host_id = omp_get_initial_device();
     auto device_id = omp_get_default_device();
     omp_target_memcpy(d_ptr, h_ptr, len, 0, 0, device_id, host_id);
@@ -71,9 +71,9 @@ void cnrn_memcpy_to_device(void* d_ptr, void* h_ptr, size_t len) {
 }
 
 void cnrn_target_delete(void* h_ptr, size_t len) {
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
     acc_delete(h_ptr, len);
-#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
+#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     (void)len;
     auto device_id = omp_get_default_device();
     omp_target_disassociate_ptr(h_ptr, device_id);
@@ -85,9 +85,9 @@ void cnrn_target_delete(void* h_ptr, size_t len) {
 }
 
 void* cnrn_target_deviceptr(void* h_ptr) {
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
     return acc_deviceptr(h_ptr);
-#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENRN_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
+#elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     auto device_id = omp_get_default_device();
     return omp_get_mapped_ptr(h_ptr, device_id);
 #else
