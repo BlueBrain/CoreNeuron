@@ -68,6 +68,7 @@ if(CORENRN_ENABLE_GPU)
     # for a region then prefer OpenMP.
     add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
     string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu -Minfo=mp")
+    string(APPEND NVHPC_ACC_LINK_FLAGS " -mp=gpu")
   endif()
   # avoid PGI adding standard compliant "-A" flags
   set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
