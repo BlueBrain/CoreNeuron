@@ -36,7 +36,7 @@
 #endif
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
-void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div);
+void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div, bool vector_copy_needed = false);
 void delete_ivoc_vect_from_device(IvocVect&);
 void nrn_ion_global_map_copyto_device();
 void nrn_ion_global_map_delete_from_device();
@@ -514,12 +514,17 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 #endif
 }
 
-void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to) {
+void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to, bool vector_copy_needed) {
 #ifdef _OPENACC
-    // TODO: understand why cnrn_gpu_copyin doesn't succeed association
-    IvocVect* d_iv = (IvocVect*) acc_copyin((void*) &from, sizeof(IvocVect));
-    cnrn_memcpy_to_device(&to, &d_iv, sizeof(IvocVect*));
+    /// by default `to` is desitionation pointer on a device
+    IvocVect* d_iv = &to;
 
+    /// if we need to copy IvocVect vector then newly alloated vector
+    /// on the device is a new destination pointer
+    if(vector_copy_needed) {
+        d_iv = (IvocVect*) cnrn_gpu_copyin((void*) &from, sizeof(IvocVect));
+        cnrn_memcpy_to_device(&to, &d_iv, sizeof(IvocVect*));
+    }
     size_t n = from.size();
     if (n) {
         double* d_data = (double*) cnrn_gpu_copyin((void*) from.data(), sizeof(double) * n);
@@ -1445,7 +1450,8 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
         copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
         if (vecplay_instance->discon_indices_) {
             copy_ivoc_vect_to_device(*(vecplay_instance->discon_indices_),
-                                     *(d_vecplay_instance->discon_indices_));
+                                     *(d_vecplay_instance->discon_indices_),
+                                     true);
         }
 
         /** copy PlayRecordEvent : todo: verify this */
