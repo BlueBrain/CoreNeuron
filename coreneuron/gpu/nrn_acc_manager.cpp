@@ -50,8 +50,9 @@ void* cnrn_gpu_copyin(void* h_ptr, std::size_t len) {
     auto host_id = omp_get_initial_device();
     auto device_id = omp_get_default_device();
     auto* d_ptr = omp_target_alloc(len, device_id);
-    omp_target_memcpy(d_ptr, h_ptr, len, 0, 0, device_id, host_id);
-    omp_target_associate_ptr(h_ptr, d_ptr, len, 0, device_id);
+    nrn_assert(d_ptr != nullptr);
+    nrn_assert(omp_target_memcpy(d_ptr, h_ptr, len, 0, 0, device_id, host_id) == 0);
+    nrn_assert(omp_target_associate_ptr(h_ptr, d_ptr, len, 0, device_id) == 0);
     return d_ptr;
 #else
     throw std::runtime_error("cnrn_gpu_copyin() not implemented without OpenACC/OpenMP and gpu build");
