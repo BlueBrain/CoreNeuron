@@ -515,7 +515,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
 void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to) {
 #ifdef _OPENACC
-    IvocVect* d_iv = (IvocVect*) cnrn_gpu_copyin((void*) &from, sizeof(IvocVect));
+    // TODO: understand why cnrn_gpu_copyin doesn't succeed association
+    IvocVect* d_iv = (IvocVect*) acc_copyin((void*) &from, sizeof(IvocVect));
     cnrn_memcpy_to_device(&to, &d_iv, sizeof(IvocVect*));
 
     size_t n = from.size();
