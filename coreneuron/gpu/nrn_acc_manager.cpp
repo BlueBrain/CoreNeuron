@@ -169,7 +169,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
         /*update d_nt._data to point to device copy */
         cnrn_memcpy_to_device(&(d_nt->_data), &d__data, sizeof(double*));
-        auto host_id = omp_get_initial_device();
+        //auto host_id = omp_get_initial_device();
 
         /* -- setup rhs, d, a, b, v, node_aread to point to device copy -- */
         double* dptr;
@@ -725,7 +725,7 @@ void update_net_send_buffer_on_host(NrnThread* nt, NetSendBuffer_t* nsb) {
                 nsb->_weight_index[:nsb->_cnt],
                 nsb->_nsb_t[:nsb->_cnt],
                 nsb->_nsb_flag[:nsb->_cnt])
-        if nsb->_cnt)
+        if (nsb->_cnt))
     nrn_pragma_omp(target update from(
                 nsb->_sendtype[:nsb->_cnt],
                 nsb->_vdata_index[:nsb->_cnt],
@@ -766,7 +766,7 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                         nt->_actual_v[:ne],
                         nt->_actual_area[:ne]))
 
-            nrn_pragma_acc(update self(nt->_actual_diam[:ne]) if nt->_actual_diam)
+            nrn_pragma_acc(update self(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
             nrn_pragma_omp(target update from(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
 
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
@@ -775,8 +775,8 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             for (auto tml = nt->tml; tml; tml = tml->next) {
                 Memb_list* ml = tml->ml;
 
-                nrn_pragma_acc(update self(&tml->index,
-                                           &ml->nodecount))
+                nrn_pragma_acc(update self(tml->index,
+                                           ml->nodecount))
                 nrn_pragma_omp(target update from(tml->index,
                             ml->nodecount))
 
@@ -801,22 +801,22 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                             ml->nodeindices[:n]))
 
                 int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if szdp)
+                nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if (szdp))
                 nrn_pragma_omp(target update from(ml->pdata[:dpcnt]) if (szdp))
 
                 auto nrb = tml->ml->_net_receive_buffer;
 
                 nrn_pragma_acc(update self(
-                            &nrb->_cnt,
-                            &nrb->_size,
-                            &nrb->_pnt_offset,
-                            &nrb->_displ_cnt,
+                            nrb->_cnt,
+                            nrb->_size,
+                            nrb->_pnt_offset,
+                            nrb->_displ_cnt,
 
                             nrb->_pnt_index[:nrb->_size],
                             nrb->_weight_index[:nrb->_size],
                             nrb->_displ[:nrb->_size + 1],
                             nrb->_nrb_index[:nrb->_size])
-                        if nrb)
+                        if (nrb != nullptr))
                 nrn_pragma_omp(target update from(
                             nrb->_cnt,
                             nrb->_size,
@@ -835,28 +835,28 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             /* copy shadow_d to host */
             nrn_pragma_acc(update self(nt->_shadow_rhs[:pcnt],
                         nt->_shadow_d[:pcnt])
-                    if nt->shadow_rhs_cnt)
+                    if (nt->shadow_rhs_cnt))
                 nrn_pragma_omp(target update from(nt->_shadow_rhs[:pcnt],
                             nt->_shadow_d[:pcnt])
                         if (nt->shadow_rhs_cnt))
 
             nrn_pragma_acc(update self(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
-                    if nt->nrn_fast_imem)
+                    if (nt->nrn_fast_imem != nullptr))
             nrn_pragma_omp(target update from(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
                     if (nt->nrn_fast_imem != nullptr))
 
-            nrn_pragma_acc(update self(nt->pntprocs[:nt->n_pntproc]) if nt->n_pntproc)
+            nrn_pragma_acc(update self(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
             nrn_pragma_omp(target update from(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
 
-            nrn_pragma_acc(update self(nt->weights[:nt->n_weight]) if nt->n_weight)
+            nrn_pragma_acc(update self(nt->weights[:nt->n_weight]) if (nt->n_weight))
             nrn_pragma_omp(target update from(nt->weights[:nt->n_weight]) if (nt->n_weight))
 
             nrn_pragma_acc(update self(
                 nt->presyns_helper[:nt->n_presyn],
                 nt->presyns[:nt->n_presyn])
-                    if nt->n_presyn)
+                    if (nt->n_presyn))
             nrn_pragma_omp(target update from(
                 nt->presyns_helper[:nt->n_presyn],
                 nt->presyns[:nt->n_presyn])
@@ -914,7 +914,7 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                         nt->_actual_v[:ne],
                         nt->_actual_area[:ne]))
 
-            nrn_pragma_acc(update device(nt->_actual_diam[:ne]) if nt->_actual_diam)
+            nrn_pragma_acc(update device(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
             nrn_pragma_omp(target update to(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
 
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
@@ -937,19 +937,19 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 nrn_pragma_omp(target update to(ml->nodeindices[:n])
                         if (!corenrn.get_is_artificial()[type]))
                 int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                nrn_pragma_acc(update device(ml->pdata[:dpcnt]) if szdp)
+                nrn_pragma_acc(update device(ml->pdata[:dpcnt]) if (szdp))
                 nrn_pragma_omp(target update to(ml->pdata[:dpcnt]) if (szdp))
 
                 auto nrb = tml->ml->_net_receive_buffer;
-                nrn_pragma_acc(update device(&nrb->_cnt,
-                            &nrb->_size,
-                            &nrb->_pnt_offset,
-                            &nrb->_displ_cnt,
+                nrn_pragma_acc(update device(nrb->_cnt,
+                            nrb->_size,
+                            nrb->_pnt_offset,
+                            nrb->_displ_cnt,
                             nrb->_pnt_index[:nrb->_size],
                             nrb->_weight_index[:nrb->_size],
                             nrb->_displ[:nrb->_size],
                             nrb->_nrb_index[:nrb->_size])
-                        if nrb)
+                        if (nrb != nullptr))
                 nrn_pragma_omp(target update to(nrb->_cnt,
                             nrb->_size,
                             nrb->_pnt_offset,
@@ -965,7 +965,7 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             nrn_pragma_acc(update device(nt->_shadow_rhs[:pcnt],
                         /* copy shadow_d to host */
                         nt->_shadow_d[:pcnt])
-                    if nt->shadow_rhs_cnt)
+                    if (nt->shadow_rhs_cnt))
             nrn_pragma_omp(target update to(nt->_shadow_rhs[:pcnt],
                         /* copy shadow_d to host */
                         nt->_shadow_d[:pcnt])
@@ -974,22 +974,22 @@ void update_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             nrn_pragma_acc(update device(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
-                    if nt->nrn_fast_imem)
+                    if (nt->nrn_fast_imem != nullptr))
             nrn_pragma_omp(target update to(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
                         nt->nrn_fast_imem->nrn_sav_d[:nt->end])
                     if (nt->nrn_fast_imem != nullptr))
 
                 nrn_pragma_acc(update device(nt->pntprocs[:nt->n_pntproc])
-                        if nt->n_pntproc)
+                        if (nt->n_pntproc))
                 nrn_pragma_omp(target update to(nt->pntprocs[:nt->n_pntproc])
                         if (nt->n_pntproc))
 
-            nrn_pragma_acc(update device(nt->weights[:nt->n_weight]) if nt->n_weight)
+            nrn_pragma_acc(update device(nt->weights[:nt->n_weight]) if (nt->n_weight))
             nrn_pragma_omp(target update to(nt->weights[:nt->n_weight]) if (nt->n_weight))
 
                 nrn_pragma_acc(update device(nt->presyns_helper[:nt->n_presyn],
                             nt->presyns[:nt->n_presyn])
-                        if nt->n_presyn)
+                        if (nt->n_presyn))
                 nrn_pragma_omp(target update to(nt->presyns_helper[:nt->n_presyn],
                             nt->presyns[:nt->n_presyn])
                         if (nt->n_presyn))
