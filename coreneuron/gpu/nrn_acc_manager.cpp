@@ -35,11 +35,46 @@
 #include <pat_api.h>
 #endif
 namespace coreneuron {
+#ifdef _OPENACC
+class target_ion_map_allocator {
+  public:
+    target_ion_map_allocator(double** ion_map, std::size_t ion_size, std::size_t ion_member_size)
+    : ion_map(ion_map), ion_size(ion_size), ion_member_size(ion_member_size)
+    {
+        if (ion_size) {
+            double** d_data = (double**) cnrn_gpu_copyin(ion_map,
+                                                    ion_size);
+            for (int j = 0; j < ion_size; j++) {
+                if (ion_map[j]) {
+                    double* d_mechmap = (double*) cnrn_gpu_copyin(ion_map[j],
+                                                             ion_member_size);
+                    cnrn_memcpy_to_device(&(d_data[j]), &d_mechmap, sizeof(double*));
+                }
+            }
+        }
+    }
+
+    ~target_ion_map_allocator() {
+        for (int j = 0; j < ion_size; j++) {
+            if (ion_map[j]) {
+                cnrn_target_delete(ion_map[j], ion_member_size);
+            }
+        }
+        if (ion_size) {
+            cnrn_target_delete(ion_map, ion_size);
+        }
+    }
+  private:
+  double ** ion_map{};
+  std::size_t ion_size{};
+  std::size_t ion_member_size{};
+};
+target_ion_map_allocator* target_ion_map;
+#endif
+
 extern InterleaveInfo* interleave_info;
 void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div, bool vector_copy_needed = false);
 void delete_ivoc_vect_from_device(IvocVect&);
-void nrn_ion_global_map_copyto_device();
-void nrn_ion_global_map_delete_from_device();
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay);
 void nrn_VecPlay_delete_from_device(NrnThread* nt);
 
@@ -100,7 +135,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         nt->_dt = dt;
     }
 
-    nrn_ion_global_map_copyto_device();
+    target_ion_map = new target_ion_map_allocator(nrn_ion_global_map, nrn_ion_global_map_size, ion_global_map_member_size);
 
 #ifdef CORENEURON_UNIFIED_MEMORY
     for (int i = 0; i < nthreads; i++) {
@@ -1181,7 +1216,7 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         cnrn_target_delete(nt->_data, nt->_ndata);
     }
     cnrn_target_delete(threads, nthreads);
-    nrn_ion_global_map_delete_from_device();
+    delete target_ion_map;
 #endif
 }
 
@@ -1354,31 +1389,6 @@ void nrn_sparseobj_delete_from_device(SparseObj* so) {
 }
 
 #ifdef _OPENACC
-
-void nrn_ion_global_map_copyto_device() {
-    if (nrn_ion_global_map_size) {
-        double** d_data = (double**) cnrn_gpu_copyin(nrn_ion_global_map,
-                                                nrn_ion_global_map_size);
-        for (int j = 0; j < nrn_ion_global_map_size; j++) {
-            if (nrn_ion_global_map[j]) {
-                double* d_mechmap = (double*) cnrn_gpu_copyin(nrn_ion_global_map[j],
-                                                         ion_global_map_member_size);
-                cnrn_memcpy_to_device(&(d_data[j]), &d_mechmap, sizeof(double*));
-            }
-        }
-    }
-}
-
-void nrn_ion_global_map_delete_from_device() {
-    for (int j = 0; j < nrn_ion_global_map_size; j++) {
-        if (nrn_ion_global_map[j]) {
-            cnrn_target_delete(nrn_ion_global_map[j], ion_global_map_member_size);
-        }
-    }
-    if (nrn_ion_global_map_size) {
-        cnrn_target_delete(nrn_ion_global_map, nrn_ion_global_map_size);
-    }
-}
 
 void init_gpu() {
     // choose nvidia GPU by default
