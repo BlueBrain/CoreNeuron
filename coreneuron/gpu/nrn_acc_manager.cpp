@@ -169,7 +169,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
         /*update d_nt._data to point to device copy */
         cnrn_memcpy_to_device(&(d_nt->_data), &d__data, sizeof(double*));
-        //auto host_id = omp_get_initial_device();
 
         /* -- setup rhs, d, a, b, v, node_aread to point to device copy -- */
         double* dptr;
