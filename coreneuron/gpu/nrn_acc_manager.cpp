@@ -27,6 +27,11 @@
 #ifdef CRAYPAT
 #include <pat_api.h>
 #endif
+
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
 void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div);
