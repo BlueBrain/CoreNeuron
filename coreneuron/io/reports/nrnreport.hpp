@@ -11,7 +11,8 @@
  * @brief interface with reportinglib for soma reports
  */
 
-#pragma once
+#ifndef _H_NRN_REPORT_
+#define _H_NRN_REPORT_
 
 #include <string>
 #include <vector>
@@ -110,3 +111,5 @@ void nrn_flush_reports(double t);
 void set_report_buffer_size(int n);
 
 }  // namespace coreneuron
+
+#endif  //_H_NRN_REPORT_
