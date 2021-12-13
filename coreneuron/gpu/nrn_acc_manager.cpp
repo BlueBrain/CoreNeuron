@@ -46,7 +46,7 @@ void nrn_VecPlay_delete_from_device(NrnThread* nt);
 template <typename T>
 T* cnrn_target_deviceptr(const T* h_ptr) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    return acc_deviceptr(static_cast<T*>(h_ptr));
+    return acc_deviceptr(const_cast<T*>(h_ptr));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     return static_cast<T*>(omp_get_mapped_ptr(const_cast<T*>(h_ptr), omp_get_default_device()));
 #else
