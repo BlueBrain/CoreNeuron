@@ -43,31 +43,31 @@ void nrn_ion_global_map_delete_from_device();
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay);
 void nrn_VecPlay_delete_from_device(NrnThread* nt);
 
-void* cnrn_target_deviceptr(void* h_ptr) {
+template <typename T>
+T* cnrn_target_deviceptr(const T* h_ptr) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    return acc_deviceptr(h_ptr);
+    return acc_deviceptr(static_cast<T*>(h_ptr));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
-    auto device_id = omp_get_default_device();
-    return omp_get_mapped_ptr(h_ptr, device_id);
+    return static_cast<T*>(omp_get_mapped_ptr(const_cast<T*>(h_ptr), omp_get_default_device()));
 #else
-    throw std::runtime_error("cnrn_target_delete() not implemented without OpenACC/OpenMP and gpu build");
+    throw std::runtime_error("cnrn_target_deviceptr() not implemented without OpenACC/OpenMP and gpu build");
 #endif
 }
 
 template <typename T>
-T* cnrn_gpu_copyin(T* h_ptr, std::size_t len = 1) {
+T* cnrn_target_copyin(const T* h_ptr, std::size_t len = 1) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    return static_cast<T*>(acc_copyin(h_ptr, len * sizeof(T)));
+    return static_cast<T*>(acc_copyin(const_cast<T*>(h_ptr), len * sizeof(T)));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     #pragma omp target enter data map(to:h_ptr[:len])
-    return static_cast<T*>(cnrn_target_deviceptr(h_ptr));
+    return cnrn_target_deviceptr(const_cast<T*>(h_ptr));
 #else
-    throw std::runtime_error("cnrn_gpu_copyin() not implemented without OpenACC/OpenMP and gpu build");
+    throw std::runtime_error("cnrn_target_copyin() not implemented without OpenACC/OpenMP and gpu build");
 #endif
 }
 
 template <typename T>
-void cnrn_target_delete(T* h_ptr, size_t len = 1) {
+void cnrn_target_delete(T* h_ptr, std::size_t len = 1) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
     acc_delete(h_ptr, len * sizeof(T));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
@@ -77,15 +77,14 @@ void cnrn_target_delete(T* h_ptr, size_t len = 1) {
 #endif
 }
 
-void cnrn_memcpy_to_device(void* d_ptr, void* h_ptr, size_t len) {
+template <typename T>
+void cnrn_target_memcpy_to_device(T* d_ptr, const T* h_ptr, std::size_t len = 1) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    acc_memcpy_to_device(d_ptr, h_ptr, len);
+    acc_memcpy_to_device(d_ptr, const_cast<T*>(h_ptr), len * sizeof(T));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
-    auto host_id = omp_get_initial_device();
-    auto device_id = omp_get_default_device();
-    omp_target_memcpy(d_ptr, h_ptr, len, 0, 0, device_id, host_id);
+    omp_target_memcpy(d_ptr, const_cast<T*>(h_ptr), len* sizeof(T), 0, 0, omp_get_default_device(), omp_get_initial_device());
 #else
-    throw std::runtime_error("cnrn_memcpy_to_device() not implemented without OpenACC/OpenMP and gpu build");
+    throw std::runtime_error("cnrn_target_memcpy_to_device() not implemented without OpenACC/OpenMP and gpu build");
 #endif
 }
 
@@ -107,13 +106,13 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         NrnThread* nt = threads + i;  // NrnThread on host
 
         if (nt->n_presyn) {
-            PreSyn* d_presyns = cnrn_gpu_copyin(nt->presyns, nt->n_presyn);
+            PreSyn* d_presyns = cnrn_target_copyin(nt->presyns, nt->n_presyn);
         }
 
         if (nt->n_vecplay) {
             /* copy VecPlayContinuous instances */
             /** just empty containers */
-            void** d_vecplay = cnrn_gpu_copyin(nt->_vecplay, nt->n_vecplay);
+            void** d_vecplay = cnrn_target_copyin(nt->_vecplay, nt->n_vecplay);
             // note: we are using unified memory for NrnThread. Once VecPlay is copied to gpu,
             // we dont want to update nt->vecplay because it will also set gpu pointer of vecplay
             // inside nt on cpu (due to unified memory).
@@ -131,7 +130,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
      * find
      * corresponding NrnThread using Point_process in NET_RECEIVE block
      */
-    NrnThread* d_threads = cnrn_gpu_copyin(threads, nthreads);
+    NrnThread* d_threads = cnrn_target_copyin(threads, nthreads);
 
     if (interleave_info == nullptr) {
         printf("\n Warning: No permutation data? Required for linear algebra!");
@@ -150,7 +149,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         /* -- copy _data to device -- */
 
         /*copy all double data for thread */
-        d__data = cnrn_gpu_copyin(nt->_data, nt->_ndata);
+        d__data = cnrn_target_copyin(nt->_data, nt->_ndata);
 
 
         /* Here is the example of using OpenACC data enter/exit
@@ -161,7 +160,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
          */
 
         /*update d_nt._data to point to device copy */
-        cnrn_memcpy_to_device(&(d_nt->_data), &d__data, sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_data), &d__data);
 
         /* -- setup rhs, d, a, b, v, node_aread to point to device copy -- */
         double* dptr;
@@ -170,35 +169,35 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         int ne = nrn_soa_padded_size(nt->end, 0);
 
         dptr = d__data + 0 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_rhs), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_rhs), &(dptr));
 
         dptr = d__data + 1 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_d), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_d), &(dptr));
 
         dptr = d__data + 2 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_a), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_a), &(dptr));
 
         dptr = d__data + 3 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_b), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_b), &(dptr));
 
         dptr = d__data + 4 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_v), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_v), &(dptr));
 
         dptr = d__data + 5 * ne;
-        cnrn_memcpy_to_device(&(d_nt->_actual_area), &(dptr), sizeof(double*));
+        cnrn_target_memcpy_to_device(&(d_nt->_actual_area), &(dptr));
 
         if (nt->_actual_diam) {
             dptr = d__data + 6 * ne;
-            cnrn_memcpy_to_device(&(d_nt->_actual_diam), &(dptr), sizeof(double*));
+            cnrn_target_memcpy_to_device(&(d_nt->_actual_diam), &(dptr));
         }
 
-        int* d_v_parent_index = cnrn_gpu_copyin(nt->_v_parent_index, nt->end);
-        cnrn_memcpy_to_device(&(d_nt->_v_parent_index), &(d_v_parent_index), sizeof(int*));
+        int* d_v_parent_index = cnrn_target_copyin(nt->_v_parent_index, nt->end);
+        cnrn_target_memcpy_to_device(&(d_nt->_v_parent_index), &(d_v_parent_index));
 
         /* nt._ml_list is used in NET_RECEIVE block and should have valid membrane list id*/
-        Memb_list** d_ml_list = cnrn_gpu_copyin(nt->_ml_list,
+        Memb_list** d_ml_list = cnrn_target_copyin(nt->_ml_list,
                                                          corenrn.get_memb_funcs().size());
-        cnrn_memcpy_to_device(&(d_nt->_ml_list), &(d_ml_list), sizeof(Memb_list**));
+        cnrn_target_memcpy_to_device(&(d_nt->_ml_list), &(d_ml_list));
 
         /* -- copy NrnThreadMembList list ml to device -- */
 
@@ -209,26 +208,26 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         for (auto tml = nt->tml; tml; tml = tml->next) {
             /*copy tml to device*/
             /*QUESTIONS: does tml will point to nullptr as in host ? : I assume so!*/
-            auto d_tml = cnrn_gpu_copyin(tml);
+            auto d_tml = cnrn_target_copyin(tml);
 
             /*first tml is pointed by nt */
             if (first_tml) {
-                cnrn_memcpy_to_device(&(d_nt->tml), &d_tml, sizeof(NrnThreadMembList*));
+                cnrn_target_memcpy_to_device(&(d_nt->tml), &d_tml);
                 first_tml = false;
             } else {
                 /*rest of tml forms linked list */
-                cnrn_memcpy_to_device(&(d_last_tml->next), &d_tml, sizeof(NrnThreadMembList*));
+                cnrn_target_memcpy_to_device(&(d_last_tml->next), &d_tml);
             }
 
             // book keeping for linked-list
             d_last_tml = d_tml;
 
             /* now for every tml, there is a ml. copy that and setup pointer */
-            auto d_ml = cnrn_gpu_copyin(tml->ml);
-            cnrn_memcpy_to_device(&(d_tml->ml), &d_ml, sizeof(Memb_list*));
+            auto d_ml = cnrn_target_copyin(tml->ml);
+            cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
 
             /* setup nt._ml_list */
-            cnrn_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml, sizeof(Memb_list*));
+            cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
 
             int type = tml->index;
             int n = tml->ml->nodecount;
@@ -237,25 +236,25 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int is_art = corenrn.get_is_artificial()[type];
 
             // get device pointer for corresponding mechanism data
-            dptr = (double*) cnrn_target_deviceptr(tml->ml->data);
-            cnrn_memcpy_to_device(&(d_ml->data), &(dptr), sizeof(double*));
+            dptr = cnrn_target_deviceptr(tml->ml->data);
+            cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
 
             if (!is_art) {
-                int* d_nodeindices = cnrn_gpu_copyin(tml->ml->nodeindices, n);
-                cnrn_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices, sizeof(int*));
+                int* d_nodeindices = cnrn_target_copyin(tml->ml->nodeindices, n);
+                cnrn_target_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices);
             }
 
             if (szdp) {
                 int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                int* d_pdata = cnrn_gpu_copyin(tml->ml->pdata, pcnt);
-                cnrn_memcpy_to_device(&(d_ml->pdata), &d_pdata, sizeof(int*));
+                int* d_pdata = cnrn_target_copyin(tml->ml->pdata, pcnt);
+                cnrn_target_memcpy_to_device(&(d_ml->pdata), &d_pdata);
             }
 
             int ts = corenrn.get_memb_funcs()[type].thread_size_;
             if (ts) {
-                ThreadDatum* td = cnrn_gpu_copyin(tml->ml->_thread, ts);
-                cnrn_memcpy_to_device(&(d_ml->_thread), &td, sizeof(ThreadDatum*));
+                ThreadDatum* td = cnrn_target_copyin(tml->ml->_thread, ts);
+                cnrn_target_memcpy_to_device(&(d_ml->_thread), &td);
             }
 
             NetReceiveBuffer_t *nrb, *d_nrb;
@@ -267,28 +266,26 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 
             // if net receive buffer exist for mechanism
             if (nrb) {
-                d_nrb = cnrn_gpu_copyin(nrb);
-                cnrn_memcpy_to_device(&(d_ml->_net_receive_buffer),
-                                     &d_nrb,
-                                     sizeof(NetReceiveBuffer_t*));
+                d_nrb = cnrn_target_copyin(nrb);
+                cnrn_target_memcpy_to_device(&(d_ml->_net_receive_buffer), &d_nrb);
 
-                d_pnt_index = cnrn_gpu_copyin(nrb->_pnt_index, nrb->_size);
-                cnrn_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index, sizeof(int*));
+                d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
+                cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
 
-                d_weight_index = cnrn_gpu_copyin(nrb->_weight_index, nrb->_size);
-                cnrn_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index, sizeof(int*));
+                d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
+                cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
 
-                d_nrb_t = cnrn_gpu_copyin(nrb->_nrb_t, nrb->_size);
-                cnrn_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t, sizeof(double*));
+                d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
+                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
 
-                d_nrb_flag = cnrn_gpu_copyin(nrb->_nrb_flag, nrb->_size);
-                cnrn_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag, sizeof(double*));
+                d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
+                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
 
-                d_displ = cnrn_gpu_copyin(nrb->_displ, nrb->_size + 1);
-                cnrn_memcpy_to_device(&(d_nrb->_displ), &d_displ, sizeof(int*));
+                d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
+                cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
 
-                d_nrb_index = cnrn_gpu_copyin(nrb->_nrb_index, nrb->_size);
-                cnrn_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index, sizeof(int*));
+                d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
+                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
             }
 
             /* copy NetSendBuffer_t on to GPU */
@@ -300,26 +297,26 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 int* d_iptr;
                 double* d_dptr;
 
-                d_nsb = cnrn_gpu_copyin(nsb);
-                cnrn_memcpy_to_device(&(d_ml->_net_send_buffer), &d_nsb, sizeof(NetSendBuffer_t*));
+                d_nsb = cnrn_target_copyin(nsb);
+                cnrn_target_memcpy_to_device(&(d_ml->_net_send_buffer), &d_nsb);
 
-                d_iptr = cnrn_gpu_copyin(nsb->_sendtype, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_sendtype), &d_iptr, sizeof(int*));
+                d_iptr = cnrn_target_copyin(nsb->_sendtype, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_sendtype), &d_iptr);
 
-                d_iptr = cnrn_gpu_copyin(nsb->_vdata_index, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_vdata_index), &d_iptr, sizeof(int*));
+                d_iptr = cnrn_target_copyin(nsb->_vdata_index, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_vdata_index), &d_iptr);
 
-                d_iptr = cnrn_gpu_copyin(nsb->_pnt_index, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_pnt_index), &d_iptr, sizeof(int*));
+                d_iptr = cnrn_target_copyin(nsb->_pnt_index, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_pnt_index), &d_iptr);
 
-                d_iptr = cnrn_gpu_copyin(nsb->_weight_index, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_weight_index), &d_iptr, sizeof(int*));
+                d_iptr = cnrn_target_copyin(nsb->_weight_index, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_weight_index), &d_iptr);
 
-                d_dptr = cnrn_gpu_copyin(nsb->_nsb_t, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_nsb_t), &d_dptr, sizeof(double*));
+                d_dptr = cnrn_target_copyin(nsb->_nsb_t, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_nsb_t), &d_dptr);
 
-                d_dptr = cnrn_gpu_copyin(nsb->_nsb_flag, nsb->_size);
-                cnrn_memcpy_to_device(&(d_nsb->_nsb_flag), &d_dptr, sizeof(double*));
+                d_dptr = cnrn_target_copyin(nsb->_nsb_flag, nsb->_size);
+                cnrn_target_memcpy_to_device(&(d_nsb->_nsb_flag), &d_dptr);
             }
         }
 
@@ -329,25 +326,25 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int pcnt = nrn_soa_padded_size(nt->shadow_rhs_cnt, 0);
 
             /* copy shadow_rhs to device and fix-up the pointer */
-            d_shadow_ptr = cnrn_gpu_copyin(nt->_shadow_rhs, pcnt);
-            cnrn_memcpy_to_device(&(d_nt->_shadow_rhs), &d_shadow_ptr, sizeof(double*));
+            d_shadow_ptr = cnrn_target_copyin(nt->_shadow_rhs, pcnt);
+            cnrn_target_memcpy_to_device(&(d_nt->_shadow_rhs), &d_shadow_ptr);
 
             /* copy shadow_d to device and fix-up the pointer */
-            d_shadow_ptr = cnrn_gpu_copyin(nt->_shadow_d, pcnt);
-            cnrn_memcpy_to_device(&(d_nt->_shadow_d), &d_shadow_ptr, sizeof(double*));
+            d_shadow_ptr = cnrn_target_copyin(nt->_shadow_d, pcnt);
+            cnrn_target_memcpy_to_device(&(d_nt->_shadow_d), &d_shadow_ptr);
         }
 
         /* Fast membrane current calculation struct */
         if (nt->nrn_fast_imem) {
-            NrnFastImem* d_fast_imem = cnrn_gpu_copyin(nt->nrn_fast_imem);
-            cnrn_memcpy_to_device(&(d_nt->nrn_fast_imem), &d_fast_imem, sizeof(NrnFastImem*));
+            NrnFastImem* d_fast_imem = cnrn_target_copyin(nt->nrn_fast_imem);
+            cnrn_target_memcpy_to_device(&(d_nt->nrn_fast_imem), &d_fast_imem);
             {
-                double* d_ptr = cnrn_gpu_copyin(nt->nrn_fast_imem->nrn_sav_rhs, nt->end);
-                cnrn_memcpy_to_device(&(d_fast_imem->nrn_sav_rhs), &d_ptr, sizeof(double*));
+                double* d_ptr = cnrn_target_copyin(nt->nrn_fast_imem->nrn_sav_rhs, nt->end);
+                cnrn_target_memcpy_to_device(&(d_fast_imem->nrn_sav_rhs), &d_ptr);
             }
             {
-                double* d_ptr = cnrn_gpu_copyin(nt->nrn_fast_imem->nrn_sav_d, nt->end);
-                cnrn_memcpy_to_device(&(d_fast_imem->nrn_sav_d), &d_ptr, sizeof(double*));
+                double* d_ptr = cnrn_target_copyin(nt->nrn_fast_imem->nrn_sav_d, nt->end);
+                cnrn_target_memcpy_to_device(&(d_fast_imem->nrn_sav_d), &d_ptr);
             }
         }
 
@@ -355,21 +352,21 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             /* copy Point_processes array and fix the pointer to execute net_receive blocks on GPU
              */
             Point_process* pntptr =
-                cnrn_gpu_copyin(nt->pntprocs, nt->n_pntproc);
-            cnrn_memcpy_to_device(&(d_nt->pntprocs), &pntptr, sizeof(Point_process*));
+                cnrn_target_copyin(nt->pntprocs, nt->n_pntproc);
+            cnrn_target_memcpy_to_device(&(d_nt->pntprocs), &pntptr);
         }
 
         if (nt->n_weight) {
             /* copy weight vector used in NET_RECEIVE which is pointed by netcon.weight */
-            double* d_weights = cnrn_gpu_copyin(nt->weights, nt->n_weight);
-            cnrn_memcpy_to_device(&(d_nt->weights), &d_weights, sizeof(double*));
+            double* d_weights = cnrn_target_copyin(nt->weights, nt->n_weight);
+            cnrn_target_memcpy_to_device(&(d_nt->weights), &d_weights);
         }
 
         if (nt->_nvdata) {
             /* copy vdata which is setup in bbcore_read. This contains cuda allocated
              * nrnran123_State * */
-            void** d_vdata = cnrn_gpu_copyin(nt->_vdata, nt->_nvdata);
-            cnrn_memcpy_to_device(&(d_nt->_vdata), &d_vdata, sizeof(void**));
+            void** d_vdata = cnrn_target_copyin(nt->_vdata, nt->_nvdata);
+            cnrn_target_memcpy_to_device(&(d_nt->_vdata), &d_vdata);
         }
 
         if (nt->n_presyn) {
@@ -379,24 +376,24 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
              * to
              * VTable and alignment */
             PreSynHelper* d_presyns_helper =
-                cnrn_gpu_copyin(nt->presyns_helper, nt->n_presyn);
-            cnrn_memcpy_to_device(&(d_nt->presyns_helper), &d_presyns_helper, sizeof(PreSynHelper*));
-            PreSyn* d_presyns = cnrn_gpu_copyin(nt->presyns, nt->n_presyn);
-            cnrn_memcpy_to_device(&(d_nt->presyns), &d_presyns, sizeof(PreSyn*));
+                cnrn_target_copyin(nt->presyns_helper, nt->n_presyn);
+            cnrn_target_memcpy_to_device(&(d_nt->presyns_helper), &d_presyns_helper);
+            PreSyn* d_presyns = cnrn_target_copyin(nt->presyns, nt->n_presyn);
+            cnrn_target_memcpy_to_device(&(d_nt->presyns), &d_presyns);
         }
 
         if (nt->_net_send_buffer_size) {
             /* copy send_receive buffer */
-            int* d_net_send_buffer = cnrn_gpu_copyin(nt->_net_send_buffer,
+            int* d_net_send_buffer = cnrn_target_copyin(nt->_net_send_buffer,
                     nt->_net_send_buffer_size);
-            cnrn_memcpy_to_device(&(d_nt->_net_send_buffer), &d_net_send_buffer, sizeof(int*));
+            cnrn_target_memcpy_to_device(&(d_nt->_net_send_buffer), &d_net_send_buffer);
         }
 
         if (nt->n_vecplay) {
             /* copy VecPlayContinuous instances */
             /** just empty containers */
-            void** d_vecplay = cnrn_gpu_copyin(nt->_vecplay, nt->n_vecplay);
-            cnrn_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay, sizeof(void**));
+            void** d_vecplay = cnrn_target_copyin(nt->_vecplay, nt->n_vecplay);
+            cnrn_target_memcpy_to_device(&(d_nt->_vecplay), &d_vecplay);
 
             nrn_VecPlay_copyto_device(nt, d_vecplay);
         }
@@ -406,40 +403,40 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
                 /* todo: not necessary to setup pointers, just copy it */
                 InterleaveInfo* info = interleave_info + i;
                 int* d_ptr = nullptr;
-                InterleaveInfo* d_info = cnrn_gpu_copyin(info);
+                InterleaveInfo* d_info = cnrn_target_copyin(info);
 
-                d_ptr = cnrn_gpu_copyin(info->stride, info->nstride + 1);
-                cnrn_memcpy_to_device(&(d_info->stride), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->stride, info->nstride + 1);
+                cnrn_target_memcpy_to_device(&(d_info->stride), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->firstnode, nt->ncell);
-                cnrn_memcpy_to_device(&(d_info->firstnode), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->firstnode, nt->ncell);
+                cnrn_target_memcpy_to_device(&(d_info->firstnode), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->lastnode, nt->ncell);
-                cnrn_memcpy_to_device(&(d_info->lastnode), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->lastnode, nt->ncell);
+                cnrn_target_memcpy_to_device(&(d_info->lastnode), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->cellsize, nt->ncell);
-                cnrn_memcpy_to_device(&(d_info->cellsize), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->cellsize, nt->ncell);
+                cnrn_target_memcpy_to_device(&(d_info->cellsize), &d_ptr);
 
             } else if (interleave_permute_type == 2) {
                 /* todo: not necessary to setup pointers, just copy it */
                 InterleaveInfo* info = interleave_info + i;
-                InterleaveInfo* d_info = cnrn_gpu_copyin(info);
+                InterleaveInfo* d_info = cnrn_target_copyin(info);
                 int* d_ptr = nullptr;
 
-                d_ptr = cnrn_gpu_copyin(info->stride, info->nstride);
-                cnrn_memcpy_to_device(&(d_info->stride), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->stride, info->nstride);
+                cnrn_target_memcpy_to_device(&(d_info->stride), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->firstnode, info->nwarp + 1);
-                cnrn_memcpy_to_device(&(d_info->firstnode), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->firstnode, info->nwarp + 1);
+                cnrn_target_memcpy_to_device(&(d_info->firstnode), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->lastnode, info->nwarp + 1);
-                cnrn_memcpy_to_device(&(d_info->lastnode), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->lastnode, info->nwarp + 1);
+                cnrn_target_memcpy_to_device(&(d_info->lastnode), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->stridedispl, info->nwarp + 1);
-                cnrn_memcpy_to_device(&(d_info->stridedispl), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->stridedispl, info->nwarp + 1);
+                cnrn_target_memcpy_to_device(&(d_info->stridedispl), &d_ptr);
 
-                d_ptr = cnrn_gpu_copyin(info->cellsize, info->nwarp);
-                cnrn_memcpy_to_device(&(d_info->cellsize), &d_ptr, sizeof(int*));
+                d_ptr = cnrn_target_copyin(info->cellsize, info->nwarp);
+                cnrn_target_memcpy_to_device(&(d_info->cellsize), &d_ptr);
             } else {
                 printf("\n ERROR: only --cell_permute = [12] implemented");
                 abort();
@@ -453,34 +450,30 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             if (tr) {
                 // Create a device-side copy of the `trajec_requests` struct and
                 // make sure the device-side NrnThread object knows about it.
-                TrajectoryRequests* d_trajec_requests = cnrn_gpu_copyin(tr);
-                cnrn_memcpy_to_device(&(d_nt->trajec_requests),
-                                     &d_trajec_requests,
-                                     sizeof(TrajectoryRequests*));
+                TrajectoryRequests* d_trajec_requests = cnrn_target_copyin(tr);
+                cnrn_target_memcpy_to_device(&(d_nt->trajec_requests), &d_trajec_requests);
                 // Initialise the double** gather member of the struct.
-                double** d_tr_gather = cnrn_gpu_copyin(tr->gather, tr->n_trajec);
-                cnrn_memcpy_to_device(&(d_trajec_requests->gather), &d_tr_gather, sizeof(double**));
+                double** d_tr_gather = cnrn_target_copyin(tr->gather, tr->n_trajec);
+                cnrn_target_memcpy_to_device(&(d_trajec_requests->gather), &d_tr_gather);
                 // Initialise the double** varrays member of the struct if it's
                 // set.
                 double** d_tr_varrays{nullptr};
                 if (tr->varrays) {
-                    d_tr_varrays = cnrn_gpu_copyin(tr->varrays, tr->n_trajec);
-                    cnrn_memcpy_to_device(&(d_trajec_requests->varrays),
-                                         &d_tr_varrays,
-                                         sizeof(double**));
+                    d_tr_varrays = cnrn_target_copyin(tr->varrays, tr->n_trajec);
+                    cnrn_target_memcpy_to_device(&(d_trajec_requests->varrays), &d_tr_varrays);
                 }
                 for (int i = 0; i < tr->n_trajec; ++i) {
                     if (tr->varrays) {
                         // tr->varrays[i] is a buffer of tr->bsize doubles on the host,
                         // make a device-side copy of it and store a pointer to it in
                         // the device-side version of tr->varrays.
-                        double* d_buf_traj_i = cnrn_gpu_copyin(tr->varrays[i], tr->bsize);
-                        cnrn_memcpy_to_device(&(d_tr_varrays[i]), &d_buf_traj_i, sizeof(double*));
+                        double* d_buf_traj_i = cnrn_target_copyin(tr->varrays[i], tr->bsize);
+                        cnrn_target_memcpy_to_device(&(d_tr_varrays[i]), &d_buf_traj_i);
                     }
                     // tr->gather[i] is a double* referring to (host) data in the
                     // (host) _data block
                     auto* d_gather_i = cnrn_target_deviceptr(tr->gather[i]);
-                    cnrn_memcpy_to_device(&(d_tr_gather[i]), &d_gather_i, sizeof(double*));
+                    cnrn_target_memcpy_to_device(&(d_tr_gather[i]), &d_gather_i);
                 }
                 // TODO: other `double** scatter` and `void** vpr` members of
                 // the TrajectoryRequests struct are not copied to the device.
@@ -505,13 +498,13 @@ void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to, bool vector_co
     /// if we need to copy IvocVect vector then newly alloated vector
     /// on the device is a new destination pointer
     if(vector_copy_needed) {
-        d_iv = cnrn_gpu_copyin(const_cast<IvocVect*>(&from));
-        cnrn_memcpy_to_device(&to, &d_iv, sizeof(IvocVect*));
+        d_iv = cnrn_target_copyin(&from);
+        cnrn_target_memcpy_to_device(&to, d_iv);
     }
     size_t n = from.size();
     if (n) {
-        double* d_data =  cnrn_gpu_copyin(const_cast<double*>(from.data()), n);
-        cnrn_memcpy_to_device(&(d_iv->data_), &d_data, sizeof(double*));
+        double* d_data =  cnrn_target_copyin(from.data(), n);
+        cnrn_target_memcpy_to_device(&(d_iv->data_), &d_data);
     }
 #else
     (void) from;
@@ -567,26 +560,26 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
         nrn_pragma_acc(update device(nrb));
         nrn_pragma_omp(target update to(nrb));
 
-        NetReceiveBuffer_t* d_nrb = (NetReceiveBuffer_t*) cnrn_target_deviceptr(nrb);
+        NetReceiveBuffer_t* d_nrb = cnrn_target_deviceptr(nrb);
 
         // recopy the vectors in the buffer
-        d_pnt_index = cnrn_gpu_copyin(nrb->_pnt_index, nrb->_size);
-        cnrn_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index, sizeof(int*));
+        d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
 
-        d_weight_index = cnrn_gpu_copyin(nrb->_weight_index, nrb->_size);
-        cnrn_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index, sizeof(int*));
+        d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
 
-        d_nrb_t = cnrn_gpu_copyin(nrb->_nrb_t, nrb->_size);
-        cnrn_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t, sizeof(double*));
+        d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
 
-        d_nrb_flag = cnrn_gpu_copyin(nrb->_nrb_flag, nrb->_size);
-        cnrn_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag, sizeof(double*));
+        d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
 
-        d_displ = cnrn_gpu_copyin(nrb->_displ, nrb->_size + 1);
-        cnrn_memcpy_to_device(&(d_nrb->_displ), &d_displ, sizeof(int*));
+        d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
+        cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
 
-        d_nrb_index = cnrn_gpu_copyin(nrb->_nrb_index, nrb->_size);
-        cnrn_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index, sizeof(int*));
+        d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
     }
 #endif
 }
@@ -1023,21 +1016,21 @@ void update_weights_from_gpu(NrnThread* threads, int nthreads) {
 /** Cleanup device memory that is being tracked by the OpenACC runtime.
  *
  *  This function painstakingly calls `cnrn_target_delete` in reverse order on all
- *  pointers that were passed to `cnrn_gpu_copyin` in `setup_nrnthreads_on_device`.
+ *  pointers that were passed to `cnrn_target_copyin` in `setup_nrnthreads_on_device`.
  *  This cleanup ensures that if the GPU is initialised multiple times from the
  *  same process then the OpenACC runtime will not be polluted with old
  *  pointers, which can cause errors. In particular if we do:
  *  @code
  *    {
  *      // ... some_ptr is dynamically allocated ...
- *      cnrn_gpu_copyin(some_ptr, some_size);
+ *      cnrn_target_copyin(some_ptr, some_size);
  *      // ... do some work ...
  *      // cnrn_target_delete(some_ptr);
  *      free(some_ptr);
  *    }
  *    {
  *      // ... same_ptr_again is dynamically allocated at the same address ...
- *      cnrn_gpu_copyin(same_ptr_again, some_other_size); // ERROR
+ *      cnrn_target_copyin(same_ptr_again, some_other_size); // ERROR
  *    }
  *  @endcode
  *  the application will/may abort with an error such as:
@@ -1188,34 +1181,34 @@ void nrn_newtonspace_copyto_device(NewtonSpace* ns) {
 
     int n = ns->n * ns->n_instance;
     // actually, the values of double do not matter, only the  pointers.
-    NewtonSpace* d_ns = cnrn_gpu_copyin(ns);
+    NewtonSpace* d_ns = cnrn_target_copyin(ns);
 
     double* pd;
 
-    pd = cnrn_gpu_copyin(ns->delta_x, n);
-    cnrn_memcpy_to_device(&(d_ns->delta_x), &pd, sizeof(double*));
+    pd = cnrn_target_copyin(ns->delta_x, n);
+    cnrn_target_memcpy_to_device(&(d_ns->delta_x), &pd);
 
-    pd = cnrn_gpu_copyin(ns->high_value, n);
-    cnrn_memcpy_to_device(&(d_ns->high_value), &pd, sizeof(double*));
+    pd = cnrn_target_copyin(ns->high_value, n);
+    cnrn_target_memcpy_to_device(&(d_ns->high_value), &pd);
 
-    pd = cnrn_gpu_copyin(ns->low_value, n);
-    cnrn_memcpy_to_device(&(d_ns->low_value), &pd, sizeof(double*));
+    pd = cnrn_target_copyin(ns->low_value, n);
+    cnrn_target_memcpy_to_device(&(d_ns->low_value), &pd);
 
-    pd = cnrn_gpu_copyin(ns->rowmax, n);
-    cnrn_memcpy_to_device(&(d_ns->rowmax), &pd, sizeof(double*));
+    pd = cnrn_target_copyin(ns->rowmax, n);
+    cnrn_target_memcpy_to_device(&(d_ns->rowmax), &pd);
 
-    auto pint = cnrn_gpu_copyin(ns->perm, n);
-    cnrn_memcpy_to_device(&(d_ns->perm), &pint, sizeof(int*));
+    auto pint = cnrn_target_copyin(ns->perm, n);
+    cnrn_target_memcpy_to_device(&(d_ns->perm), &pint);
 
-    auto ppd = cnrn_gpu_copyin(ns->jacobian, ns->n);
-    cnrn_memcpy_to_device(&(d_ns->jacobian), &ppd, sizeof(double**));
+    auto ppd = cnrn_target_copyin(ns->jacobian, ns->n);
+    cnrn_target_memcpy_to_device(&(d_ns->jacobian), &ppd);
 
     // the actual jacobian doubles were allocated as a single array
-    double* d_jacdat = cnrn_gpu_copyin(ns->jacobian[0], ns->n * n);
+    double* d_jacdat = cnrn_target_copyin(ns->jacobian[0], ns->n * n);
 
     for (int i = 0; i < ns->n; ++i) {
         pd = d_jacdat + i * n;
-        cnrn_memcpy_to_device(&(ppd[i]), &pd, sizeof(double*));
+        cnrn_target_memcpy_to_device(&(ppd[i]), &pd);
     }
 #endif
 }
@@ -1248,76 +1241,76 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
     }
 
     unsigned n1 = so->neqn + 1;
-    SparseObj* d_so = cnrn_gpu_copyin(so);
+    SparseObj* d_so = cnrn_target_copyin(so);
     // only pointer fields in SparseObj that need setting up are
     //   rowst, diag, rhs, ngetcall, coef_list
     // only pointer fields in Elm that need setting up are
     //   r_down, c_right, value
     // do not care about the Elm* ptr value, just the space.
 
-    Elm** d_rowst = cnrn_gpu_copyin(so->rowst, n1);
-    cnrn_memcpy_to_device(&(d_so->rowst), &d_rowst, sizeof(Elm**));
+    Elm** d_rowst = cnrn_target_copyin(so->rowst, n1);
+    cnrn_target_memcpy_to_device(&(d_so->rowst), &d_rowst);
 
-    Elm** d_diag = cnrn_gpu_copyin(so->diag, n1);
-    cnrn_memcpy_to_device(&(d_so->diag), &d_diag, sizeof(Elm**));
+    Elm** d_diag = cnrn_target_copyin(so->diag, n1);
+    cnrn_target_memcpy_to_device(&(d_so->diag), &d_diag);
 
-    unsigned* pu = cnrn_gpu_copyin(so->ngetcall, so->_cntml_padded);
-    cnrn_memcpy_to_device(&(d_so->ngetcall), &pu, sizeof(Elm**));
+    unsigned* pu = cnrn_target_copyin(so->ngetcall, so->_cntml_padded);
+    cnrn_target_memcpy_to_device(&(d_so->ngetcall), &pu);
 
-    double* pd = cnrn_gpu_copyin(so->rhs, n1 * so->_cntml_padded);
-    cnrn_memcpy_to_device(&(d_so->rhs), &pd, sizeof(double*));
+    double* pd = cnrn_target_copyin(so->rhs, n1 * so->_cntml_padded);
+    cnrn_target_memcpy_to_device(&(d_so->rhs), &pd);
 
-    double** d_coef_list = cnrn_gpu_copyin(so->coef_list, so->coef_list_size);
-    cnrn_memcpy_to_device(&(d_so->coef_list), &d_coef_list, sizeof(double**));
+    double** d_coef_list = cnrn_target_copyin(so->coef_list, so->coef_list_size);
+    cnrn_target_memcpy_to_device(&(d_so->coef_list), &d_coef_list);
 
     // Fill in relevant Elm pointer values
 
     for (unsigned irow = 1; irow < n1; ++irow) {
         for (Elm* elm = so->rowst[irow]; elm; elm = elm->c_right) {
-            Elm* pelm = cnrn_gpu_copyin(elm);
+            Elm* pelm = cnrn_target_copyin(elm);
 
             if (elm == so->rowst[irow]) {
-                cnrn_memcpy_to_device(&(d_rowst[irow]), &pelm, sizeof(Elm*));
+                cnrn_target_memcpy_to_device(&(d_rowst[irow]), &pelm);
             } else {
-                Elm* d_e = (Elm*) cnrn_target_deviceptr(elm->c_left);
-                cnrn_memcpy_to_device(&(pelm->c_left), &d_e, sizeof(Elm*));
+                Elm* d_e = cnrn_target_deviceptr(elm->c_left);
+                cnrn_target_memcpy_to_device(&(pelm->c_left), &d_e);
             }
 
             if (elm->col == elm->row) {
-                cnrn_memcpy_to_device(&(d_diag[irow]), &pelm, sizeof(Elm*));
+                cnrn_target_memcpy_to_device(&(d_diag[irow]), &pelm);
             }
 
             if (irow > 1) {
                 if (elm->r_up) {
-                    Elm* d_e = (Elm*) cnrn_target_deviceptr(elm->r_up);
-                    cnrn_memcpy_to_device(&(pelm->r_up), &d_e, sizeof(Elm*));
+                    Elm* d_e = cnrn_target_deviceptr(elm->r_up);
+                    cnrn_target_memcpy_to_device(&(pelm->r_up), &d_e);
                 }
             }
 
-            pd = cnrn_gpu_copyin(elm->value, so->_cntml_padded);
-            cnrn_memcpy_to_device(&(pelm->value), &pd, sizeof(double*));
+            pd = cnrn_target_copyin(elm->value, so->_cntml_padded);
+            cnrn_target_memcpy_to_device(&(pelm->value), &pd);
         }
     }
 
     // visit all the Elm again and fill in pelm->r_down and pelm->c_left
     for (unsigned irow = 1; irow < n1; ++irow) {
         for (Elm* elm = so->rowst[irow]; elm; elm = elm->c_right) {
-            auto pelm = (Elm*) cnrn_target_deviceptr(elm);
+            auto pelm = cnrn_target_deviceptr(elm);
             if (elm->r_down) {
-                auto d_e = (Elm*) cnrn_target_deviceptr(elm->r_down);
-                cnrn_memcpy_to_device(&(pelm->r_down), &d_e, sizeof(Elm*));
+                auto d_e = cnrn_target_deviceptr(elm->r_down);
+                cnrn_target_memcpy_to_device(&(pelm->r_down), &d_e);
             }
             if (elm->c_right) {
-                auto d_e = (Elm*) cnrn_target_deviceptr(elm->c_right);
-                cnrn_memcpy_to_device(&(pelm->c_right), &d_e, sizeof(Elm*));
+                auto d_e = cnrn_target_deviceptr(elm->c_right);
+                cnrn_target_memcpy_to_device(&(pelm->c_right), &d_e);
             }
         }
     }
 
     // Fill in the d_so->coef_list
     for (unsigned i = 0; i < so->coef_list_size; ++i) {
-        pd = (double*) cnrn_target_deviceptr(so->coef_list[i]);
-        cnrn_memcpy_to_device(&(d_coef_list[i]), &pd, sizeof(double*));
+        pd = cnrn_target_deviceptr(so->coef_list[i]);
+        cnrn_target_memcpy_to_device(&(d_coef_list[i]), &pd);
     }
 #endif
 }
@@ -1349,13 +1342,13 @@ void nrn_sparseobj_delete_from_device(SparseObj* so) {
 
 void nrn_ion_global_map_copyto_device() {
     if (nrn_ion_global_map_size) {
-        double** d_data = cnrn_gpu_copyin(nrn_ion_global_map,
-                                                nrn_ion_global_map_size);
+        double** d_data = cnrn_target_copyin(nrn_ion_global_map,
+                                             nrn_ion_global_map_size);
         for (int j = 0; j < nrn_ion_global_map_size; j++) {
             if (nrn_ion_global_map[j]) {
-                double* d_mechmap = cnrn_gpu_copyin(nrn_ion_global_map[j],
-                                                         ion_global_map_member_size);
-                cnrn_memcpy_to_device(&(d_data[j]), &d_mechmap, sizeof(double*));
+                double* d_mechmap = cnrn_target_copyin(nrn_ion_global_map[j],
+                                                       ion_global_map_member_size);
+                cnrn_target_memcpy_to_device(&(d_data[j]), &d_mechmap);
             }
         }
     }
@@ -1422,10 +1415,8 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
         VecPlayContinuous* vecplay_instance = (VecPlayContinuous*) nt->_vecplay[i];
 
         /** just VecPlayContinuous object */
-        void* d_p = cnrn_gpu_copyin(vecplay_instance);
-        cnrn_memcpy_to_device(&(d_vecplay[i]), &d_p, sizeof(void*));
-
-        VecPlayContinuous* d_vecplay_instance = (VecPlayContinuous*) d_p;
+        VecPlayContinuous* d_vecplay_instance = cnrn_target_copyin(vecplay_instance);
+        cnrn_target_memcpy_to_device((VecPlayContinuous**)(&(d_vecplay[i])), &d_vecplay_instance);
 
         /** copy y_, t_ and discon_indices_ */
         copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
@@ -1437,15 +1428,15 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
         }
 
         /** copy PlayRecordEvent : todo: verify this */
-        PlayRecordEvent* d_e_ = cnrn_gpu_copyin(vecplay_instance->e_);
+        PlayRecordEvent* d_e_ = cnrn_target_copyin(vecplay_instance->e_);
                                                    
-        cnrn_memcpy_to_device(&(d_e_->plr_), &d_vecplay_instance, sizeof(VecPlayContinuous*));
-        cnrn_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_, sizeof(PlayRecordEvent*));
+        cnrn_target_memcpy_to_device(&(d_e_->plr_), (PlayRecord**)(&d_vecplay_instance));
+        cnrn_target_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_);
 
         /** copy pd_ : note that it's pointer inside ml->data and hence data itself is
          * already on GPU */
-        double* d_pd_ = (double*) cnrn_target_deviceptr(vecplay_instance->pd_);
-        cnrn_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_, sizeof(double*));
+        double* d_pd_ = cnrn_target_deviceptr(vecplay_instance->pd_);
+        cnrn_target_memcpy_to_device(&(d_vecplay_instance->pd_), &d_pd_);
     }
 }
 
