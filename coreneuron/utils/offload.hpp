@@ -19,7 +19,10 @@
 #else
 #define nrn_pragma_acc(x)
 #define nrn_pragma_omp(x)
+#include <stdexcept>
 #endif
+
+#include <cstddef>
 
 namespace coreneuron {
 template <typename T>
