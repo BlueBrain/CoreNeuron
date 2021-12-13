@@ -177,6 +177,7 @@ double nrn_nernst(double ci, double co, double z, double celsius) {
     }
 }
 
+nrn_pragma_omp(declare target)
 void nrn_wrote_conc(int type,
                     double* p1,
                     int p2,
@@ -193,6 +194,7 @@ void nrn_wrote_conc(int type,
         pe[0] = nrn_nernst(pe[1 * _STRIDE], pe[2 * _STRIDE], gimap[type][2], celsius);
     }
 }
+nrn_pragma_omp(end declare target)
 
 static double efun(double x) {
     if (fabs(x) < 1e-4) {

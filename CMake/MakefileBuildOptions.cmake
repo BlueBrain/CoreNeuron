@@ -75,6 +75,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
 set(CORENRN_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_BUILD_TYPE}} ${CXX14_STD_FLAGS} ${NVHPC_ACC_COMP_FLAGS} ${NVHPC_CXX_INLINE_FLAGS}"
 )
+set(CORENRN_LD_FLAGS "${NVHPC_ACC_LINK_FLAGS}")
 
 # =============================================================================
 # nmodl/mod2c related options : TODO

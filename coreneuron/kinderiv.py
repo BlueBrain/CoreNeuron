@@ -59,6 +59,9 @@ def write_out_kinderiv(fout):
     fout.write("\n/* declarations */\n")
     fout.write("\nnamespace coreneuron {\n")
 
+    if deriv or kin or euler:
+        fout.write('nrn_pragma_omp(declare target)\n')
+
     for item in deriv:
         fout.write('#pragma acc routine seq\n')
         fout.write('extern int %s%s(_threadargsproto_);\n' % (item[0], item[1]))
@@ -72,6 +75,9 @@ def write_out_kinderiv(fout):
     for item in euler:
         fout.write('#pragma acc routine seq\n')
         fout.write('extern int %s%s(_threadargsproto_);\n' % (item[0], item[1]))
+
+    if deriv or kin or euler:
+        fout.write('nrn_pragma_omp(end declare target)\n')
 
     fout.write("\n/* callback indices */\n")
     derivoffset = 1

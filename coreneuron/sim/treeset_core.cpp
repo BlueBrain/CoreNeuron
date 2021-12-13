@@ -34,7 +34,7 @@ static void nrn_rhs(NrnThread* _nt) {
 
     nrn_pragma_acc(parallel loop present(vec_rhs [0:i3], vec_d [0:i3]) if (_nt->compute_gpu)
                        async(_nt->stream_id))
-    nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+    nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
     for (int i = i1; i < i3; ++i) {
         vec_rhs[i] = 0.;
         vec_d[i] = 0.;
@@ -46,7 +46,7 @@ static void nrn_rhs(NrnThread* _nt) {
         nrn_pragma_acc(
             parallel loop present(fast_imem_d [i1:i3], fast_imem_rhs [i1:i3]) if (_nt->compute_gpu)
                 async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+        nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
         for (int i = i1; i < i3; ++i) {
             fast_imem_d[i] = 0.;
             fast_imem_rhs[i] = 0.;
@@ -76,7 +76,7 @@ static void nrn_rhs(NrnThread* _nt) {
         double* p = _nt->nrn_fast_imem->nrn_sav_rhs;
         nrn_pragma_acc(parallel loop present(p, vec_rhs) if (_nt->compute_gpu)
                            async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+        nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
         for (int i = i1; i < i3; ++i) {
             p[i] -= vec_rhs[i];
         }
@@ -93,7 +93,7 @@ static void nrn_rhs(NrnThread* _nt) {
                                          vec_v [0:i3],
                                          parent_index [0:i3]) if (_nt->compute_gpu)
                        async(_nt->stream_id))
-    nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+    nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
     for (int i = i2; i < i3; ++i) {
         double dv = vec_v[parent_index[i]] - vec_v[i];
         /* our connection coefficients are negative so */
@@ -153,7 +153,7 @@ static void nrn_lhs(NrnThread* _nt) {
         */
         double* p = _nt->nrn_fast_imem->nrn_sav_d;
         nrn_pragma_acc(parallel loop present(p, vec_d) if (_nt->compute_gpu) async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+        nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
         for (int i = i1; i < i3; ++i) {
             p[i] += vec_d[i];
         }
@@ -163,7 +163,7 @@ static void nrn_lhs(NrnThread* _nt) {
     nrn_pragma_acc(parallel loop present(
         vec_d [0:i3], vec_a [0:i3], vec_b [0:i3], parent_index [0:i3]) if (_nt->compute_gpu)
                        async(_nt->stream_id))
-    nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+    nrn_pragma_omp(target teams distribute parallel for if(_nt->compute_gpu))
     for (int i = i2; i < i3; ++i) {
         nrn_pragma_acc(atomic update)
         nrn_pragma_omp(atomic update)
