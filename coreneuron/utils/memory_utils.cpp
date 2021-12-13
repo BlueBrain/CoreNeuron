@@ -106,7 +106,7 @@ void report_mem_usage(const char* message, bool all_ranks) {
                mem_max,
                mem_min,
                mem_avg);
-        if(corenrn_param.gpu) {
+        if (corenrn_param.gpu) {
             print_gpu_memory_usage();
         }
     }

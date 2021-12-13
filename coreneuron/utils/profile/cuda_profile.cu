@@ -23,7 +23,7 @@ void print_gpu_memory_usage() {
     double free_db = (double) free_byte;
     double total_db = (double) total_byte;
     double used_db = total_db - free_db;
-    printf(" GPU Memory Usage (MB) : Used = %f, Free = %f MB, Total = %f\n",
+    printf(" GPU Memory Usage (MBs) : Used = %f, Free = %f MB, Total = %f\n",
            used_db / 1024.0 / 1024.0,
            free_db / 1024.0 / 1024.0,
            total_db / 1024.0 / 1024.0);
