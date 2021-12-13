@@ -36,7 +36,7 @@
 #endif
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
-void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div, bool vector_copy_needed = false);
+void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div);
 void delete_ivoc_vect_from_device(IvocVect&);
 void nrn_ion_global_map_copyto_device();
 void nrn_ion_global_map_delete_from_device();
@@ -46,7 +46,7 @@ void nrn_VecPlay_delete_from_device(NrnThread* nt);
 template <typename T>
 T* cnrn_target_deviceptr(const T* h_ptr) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENACC)
-    return acc_deviceptr(const_cast<T*>(h_ptr));
+    return static_cast<T*>(acc_deviceptr(const_cast<T*>(h_ptr)));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
     return static_cast<T*>(omp_get_mapped_ptr(const_cast<T*>(h_ptr), omp_get_default_device()));
 #else
@@ -490,17 +490,11 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 #endif
 }
 
-void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to, bool vector_copy_needed) {
+void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to) {
 #ifdef _OPENACC
     /// by default `to` is desitionation pointer on a device
     IvocVect* d_iv = &to;
 
-    /// if we need to copy IvocVect vector then newly alloated vector
-    /// on the device is a new destination pointer
-    if(vector_copy_needed) {
-        d_iv = cnrn_target_copyin(&from);
-        cnrn_target_memcpy_to_device(&to, d_iv);
-    }
     size_t n = from.size();
     if (n) {
         double* d_data =  cnrn_target_copyin(from.data(), n);
@@ -1416,21 +1410,24 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
 
         /** just VecPlayContinuous object */
         VecPlayContinuous* d_vecplay_instance = cnrn_target_copyin(vecplay_instance);
-        cnrn_target_memcpy_to_device((VecPlayContinuous**)(&(d_vecplay[i])), &d_vecplay_instance);
+        cnrn_target_memcpy_to_device((VecPlayContinuous**) (&(d_vecplay[i])), &d_vecplay_instance);
 
         /** copy y_, t_ and discon_indices_ */
         copy_ivoc_vect_to_device(vecplay_instance->y_, d_vecplay_instance->y_);
         copy_ivoc_vect_to_device(vecplay_instance->t_, d_vecplay_instance->t_);
+        // OL211213: beware, the test suite does not currently include anything
+        // with a non-null discon_indices_.
         if (vecplay_instance->discon_indices_) {
+            IvocVect* d_discon_indices = cnrn_target_copyin(vecplay_instance->discon_indices_);
+            cnrn_target_memcpy_to_device(&(d_vecplay_instance->discon_indices_), &d_discon_indices);
             copy_ivoc_vect_to_device(*(vecplay_instance->discon_indices_),
-                                     *(d_vecplay_instance->discon_indices_),
-                                     true);
+                                     *(d_vecplay_instance->discon_indices_));
         }
 
         /** copy PlayRecordEvent : todo: verify this */
         PlayRecordEvent* d_e_ = cnrn_target_copyin(vecplay_instance->e_);
-                                                   
-        cnrn_target_memcpy_to_device(&(d_e_->plr_), (PlayRecord**)(&d_vecplay_instance));
+
+        cnrn_target_memcpy_to_device(&(d_e_->plr_), (PlayRecord**) (&d_vecplay_instance));
         cnrn_target_memcpy_to_device(&(d_vecplay_instance->e_), &d_e_);
 
         /** copy pd_ : note that it's pointer inside ml->data and hence data itself is
