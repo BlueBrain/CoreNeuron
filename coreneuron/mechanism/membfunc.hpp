@@ -179,7 +179,9 @@ extern void nrn2ncs_outputevent(int netcon_output_index, double firetime);
 extern bool nrn_use_localgid_;
 extern void net_sem_from_gpu(int sendtype, int i_vdata, int, int ith, int ipnt, double, double);
 nrn_pragma_acc(routine seq)
+nrn_pragma_omp(declare target)
 extern int at_time(NrnThread*, double);
+nrn_pragma_omp(end declare target)
 
 // _OPENACC and/or NET_RECEIVE_BUFFERING
 extern void net_sem_from_gpu(int, int, int, int, int, double, double);
