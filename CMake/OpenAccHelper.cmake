@@ -55,20 +55,26 @@ if(CORENRN_ENABLE_GPU)
   # due to e.g. __CUDACC__ being defined. See https://github.com/BlueBrain/CoreNeuron/issues/607 for
   # more information about this. -gpu=cudaX.Y ensures that OpenACC code is compiled with the same
   # CUDA version as is used for the explicit CUDA code.
-  set(NVHPC_ACC_COMP_FLAGS "-acc -Minfo=accel -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
-  set(NVHPC_ACC_LINK_FLAGS "-acc -cuda")
+  set(NVHPC_ACC_COMP_FLAGS "-Minfo=accel -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
+  set(NVHPC_ACC_LINK_FLAGS "-cuda")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
   foreach(compute_capability ${CMAKE_CUDA_ARCHITECTURES})
     string(APPEND NVHPC_ACC_COMP_FLAGS ",cc${compute_capability}")
   endforeach()
-  if(CORENRN_ENABLE_OPENMP AND CORENRN_ENABLE_OPENMP_OFFLOAD)
+  if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
     # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
     # for a region then prefer OpenMP.
     add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
     string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu -Minfo=mp")
     string(APPEND NVHPC_ACC_LINK_FLAGS " -mp=gpu")
+  elseif(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenACC")
+    # Only enable OpenACC offload for GPU
+    string(APPEND NVHPC_ACC_COMP_FLAGS " -acc")
+    string(APPEND NVHPC_ACC_LINK_FLAGS " -acc")
+  else()
+    message(FATAL_ERROR "${CORENRN_ACCELERATOR_OFFLOAD} not supported with NVHPC compilers")
   endif()
   # avoid PGI adding standard compliant "-A" flags
   set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
