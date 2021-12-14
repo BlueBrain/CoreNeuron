@@ -35,6 +35,9 @@ spack_setup:
     - git diff
     - fi
 
+.spack_intel:
+  variables:
+    SPACK_PACKAGE_COMPILER: intel
 .spack_nvhpc:
   variables:
     SPACK_PACKAGE_COMPILER: nvhpc
@@ -42,10 +45,20 @@ spack_setup:
   variables:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
-    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
+    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit model_tests=channel-benchmark,olfactory
 .gpu_node:
   variables:
     bb5_constraint: volta
+
+build:nmodl:intel:
+  stage: build_nmodl
+  variables:
+    SPACK_PACKAGE: nmodl
+    SPACK_PACKAGE_REF: ''
+    SPACK_PACKAGE_SPEC: ~legacy-unit
+  extends:
+    - .spack_build
+    - .spack_intel
 
 build:nmodl:gpu:
   stage: build_nmodl
@@ -58,20 +71,75 @@ build:nmodl:gpu:
     - .spack_build
     - .spack_nvhpc
 
+build:coreneuron+nmodl:intel:
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_PACKAGE_SPEC: +nmodl+tests~legacy-unit build_type=Debug
+  extends:
+    - .spack_build
+    - .spack_intel
+  needs: ["build:nmodl:intel"]
+
+build:coreneuron:intel:
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
+  extends:
+    - .spack_build
+    - .spack_intel
+
 build:coreneuron+nmodl:gpu:
   variables:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +nmodl+openmp+gpu+tests~legacy-unit~report build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +nmodl+gpu+tests~legacy-unit~report build_type=RelWithDebInfo
   extends:
     - .spack_build
     - .spack_nvhpc
   needs: ["build:nmodl:gpu"]
 
+build:coreneuron:gpu:
+  variables:
+    SPACK_PACKAGE: coreneuron
+    # +report pulls in a lot of dependencies and the tests fail.
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +gpu+tests~legacy-unit~report build_type=RelWithDebInfo
+  extends:
+    - .spack_build
+    - .spack_nvhpc
+
+test:coreneuron+nmodl:intel:
+  extends: [.ctest]
+  needs: ["build:coreneuron+nmodl:intel"]
+
+test:coreneuron:intel:
+  extends: [.ctest]
+  needs: ["build:coreneuron:intel"]
+
 test:coreneuron+nmodl:gpu:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron+nmodl:gpu"]
+
+test:coreneuron:gpu:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:gpu"]
+
+build:neuron+nmodl:intel:
+  stage: build_neuron
+  extends:
+    - .spack_build
+    - .spack_neuron
+    - .spack_intel
+  needs: ["build:coreneuron+nmodl:intel"]
+
+build:neuron:intel:
+  stage: build_neuron
+  extends:
+    - .spack_build
+    - .spack_neuron
+    - .spack_intel
+  needs: ["build:coreneuron:intel"]
 
 build:neuron+nmodl:gpu:
   stage: build_neuron
@@ -85,7 +153,34 @@ build:neuron+nmodl:gpu:
     - !reference [.spack_build, before_script]
   needs: ["build:coreneuron+nmodl:gpu"]
 
+build:neuron:gpu:
+  stage: build_neuron
+  extends:
+    - .spack_build
+    - .spack_neuron
+    - .spack_nvhpc
+  before_script:
+    # Build py-cython and py-numpy with GCC instead of NVHPC.
+    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
+    - !reference [.spack_build, before_script]
+  needs: ["build:coreneuron:gpu"]
+
+test:neuron+nmodl:intel:
+  stage: test_neuron
+  extends: [.ctest]
+  needs: ["build:neuron+nmodl:intel"]
+
+test:neuron:intel:
+  stage: test_neuron
+  extends: [.ctest]
+  needs: ["build:neuron:intel"]
+
 test:neuron+nmodl:gpu:
   stage: test_neuron
   extends: [.ctest, .gpu_node]
   needs: ["build:neuron+nmodl:gpu"]
+
+test:neuron:gpu:
+  stage: test_neuron
+  extends: [.ctest, .gpu_node]
+  needs: ["build:neuron:gpu"]
