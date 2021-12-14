@@ -558,8 +558,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
 #endif
     bool compute_gpu = corenrn_param.gpu;
 
-    nrn_pragma_acc(update device(celsius, secondorder, pi) if(compute_gpu))
-    nrn_pragma_omp(target update to(celsius, secondorder, pi) if(compute_gpu))
+    nrn_pragma_acc(update device(celsius, secondorder, pi) if (compute_gpu))
+    nrn_pragma_omp(target update to(celsius, secondorder, pi) if (compute_gpu))
     {
         double v = corenrn_param.voltage;
         double dt = corenrn_param.dt;

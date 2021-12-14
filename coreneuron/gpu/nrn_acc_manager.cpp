@@ -148,8 +148,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         cnrn_target_memcpy_to_device(&(d_nt->_v_parent_index), &(d_v_parent_index));
 
         /* nt._ml_list is used in NET_RECEIVE block and should have valid membrane list id*/
-        Memb_list** d_ml_list = cnrn_target_copyin(nt->_ml_list,
-                                                         corenrn.get_memb_funcs().size());
+        Memb_list** d_ml_list = cnrn_target_copyin(nt->_ml_list, corenrn.get_memb_funcs().size());
         cnrn_target_memcpy_to_device(&(d_nt->_ml_list), &(d_ml_list));
 
         /* -- copy NrnThreadMembList list ml to device -- */
@@ -306,8 +305,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         if (nt->n_pntproc) {
             /* copy Point_processes array and fix the pointer to execute net_receive blocks on GPU
              */
-            Point_process* pntptr =
-                cnrn_target_copyin(nt->pntprocs, nt->n_pntproc);
+            Point_process* pntptr = cnrn_target_copyin(nt->pntprocs, nt->n_pntproc);
             cnrn_target_memcpy_to_device(&(d_nt->pntprocs), &pntptr);
         }
 
@@ -330,8 +328,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
              * while updating PreSyn objects which has virtual base class. May be this is issue due
              * to
              * VTable and alignment */
-            PreSynHelper* d_presyns_helper =
-                cnrn_target_copyin(nt->presyns_helper, nt->n_presyn);
+            PreSynHelper* d_presyns_helper = cnrn_target_copyin(nt->presyns_helper, nt->n_presyn);
             cnrn_target_memcpy_to_device(&(d_nt->presyns_helper), &d_presyns_helper);
             PreSyn* d_presyns = cnrn_target_copyin(nt->presyns, nt->n_presyn);
             cnrn_target_memcpy_to_device(&(d_nt->presyns), &d_presyns);
@@ -340,7 +337,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         if (nt->_net_send_buffer_size) {
             /* copy send_receive buffer */
             int* d_net_send_buffer = cnrn_target_copyin(nt->_net_send_buffer,
-                    nt->_net_send_buffer_size);
+                                                        nt->_net_send_buffer_size);
             cnrn_target_memcpy_to_device(&(d_nt->_net_send_buffer), &d_net_send_buffer);
         }
 
@@ -452,7 +449,7 @@ void copy_ivoc_vect_to_device(const IvocVect& from, IvocVect& to) {
 
     size_t n = from.size();
     if (n) {
-        double* d_data =  cnrn_target_copyin(from.data(), n);
+        double* d_data = cnrn_target_copyin(from.data(), n);
         cnrn_target_memcpy_to_device(&(d_iv->data_), &d_data);
     }
 #else
@@ -643,22 +640,22 @@ void update_net_send_buffer_on_host(NrnThread* nt, NetSendBuffer_t* nsb) {
     if (nsb->_cnt) {
         Instrumentor::phase p_net_receive_buffer_order("net-send-buf-gpu2cpu");
     }
-    nrn_pragma_acc(update self(
-                nsb->_sendtype[:nsb->_cnt],
-                nsb->_vdata_index[:nsb->_cnt],
-                nsb->_pnt_index[:nsb->_cnt],
-                nsb->_weight_index[:nsb->_cnt],
-                nsb->_nsb_t[:nsb->_cnt],
-                nsb->_nsb_flag[:nsb->_cnt])
-        if (nsb->_cnt))
-    nrn_pragma_omp(target update from(
-                nsb->_sendtype[:nsb->_cnt],
-                nsb->_vdata_index[:nsb->_cnt],
-                nsb->_pnt_index[:nsb->_cnt],
-                nsb->_weight_index[:nsb->_cnt],
-                nsb->_nsb_t[:nsb->_cnt],
-                nsb->_nsb_flag[:nsb->_cnt])
-        if (nsb->_cnt))
+    // clang-format off
+    nrn_pragma_acc(update self(nsb->_sendtype[:nsb->_cnt],
+                               nsb->_vdata_index[:nsb->_cnt],
+                               nsb->_pnt_index[:nsb->_cnt],
+                               nsb->_weight_index[:nsb->_cnt],
+                               nsb->_nsb_t[:nsb->_cnt],
+                               nsb->_nsb_flag[:nsb->_cnt])
+                          if (nsb->_cnt))
+    nrn_pragma_omp(target update from(nsb->_sendtype[:nsb->_cnt],
+                                      nsb->_vdata_index[:nsb->_cnt],
+                                      nsb->_pnt_index[:nsb->_cnt],
+                                      nsb->_weight_index[:nsb->_cnt],
+                                      nsb->_nsb_t[:nsb->_cnt],
+                                      nsb->_nsb_flag[:nsb->_cnt])
+                                 if (nsb->_cnt))
+    // clang-format on
 #else
     (void) nt;
     (void) nsb;
@@ -676,23 +673,24 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
             int ne = nrn_soa_padded_size(nt->end, 0);
 
-            nrn_pragma_acc(update self(
-                        nt->_actual_rhs[:ne],
-                        nt->_actual_d[:ne],
-                        nt->_actual_a[:ne],
-                        nt->_actual_b[:ne],
-                        nt->_actual_v[:ne],
-                        nt->_actual_area[:ne]))
-            nrn_pragma_omp(target update from(
-                        nt->_actual_rhs[:ne],
-                        nt->_actual_d[:ne],
-                        nt->_actual_a[:ne],
-                        nt->_actual_b[:ne],
-                        nt->_actual_v[:ne],
-                        nt->_actual_area[:ne]))
+            // clang-format off
+            nrn_pragma_acc(update self(nt->_actual_rhs[:ne],
+                                       nt->_actual_d[:ne],
+                                       nt->_actual_a[:ne],
+                                       nt->_actual_b[:ne],
+                                       nt->_actual_v[:ne],
+                                       nt->_actual_area[:ne]))
+            nrn_pragma_omp(target update from(nt->_actual_rhs[:ne],
+                                              nt->_actual_d[:ne],
+                                              nt->_actual_a[:ne],
+                                              nt->_actual_b[:ne],
+                                              nt->_actual_v[:ne],
+                                              nt->_actual_area[:ne]))
+            // clang-format on
 
             nrn_pragma_acc(update self(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
-            nrn_pragma_omp(target update from(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
+            nrn_pragma_omp(
+                target update from(nt->_actual_diam[:ne]) if (nt->_actual_diam != nullptr))
 
             /* @todo: nt._ml_list[tml->index] = tml->ml; */
 
@@ -700,10 +698,8 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             for (auto tml = nt->tml; tml; tml = tml->next) {
                 Memb_list* ml = tml->ml;
 
-                nrn_pragma_acc(update self(tml->index,
-                                           ml->nodecount))
-                nrn_pragma_omp(target update from(tml->index,
-                            ml->nodecount))
+                nrn_pragma_acc(update self(tml->index, ml->nodecount))
+                nrn_pragma_omp(target update from(tml->index, ml->nodecount))
 
                 int type = tml->index;
                 int n = ml->nodecount;
@@ -720,10 +716,8 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
                 int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szp;
 
-                nrn_pragma_acc(update self(ml->data[:pcnt],
-                            ml->nodeindices[:n]))
-                nrn_pragma_omp(target update from(ml->data[:pcnt],
-                            ml->nodeindices[:n]))
+                nrn_pragma_acc(update self(ml->data[:pcnt], ml->nodeindices[:n]))
+                nrn_pragma_omp(target update from(ml->data[:pcnt], ml->nodeindices[:n]))
 
                 int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
                 nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if (szdp))
@@ -731,46 +725,44 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
                 auto nrb = tml->ml->_net_receive_buffer;
 
-                nrn_pragma_acc(update self(
-                            nrb->_cnt,
-                            nrb->_size,
-                            nrb->_pnt_offset,
-                            nrb->_displ_cnt,
-
-                            nrb->_pnt_index[:nrb->_size],
-                            nrb->_weight_index[:nrb->_size],
-                            nrb->_displ[:nrb->_size + 1],
-                            nrb->_nrb_index[:nrb->_size])
-                        if (nrb != nullptr))
-                nrn_pragma_omp(target update from(
-                            nrb->_cnt,
-                            nrb->_size,
-                            nrb->_pnt_offset,
-                            nrb->_displ_cnt,
-
-                            nrb->_pnt_index[:nrb->_size],
-                            nrb->_weight_index[:nrb->_size],
-                            nrb->_displ[:nrb->_size + 1],
-                            nrb->_nrb_index[:nrb->_size])
-                        if (nrb != nullptr))
+                // clang-format off
+                nrn_pragma_acc(update self(nrb->_cnt,
+                                           nrb->_size,
+                                           nrb->_pnt_offset,
+                                           nrb->_displ_cnt,
+                                           nrb->_pnt_index[:nrb->_size],
+                                           nrb->_weight_index[:nrb->_size],
+                                           nrb->_displ[:nrb->_size + 1],
+                                           nrb->_nrb_index[:nrb->_size])
+                                      if (nrb != nullptr))
+                nrn_pragma_omp(target update from(nrb->_cnt,
+                                                  nrb->_size,
+                                                  nrb->_pnt_offset,
+                                                  nrb->_displ_cnt,
+                                                  nrb->_pnt_index[:nrb->_size],
+                                                  nrb->_weight_index[:nrb->_size],
+                                                  nrb->_displ[:nrb->_size + 1],
+                                                  nrb->_nrb_index[:nrb->_size])
+                                             if (nrb != nullptr))
+                // clang-format on
             }
 
             int pcnt = nrn_soa_padded_size(nt->shadow_rhs_cnt, 0);
             /* copy shadow_rhs to host */
             /* copy shadow_d to host */
-            nrn_pragma_acc(update self(nt->_shadow_rhs[:pcnt],
-                        nt->_shadow_d[:pcnt])
-                    if (nt->shadow_rhs_cnt))
-                nrn_pragma_omp(target update from(nt->_shadow_rhs[:pcnt],
-                            nt->_shadow_d[:pcnt])
-                        if (nt->shadow_rhs_cnt))
+            nrn_pragma_acc(
+                update self(nt->_shadow_rhs[:pcnt], nt->_shadow_d[:pcnt]) if (nt->shadow_rhs_cnt))
+            nrn_pragma_omp(target update from(
+                nt->_shadow_rhs[:pcnt], nt->_shadow_d[:pcnt]) if (nt->shadow_rhs_cnt))
 
+            // clang-format off
             nrn_pragma_acc(update self(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
-                        nt->nrn_fast_imem->nrn_sav_d[:nt->end])
-                    if (nt->nrn_fast_imem != nullptr))
+                                       nt->nrn_fast_imem->nrn_sav_d[:nt->end])
+                                  if (nt->nrn_fast_imem != nullptr))
             nrn_pragma_omp(target update from(nt->nrn_fast_imem->nrn_sav_rhs[:nt->end],
-                        nt->nrn_fast_imem->nrn_sav_d[:nt->end])
-                    if (nt->nrn_fast_imem != nullptr))
+                                              nt->nrn_fast_imem->nrn_sav_d[:nt->end])
+                                         if (nt->nrn_fast_imem != nullptr))
+            // clang-format on
 
             nrn_pragma_acc(update self(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
             nrn_pragma_omp(target update from(nt->pntprocs[:nt->n_pntproc]) if (nt->n_pntproc))
@@ -779,13 +771,9 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
             nrn_pragma_omp(target update from(nt->weights[:nt->n_weight]) if (nt->n_weight))
 
             nrn_pragma_acc(update self(
-                nt->presyns_helper[:nt->n_presyn],
-                nt->presyns[:nt->n_presyn])
-                    if (nt->n_presyn))
+                nt->presyns_helper[:nt->n_presyn], nt->presyns[:nt->n_presyn]) if (nt->n_presyn))
             nrn_pragma_omp(target update from(
-                nt->presyns_helper[:nt->n_presyn],
-                nt->presyns[:nt->n_presyn])
-                    if (nt->n_presyn))
+                nt->presyns_helper[:nt->n_presyn], nt->presyns[:nt->n_presyn]) if (nt->n_presyn))
 
             {
                 TrajectoryRequests* tr = nt->trajec_requests;
@@ -793,10 +781,8 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
                     // The full buffers have `bsize` entries, but only `vsize`
                     // of them are valid.
                     for (int i = 0; i < tr->n_trajec; ++i) {
-                        nrn_pragma_acc(update self(
-                            tr->varrays[i][:tr->vsize]))
-                        nrn_pragma_omp(target update from(
-                            tr->varrays[i][:tr->vsize]))
+                        nrn_pragma_acc(update self(tr->varrays[i][:tr->vsize]))
+                        nrn_pragma_omp(target update from(tr->varrays[i][:tr->vsize]))
                     }
                 }
             }
@@ -1161,8 +1147,7 @@ void nrn_sparseobj_delete_from_device(SparseObj* so) {
 
 void nrn_ion_global_map_copyto_device() {
     if (nrn_ion_global_map_size) {
-        double** d_data = cnrn_target_copyin(nrn_ion_global_map,
-                                             nrn_ion_global_map_size);
+        double** d_data = cnrn_target_copyin(nrn_ion_global_map, nrn_ion_global_map_size);
         for (int j = 0; j < nrn_ion_global_map_size; j++) {
             if (nrn_ion_global_map[j]) {
                 double* d_mechmap = cnrn_target_copyin(nrn_ion_global_map[j],
