@@ -324,7 +324,7 @@ if(EXISTS "${CORENRN_EXTERNAL_BENCHMARK_DATA}")
     CONCAT benchmark_command
            "'${CMAKE_BINARY_DIR}/benchmark/${CMAKE_SYSTEM_PROCESSOR}/special-core'"
            " --datpath '${CORENRN_EXTERNAL_BENCHMARK_DATA}/channel-benchmark-all-440-cells-2-ranks'"
-           " --tstop 1")
+           " --tstop 1 --mpi")
   if(CORENRN_ENABLE_GPU)
     string(APPEND benchmark_command " --gpu")
   endif()
