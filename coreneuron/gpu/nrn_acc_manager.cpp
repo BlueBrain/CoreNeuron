@@ -188,8 +188,13 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int szdp = corenrn.get_prop_dparam_size()[type];
             int is_art = corenrn.get_is_artificial()[type];
 
-            // get device pointer for corresponding mechanism data
-            dptr = cnrn_target_deviceptr(tml->ml->data);
+            if (is_art) {
+                // data has been allocated somewhere else
+                dptr = cnrn_target_copyin(tml->ml->data);
+            } else {
+                // get device pointer for corresponding mechanism data
+                dptr = cnrn_target_deviceptr(tml->ml->data);
+            }
             cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
 
