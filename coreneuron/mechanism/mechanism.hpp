@@ -16,6 +16,7 @@
 namespace coreneuron {
 // OpenACC with PGI compiler has issue when union is used and hence use struct
 // \todo check if newer PGI versions has resolved this issue
+// OL211214: bump
 #if defined(_OPENACC)
 struct ThreadDatum {
     int i;
@@ -88,7 +89,7 @@ struct NetSendBuffer_t: MemoryManaged {
     }
 
     void grow() {
-#if defined(_OPENACC)
+#ifdef CORENEURON_ENABLE_GPU
         int cannot_reallocate_on_device = 0;
         assert(cannot_reallocate_on_device);
 #else

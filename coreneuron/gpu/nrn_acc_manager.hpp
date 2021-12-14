@@ -9,10 +9,6 @@
 #ifndef _nrn_device_manager_
 #define _nrn_device_manager_
 
-#if defined(_OPENACC)
-#include <openacc.h>
-#endif
-
 #include "coreneuron/sim/multicore.hpp"
 
 namespace coreneuron {

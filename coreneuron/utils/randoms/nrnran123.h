@@ -56,7 +56,7 @@ http://www.deshawresearch.com/resources_random123.html
 // Some files are compiled with DISABLE_OPENACC, and some builds have no GPU
 // support at all. In these two cases, request that the random123 state is
 // allocated using new/delete instead of CUDA unified memory.
-#if (defined(__CUDACC__) || defined(_OPENACC)) && !defined(DISABLE_OPENACC)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(DISABLE_OPENACC)
 #define CORENRN_RAN123_USE_UNIFIED_MEMORY true
 #else
 #define CORENRN_RAN123_USE_UNIFIED_MEMORY false

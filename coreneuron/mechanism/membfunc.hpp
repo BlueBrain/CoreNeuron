@@ -109,12 +109,14 @@ extern void hoc_register_watch_check(nrn_watch_check_t, int);
 
 extern void nrn_jacob_capacitance(NrnThread*, Memb_list*, int);
 extern void nrn_writes_conc(int, int);
-#pragma acc routine seq
+nrn_pragma_omp(declare target)
+nrn_pragma_acc(routine seq)
 extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 double nrn_nernst(double ci, double co, double z, double celsius);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern double nrn_ghk(double v, double ci, double co, double z);
+nrn_pragma_omp(end declare target)
 extern void hoc_register_prop_size(int, int, int);
 extern void hoc_register_dparam_semantics(int type, int, const char* name);
 

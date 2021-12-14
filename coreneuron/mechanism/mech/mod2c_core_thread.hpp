@@ -11,6 +11,7 @@
 
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/mechanism/mechanism.hpp"
+#include "coreneuron/utils/offload.hpp"
 
 namespace coreneuron {
 
@@ -35,15 +36,17 @@ using DIFUN = int;
 using NEWTFUN = int;
 using SPFUN = int;
 using EULFUN = int;
-#pragma acc routine seq
+nrn_pragma_omp(declare target)
+nrn_pragma_acc(routine seq)
 extern int nrn_derivimplicit_steer(int, _threadargsproto_);
 #define difun(arg) nrn_derivimplicit_steer(arg, _threadargs_);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int nrn_newton_steer(int, _threadargsproto_);
 #define newtfun(arg) nrn_newton_steer(arg, _threadargs_);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int nrn_euler_steer(int, _threadargsproto_);
 #define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
+nrn_pragma_omp(end declare target)
 
 struct Elm {
     unsigned row;        /* Row location */

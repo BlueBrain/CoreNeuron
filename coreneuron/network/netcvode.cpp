@@ -26,9 +26,6 @@
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
-#ifdef _OPENACC
-#include <openacc.h>
-#endif
 namespace coreneuron {
 #define PP2NT(pp) (nrn_threads + (pp)->_tid)
 #define PP2t(pp)  (PP2NT(pp)->_t)
