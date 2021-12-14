@@ -106,9 +106,11 @@ void report_mem_usage(const char* message, bool all_ranks) {
                mem_max,
                mem_min,
                mem_avg);
+#ifdef CORENEURON_ENABLE_GPU
         if (corenrn_param.gpu) {
             print_gpu_memory_usage();
         }
+#endif
     }
     fflush(stdout);
 }
