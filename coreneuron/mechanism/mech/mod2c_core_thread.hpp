@@ -92,14 +92,14 @@ struct SparseObj {          /* all the state information */
     int do_flag;
 };
 
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml);
 
 extern void* nrn_cons_sparseobj(SPFUN, int, Memb_list*, _threadargsproto_);
 
 extern void _nrn_destroy_sparseobj_thread(SparseObj* so);
 
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int nrn_kinetic_steer(int, SparseObj*, double*, _threadargsproto_);
 #define spfun(arg1, arg2, arg3) nrn_kinetic_steer(arg1, arg2, arg3, _threadargs_);
 
@@ -119,14 +119,14 @@ static inline int euler_thread(int neqn, int* var, int* der, DIFUN fun, _threada
     return 0;
 }
 
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int derivimplicit_thread(int, int*, int*, DIFUN, _threadargsproto_);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern int
 sparse_thread(SparseObj*, int, int*, int*, double*, double, SPFUN, int, _threadargsproto_);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 int _ss_sparse_thread(SparseObj*,
                       int n,
                       int* s,
@@ -137,9 +137,9 @@ int _ss_sparse_thread(SparseObj*,
                       int linflag,
                       _threadargsproto_);
 
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern double _modl_get_dt_thread(NrnThread*);
-#pragma acc routine seq
+nrn_pragma_acc(routine seq)
 extern void _modl_set_dt_thread(double, NrnThread*);
 
 void nrn_sparseobj_copyto_device(SparseObj* so);
