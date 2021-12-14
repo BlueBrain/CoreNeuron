@@ -45,7 +45,7 @@ spack_setup:
   variables:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
-    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit
+    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit model_tests=channel-benchmark,olfactory
 .gpu_node:
   variables:
     bb5_constraint: volta
