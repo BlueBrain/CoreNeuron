@@ -188,13 +188,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             int szdp = corenrn.get_prop_dparam_size()[type];
             int is_art = corenrn.get_is_artificial()[type];
 
-            if (is_art) {
-                // data has been allocated somewhere else
-                dptr = cnrn_target_copyin(tml->ml->data);
-            } else {
-                // get device pointer for corresponding mechanism data
-                dptr = cnrn_target_deviceptr(tml->ml->data);
-            }
+            // If the mechanism is artificial data are not inside nt->_data but in a newly
+            // allocated block. As we never run code for artificial cell inside GPU
+            // we don't copy it.
+            dptr = is_art ? nullptr : cnrn_target_deviceptr(tml->ml->data);
             cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
 
