@@ -51,7 +51,7 @@ T* cnrn_target_copyin(const T* h_ptr, std::size_t len = 1) {
     return static_cast<T*>(acc_copyin(const_cast<T*>(h_ptr), len * sizeof(T)));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP)
-#pragma omp target enter data map(to : h_ptr[:len])
+    nrn_pragma_omp(target enter data map(to : h_ptr[:len]))
     return cnrn_target_deviceptr(h_ptr);
 #else
     throw std::runtime_error(
@@ -66,7 +66,7 @@ void cnrn_target_delete(T* h_ptr, std::size_t len = 1) {
     acc_delete(h_ptr, len * sizeof(T));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP)
-#pragma omp target exit data map(delete : h_ptr[:len])
+    nrn_pragma_omp(target exit data map(delete : h_ptr[:len]))
 #else
     throw std::runtime_error(
         "cnrn_target_delete() not implemented without OpenACC/OpenMP and gpu build");
