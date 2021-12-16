@@ -94,7 +94,7 @@ void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore,
 
     /// the selection of these parameters has been done after running the channel-benchmark for
     /// typical production runs, i.e. 1 MPI task with 1440 cells & 6 MPI tasks with 8800 cells.
-    /// In the OpenACC/OpenMP implementations threadsPerBlock is set to 1. From profiling the
+    /// In the OpenACC/OpenMP implementations threadsPerBlock is set to 32. From profiling the
     /// channel-benchmark circuits mentioned above we figured out that the best performance was
     /// achieved with this configuration
     int threadsPerBlock = warpsize;
