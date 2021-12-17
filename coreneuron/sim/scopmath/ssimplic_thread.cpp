@@ -15,7 +15,9 @@ namespace coreneuron {
 #define s_(arg) _p[s[arg] * _STRIDE]
 
 nrn_pragma_acc(routine seq)
+nrn_pragma_omp(declare target)
 static int check_state(int, int*, _threadargsproto_);
+nrn_pragma_omp(end declare target)
 
 int _ss_sparse_thread(SparseObj* v,
                       int n,

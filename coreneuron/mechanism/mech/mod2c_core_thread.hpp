@@ -93,7 +93,9 @@ struct SparseObj {          /* all the state information */
 };
 
 nrn_pragma_acc(routine seq)
+nrn_pragma_omp(declare target)
 extern double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml);
+nrn_pragma_omp(end declare target)
 
 extern void* nrn_cons_sparseobj(SPFUN, int, Memb_list*, _threadargsproto_);
 
