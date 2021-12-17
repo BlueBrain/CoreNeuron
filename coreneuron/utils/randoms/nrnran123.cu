@@ -179,7 +179,7 @@ void nrnran123_set_globalindex(uint32_t gix) {
     // If the global seed is changing then we shouldn't have any active streams.
     {
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
-        if (g_instance_count != 0 && nrnmpi_myid == 0 && get_global_state().v[0] != gix) {
+        if (g_instance_count != 0 && nrnmpi_myid == 0) {
             std::cout
                 << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
