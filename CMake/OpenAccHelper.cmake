@@ -58,7 +58,7 @@ if(CORENRN_ENABLE_GPU)
   # due to e.g. __CUDACC__ being defined. See https://github.com/BlueBrain/CoreNeuron/issues/607 for
   # more information about this. -gpu=cudaX.Y ensures that OpenACC code is compiled with the same
   # CUDA version as is used for the explicit CUDA code.
-  set(NVHPC_ACC_COMP_FLAGS "-Minfo=accel -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
+  set(NVHPC_ACC_COMP_FLAGS "-cuda -Minfo=accel -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
   set(NVHPC_ACC_LINK_FLAGS "-cuda")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
