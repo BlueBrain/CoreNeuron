@@ -129,7 +129,6 @@ if(CORENRN_ENABLE_GPU)
   # CMake <v3.20 does not pass explicit -x <lang> options based on the LANGUAGE property
   # (https://cmake.org/cmake/help/latest/policy/CMP0119.html), so using a single .cu file and
   # setting LANGUAGE=CXX in non-GPU builds does not work.
-  list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
   list(APPEND CORENEURON_CODE_FILES ${CORENEURON_CUDA_FILES})
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
