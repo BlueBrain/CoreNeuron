@@ -91,7 +91,7 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     // If the mechanism is artificial data are not inside nt->_data but in a newly
     // allocated block. As we never run code for artificial cell inside GPU
     // we don't copy it.
-    double *dptr = cnrn_target_deviceptr(ml->data);
+    double* dptr = cnrn_target_deviceptr(ml->data);
     cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
 
@@ -111,29 +111,29 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     }
 
     // net_receive buffer associated with mechanism
-    NetReceiveBuffer_t *nrb = ml->_net_receive_buffer;
+    NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
 
     // if net receive buffer exist for mechanism
     if (nrb) {
-        NetReceiveBuffer_t *d_nrb = cnrn_target_copyin(nrb);
+        NetReceiveBuffer_t* d_nrb = cnrn_target_copyin(nrb);
         cnrn_target_memcpy_to_device(&(d_ml->_net_receive_buffer), &d_nrb);
 
-        int *d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
+        int* d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
         cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
 
-        int *d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
+        int* d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
         cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
 
-        double *d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
+        double* d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
 
-        double *d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
+        double* d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
 
-        int *d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
+        int* d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
         cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
 
-        int *d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
+        int* d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
     }
 
@@ -172,7 +172,7 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
 
 static void update_ml_on_host(const Memb_list* ml, int type) {
     int is_art = corenrn.get_is_artificial()[type];
-    if(is_art) {
+    if (is_art) {
         // Artificial mechanisms such as PatternStim and IntervalFire
         // are not copied onto the GPU. They should not, therefore, be
         // updated from the GPU.
@@ -402,7 +402,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
             /* setup nt._ml_list */
             cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
-
         }
 
         if (nt->shadow_rhs_cnt) {
