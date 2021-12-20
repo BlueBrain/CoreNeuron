@@ -219,7 +219,7 @@ static void update_ml_on_host(const Memb_list* ml, int type) {
     // clang-format on
 }
 
-static void delete_ml_from_device(const Memb_list* ml, int type) {
+static void delete_ml_from_device(Memb_list* ml, int type) {
     int is_art = corenrn.get_is_artificial()[type];
     if (is_art) {
         return;
