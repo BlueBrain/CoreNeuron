@@ -1,29 +1,29 @@
-Pramod Shivaji Kumbhar (maintainer)
+Akiko Sato
+Aleksandr Ovcharenko
+Alessandro Cattabiani
+Alexander Dietz
+Alexandru Săvulescu
+Antonio Bellotta
+Baudouin Del Marmol
+Bruno Magalhaes
+Christos Kotsalos
+Fabien Delalondre
+Felix Schuermann (contributor)
+Fernando Pereira
+Francesco Cremonesi
+Ioannis Magkanaris
+James Gonzalo King
+Jeremy Fouriaux
+Jorge Blanco Alonso
+Kai Langen
 Michael Lee Hines
 Nicolas Cornu
 Olli Lupton
-Ioannis Magkanaris
-Jorge Blanco Alonso
 Omar Awile
-Jeremy Fouriaux
-Alexandru Săvulescu
-Sam Yates
-Fernando Pereira
-Bruno Magalhaes
-Christos Kotsalos
-Weina Ji
-Alessandro Cattabiani
-Francesco Cremonesi
-Antonio Bellotta
-Sergio Rivas-Gomez
-Fabien Delalondre
-Akiko Sato
-James Gonzalo King
-Baudouin Del Marmol
-viniciusdepadua
-Alexander Dietz
-Tapasweni Pathak
 Oren Amsalem
-Kai Langen
-Aleksandr Ovcharenko
-Felix Schuermann (contributor)
+Pramod Shivaji Kumbhar (maintainer)
+Sam Yates
+Sergio Rivas-Gomez
+Tapasweni Pathak
+Weina Ji
+viniciusdepadua
