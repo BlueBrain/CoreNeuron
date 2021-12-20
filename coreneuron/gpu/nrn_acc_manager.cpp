@@ -77,6 +77,7 @@ void cnrn_target_set_default_device(int device_num) {
 }
 
 static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
+    // As we never run code for artificial cell inside GPU we don't copy it.
     int is_art = corenrn.get_is_artificial()[type];
     if (is_art) {
         return nullptr;
@@ -88,9 +89,6 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
 
-    // If the mechanism is artificial data are not inside nt->_data but in a newly
-    // allocated block. As we never run code for artificial cell inside GPU
-    // we don't copy it.
     double* dptr = cnrn_target_deviceptr(ml->data);
     cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
@@ -182,9 +180,6 @@ static void update_ml_on_host(const Memb_list* ml, int type) {
     int n = ml->nodecount;
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
-
-    nrn_pragma_acc(update self(type, ml->nodecount))
-    nrn_pragma_omp(target update from(type, ml->nodecount))
 
     int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szp;
 
@@ -830,6 +825,10 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
             /* -- copy NrnThreadMembList list ml to host -- */
             for (auto tml = nt->tml; tml; tml = tml->next) {
+                if (!corenrn.get_is_artificial()[tml->index]) {
+                    nrn_pragma_acc(update self(tml->index, tml->ml->nodecount))
+                    nrn_pragma_omp(target update from(tml->index, tml->ml->nodecount))
+                }
                 update_ml_on_host(tml->ml, tml->index);
             }
 
