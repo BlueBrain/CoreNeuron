@@ -49,6 +49,11 @@ spack_setup:
 .gpu_node:
   variables:
     bb5_constraint: volta
+.test_neuron:
+  extends: [.ctest]
+  stage: test_neuron
+  variables:
+    bb5_ntasks: 16
 
 build:nmodl:intel:
   stage: build_nmodl
@@ -166,21 +171,17 @@ build:neuron:gpu:
   needs: ["build:coreneuron:gpu"]
 
 test:neuron+nmodl:intel:
-  stage: test_neuron
-  extends: [.ctest]
+  extends: [.test_neuron]
   needs: ["build:neuron+nmodl:intel"]
 
 test:neuron:intel:
-  stage: test_neuron
-  extends: [.ctest]
+  extends: [.test_neuron]
   needs: ["build:neuron:intel"]
 
 test:neuron+nmodl:gpu:
-  stage: test_neuron
-  extends: [.ctest, .gpu_node]
+  extends: [.test_neuron, .gpu_node]
   needs: ["build:neuron+nmodl:gpu"]
 
 test:neuron:gpu:
-  stage: test_neuron
-  extends: [.ctest, .gpu_node]
+  extends: [.test_neuron, .gpu_node]
   needs: ["build:neuron:gpu"]
