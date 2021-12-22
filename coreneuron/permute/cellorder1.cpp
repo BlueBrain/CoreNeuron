@@ -599,11 +599,11 @@ static size_t stride_length(size_t begin, size_t end, VecTNode& nodevec) {
  * \brief Prepare for solve_interleaved2
  *
  * One group of cells per warp.
- * 
+ *
  * warp[i] has a number of compute cycles (ncycle[i])
  * the index of its first root (rootbegin[i], last rootbegin[nwarp] = ncell)
  * the index of its first node (nodebegin[i], last nodebegin[nwarp] = nnode)
- * 
+ *
  * Each compute cycle has a stride
  * A stride is how many nodes are processed by a warp in one compute cycle
  * There are nstride strides. nstride is the sum of ncycles of all warps.
@@ -613,7 +613,7 @@ static size_t stride_length(size_t begin, size_t end, VecTNode& nodevec) {
  * ie. The zeroth cycle of warp[j] works on stride[stridedispl[j]]
  * The value of a stride beginning at node i (node i is computed by core 0 of
  * some warp for some cycle) is determined by stride_length(i, j, nodevec)
- * 
+ *
  */
 static void admin2(int ncell,
                    VecTNode& nodevec,

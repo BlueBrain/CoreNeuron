@@ -50,9 +50,9 @@ class TNode {
                             /// children and parent variables, so that threads have to wait in
                             /// atomic instructions. If there are any races then those are solved by
                             /// atomic instructions.
-    size_t level;       /// level of of this compartment in the tree
-    size_t cellindex;   /// Cell ID that this compartment belongs to
-    size_t groupindex;  /// Initialized index / groupsize
+    size_t level;           /// level of of this compartment in the tree
+    size_t cellindex;       /// Cell ID that this compartment belongs to
+    size_t groupindex;      /// Initialized index / groupsize
     int nodeindex;
 };
 
