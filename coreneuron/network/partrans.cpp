@@ -144,23 +144,19 @@ void nrn_partrans::copy_gap_indices_to_device() {
             continue;
         }
 
-        TransferThreadData& ttd = transfer_thread_data_[tid];
+        const TransferThreadData& ttd = transfer_thread_data_[tid];
 
         if (!ttd.src_indices.empty()) {
-            size_t n_src_indices = ttd.src_indices.size();
-            int* src_indices = ttd.src_indices.data();
-            cnrn_target_copyin(src_indices, n_src_indices);
+            cnrn_target_copyin(ttd.src_indices.data(), ttd.src_indices.size());
 
             size_t n_src_gather = ttd.src_gather.size();
-            double* src_gather = ttd.src_gather.data();
-            nrn_pragma_acc(enter data create(src_gather[0:n_src_gather]))
-            nrn_pragma_omp(target enter data map(alloc: src_gather[0:n_src_gather]))
+            const double* src_gather = ttd.src_gather.data();
+            nrn_pragma_acc(enter data create(src_gather[:n_src_gather]))
+            nrn_pragma_omp(target enter data map(alloc: src_gather[:n_src_gather]))
         }
 
         if (ttd.insrc_indices.size()) {
-            int* insrc_indices = ttd.insrc_indices.data();
-            size_t n_insrc_indices = ttd.insrc_indices.size();
-            cnrn_target_copyin(insrc_indices, n_insrc_indices);
+            cnrn_target_copyin(ttd.insrc_indices.data(), ttd.insrc_indices.size());
         }
     }
 }
@@ -179,19 +175,12 @@ void nrn_partrans::delete_gap_indices_from_device() {
         TransferThreadData& ttd = transfer_thread_data_[tid];
 
         if (!ttd.src_indices.empty()) {
-            size_t n_src_indices = ttd.src_indices.size();
-            int* src_indices = ttd.src_indices.data();
-            cnrn_target_delete(src_indices, n_src_indices);
-
-            size_t n_src_gather = ttd.src_gather.size();
-            double* src_gather = ttd.src_gather.data();
-            cnrn_target_delete(src_gather, n_src_gather);
+            cnrn_target_delete(ttd.src_indices.data(), ttd.src_indices.size());
+            cnrn_target_delete(ttd.src_gather.data(), ttd.src_gather.size());
         }
 
         if (!ttd.insrc_indices.empty()) {
-            int* insrc_indices = ttd.insrc_indices.data();
-            size_t n_insrc_indices = ttd.insrc_indices.size();
-            cnrn_target_delete(insrc_indices, n_insrc_indices);
+            cnrn_target_delete(ttd.insrc_indices.data(), ttd.insrc_indices.size());
         }
     }
 }
