@@ -1,18 +1,11 @@
 include:
   - project: hpc/gitlab-pipelines
+    ref: olupton/ccache
     file:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
-
-stages:
-    - .pre
-    - build_nmodl
-    - build
-    - test
-    - build_neuron
-    - test_neuron
 
 # Set up Spack
 spack_setup:
@@ -35,187 +28,153 @@ spack_setup:
     - git diff
     - fi
 
+variables:
+  CCACHE_DEBUG: 1
+
+# Performance seems to be terrible when we get too many jobs on a single node.
+.build:
+  extends: [.spack_build]
+  variables:
+    bb5_ntasks: 2   # so we block 16 cores
+    bb5_cpus_per_task: 8 # ninja -j {this}
+    bb5_memory: 76G # ~16*384/80
+
 .spack_intel:
   variables:
     SPACK_PACKAGE_COMPILER: intel
 .spack_nvhpc:
   variables:
     SPACK_PACKAGE_COMPILER: nvhpc
-.spack_neuron:
+.build_neuron:
+  extends: [.build]
   variables:
+    bb5_duration: "2:00:00"
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit model_tests=channel-benchmark,olfactory
+  before_script:
+    # Build py-cython and py-numpy with GCC instead of Intel/NVHPC.
+    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
+    - !reference [.spack_build, before_script]
 .gpu_node:
   variables:
     bb5_constraint: volta
     bb5_ntasks: 16
 .test_neuron:
   extends: [.ctest]
-  stage: test_neuron
   variables:
     bb5_ntasks: 16
+    bb5_memory: 76G # ~16*384/80
 
-build:nmodl:intel:
-  stage: build_nmodl
+# Build NMODL once with GCC
+build:nmodl:
+  extends: [.build]
   variables:
     SPACK_PACKAGE: nmodl
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: ~legacy-unit
-  extends:
-    - .spack_build
-    - .spack_intel
+    SPACK_PACKAGE_COMPILER: gcc
 
-build:nmodl:gpu:
-  stage: build_nmodl
-  variables:
-    SPACK_PACKAGE: nmodl
-    SPACK_PACKAGE_REF: ''
-    SPACK_PACKAGE_SPEC: ~legacy-unit
-    SPACK_PACKAGE_DEPENDENCIES: ^bison%gcc^flex%gcc^py-jinja2%gcc^py-sympy%gcc^py-pyyaml%gcc
-  extends:
-    - .spack_build
-    - .spack_nvhpc
-
-build:coreneuron+nmodl:intel:
+# Build CoreNEURON
+build:coreneuron:mod2c:nvhpc:acc:
+  extends: [.build, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
-    SPACK_PACKAGE_SPEC: +nmodl+tests~legacy-unit build_type=Debug
-  extends:
-    - .spack_build
-    - .spack_intel
-  needs: ["build:nmodl:intel"]
+    # +report pulls in a lot of dependencies and the tests fail.
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +gpu+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
 
-build:coreneuron:intel:
-  variables:
-    SPACK_PACKAGE: coreneuron
-    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
-  extends:
-    - .spack_build
-    - .spack_intel
-
-build:coreneuron+nmodl:gpu:
+build:coreneuron:nmodl:nvhpc:omp:
+  extends: [.build, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     SPACK_PACKAGE_SPEC: +nmodl+openmp+gpu+tests~legacy-unit~report~sympy build_type=RelWithDebInfo
-  extends:
-    - .spack_build
-    - .spack_nvhpc
-  needs: ["build:nmodl:gpu"]
+  needs: ["build:nmodl"]
 
-build:coreneuron+nmodl~openmp:gpu:
+build:coreneuron:nmodl:nvhpc:acc:
+  extends: [.build, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     # Sympy + OpenMP target offload does not currently work with NVHPC
     SPACK_PACKAGE_SPEC: +nmodl~openmp+gpu+tests~legacy-unit~report+sympy build_type=RelWithDebInfo
-  extends:
-    - .spack_build
-    - .spack_nvhpc
-  needs: ["build:nmodl:gpu"]
+  needs: ["build:nmodl"]
 
-build:coreneuron:gpu:
+build:coreneuron:mod2c:intel:
+  extends: [.build, .spack_intel]
   variables:
     SPACK_PACKAGE: coreneuron
-    # +report pulls in a lot of dependencies and the tests fail.
-    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +gpu+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
-  extends:
-    - .spack_build
-    - .spack_nvhpc
+    SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
 
-test:coreneuron+nmodl:intel:
+build:coreneuron:nmodl:intel:
+  extends: [.build, .spack_intel]
+  variables:
+    SPACK_PACKAGE: coreneuron
+    SPACK_PACKAGE_SPEC: +nmodl+tests~legacy-unit build_type=Debug
+  needs: ["build:nmodl"]
+
+# Build NEURON
+build:neuron:mod2c:nvhpc:acc:
+  extends: [.build_neuron, .spack_nvhpc]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc"]
+
+build:neuron:nmodl:nvhpc:omp:
+  extends: [.build_neuron, .spack_nvhpc]
+  needs: ["build:coreneuron:nmodl:nvhpc:omp"]
+
+build:neuron:nmodl:nvhpc:acc:
+  extends: [.build_neuron, .spack_nvhpc]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc"]
+
+build:neuron:mod2c:intel:
+  extends: [.build_neuron, .spack_intel]
+  needs: ["build:coreneuron:mod2c:intel"]
+
+build:neuron:nmodl:intel:
+  extends: [.build_neuron, .spack_intel]
+  needs: ["build:coreneuron:nmodl:intel"]
+
+# Test CoreNEURON
+test:coreneuron:mod2c:nvhpc:acc:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc"]
+
+test:coreneuron:nmodl:nvhpc:omp:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:omp"]
+
+test:coreneuron:nmodl:nvhpc:acc:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc"]
+
+test:coreneuron:mod2c:intel:
   extends: [.ctest]
-  needs: ["build:coreneuron+nmodl:intel"]
+  needs: ["build:coreneuron:mod2c:intel"]
 
-test:coreneuron:intel:
+test:coreneuron:nmodl:intel:
   extends: [.ctest]
-  needs: ["build:coreneuron:intel"]
+  needs: ["build:coreneuron:nmodl:intel"]
 
-test:coreneuron+nmodl:gpu:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron+nmodl:gpu"]
-
-test:coreneuron+nmodl~openmp:gpu:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron+nmodl~openmp:gpu"]
-
-test:coreneuron:gpu:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:gpu"]
-
-build:neuron+nmodl:intel:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_intel
-  needs: ["build:coreneuron+nmodl:intel"]
-
-build:neuron:intel:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_intel
-  needs: ["build:coreneuron:intel"]
-
-build:neuron+nmodl:gpu:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_nvhpc
-  before_script:
-    # Build py-cython and py-numpy with GCC instead of NVHPC.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
-    - !reference [.spack_build, before_script]
-  needs: ["build:coreneuron+nmodl:gpu"]
-
-build:neuron+nmodl~openmp:gpu:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_nvhpc
-  before_script:
-    # Build py-cython and py-numpy with GCC instead of NVHPC.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
-    - !reference [.spack_build, before_script]
-  needs: ["build:coreneuron+nmodl~openmp:gpu"]
-
-build:neuron:gpu:
-  stage: build_neuron
-  extends:
-    - .spack_build
-    - .spack_neuron
-    - .spack_nvhpc
-  before_script:
-    # Build py-cython and py-numpy with GCC instead of NVHPC.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
-    - !reference [.spack_build, before_script]
-  needs: ["build:coreneuron:gpu"]
-
-test:neuron+nmodl:intel:
-  extends: [.test_neuron]
-  needs: ["build:neuron+nmodl:intel"]
-
-test:neuron:intel:
-  extends: [.test_neuron]
-  needs: ["build:neuron:intel"]
-
-test:neuron+nmodl:gpu:
+# Test NEURON
+test:neuron:mod2c:nvhpc:acc:
   extends: [.test_neuron, .gpu_node]
-  needs: ["build:neuron+nmodl:gpu"]
+  needs: ["build:neuron:mod2c:nvhpc:acc"]
 
-test:neuron+nmodl~openmp:gpu:
-  stage: test_neuron
-  extends: [.ctest, .gpu_node]
-  needs: ["build:neuron+nmodl~openmp:gpu"]
-
-test:neuron:gpu:
+test:neuron:nmodl:nvhpc:omp:
   extends: [.test_neuron, .gpu_node]
-  needs: ["build:neuron:gpu"]
+  needs: ["build:neuron:nmodl:nvhpc:omp"]
+
+test:neuron:nmodl:nvhpc:acc:
+  extends: [.test_neuron, .gpu_node]
+  needs: ["build:neuron:nmodl:nvhpc:acc"]
+
+test:neuron:mod2c:intel:
+  extends: [.test_neuron]
+  needs: ["build:neuron:mod2c:intel"]
+
+test:neuron:nmodl:intel:
+  extends: [.test_neuron]
+  needs: ["build:neuron:nmodl:intel"]
