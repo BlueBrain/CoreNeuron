@@ -1,9 +1,4 @@
 additional_commands:
-  cuda_add_library:
-    pargs: '*'
-    flags: ["STATIC", "SHARED", "MODULE", "EXCLUDE_FROM_ALL"]
-    kwargs:
-      OPTIONS: '*'
   cpp_cc_build_time_copy:
     flags: ['NO_TARGET']
     kwargs:
