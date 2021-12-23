@@ -263,14 +263,12 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
     int _cntml_padded = ml->_nodecount_padded;
     pd = ml->data;
     ppd = ml->pdata;
-    // clang-format off
-    nrn_pragma_acc(parallel loop present(pd[0:_cntml_padded * 5],
-                                         nrn_ion_global_map[0:nrn_ion_global_map_size]
-                                                           [0:ion_global_map_member_size])
-                                 if (nt->compute_gpu)
-                                 async(nt->stream_id))
-    // clang-format on
-    nrn_pragma_omp(target teams distribute parallel for simd if(nt->compute_gpu))
+    nrn_pragma_acc(parallel loop present(
+        pd [0:_cntml_padded * 5],
+        nrn_ion_global_map
+        [0:nrn_ion_global_map_size] [0:ion_global_map_member_size]) if (nt->compute_gpu)
+                       async(nt->streams[nt->stream_id]))
+    nrn_pragma_omp(target teams distribute parallel for simd if(nt->compute_gpu) depend(inout: nt->streams[nt->stream_id]) nowait)
     for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
         dcurdv = 0.;
         cur = 0.;
@@ -342,8 +340,8 @@ void second_order_cur(NrnThread* _nt, int secondorder) {
                 nrn_pragma_acc(parallel loop present(pd [0:_cntml_padded * 5],
                                                      ni [0:_cntml_actual],
                                                      _vec_rhs [0:_nt->end]) if (_nt->compute_gpu)
-                                   async(_nt->stream_id))
-                nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+                                   async(_nt->streams[_nt->stream_id]))
+                nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu) depend(inout: _nt->streams[_nt->stream_id]) nowait)
                 for (int _iml = 0; _iml < _cntml_actual; ++_iml) {
                     cur += dcurdv * (_vec_rhs[ni[_iml]]);
                 }

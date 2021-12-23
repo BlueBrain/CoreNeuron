@@ -875,7 +875,9 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
  * greater than number of omp threads.
  */
 #if defined(_OPENMP)
-    nt.stream_id = omp_get_thread_num();
+    const auto omp_thread_num = omp_get_thread_num();
+    nt.stream_id = omp_thread_num;
+    nt.streams[nt.stream_id] = omp_thread_num;
 #endif
 
     int shadow_rhs_cnt = 0;

@@ -15,6 +15,10 @@
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 /*
 Now that threads have taken over the actual_v, v_node, etc, it might
 be a good time to regularize the method of freeing, allocating, and
@@ -106,6 +110,9 @@ void nrn_threads_create(int n) {
             for (int i = 0; i < nrn_nthread; ++i) {
                 NrnThread& nt = nrn_threads[i];
                 nt.id = i;
+#if defined(_OPENMP)
+                nt.streams.reserve(omp_get_num_threads());
+#endif
                 for (int j = 0; j < BEFORE_AFTER_SIZE; ++j) {
                     nt.tbl[j] = nullptr;
                 }

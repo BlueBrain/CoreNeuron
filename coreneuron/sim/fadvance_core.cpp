@@ -79,7 +79,7 @@ void dt2thread(double adt) { /* copied from nrnoc/fadvance.c */
                 nt->cj = 1.0 / dt;
             }
             nrn_pragma_acc(update device(nt->_t, nt->_dt, nt->cj)
-                               async(nt->stream_id) if (nt->compute_gpu))
+                               async(nt->streams[nt->stream_id]) if (nt->compute_gpu))
             // clang-format off
             nrn_pragma_omp(target update to(nt->_t, nt->_dt, nt->cj)
                                          if(nt->compute_gpu))
@@ -206,15 +206,15 @@ void update(NrnThread* _nt) {
     /* do not need to worry about linmod or extracellular*/
     if (secondorder) {
         nrn_pragma_acc(parallel loop present(vec_v [0:i2], vec_rhs [0:i2]) if (_nt->compute_gpu)
-                           async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+                           async(_nt->streams[_nt->stream_id]))
+        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu) depend(inout: _nt->streams[_nt->stream_id]) nowait)
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += 2. * vec_rhs[i];
         }
     } else {
         nrn_pragma_acc(parallel loop present(vec_v [0:i2], vec_rhs [0:i2]) if (_nt->compute_gpu)
-                           async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+                           async(_nt->streams[_nt->stream_id]))
+        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu) depend(inout: _nt->streams[_nt->stream_id]) nowait)
         for (int i = 0; i < i2; ++i) {
             vec_v[i] += vec_rhs[i];
         }
@@ -295,8 +295,8 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             assert(vs < tr->bsize);
 
             nrn_pragma_acc(parallel loop present(tr [0:1]) if (nth->compute_gpu)
-                               async(nth->stream_id))
-            nrn_pragma_omp(target teams distribute parallel for simd if(nth->compute_gpu))
+                               async(nth->streams[nth->stream_id]))
+            nrn_pragma_omp(target teams distribute parallel for simd if(nth->compute_gpu) depend(inout: nth->streams[nth->stream_id]) nowait)
             for (int i = 0; i < tr->n_trajec; ++i) {
                 tr->varrays[i][vs] = *tr->gather[i];
             }
@@ -316,10 +316,13 @@ void nrncore2nrn_send_values(NrnThread* nth) {
             for (int i = 0; i < tr->n_trajec; ++i) {
                 double* gather_i = tr->gather[i];
                 nrn_pragma_acc(update self(gather_i [0:1]) if (nth->compute_gpu)
-                                   async(nth->stream_id))
-                nrn_pragma_omp(target update from(gather_i [0:1]) if (nth->compute_gpu))
+                                   async(nth->streams[nth->stream_id]))
+                // clang-format off
+                nrn_pragma_omp(target update from(gather_i [0:1]) if (nth->compute_gpu)
+                                   depend(inout: nth->streams[nth->stream_id]) nowait)
+                // clang-format on
             }
-            nrn_pragma_acc(wait(nth->stream_id))
+            nrn_pragma_acc(wait async(nth->streams[nth->stream_id]))
             for (int i = 0; i < tr->n_trajec; ++i) {
                 *(tr->scatter[i]) = *(tr->gather[i]);
             }
@@ -341,8 +344,9 @@ static void* nrn_fixed_step_thread(NrnThread* nth) {
     if (nth->ncell) {
         /*@todo: do we need to update nth->_t on GPU: Yes (Michael, but can
         launch kernel) */
-        nrn_pragma_acc(update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id))
-        nrn_pragma_acc(wait(nth->stream_id))
+        nrn_pragma_acc(update device(nth->_t) if (nth->compute_gpu)
+                           async(nth->streams[nth->stream_id]))
+        nrn_pragma_acc(wait async(nth->streams[nth->stream_id]))
         nrn_pragma_omp(target update to(nth->_t) if (nth->compute_gpu))
         fixed_play_continuous(nth);
 
@@ -377,8 +381,9 @@ void* nrn_fixed_step_lastpart(NrnThread* nth) {
 
     if (nth->ncell) {
         /*@todo: do we need to update nth->_t on GPU */
-        nrn_pragma_acc(update device(nth->_t) if (nth->compute_gpu) async(nth->stream_id))
-        nrn_pragma_acc(wait(nth->stream_id))
+        nrn_pragma_acc(update device(nth->_t) if (nth->compute_gpu)
+                           async(nth->streams[nth->stream_id]))
+        nrn_pragma_acc(wait async(nth->streams[nth->stream_id]))
         nrn_pragma_omp(target update to(nth->_t) if (nth->compute_gpu))
         fixed_play_continuous(nth);
         nonvint(nth);

@@ -326,8 +326,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         /* Here is the example of using OpenACC data enter/exit
          * Remember that we are not allowed to use nt->_data but we have to use:
          *      double *dtmp = nt->_data;  // now use dtmp!
-                #pragma acc enter data copyin(dtmp[0:nt->_ndata]) async(nt->stream_id)
-                #pragma acc wait(nt->stream_id)
+                #pragma acc enter data copyin(dtmp[0:nt->_ndata]) async(nt->streams[nt->stream_id])
+                #pragma acc wait(nt->streams[nt->stream_id])
          */
 
         /*update d_nt._data to point to device copy */
@@ -736,7 +736,7 @@ void update_net_receive_buffer(NrnThread* nt) {
                                              nrb->_nrb_flag[:nrb->_cnt],
                                              nrb->_displ[:nrb->_displ_cnt + 1],
                                              nrb->_nrb_index[:nrb->_cnt])
-                                             async(nt->stream_id))
+                                             async(nt->streams[nt->stream_id]))
                 nrn_pragma_omp(target update to(nrb->_cnt,
                                                 nrb->_displ_cnt,
                                                 nrb->_pnt_index[:nrb->_cnt],
@@ -749,7 +749,7 @@ void update_net_receive_buffer(NrnThread* nt) {
             }
         }
     }
-    nrn_pragma_acc(wait(nt->stream_id))
+    nrn_pragma_acc(wait async(nt->streams[nt->stream_id]))
 }
 
 void update_net_send_buffer_on_host(NrnThread* nt, NetSendBuffer_t* nsb) {

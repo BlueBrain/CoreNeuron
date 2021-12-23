@@ -70,8 +70,8 @@ void nrn_jacob_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
         nrn_pragma_acc(parallel loop present(vdata [0:_cntml_padded * nparm],
                                              ni [0:_cntml_actual],
                                              _vec_d [0:_nt->end]) if (_nt->compute_gpu)
-                           async(_nt->stream_id))
-        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+                           async(_nt->streams[_nt->stream_id]))
+        nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu) depend(inout: _nt->streams[_nt->stream_id]) nowait)
         for (_iml = 0; _iml < _cntml_actual; _iml++) {
             _vec_d[ni[_iml]] += cfac * cm;
         }
@@ -116,8 +116,8 @@ void nrn_cur_capacitance(NrnThread* _nt, Memb_list* ml, int /* type */) {
     nrn_pragma_acc(parallel loop present(vdata [0:_cntml_padded * nparm],
                                          ni [0:_cntml_actual],
                                          _vec_rhs [0:_nt->end]) if (_nt->compute_gpu)
-                       async(_nt->stream_id))
-    nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu))
+                       async(_nt->streams[_nt->stream_id]))
+    nrn_pragma_omp(target teams distribute parallel for simd if(_nt->compute_gpu) depend(inout: _nt->streams[_nt->stream_id]) nowait)
     for (int _iml = 0; _iml < _cntml_actual; _iml++) {
         i_cap = cfac * cm * _vec_rhs[ni[_iml]];
     }

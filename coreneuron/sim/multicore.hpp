@@ -130,9 +130,11 @@ struct NrnThread: public MemoryManaged {
 
     NrnThreadBAList* tbl[BEFORE_AFTER_SIZE]; /* wasteful since almost all empty */
 
-    int shadow_rhs_cnt = 0; /* added to facilitate the NrnThread transfer to GPU */
-    int compute_gpu = 0;    /* define whether to compute with gpus */
-    int stream_id = 0;      /* define where the kernel will be launched on GPU stream */
+    int shadow_rhs_cnt = 0;   /* added to facilitate the NrnThread transfer to GPU */
+    int compute_gpu = 0;      /* define whether to compute with gpus */
+    int stream_id = 0;        /* define where the kernel will be launched on GPU stream */
+    std::vector<int> streams; /* vector of stream ids needed for async execution of OpenMP in
+                                 multiple streams */
     int _net_send_buffer_size = 0;
     int _net_send_buffer_cnt = 0;
     int* _net_send_buffer = nullptr;
