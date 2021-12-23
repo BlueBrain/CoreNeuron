@@ -49,6 +49,7 @@ spack_setup:
 .gpu_node:
   variables:
     bb5_constraint: volta
+    bb5_ntasks: 16
 .test_neuron:
   extends: [.ctest]
   stage: test_neuron
