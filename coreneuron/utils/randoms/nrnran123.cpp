@@ -89,6 +89,13 @@ CORENRN_HOST_DEVICE philox4x32_key_t& get_global_state() {
 }
 }  // namespace
 
+
+nrn_pragma_omp(declare target)
+philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
+    return philox4x32(s->c, g_k);
+}
+nrn_pragma_omp(end declare target)
+
 namespace coreneuron {
 std::size_t nrnran123_instance_count() {
     return g_instance_count;
@@ -111,7 +118,7 @@ CORENRN_HOST_DEVICE void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char
         s->which_ = which;
     }
     s->c.v[0] = seq;
-    s->r = philox4x32(s->c, g_k);
+    s->r = philox4x32_helper(s);
 }
 
 CORENRN_HOST_DEVICE void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
@@ -135,7 +142,7 @@ CORENRN_HOST_DEVICE uint32_t nrnran123_ipick(nrnran123_State* s) {
     if (which > 3) {
         which = 0;
         s->c.v[0]++;
-        s->r = philox4x32(s->c, g_k);
+        s->r = philox4x32_helper(s);
     }
     s->which_ = which;
     return rval;
