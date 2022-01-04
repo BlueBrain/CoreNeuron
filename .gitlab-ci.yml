@@ -60,7 +60,8 @@ variables:
   before_script:
     - !reference [.ctest, before_script]
     - echo "Starting MPS daemon for GPU tests."
-    - nvidia-cuda-mps-control -d
+    - nvidia-cuda-mps-control -d || true
+    - ps aux | grep nvidia-cuda-mps-control
   variables:
     bb5_constraint: volta
     bb5_ntasks: 16
