@@ -51,7 +51,7 @@ variables:
     bb5_duration: "2:00:00"
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
-    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit model_tests=channel-benchmark,olfactory
+    SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit~rx3d model_tests=channel-benchmark,olfactory
   before_script:
     # Build py-cython and py-numpy with GCC instead of Intel/NVHPC.
     - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
@@ -64,6 +64,7 @@ variables:
   variables:
     bb5_constraint: volta
     bb5_ntasks: 16
+    bb5_memory: 76G # ~16*384/80
 .test_neuron:
   extends: [.ctest]
   variables:
