@@ -92,12 +92,17 @@ __global__ void solve_interleaved2_kernel(NrnThread* nt, InterleaveInfo* ii, int
 void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream) {
     auto cuda_stream = static_cast<cudaStream_t>(stream);
 
-    // the selection of these parameters has been done after running the channel-benchmark for typical production runs, i.e.
-    // 1 MPI task with 1440 cells & 6 MPI tasks with 8800 cells.
-    // The main idea is to have multiple warps per SM and sufficient blocks to fill the GPU. 
-    // In our case, given that multiple threads share the available GPUs, we "guarantee" a sufficient occupancy of the GPUs.
-    int threadsPerBlock = 128;
-    int blocksPerGrid = 512;
+    /// the selection of these parameters has been done after running the channel-benchmark for
+    /// typical production runs, i.e. 1 MPI task with 1440 cells & 6 MPI tasks with 8800 cells.
+    /// In the OpenACC/OpenMP implementations threadsPerBlock is set to 32. From profiling the
+    /// channel-benchmark circuits mentioned above we figured out that the best performance was
+    /// achieved with this configuration
+    int threadsPerBlock = warpsize;
+    /// Max number of blocksPerGrid for NVIDIA GPUs is 65535, so we need to make sure that the
+    /// blocksPerGrid we launch the CUDA kernel with doesn't exceed this number
+    const auto maxBlocksPerGrid = 65535;
+    int provisionalBlocksPerGrid = (ncore + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = provisionalBlocksPerGrid <= maxBlocksPerGrid ? provisionalBlocksPerGrid : maxBlocksPerGrid;
 
     solve_interleaved2_kernel<<<blocksPerGrid, threadsPerBlock, 0, cuda_stream>>>(nt, info, ncore);
 

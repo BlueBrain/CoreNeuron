@@ -76,6 +76,189 @@ void cnrn_target_set_default_device(int device_num) {
 #endif
 }
 
+static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
+    // As we never run code for artificial cell inside GPU we don't copy it.
+    int is_art = corenrn.get_is_artificial()[type];
+    if (is_art) {
+        return nullptr;
+    }
+
+    auto d_ml = cnrn_target_copyin(ml);
+
+    int n = ml->nodecount;
+    int szp = corenrn.get_prop_param_size()[type];
+    int szdp = corenrn.get_prop_dparam_size()[type];
+
+    double* dptr = cnrn_target_deviceptr(ml->data);
+    cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
+
+
+    int* d_nodeindices = cnrn_target_copyin(ml->nodeindices, n);
+    cnrn_target_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices);
+
+    if (szdp) {
+        int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
+        int* d_pdata = cnrn_target_copyin(ml->pdata, pcnt);
+        cnrn_target_memcpy_to_device(&(d_ml->pdata), &d_pdata);
+    }
+
+    int ts = corenrn.get_memb_funcs()[type].thread_size_;
+    if (ts) {
+        ThreadDatum* td = cnrn_target_copyin(ml->_thread, ts);
+        cnrn_target_memcpy_to_device(&(d_ml->_thread), &td);
+    }
+
+    // net_receive buffer associated with mechanism
+    NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
+
+    // if net receive buffer exist for mechanism
+    if (nrb) {
+        NetReceiveBuffer_t* d_nrb = cnrn_target_copyin(nrb);
+        cnrn_target_memcpy_to_device(&(d_ml->_net_receive_buffer), &d_nrb);
+
+        int* d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
+
+        int* d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
+
+        double* d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
+
+        double* d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
+
+        int* d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
+        cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
+
+        int* d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
+        cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
+    }
+
+    /* copy NetSendBuffer_t on to GPU */
+    NetSendBuffer_t* nsb = ml->_net_send_buffer;
+
+    if (nsb) {
+        NetSendBuffer_t* d_nsb;
+        int* d_iptr;
+        double* d_dptr;
+
+        d_nsb = cnrn_target_copyin(nsb);
+        cnrn_target_memcpy_to_device(&(d_ml->_net_send_buffer), &d_nsb);
+
+        d_iptr = cnrn_target_copyin(nsb->_sendtype, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_sendtype), &d_iptr);
+
+        d_iptr = cnrn_target_copyin(nsb->_vdata_index, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_vdata_index), &d_iptr);
+
+        d_iptr = cnrn_target_copyin(nsb->_pnt_index, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_pnt_index), &d_iptr);
+
+        d_iptr = cnrn_target_copyin(nsb->_weight_index, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_weight_index), &d_iptr);
+
+        d_dptr = cnrn_target_copyin(nsb->_nsb_t, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_nsb_t), &d_dptr);
+
+        d_dptr = cnrn_target_copyin(nsb->_nsb_flag, nsb->_size);
+        cnrn_target_memcpy_to_device(&(d_nsb->_nsb_flag), &d_dptr);
+    }
+
+    return d_ml;
+}
+
+static void update_ml_on_host(const Memb_list* ml, int type) {
+    int is_art = corenrn.get_is_artificial()[type];
+    if (is_art) {
+        // Artificial mechanisms such as PatternStim and IntervalFire
+        // are not copied onto the GPU. They should not, therefore, be
+        // updated from the GPU.
+        return;
+    }
+
+    int n = ml->nodecount;
+    int szp = corenrn.get_prop_param_size()[type];
+    int szdp = corenrn.get_prop_dparam_size()[type];
+
+    int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szp;
+
+    nrn_pragma_acc(update self(ml->data[:pcnt], ml->nodeindices[:n]))
+    nrn_pragma_omp(target update from(ml->data[:pcnt], ml->nodeindices[:n]))
+
+    int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
+    nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if (szdp))
+    nrn_pragma_omp(target update from(ml->pdata[:dpcnt]) if (szdp))
+
+    auto nrb = ml->_net_receive_buffer;
+
+    // clang-format off
+    nrn_pragma_acc(update self(nrb->_cnt,
+                               nrb->_size,
+                               nrb->_pnt_offset,
+                               nrb->_displ_cnt,
+                               nrb->_pnt_index[:nrb->_size],
+                               nrb->_weight_index[:nrb->_size],
+                               nrb->_displ[:nrb->_size + 1],
+                               nrb->_nrb_index[:nrb->_size])
+                          if (nrb != nullptr))
+    nrn_pragma_omp(target update from(nrb->_cnt,
+                                      nrb->_size,
+                                      nrb->_pnt_offset,
+                                      nrb->_displ_cnt,
+                                      nrb->_pnt_index[:nrb->_size],
+                                      nrb->_weight_index[:nrb->_size],
+                                      nrb->_displ[:nrb->_size + 1],
+                                      nrb->_nrb_index[:nrb->_size])
+                                 if (nrb != nullptr))
+    // clang-format on
+}
+
+static void delete_ml_from_device(Memb_list* ml, int type) {
+    int is_art = corenrn.get_is_artificial()[type];
+    if (is_art) {
+        return;
+    }
+    // Cleanup the net send buffer if it exists
+    {
+        NetSendBuffer_t* nsb{ml->_net_send_buffer};
+        if (nsb) {
+            cnrn_target_delete(nsb->_nsb_flag, nsb->_size);
+            cnrn_target_delete(nsb->_nsb_t, nsb->_size);
+            cnrn_target_delete(nsb->_weight_index, nsb->_size);
+            cnrn_target_delete(nsb->_pnt_index, nsb->_size);
+            cnrn_target_delete(nsb->_vdata_index, nsb->_size);
+            cnrn_target_delete(nsb->_sendtype, nsb->_size);
+            cnrn_target_delete(nsb);
+        }
+    }
+    // Cleanup the net receive buffer if it exists.
+    {
+        NetReceiveBuffer_t* nrb{ml->_net_receive_buffer};
+        if (nrb) {
+            cnrn_target_delete(nrb->_nrb_index, nrb->_size);
+            cnrn_target_delete(nrb->_displ, nrb->_size + 1);
+            cnrn_target_delete(nrb->_nrb_flag, nrb->_size);
+            cnrn_target_delete(nrb->_nrb_t, nrb->_size);
+            cnrn_target_delete(nrb->_weight_index, nrb->_size);
+            cnrn_target_delete(nrb->_pnt_index, nrb->_size);
+            cnrn_target_delete(nrb);
+        }
+    }
+    int n = ml->nodecount;
+    int szdp = corenrn.get_prop_dparam_size()[type];
+    int ts = corenrn.get_memb_funcs()[type].thread_size_;
+    if (ts) {
+        cnrn_target_delete(ml->_thread, ts);
+    }
+    if (szdp) {
+        int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
+        cnrn_target_delete(ml->pdata, pcnt);
+    }
+    cnrn_target_delete(ml->nodeindices, n);
+    cnrn_target_delete(ml);
+}
+
 /* note: threads here are corresponding to global nrn_threads array */
 void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 #ifdef CORENEURON_ENABLE_GPU
@@ -210,103 +393,10 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             d_last_tml = d_tml;
 
             /* now for every tml, there is a ml. copy that and setup pointer */
-            auto d_ml = cnrn_target_copyin(tml->ml);
+            Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index);
             cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
-
             /* setup nt._ml_list */
             cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
-
-            int type = tml->index;
-            int n = tml->ml->nodecount;
-            int szp = corenrn.get_prop_param_size()[type];
-            int szdp = corenrn.get_prop_dparam_size()[type];
-            int is_art = corenrn.get_is_artificial()[type];
-
-            // If the mechanism is artificial data are not inside nt->_data but in a newly
-            // allocated block. As we never run code for artificial cell inside GPU
-            // we don't copy it.
-            dptr = is_art ? nullptr : cnrn_target_deviceptr(tml->ml->data);
-            cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
-
-
-            if (!is_art) {
-                int* d_nodeindices = cnrn_target_copyin(tml->ml->nodeindices, n);
-                cnrn_target_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices);
-            }
-
-            if (szdp) {
-                int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                int* d_pdata = cnrn_target_copyin(tml->ml->pdata, pcnt);
-                cnrn_target_memcpy_to_device(&(d_ml->pdata), &d_pdata);
-            }
-
-            int ts = corenrn.get_memb_funcs()[type].thread_size_;
-            if (ts) {
-                ThreadDatum* td = cnrn_target_copyin(tml->ml->_thread, ts);
-                cnrn_target_memcpy_to_device(&(d_ml->_thread), &td);
-            }
-
-            NetReceiveBuffer_t *nrb, *d_nrb;
-            int *d_weight_index, *d_pnt_index, *d_displ, *d_nrb_index;
-            double *d_nrb_t, *d_nrb_flag;
-
-            // net_receive buffer associated with mechanism
-            nrb = tml->ml->_net_receive_buffer;
-
-            // if net receive buffer exist for mechanism
-            if (nrb) {
-                d_nrb = cnrn_target_copyin(nrb);
-                cnrn_target_memcpy_to_device(&(d_ml->_net_receive_buffer), &d_nrb);
-
-                d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
-                cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
-
-                d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
-                cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
-
-                d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
-                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
-
-                d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
-                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
-
-                d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
-                cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
-
-                d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
-                cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
-            }
-
-            /* copy NetSendBuffer_t on to GPU */
-            NetSendBuffer_t* nsb;
-            nsb = tml->ml->_net_send_buffer;
-
-            if (nsb) {
-                NetSendBuffer_t* d_nsb;
-                int* d_iptr;
-                double* d_dptr;
-
-                d_nsb = cnrn_target_copyin(nsb);
-                cnrn_target_memcpy_to_device(&(d_ml->_net_send_buffer), &d_nsb);
-
-                d_iptr = cnrn_target_copyin(nsb->_sendtype, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_sendtype), &d_iptr);
-
-                d_iptr = cnrn_target_copyin(nsb->_vdata_index, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_vdata_index), &d_iptr);
-
-                d_iptr = cnrn_target_copyin(nsb->_pnt_index, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_pnt_index), &d_iptr);
-
-                d_iptr = cnrn_target_copyin(nsb->_weight_index, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_weight_index), &d_iptr);
-
-                d_dptr = cnrn_target_copyin(nsb->_nsb_t, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_nsb_t), &d_dptr);
-
-                d_dptr = cnrn_target_copyin(nsb->_nsb_flag, nsb->_size);
-                cnrn_target_memcpy_to_device(&(d_nsb->_nsb_flag), &d_dptr);
-            }
         }
 
         if (nt->shadow_rhs_cnt) {
@@ -619,6 +709,10 @@ static void net_receive_buffer_order(NetReceiveBuffer_t* nrb) {
 void update_net_receive_buffer(NrnThread* nt) {
     Instrumentor::phase p_update_net_receive_buffer("update-net-receive-buf");
     for (auto tml = nt->tml; tml; tml = tml->next) {
+        int is_art = corenrn.get_is_artificial()[tml->index];
+        if (is_art) {
+            continue;
+        }
         // net_receive buffer to copy
         NetReceiveBuffer_t* nrb = tml->ml->_net_receive_buffer;
 
@@ -656,7 +750,6 @@ void update_net_receive_buffer(NrnThread* nt) {
         }
     }
     nrn_pragma_acc(wait(nt->stream_id))
-    nrn_pragma_omp(taskwait)
 }
 
 void update_net_send_buffer_on_host(NrnThread* nt, NetSendBuffer_t* nsb) {
@@ -731,55 +824,11 @@ void update_nrnthreads_on_host(NrnThread* threads, int nthreads) {
 
             /* -- copy NrnThreadMembList list ml to host -- */
             for (auto tml = nt->tml; tml; tml = tml->next) {
-                Memb_list* ml = tml->ml;
-
-                nrn_pragma_acc(update self(tml->index, ml->nodecount))
-                nrn_pragma_omp(target update from(tml->index, ml->nodecount))
-
-                int type = tml->index;
-                int n = ml->nodecount;
-                int szp = corenrn.get_prop_param_size()[type];
-                int szdp = corenrn.get_prop_dparam_size()[type];
-                int is_art = corenrn.get_is_artificial()[type];
-
-                // Artificial mechanisms such as PatternStim and IntervalFire
-                // are not copied onto the GPU. They should not, therefore, be
-                // updated from the GPU.
-                if (is_art) {
-                    continue;
+                if (!corenrn.get_is_artificial()[tml->index]) {
+                    nrn_pragma_acc(update self(tml->index, tml->ml->nodecount))
+                    nrn_pragma_omp(target update from(tml->index, tml->ml->nodecount))
                 }
-
-                int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szp;
-
-                nrn_pragma_acc(update self(ml->data[:pcnt], ml->nodeindices[:n]))
-                nrn_pragma_omp(target update from(ml->data[:pcnt], ml->nodeindices[:n]))
-
-                int dpcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                nrn_pragma_acc(update self(ml->pdata[:dpcnt]) if (szdp))
-                nrn_pragma_omp(target update from(ml->pdata[:dpcnt]) if (szdp))
-
-                auto nrb = tml->ml->_net_receive_buffer;
-
-                // clang-format off
-                nrn_pragma_acc(update self(nrb->_cnt,
-                                           nrb->_size,
-                                           nrb->_pnt_offset,
-                                           nrb->_displ_cnt,
-                                           nrb->_pnt_index[:nrb->_size],
-                                           nrb->_weight_index[:nrb->_size],
-                                           nrb->_displ[:nrb->_size + 1],
-                                           nrb->_nrb_index[:nrb->_size])
-                                      if (nrb != nullptr))
-                nrn_pragma_omp(target update from(nrb->_cnt,
-                                                  nrb->_size,
-                                                  nrb->_pnt_offset,
-                                                  nrb->_displ_cnt,
-                                                  nrb->_pnt_index[:nrb->_size],
-                                                  nrb->_weight_index[:nrb->_size],
-                                                  nrb->_displ[:nrb->_size + 1],
-                                                  nrb->_nrb_index[:nrb->_size])
-                                             if (nrb != nullptr))
-                // clang-format on
+                update_ml_on_host(tml->ml, tml->index);
             }
 
             int pcnt = nrn_soa_padded_size(nt->shadow_rhs_cnt, 0);
@@ -957,48 +1006,7 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         }
 
         for (auto tml = nt->tml; tml; tml = tml->next) {
-            // Cleanup the net send buffer if it exists
-            {
-                NetSendBuffer_t* nsb{tml->ml->_net_send_buffer};
-                if (nsb) {
-                    cnrn_target_delete(nsb->_nsb_flag, nsb->_size);
-                    cnrn_target_delete(nsb->_nsb_t, nsb->_size);
-                    cnrn_target_delete(nsb->_weight_index, nsb->_size);
-                    cnrn_target_delete(nsb->_pnt_index, nsb->_size);
-                    cnrn_target_delete(nsb->_vdata_index, nsb->_size);
-                    cnrn_target_delete(nsb->_sendtype, nsb->_size);
-                    cnrn_target_delete(nsb);
-                }
-            }
-            // Cleanup the net receive buffer if it exists.
-            {
-                NetReceiveBuffer_t* nrb{tml->ml->_net_receive_buffer};
-                if (nrb) {
-                    cnrn_target_delete(nrb->_nrb_index, nrb->_size);
-                    cnrn_target_delete(nrb->_displ, nrb->_size + 1);
-                    cnrn_target_delete(nrb->_nrb_flag, nrb->_size);
-                    cnrn_target_delete(nrb->_nrb_t, nrb->_size);
-                    cnrn_target_delete(nrb->_weight_index, nrb->_size);
-                    cnrn_target_delete(nrb->_pnt_index, nrb->_size);
-                    cnrn_target_delete(nrb);
-                }
-            }
-            int type = tml->index;
-            int n = tml->ml->nodecount;
-            int szdp = corenrn.get_prop_dparam_size()[type];
-            int is_art = corenrn.get_is_artificial()[type];
-            int ts = corenrn.get_memb_funcs()[type].thread_size_;
-            if (ts) {
-                cnrn_target_delete(tml->ml->_thread, ts);
-            }
-            if (szdp) {
-                int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
-                cnrn_target_delete(tml->ml->pdata, pcnt);
-            }
-            if (!is_art) {
-                cnrn_target_delete(tml->ml->nodeindices, n);
-            }
-            cnrn_target_delete(tml->ml);
+            delete_ml_from_device(tml->ml, tml->index);
             cnrn_target_delete(tml);
         }
         cnrn_target_delete(nt->_ml_list, corenrn.get_memb_funcs().size());

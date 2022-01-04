@@ -320,7 +320,6 @@ void nrncore2nrn_send_values(NrnThread* nth) {
                 nrn_pragma_omp(target update from(gather_i [0:1]) if (nth->compute_gpu))
             }
             nrn_pragma_acc(wait(nth->stream_id))
-            nrn_pragma_omp(taskwait)
             for (int i = 0; i < tr->n_trajec; ++i) {
                 *(tr->scatter[i]) = *(tr->gather[i]);
             }

@@ -35,10 +35,10 @@
 
 namespace coreneuron {
 
-struct corenrn_parameters {
+struct corenrn_parameters_data {
     enum verbose_level : std::uint32_t { NONE = 0, ERROR = 1, INFO = 2, DEBUG = 3, DEFAULT = INFO };
 
-    const int report_buff_size_default = 4;
+    static constexpr int report_buff_size_default = 4;
 
     unsigned spikebuf = 100'000;           /// Internal buffer used on every rank for spikes
     int prcellgid = -1;                    /// Gid of cell for prcellstate
@@ -46,8 +46,8 @@ struct corenrn_parameters {
     unsigned ms_subint = 2;                /// Number of multisend interval. 1 or 2
     unsigned spkcompress = 0;              /// Spike Compression
     unsigned cell_interleave_permute = 0;  /// Cell interleaving permutation
-    unsigned nwarp = 1024;  /// Number of warps to balance for cell_interleave_permute == 2
-    unsigned num_gpus = 0;  /// Number of gpus to use per node
+    unsigned nwarp = 65536;  /// Number of warps to balance for cell_interleave_permute == 2
+    unsigned num_gpus = 0;   /// Number of gpus to use per node
     unsigned report_buff_size = report_buff_size_default;  /// Size in MB of the report buffer.
     int seed = -1;  /// Initialization seed for random number generator (int)
 
@@ -86,13 +86,22 @@ struct corenrn_parameters {
     std::string checkpointpath;  /// Enable checkpoint and specify directory to store related files.
     std::string writeParametersFilepath;  /// Write parameters to this file
     std::string mpi_lib;                  /// Name of CoreNEURON MPI library to load dynamically.
+};
 
+struct corenrn_parameters: corenrn_parameters_data {
     CLI::App app{"CoreNeuron - Optimised Simulator Engine for NEURON."};  /// CLI app that performs
                                                                           /// CLI parsing
 
     corenrn_parameters();  /// Constructor that initializes the CLI11 app.
 
     void parse(int argc, char* argv[]);  /// Runs the CLI11_PARSE macro.
+
+    /** @brief Reset all parameters to their default values.
+     *
+     *  Unfortunately it is awkward to support `x = corenrn_parameters{}`
+     *  because `app` holds pointers to members of `corenrn_parameters`.
+     */
+    void reset();
 
     inline bool is_quiet() {
         return verbose == verbose_level::NONE;
