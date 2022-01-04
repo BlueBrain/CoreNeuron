@@ -79,8 +79,7 @@ OMP_Mutex g_instance_count_mutex;
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
-void setup_global_state() {
-}
+void setup_global_state() {}
 
 /** @brief Get the Random123 global state from either host or device code.
  */
