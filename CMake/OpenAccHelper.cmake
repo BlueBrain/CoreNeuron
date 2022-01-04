@@ -10,9 +10,8 @@
 if(CORENRN_ENABLE_GPU)
   # Enable cudaProfiler{Start,Stop}() behind the Instrumentor::phase... APIs
   add_compile_definitions(CORENEURON_CUDA_PROFILING CORENEURON_ENABLE_GPU)
-  # Plain C++ code in CoreNEURON may need to use CUDA runtime APIs for, for
-  # example, starting and stopping profiling. This makes sure those headers can
-  # be found.
+  # Plain C++ code in CoreNEURON may need to use CUDA runtime APIs for, for example, starting and
+  # stopping profiling. This makes sure those headers can be found.
   include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
   # cuda unified memory support
   if(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY)
