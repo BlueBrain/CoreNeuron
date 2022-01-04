@@ -8,4 +8,5 @@ set -x
 TEST_DIR="$1"
 
 cd $WORKSPACE/${TEST_DIR}
-nrnivmodl mod
+cp mod/*.mod modx/
+nrnivmodl modx

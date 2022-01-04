@@ -19,8 +19,9 @@ if [ "${TEST_DIR}" = "ringtest" ]; then
     echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ."
     $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core .
 else
-    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod"
-    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod
+    cp ../mod/*.mod ../modx
+    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ../modx"
+    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core ../modx
 fi
 set -x
 
