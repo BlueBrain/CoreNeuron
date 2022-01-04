@@ -65,7 +65,7 @@ variables:
   variables:
     bb5_constraint: volta
     bb5_exclusive: full
-    bb5_ntasks: 32
+    bb5_ntasks: 16
     bb5_memory: 0
 .test_neuron:
   extends: [.ctest]
