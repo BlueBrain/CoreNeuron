@@ -172,8 +172,10 @@ set(CORENRN_MPI_LIB_NAME
 # for non-dynamic mpi mode just build object files
 if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
   add_library(${CORENRN_MPI_LIB_NAME} OBJECT ${MPI_LIB_FILES})
-  target_include_directories(${CORENRN_MPI_LIB_NAME} PRIVATE ${MPI_INCLUDE_PATH}
-                                                     PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR})
+  target_include_directories(
+    ${CORENRN_MPI_LIB_NAME}
+    PRIVATE ${MPI_INCLUDE_PATH}
+    PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR})
   set_property(TARGET ${CORENRN_MPI_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
   set(CORENRN_MPI_OBJ $<TARGET_OBJECTS:${CORENRN_MPI_LIB_NAME}>)
 endif()
@@ -217,8 +219,10 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   if(NOT CORENEURON_AS_SUBPROJECT)
     add_library(${CORENRN_MPI_LIB_NAME} SHARED ${MPI_LIB_FILES})
     target_link_libraries(${CORENRN_MPI_LIB_NAME} ${MPI_CXX_LIBRARIES})
-    target_include_directories(${CORENRN_MPI_LIB_NAME} PRIVATE ${MPI_INCLUDE_PATH}
-                                                       PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR})
+    target_include_directories(
+      ${CORENRN_MPI_LIB_NAME}
+      PRIVATE ${MPI_INCLUDE_PATH}
+      PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR})
     set_property(TARGET ${CORENRN_MPI_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
     list(APPEND corenrn_mpi_targets ${CORENRN_MPI_LIB_NAME})
   else()
@@ -315,7 +319,6 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
-
 
 if(CORENRN_ENABLE_GPU)
   separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
