@@ -15,13 +15,18 @@ mkdir -p ${CORENRN_TYPE}
 pushd ${CORENRN_TYPE}
 
 set +x
+
+# tqperf has extra mod files under modx
+if [ "${TEST_DIR}" = "tqperf" ]; then
+    cp ../modx/*.mod ../mod/
+fi
+
 if [ "${TEST_DIR}" = "ringtest" ]; then
     echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ."
     $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core .
 else
-    cp ../mod/*.mod ../modx
-    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ../modx"
-    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core ../modx
+    echo "Running install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod"
+    $WORKSPACE/install_${CORENRN_TYPE}/bin/nrnivmodl-core ../mod
 fi
 set -x
 

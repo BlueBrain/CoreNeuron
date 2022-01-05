@@ -7,6 +7,10 @@ module load neuron/develop
 set -x
 TEST_DIR="$1"
 
+# tqperf has extra mod files under modx
+if [ "${TEST_DIR}" = "tqperf" ]; then
+    cp modx/*.mod mod/
+fi
+
 cd $WORKSPACE/${TEST_DIR}
-cp mod/*.mod modx/
-nrnivmodl modx
+nrnivmodl mod
