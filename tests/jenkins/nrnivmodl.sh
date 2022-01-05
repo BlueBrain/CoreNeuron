@@ -14,4 +14,4 @@ if [ "${TEST_DIR}" = "tqperf" ]; then
     cp modx/*.mod mod/
 fi
 
-nrnivmodl mod
+nrnivmodl -loadflags -lcrypto mod
