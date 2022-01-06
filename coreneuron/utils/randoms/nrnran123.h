@@ -92,9 +92,6 @@ inline nrnran123_State* nrnran123_newstream(
 void nrnran123_deletestream(nrnran123_State* s,
                             bool use_unified_memory = CORENRN_RAN123_USE_UNIFIED_MEMORY);
 
-/* this could be called from openacc parallel construct (in INITIAL block) */
-CORENRN_HOST_DEVICE_ACC void nrnran123_setseq(nrnran123_State*, uint32_t seq, char which);
-
 /* minimal data stream */
 nrn_pragma_omp(declare target)
 CORENRN_HOST_DEVICE_ACC void nrnran123_getseq(nrnran123_State*, uint32_t* seq, char* which);
@@ -103,6 +100,9 @@ CORENRN_HOST_DEVICE_ACC void nrnran123_getids3(nrnran123_State*,
                                                uint32_t* id1,
                                                uint32_t* id2,
                                                uint32_t* id3);
+/* this could be called from openacc parallel construct (in INITIAL block) */
+CORENRN_HOST_DEVICE_ACC void nrnran123_setseq(nrnran123_State*, uint32_t seq, char which);
+
 CORENRN_HOST_DEVICE_ACC uint32_t nrnran123_ipick(nrnran123_State*); /* uniform 0 to 2^32-1 */
 
 /* this could be called from openacc parallel construct */
