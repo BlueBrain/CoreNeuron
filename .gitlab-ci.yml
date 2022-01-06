@@ -54,16 +54,8 @@ spack_setup:
     - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
     - !reference [.spack_build, before_script]
 .gpu_node:
-  before_script:
-    - !reference [.ctest, before_script]
-    - echo "Starting MPS daemon for GPU tests."
-    - nvidia-cuda-mps-control -d || true
-    - ps aux | grep nvidia-cuda-mps
   variables:
     bb5_constraint: volta
-    bb5_exclusive: full
-    bb5_ntasks: 16
-    bb5_memory: 0
 .test_neuron:
   extends: [.ctest]
   variables:
