@@ -27,9 +27,6 @@ spack_setup:
     - git diff
     - fi
 
-variables:
-  CCACHE_DEBUG: 1
-
 # Performance seems to be terrible when we get too many jobs on a single node.
 .build:
   extends: [.spack_build]
