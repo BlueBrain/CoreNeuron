@@ -89,7 +89,7 @@ philox4x32_key_t* g_k{};
 // `setup_global_state()` if the GPU is enabled. It would be cleaner to use
 // __managed__ here, but unfortunately that does not work on machines that do
 // not have a GPU.
-#ifdef __CUDA_ARCH__
+#if defined(__CUDACC__) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD)
 CORENRN_DEVICE philox4x32_key_t* g_k_dev;
 #endif
 
