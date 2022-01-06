@@ -133,7 +133,8 @@ if(CORENRN_ENABLE_GPU)
   if(CORENRN_ENABLE_OPENMP_OFFLOAD)
     list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cu")
   else()
-    list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
+    list(REMOVE_ITEM CORENEURON_CODE_FILES
+         "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
   endif()
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
