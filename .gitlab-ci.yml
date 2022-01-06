@@ -43,6 +43,7 @@ spack_setup:
     SPACK_PACKAGE_COMPILER: nvhpc
 .build_neuron:
   extends: [.build]
+  timeout: two hours
   variables:
     bb5_duration: "2:00:00"
     SPACK_PACKAGE: neuron
