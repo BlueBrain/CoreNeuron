@@ -80,6 +80,15 @@ build:coreneuron:mod2c:nvhpc:acc:
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     SPACK_PACKAGE_SPEC: +gpu+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
 
+# Build CoreNEURON with Unified Memory on GPU
+build:coreneuron:mod2c:nvhpc:acc:unified:
+  extends: [.build, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE: coreneuron
+    # +report pulls in a lot of dependencies and the tests fail.
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +gpu+unified+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
+
 build:coreneuron:nmodl:nvhpc:omp:
   extends: [.build, .spack_nvhpc]
   variables:
@@ -137,6 +146,10 @@ build:neuron:nmodl:intel:
 test:coreneuron:mod2c:nvhpc:acc:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:mod2c:nvhpc:acc"]
+
+test:coreneuron:mod2c:nvhpc:acc:unified:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc:unified:"]
 
 test:coreneuron:nmodl:nvhpc:omp:
   extends: [.ctest, .gpu_node]
