@@ -149,7 +149,7 @@ test:coreneuron:mod2c:nvhpc:acc:
 
 test:coreneuron:mod2c:nvhpc:acc:unified:
   extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:unified:"]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc:unified"]
 
 test:coreneuron:nmodl:nvhpc:omp:
   extends: [.ctest, .gpu_node]
