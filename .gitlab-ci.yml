@@ -49,10 +49,6 @@ spack_setup:
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit~rx3d model_tests=channel-benchmark,olfactory,tqperf-heavy
-  before_script:
-    # Build py-cython and py-numpy with GCC instead of Intel/NVHPC.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^py-cython%gcc^py-numpy%gcc"
-    - !reference [.spack_build, before_script]
 .gpu_node:
   variables:
     bb5_constraint: volta
