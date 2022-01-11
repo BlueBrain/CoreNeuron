@@ -1,0 +1,116 @@
+name: NEURON submodule
+
+concurrency:
+  group: ${{ github.workflow }}#${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+      - release/**
+  pull_request:
+    branches:
+      - master
+      - release/**
+
+jobs:
+  ci:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            cores: 2
+          - os: macOS-11
+            cores: 3
+      fail-fast: false
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: ${{matrix.cores}}
+    steps:
+      - name: Install homebrew packages
+        if: startsWith(matrix.os, 'macOS')
+        run: |
+          brew install bison coreutils flex ninja openmpi
+          python3 -m pip install --upgrade numpy pytest pytest-cov
+          echo /usr/local/opt/flex/bin:/usr/local/opt/bison/bin >> $GITHUB_PATH
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+
+      - name: Install apt packages
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get install bison cython3 flex libfl-dev libopenmpi-dev \
+            ninja-build openmpi-bin python3-dev python3-numpy python3-pytest \
+            python3-pytest-cov
+          echo "CC=gcc" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v2
+        name: Checkout NEURON
+        with:
+          # TODO: allow configuring a non-default branch of NEURON, ideally
+          #       using the same CI_BRANCHES syntax in a PR body that is used
+          #       by the GitLab CI plans.
+          path: nrn
+          repository: neuronsimulator/nrn
+
+      - name: Update CoreNEURON submodule
+        run: |
+          cd ${GITHUB_WORKSPACE}/nrn
+          coreneuron_sha=${{github.event.pull_request.head.sha}}
+          if [[ -z ${coreneuron_sha} ]]; then
+          # presumably we're running on a push event
+          coreneuron_sha=${{github.sha}}
+          fi
+          echo "Using CoreNEURON SHA ${coreneuron_sha}"
+          # https://stackoverflow.com/a/33575837
+          git update-index --cacheinfo 160000,${coreneuron_sha},external/coreneuron
+          git submodule update --recursive
+          echo "NEURON status"
+          git status
+          git log -n 1
+          cd external/coreneuron
+          echo "CoreNEURON status"
+          git status
+          git log -n 1
+
+      - name: Configure NEURON
+        run: |
+          cd ${GITHUB_WORKSPACE}/nrn
+          mkdir build install
+          cd build
+          # NEURON CMake assumes this is defined.
+          export SHELL=$(command -v bash)
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_INSTALL_PREFIX=../install \
+            -DPYTHON_EXECUTABLE=$(command -v python3) \
+            -DNRN_ENABLE_CORENEURON=ON \
+            -DNRN_ENABLE_INTERVIEWS=OFF \
+            -DNRN_ENABLE_RX3D=OFF \
+            -DNRN_ENABLE_TESTS=ON
+
+      - name: Build NEURON
+        run: |
+          cd ${GITHUB_WORKSPACE}/nrn/build
+          cmake --build . --parallel
+
+      - name: Test NEURON
+        run: |
+          cd ${GITHUB_WORKSPACE}/nrn/build
+          ctest --output-on-failure
+
+      - name: Install NEURON
+        run: |
+          cd ${GITHUB_WORKSPACE}/nrn/build
+          cmake --build . --target install
+
+      # This step will set up an SSH connection on tmate.io for live debugging.
+      # To enable it, you have to:
+      #   * add 'live-debug-ci' to your PR title
+      #   * push something to your PR branch (note that just re-running the pipeline disregards the title update)
+      - name: live debug session on failure (manual steps required, check `.github/workflows/test-as-submodule.yml`)
+        if: failure() && contains(github.event.pull_request.title, 'live-debug-ci')
+        uses: mxschmitt/action-tmate@v3
