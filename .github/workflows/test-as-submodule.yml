@@ -30,19 +30,6 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{matrix.cores}}
     steps:
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJSON(job) }}
-        run: echo "$JOB_CONTEXT"
-      - name: Dump env context
-        env:
-          ENV_CONTEXT: ${{ toJSON(env) }}
-        run: echo "$ENV_CONTEXT"
-
       - name: Install homebrew packages
         if: startsWith(matrix.os, 'macOS')
         run: |
@@ -63,11 +50,11 @@ jobs:
 
       - name: Set NEURON branch
         id: vars
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          pr_number=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-          nrn_branch=`curl -H "Accept: application/vnd.github.v3+json"  \
-                      https://api.github.com/repos/bluebrain/coreneuron/pulls/$pr_number \
-                      | jq -r '.body' | grep "^CI_BRANCHES" \
+          nrn_branch=`echo $GITHUB_CONTEXT  \
+                      | jq -r '.event .pull_request .body' | grep "^CI_BRANCHES" \
                       | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
           if [ -z "$nrn_branch" ]; then
               nrn_branch=master
