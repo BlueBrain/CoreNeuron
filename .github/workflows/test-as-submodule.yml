@@ -55,6 +55,7 @@ jobs:
           #       by the GitLab CI plans.
           path: nrn
           repository: neuronsimulator/nrn
+          ref: pramodk/coreneuron-update
 
       - name: Update CoreNEURON submodule
         run: |
