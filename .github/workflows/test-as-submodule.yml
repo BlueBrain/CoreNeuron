@@ -33,7 +33,7 @@ jobs:
       - name: Install homebrew packages
         if: startsWith(matrix.os, 'macOS')
         run: |
-          brew install bison coreutils flex ninja openmpi jq
+          brew install bison coreutils flex ninja openmpi
           python3 -m pip install --upgrade numpy pytest pytest-cov
           echo /usr/local/opt/flex/bin:/usr/local/opt/bison/bin >> $GITHUB_PATH
           echo "CC=clang" >> $GITHUB_ENV
@@ -44,17 +44,16 @@ jobs:
         run: |
           sudo apt-get install bison cython3 flex libfl-dev libopenmpi-dev \
             ninja-build openmpi-bin python3-dev python3-numpy python3-pytest \
-            python3-pytest-cov jq
+            python3-pytest-cov
           echo "CC=gcc" >> $GITHUB_ENV
           echo "CXX=g++" >> $GITHUB_ENV
 
       - name: Set NEURON branch
         id: vars
         env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
+          GITHUB_PR_BODY: ${{github.event.pull_request.body}}
         run: |
-          nrn_branch=`echo $GITHUB_CONTEXT  \
-                      | jq -r '.event .pull_request .body' | grep "^CI_BRANCHES" \
+          nrn_branch=`echo ${GITHUB_PR_BODY} | grep "^CI_BRANCHES" \
                       | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
           if [ -z "$nrn_branch" ]; then
               nrn_branch=master
