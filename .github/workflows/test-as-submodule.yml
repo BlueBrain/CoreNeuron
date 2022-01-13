@@ -47,25 +47,26 @@ jobs:
           echo "CC=gcc" >> $GITHUB_ENV
           echo "CXX=g++" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v2
-        name: Checkout NEURON
-        with:
-          path: nrn
-          repository: neuronsimulator/nrn
-
       - name: Update NEURON branch
+        id: vars
         run: |
           pr_number=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           nrn_branch=`curl -H "Accept: application/vnd.github.v3+json"  \
                       https://api.github.com/repos/bluebrain/coreneuron/pulls/$pr_number \
                       | jq -r '.body' | grep "^CI_BRANCHES" \
                       | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
-          if [ ! -z "$nrn_branch" ]; then
-              echo "Changing to neuron branch: $nrn_branch"
-              cd ${GITHUB_WORKSPACE}/nrn
-              git checkout $nrn_branch
-              cd -
+          if [ -z "$nrn_branch" ]; then
+              nrn_branch=master
           fi
+          echo "Will use neuron branch: $nrn_branch"
+          echo ::set-output name=neuron_branch::"${nrn_branch}"
+
+      - uses: actions/checkout@v2
+        name: Checkout NEURON
+        with:
+          path: nrn
+          repository: neuronsimulator/nrn
+          ref: ${{ steps.vars.outputs.neuron_branch }}
 
       - name: Update CoreNEURON submodule
         run: |
