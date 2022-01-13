@@ -90,6 +90,7 @@ jobs:
             -DNRN_ENABLE_CORENEURON=ON \
             -DNRN_ENABLE_INTERVIEWS=OFF \
             -DNRN_ENABLE_RX3D=OFF \
+            -DNRN_ENABLE_MPI_DYNAMIC=ON \
             -DNRN_ENABLE_TESTS=ON
 
       - name: Build NEURON
