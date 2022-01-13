@@ -29,6 +29,20 @@ jobs:
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{matrix.cores}}
     steps:
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJSON(job) }}
+        run: echo "$JOB_CONTEXT"
+      - name: Dump env context
+        env:
+          ENV_CONTEXT: ${{ toJSON(env) }}
+        run: echo "$ENV_CONTEXT"
+
       - name: Install homebrew packages
         if: startsWith(matrix.os, 'macOS')
         run: |
@@ -47,7 +61,7 @@ jobs:
           echo "CC=gcc" >> $GITHUB_ENV
           echo "CXX=g++" >> $GITHUB_ENV
 
-      - name: Update NEURON branch
+      - name: Set NEURON branch
         id: vars
         run: |
           pr_number=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
