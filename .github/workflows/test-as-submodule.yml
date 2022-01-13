@@ -67,7 +67,7 @@ jobs:
           echo "Using CoreNEURON SHA ${coreneuron_sha}"
           # https://stackoverflow.com/a/33575837
           git update-index --cacheinfo 160000,${coreneuron_sha},external/coreneuron
-          git submodule update --recursive
+          git submodule update --init external/coreneuron
           echo "NEURON status"
           git status
           git log -n 1
