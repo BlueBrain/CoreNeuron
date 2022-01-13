@@ -51,7 +51,7 @@ jobs:
       - name: Set NEURON branch
         id: vars
         env:
-          GITHUB_PR_BODY: ${{github.event.pull_request.body}}
+          GITHUB_PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           nrn_branch=`echo ${GITHUB_PR_BODY} | grep "^CI_BRANCHES" \
                       | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
