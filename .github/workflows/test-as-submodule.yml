@@ -60,9 +60,11 @@ jobs:
                       https://api.github.com/repos/bluebrain/coreneuron/pulls/$pr_number \
                       | jq -r '.body' | grep "^CI_BRANCHES" \
                       | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
-          if [ ! -z "$nrn_branch" ] then
+          if [ ! -z "$nrn_branch" ]; then
               echo "Changing to neuron branch: $nrn_branch"
+              cd ${GITHUB_WORKSPACE}/nrn
               git checkout $nrn_branch
+              cd -
           fi
 
       - name: Update CoreNEURON submodule
