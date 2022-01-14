@@ -27,8 +27,10 @@ install_spack() (
     git clone $SPACK_REPO $SPACK_ROOT --depth 1 $BRANCH_OPT
 
     # Use BBP configs
-    mkdir -p $SPACK_ROOT/etc/spack/defaults/linux
+
+    rm ${SPACK_ROOT}/etc/spack/*.yaml
     cp /gpfs/bbp.cscs.ch/apps/bsd/config/*.yaml $SPACK_ROOT/etc/spack/
+    export SPACK_SYSTEM_CONFIG_PATH=/gpfs/bbp.cscs.ch/ssd/apps/bsd/config
     # sed -i -e  's/neuron+mpi~debug%intel/neuron+mpi/g' $SPACK_ROOT/etc/spack/modules.yaml
     # Remove configs from $HOME/.spack
     rm -rf $HOME/.spack
