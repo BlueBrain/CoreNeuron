@@ -6,6 +6,14 @@ include:
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
 
+simulation_stack:
+  variables:
+    CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
+  trigger:
+    project: hpc/sim/blueconfigs
+    # CoreNEURON CI status depends on the BlueConfigs CI status.
+    strategy: depend
+
 # Set up Spack
 spack_setup:
   extends: .spack_setup_ccache
