@@ -130,11 +130,16 @@ if(CORENRN_ENABLE_GPU)
   # (https://cmake.org/cmake/help/latest/policy/CMP0119.html), so using a single .cu file and
   # setting LANGUAGE=CXX in non-GPU builds does not work.
   list(APPEND CORENEURON_CODE_FILES ${CORENEURON_CUDA_FILES})
-  if(CORENRN_ENABLE_OPENMP_OFFLOAD)
+  if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
     list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cu")
-  else()
+  elseif(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenACC")
     list(REMOVE_ITEM CORENEURON_CODE_FILES
          "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
+  else()
+    message(
+      FATAL_ERROR
+        "Don't know how to build Random123 compatibility layer for GPU with ${CORENRN_ACCELERATOR_OFFLOAD} offload."
+    )
   endif()
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
