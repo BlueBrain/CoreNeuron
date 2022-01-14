@@ -7,6 +7,7 @@ include:
     file: enable-upload.yml
 
 simulation_stack:
+  stage: .pre # Trigger immediately
   variables:
     CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
   trigger:
