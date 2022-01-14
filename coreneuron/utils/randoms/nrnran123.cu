@@ -95,9 +95,7 @@ CORENRN_DEVICE philox4x32_key_t* g_k_dev;
 
 OMP_Mutex g_instance_count_mutex;
 
-nrn_pragma_omp(declare target)
 std::size_t g_instance_count{};
-nrn_pragma_omp(end declare target)
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
@@ -117,11 +115,13 @@ void setup_global_state() {
         // there is no point initialising the device global to it.
         {
             auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
+            static_cast<void>(code);
             assert(code == cudaSuccess);
         }
         // Make sure g_k_dev is updated.
         {
             auto const code = cudaDeviceSynchronize();
+            static_cast<void>(code);
             assert(code == cudaSuccess);
         }
     }
@@ -152,7 +152,7 @@ nrn_pragma_omp(declare target)
 /** @brief Provide a helper function in global namespace that is declared target for OpenMP
  * offloading to function correctly with NVHPC
  */
-philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
+CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
     return philox4x32(s->c, get_global_state());
 }
 nrn_pragma_omp(end declare target)
