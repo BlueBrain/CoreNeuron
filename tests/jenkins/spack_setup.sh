@@ -28,7 +28,6 @@ install_spack() (
 
     # Use BBP configs
 
-    rm ${SPACK_ROOT}/etc/spack/*.yaml
     cp /gpfs/bbp.cscs.ch/apps/bsd/config/*.yaml $SPACK_ROOT/etc/spack/
     export SPACK_SYSTEM_CONFIG_PATH=/gpfs/bbp.cscs.ch/ssd/apps/bsd/config
     # sed -i -e  's/neuron+mpi~debug%intel/neuron+mpi/g' $SPACK_ROOT/etc/spack/modules.yaml
