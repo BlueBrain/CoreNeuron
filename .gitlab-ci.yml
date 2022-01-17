@@ -85,8 +85,22 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     SPACK_PACKAGE_SPEC: +gpu+unified+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
 
+.build_coreneuron_nmodl:
+  extends: [.build]
+  before_script:
+    # NEURON depends on py-mpi4py, most of whose dependencies are pulled in by
+    # nmodl%gcc, with the exception of MPI, which is pulled in by
+    # coreneuron%{nvhpc,intel}. hpe-mpi is an external package anyway, so
+    # setting its compiler is just changing how it is labelled in the
+    # dependency graph and not changing which installation is used, but this
+    # means that in the NEURON step an existing py-mpi4py%gcc can be used.
+    # Otherwise a new py-mpi4py with hpe-mpi%{nvhpc,intel} will be built.
+    # TODO: fix this more robustly so we don't have to play so many games.
+    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^hpe-mpi%gcc"
+    - !reference [.spack_build, before_script]
+
 build:coreneuron:nmodl:nvhpc:omp:
-  extends: [.build, .spack_nvhpc]
+  extends: [.build_coreneuron_nmodl, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
@@ -95,7 +109,7 @@ build:coreneuron:nmodl:nvhpc:omp:
   needs: ["build:nmodl"]
 
 build:coreneuron:nmodl:nvhpc:acc:
-  extends: [.build, .spack_nvhpc]
+  extends: [.build_coreneuron_nmodl, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
     # +report pulls in a lot of dependencies and the tests fail.
@@ -111,7 +125,7 @@ build:coreneuron:mod2c:intel:
     SPACK_PACKAGE_SPEC: +tests~legacy-unit build_type=Debug
 
 build:coreneuron:nmodl:intel:
-  extends: [.build, .spack_intel]
+  extends: [.build_coreneuron_nmodl, .spack_intel]
   variables:
     SPACK_PACKAGE: coreneuron
     SPACK_PACKAGE_SPEC: +nmodl+tests~legacy-unit build_type=Debug
