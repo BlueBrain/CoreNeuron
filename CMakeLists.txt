@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -239,6 +239,14 @@ endif()
 if(CORENRN_HAVE_NVHPC_COMPILER)
   # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
+  if(NOT CORENRN_ENABLE_GPU AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 21.11)
+    # Random123 does not play nicely with NVHPC 21.11+'s detection of ABM features if it detects the
+    # compiler to be PGI or NVHPC, see: https://github.com/BlueBrain/CoreNeuron/issues/724 and
+    # https://github.com/DEShawResearch/random123/issues/6. In fact in GPU builds Random123
+    # (mis)detects nvc++ as nvcc because we pass the -cuda option and we therefore avoid the
+    # problem. If GPU support is disabled, we pass -mno-abm to avoid the problem.
+    list(APPEND CORENRN_COMPILE_FLAGS -mno-abm)
+  endif()
 endif()
 
 # ~~~
