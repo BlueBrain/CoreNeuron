@@ -33,8 +33,8 @@ spack_setup:
     # already done, so only MODELS_COMMON_BRANCH and NEURON_BRANCH need to be
     # set. spack_clone_variables.env is already defined by the gitlab-pipelines
     # helper and we can just append to it.
-    - NEURON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_neuron=\(branch|commit|tag\)=\(['\"]\)\([^\1]\+\)\2/3/p" spack_clone_variables.env)
-    - MODELS_COMMON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_models_common=\(branch|commit|tag\)=\(['\"]\)\([^\1]\+\)\2/3/p" spack_clone_variables.env)
+    - NEURON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_neuron=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
+    - MODELS_COMMON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_models_common=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
     # Don't override these if they were already set explicitly.
     - NEURON_BRANCH=${NEURON_BRANCH_PARSED:-$NEURON_BRANCH}
     - MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH_PARSED:-$MODELS_COMMON_BRANCH}
@@ -51,7 +51,7 @@ simulation_stack:
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
   variables:
-    CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
+    CORENEURON_BRANCH: "${CI_COMMIT_BRANCH}"
   trigger:
     project: hpc/sim/blueconfigs
     # TODO: drop this
