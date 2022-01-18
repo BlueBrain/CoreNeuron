@@ -52,6 +52,9 @@ simulation_stack:
   needs: [spack_setup]
   variables:
     CORENEURON_BRANCH: "${CI_COMMIT_BRANCH}"
+    MODELS_COMMON_BRANCH: "${MODELS_COMMON_BRANCH}"
+    NEURON_BRANCH: "${NEURON_BRANCH}"
+    SPACK_BRANCH: "${SPACK_BRANCH}"
   trigger:
     project: hpc/sim/blueconfigs
     # TODO: drop this
