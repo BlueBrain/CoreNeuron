@@ -39,9 +39,9 @@ spack_setup:
     - NEURON_BRANCH=${NEURON_BRANCH_PARSED:-$NEURON_BRANCH}
     - MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH_PARSED:-$MODELS_COMMON_BRANCH}
     # Only pass on non-empty values
-    - for var in MODELS_COMMON NEURON SPACK; do
-    - if [[ -n "${${var}_BRANCH}" ]];
-    - echo "${var}=${${var}}" >> spack_clone_variables.env
+    - for branch in MODELS_COMMON_BRANCH NEURON_BRANCH SPACK_BRANCH; do
+    - if [[ -n "${!branch}" ]]; then
+    - echo "${branch}=${!branch}" >> spack_clone_variables.env
     - fi
     - done
     - cat spack_clone_variables.env
