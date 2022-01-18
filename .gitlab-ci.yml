@@ -37,7 +37,8 @@ spack_setup:
     # the gitlab-pipelines helper and can just be appended to.
     # TODO: consider allowing these to be overriden when launching the
     # CoreNEURON pipeline
-    - for package in MODELS_COMMON NEURON PYNEURODAMUS REPORTINGLIB SPACK SYNAPSETOOL; do
+    - echo "SPACK_BRANCH=${SPACK_BRANCH}" >> spack_clone_variables.env
+    - for package in MODELS_COMMON NEURON PYNEURODAMUS REPORTINGLIB SYNAPSETOOL; do
     - PACKAGE_BRANCH=$(sed -n -e "s/^SPACK_PACKAGE_REF_${package,,}=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
     - echo "${package}_BRANCH=${PACKAGE_BRANCH}" >> spack_clone_variables.env
     - done
