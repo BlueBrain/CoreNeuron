@@ -6,7 +6,7 @@
 
 # Add compiler flags that should apply to all CoreNEURON targets, but which should not leak into
 # other included projects.
-add_compile_options(${CORENRN_COMPILE_FLAGS})
+add_compile_definitions(${CORENRN_COMPILE_DEFS})
 
 # put libraries (e.g. dll) in bin directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
