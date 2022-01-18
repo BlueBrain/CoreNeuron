@@ -6,15 +6,6 @@ include:
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
 
-simulation_stack:
-  stage: .pre # Trigger immediately
-  variables:
-    CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
-  trigger:
-    project: hpc/sim/blueconfigs
-    # CoreNEURON CI status depends on the BlueConfigs CI status.
-    strategy: depend
-
 # Set up Spack
 spack_setup:
   extends: .spack_setup_ccache
@@ -35,6 +26,31 @@ spack_setup:
     - sed -i -e 's#\(git\s*=\s\)"https://github.com/BlueBrain/CoreNeuron"#\1"git@bbpgitlab.epfl.ch:hpc/coreneuron.git"#' package.py
     - git diff
     - fi
+    # Translate the GitHub PR specifications, which are things like
+    #   SPACK_PACKAGE_REF_neuron=branch="master"
+    # into the form that the SimulationStack CI understands, which are plain
+    # {MODELS_COMMON,NEURON,SPACK}_BRANCH=... variables. SPACK_BRANCH is
+    # already done, so only MODELS_COMMON_BRANCH and NEURON_BRANCH need to be
+    # set. spack_clone_variables.env is already defined by the gitlab-pipelines
+    # helper and we can just append to it.
+    - NEURON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_neuron=\(branch|commit|tag\)=\(['\"]\)\([^\1]\+\)\2/3/p" spack_clone_variables.env)
+    - MODELS_COMMON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_models_common=\(branch|commit|tag\)=\(['\"]\)\([^\1]\+\)\2/3/p" spack_clone_variables.env)
+    # Don't override these if they were already set explicitly.
+    - NEURON_BRANCH=${NEURON_BRANCH_PARSED:-$NEURON_BRANCH}
+    - MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH_PARSED:-$MODELS_COMMON_BRANCH}
+    - echo "SPACK_BRANCH=${SPACK_BRANCH}" >> spack_clone_variables.env
+    - echo "NEURON_BRANCH=${NEURON_BRANCH}" >> spack_clone_variables.env
+    - echo "MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH}" >> spack_clone_variables.env
+
+simulation_stack:
+  # Take advantage of GitHub PR description parsing in the spack_setup job.
+  needs: [spack_setup]
+  variables:
+    CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
+  trigger:
+    project: hpc/sim/blueconfigs
+    # CoreNEURON CI status depends on the BlueConfigs CI status.
+    strategy: depend
 
 # Performance seems to be terrible when we get too many jobs on a single node.
 .build:
