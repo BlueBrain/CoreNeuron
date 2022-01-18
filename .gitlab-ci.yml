@@ -55,7 +55,7 @@ simulation_stack:
   trigger:
     project: hpc/sim/blueconfigs
     # TODO: drop this
-    ref: feat/adapt_new_spack
+    branch: feat/adapt_new_spack
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
 
