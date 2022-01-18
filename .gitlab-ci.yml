@@ -35,11 +35,11 @@ spack_setup:
     # be set in the GitHub PR description. Save the values of things like
     # NEURON_BRANCH to spack_clone_variables.env, which is already defined by
     # the gitlab-pipelines helper and can just be appended to.
+    # TODO: consider allowing these to be overriden when launching the
+    # CoreNEURON pipeline
     - for package in MODELS_COMMON NEURON PYNEURODAMUS REPORTINGLIB SPACK SYNAPSETOOL; do
     - PACKAGE_BRANCH=$(sed -n -e "s/^SPACK_PACKAGE_REF_${package,,}=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
-    - if [[ -n "${PACKAGE_BRANCH}" ]]; then
     - echo "${package}_BRANCH=${PACKAGE_BRANCH}" >> spack_clone_variables.env
-    - fi
     - done
     - cat spack_clone_variables.env
 
