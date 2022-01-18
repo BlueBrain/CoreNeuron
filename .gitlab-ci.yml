@@ -38,17 +38,24 @@ spack_setup:
     # Don't override these if they were already set explicitly.
     - NEURON_BRANCH=${NEURON_BRANCH_PARSED:-$NEURON_BRANCH}
     - MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH_PARSED:-$MODELS_COMMON_BRANCH}
-    - echo "SPACK_BRANCH=${SPACK_BRANCH}" >> spack_clone_variables.env
-    - echo "NEURON_BRANCH=${NEURON_BRANCH}" >> spack_clone_variables.env
-    - echo "MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH}" >> spack_clone_variables.env
+    # Only pass on non-empty values
+    - for var in MODELS_COMMON NEURON SPACK; do
+    - if [[ -n "${${var}_BRANCH}" ]];
+    - echo "${var}=${${var}}" >> spack_clone_variables.env
+    - fi
+    - done
+    - cat spack_clone_variables.env
 
 simulation_stack:
+  stage: .pre
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
   variables:
     CORENEURON_BRANCH: "${CI_COMMIT_SHA}"
   trigger:
     project: hpc/sim/blueconfigs
+    # TODO: drop this
+    ref: feat/adapt_new_spack
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
 
