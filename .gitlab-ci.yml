@@ -29,19 +29,16 @@ spack_setup:
     # Translate the GitHub PR specifications, which are things like
     #   SPACK_PACKAGE_REF_neuron=branch="master"
     # into the form that the SimulationStack CI understands, which are plain
-    # {MODELS_COMMON,NEURON,SPACK}_BRANCH=... variables. SPACK_BRANCH is
-    # already done, so only MODELS_COMMON_BRANCH and NEURON_BRANCH need to be
-    # set. spack_clone_variables.env is already defined by the gitlab-pipelines
-    # helper and we can just append to it.
-    - NEURON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_neuron=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
-    - MODELS_COMMON_BRANCH_PARSED=$(sed -n -e "s/^SPACK_PACKAGE_REF_models_common=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
-    # Don't override these if they were already set explicitly.
-    - NEURON_BRANCH=${NEURON_BRANCH_PARSED:-$NEURON_BRANCH}
-    - MODELS_COMMON_BRANCH=${MODELS_COMMON_BRANCH_PARSED:-$MODELS_COMMON_BRANCH}
-    # Only pass on non-empty values
-    - for branch in MODELS_COMMON_BRANCH NEURON_BRANCH SPACK_BRANCH; do
-    - if [[ -n "${!branch}" ]]; then
-    - echo "${branch}=${!branch}" >> spack_clone_variables.env
+    # ${foo}_BRANCH variables that only accept branch names. Current names are
+    # CORENEURON,MODELS_COMMON,NEURON,PYNEURODAMUS,REPORTINGLIB,SPACK,SYNAPSETOOL
+    # where CORENEURON_BRANCH is just ${CI_COMMIT_BRANCH}, but the others might
+    # be set in the GitHub PR description. Save the values of things like
+    # NEURON_BRANCH to spack_clone_variables.env, which is already defined by
+    # the gitlab-pipelines helper and can just be appended to.
+    - for package in MODELS_COMMON NEURON PYNEURODAMUS REPORTINGLIB SPACK SYNAPSETOOL; do
+    - PACKAGE_BRANCH=$(sed -n -e "s/^SPACK_PACKAGE_REF_${package,,}=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
+    - if [[ -n "${PACKAGE_BRANCH}" ]]; then
+    - echo "${package}_BRANCH=${PACKAGE_BRANCH}" >> spack_clone_variables.env
     - fi
     - done
     - cat spack_clone_variables.env
