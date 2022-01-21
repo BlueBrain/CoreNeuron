@@ -364,7 +364,7 @@ CoreNeuron run several CI:
 
 - Github Action: defined [here](https://github.com/BlueBrain/CoreNeuron/tree/master/.github/workflows) and is self contained
 
-- Gitlab CI: defined [here](https://github.com/BlueBrain/CoreNeuron/blob/master/.gitlab-ci.yml) and depends of [gitlab pipelines](https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines)
+- Gitlab CI: defined [here](https://github.com/BlueBrain/CoreNeuron/blob/master/.gitlab-ci.yml) and depends of [gitlab pipelines](https://bbpgitlab.epfl.ch/hpc/gitlab-pipelines) and [blueconfigs](https://bbpgitlab.epfl.ch/hpc/sim/blueconfigs)
 
 ### Configure gitlab CI
 
