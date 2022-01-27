@@ -28,7 +28,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-16.04, macOS-10.15 ]
+        os: [ ubuntu-18.04, macOS-10.15 ]
         config:
           - {cmake_option: "-DCORENRN_ENABLE_MPI=ON", documentation: ON }
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
@@ -51,7 +51,7 @@ jobs:
       - name: Install apt packages
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo apt-get install doxygen bison flex libboost-all-dev libopenmpi-dev openmpi-bin python3-dev python3-pip
+          sudo apt-get install doxygen bison flex libfl-dev libboost-all-dev libopenmpi-dev openmpi-bin python3-dev python3-pip
         shell: bash
 
       - name: Install specific apt packages
