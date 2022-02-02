@@ -60,6 +60,7 @@ simulation_stack:
     SYNAPSETOOL_BRANCH: "${SYNAPSETOOL_BRANCH}"
   trigger:
     project: hpc/sim/blueconfigs
+    branch: olupton/clean-env
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
 
