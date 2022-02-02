@@ -51,6 +51,7 @@ simulation_stack:
   variables:
     CORENEURON_BRANCH: "${CI_COMMIT_BRANCH}"
     MODELS_COMMON_BRANCH: "${MODELS_COMMON_BRANCH}"
+    # TODO: for consistency this should default to master if no CI_BRANCHES setting was used.
     NEURON_BRANCH: "${NEURON_BRANCH}"
     PYNEURODAMUS_BRANCH: "${PYNEURODAMUS_BRANCH}"
     REPORTINGLIB_BRANCH: "${REPORTINGLIB_BRANCH}"
