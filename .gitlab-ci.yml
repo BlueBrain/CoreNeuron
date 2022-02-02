@@ -47,7 +47,6 @@ spack_setup:
 
 simulation_stack:
   stage: .pre
-  interruptible: true
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
   variables:
