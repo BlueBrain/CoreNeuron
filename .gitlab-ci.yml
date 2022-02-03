@@ -9,10 +9,10 @@ include:
 
 variables:
   NEURON_BRANCH:
-    description: Branch of NEURON to build against CoreNEURON.
+    description: Branch of NEURON to build against CoreNEURON (NEURON_COMMIT and NEURON_TAG also possible)
     value: master
   NMODL_BRANCH:
-    description: Branch of NMODL to build CoreNEURON against.
+    description: Branch of NMODL to build CoreNEURON against (NMODL_COMMIT and NMODL_TAG also possible)
     value: master
 
 # Set up Spack
@@ -50,7 +50,6 @@ simulation_stack:
     SYNAPSETOOL_BRANCH: $SYNAPSETOOL_BRANCH
   trigger:
     project: hpc/sim/blueconfigs
-    branch: olupton/clean-env
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
 
