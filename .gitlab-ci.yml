@@ -1,6 +1,5 @@
 include:
   - project: hpc/gitlab-pipelines
-    ref: olupton/a-big-plus
     file:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
