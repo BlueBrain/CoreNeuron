@@ -1147,9 +1147,15 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 #endif
 
         // specify the ml->_permute and sort the nodeindices
+        // Have to calculate all the permute before updating pdata in case
+        // POINTER to data of other mechanisms exist.
         for (auto tml = nt.tml; tml; tml = tml->next) {
             if (tml->ml->nodeindices) {  // not artificial
                 permute_nodeindices(tml->ml, p);
+            }
+        }
+        for (auto tml = nt.tml; tml; tml = tml->next) {
+            if (tml->ml->nodeindices) {  // not artificial
                 permute_ml(tml->ml, tml->index, nt);
             }
         }
