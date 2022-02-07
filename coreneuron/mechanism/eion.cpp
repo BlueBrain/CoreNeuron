@@ -233,7 +233,7 @@ ion_style("name_ion", [c_style, e_style, einit, eadvance, cinit])
  and models.
 */
 
-#define iontype ppd[0] /* how _AMBIGUOUS is to be handled */
+#define iontype ppd[_iml] /* how _AMBIGUOUS is to be handled */
 /*the bitmap is
 03	concentration unused, nrnocCONST, DEP, STATE
 04	initialize concentrations
