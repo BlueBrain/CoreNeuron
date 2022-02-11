@@ -6,6 +6,14 @@ include:
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
 
+variables:
+  NEURON_BRANCH:
+    description: Branch of NEURON to build against CoreNEURON (NEURON_COMMIT and NEURON_TAG also possible)
+    value: master
+  NMODL_BRANCH:
+    description: Branch of NMODL to build CoreNEURON against (NMODL_COMMIT and NMODL_TAG also possible)
+    value: master
+
 # Set up Spack
 spack_setup:
   extends: .spack_setup_ccache
@@ -13,49 +21,19 @@ spack_setup:
     # Enable fetching GitHub PR descriptions and parsing them to find out what
     # branches to build of other projects.
     PARSE_GITHUB_PR_DESCRIPTIONS: "true"
-  script:
-    - !reference [.spack_setup_ccache, script]
-    # This allows us to use the CoreNEURON repository in regression tests of
-    # the gitlab-pipelines repositories. The regression test pipeline triggers
-    # *this* pipeline as a child, having pushed a modified branch to the GitLab
-    # mirror of the CoreNEURON repository. We have to update the Spack recipe
-    # to point at the GitLab mirror so the relevant commit (on the modified
-    # branch) can be found.
-    - if [[ "${CI_PIPELINE_SOURCE}" == "pipeline" ]]; then
-    - cd $(spack location -p coreneuron)
-    - sed -i -e 's#\(git\s*=\s\)"https://github.com/BlueBrain/CoreNeuron"#\1"git@bbpgitlab.epfl.ch:hpc/coreneuron.git"#' package.py
-    - git diff
-    - fi
-    # Translate the GitHub PR specifications, which are things like
-    #   SPACK_PACKAGE_REF_neuron=branch="master"
-    # into the form that the SimulationStack CI understands, which are plain
-    # ${foo}_BRANCH variables that only accept branch names. Current names are
-    # CORENEURON,MODELS_COMMON,NEURON,PYNEURODAMUS,REPORTINGLIB,SPACK,SYNAPSETOOL
-    # where CORENEURON_BRANCH is just ${CI_COMMIT_BRANCH}, but the others might
-    # be set in the GitHub PR description. Save the values of things like
-    # NEURON_BRANCH to spack_clone_variables.env, which is already defined by
-    # the gitlab-pipelines helper and can just be appended to.
-    # TODO: consider allowing these to be overriden when launching the
-    # CoreNEURON pipeline
-    - echo "SPACK_BRANCH=${SPACK_BRANCH}" >> spack_clone_variables.env
-    - for package in MODELS_COMMON NEURON PYNEURODAMUS REPORTINGLIB SYNAPSETOOL; do
-    - PACKAGE_BRANCH=$(sed -n -e "s/^SPACK_PACKAGE_REF_${package,,}=branch=\(['\"]\)\([^\1]\+\)\1/\2/p" spack_clone_variables.env)
-    - echo "${package}_BRANCH=${PACKAGE_BRANCH}" >> spack_clone_variables.env
-    - done
-    - cat spack_clone_variables.env
 
 simulation_stack:
   stage: .pre
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
   variables:
-    CORENEURON_BRANCH: "${CI_COMMIT_BRANCH}"
-    MODELS_COMMON_BRANCH: "${MODELS_COMMON_BRANCH}"
-    NEURON_BRANCH: "${NEURON_BRANCH}"
-    PYNEURODAMUS_BRANCH: "${PYNEURODAMUS_BRANCH}"
-    REPORTINGLIB_BRANCH: "${REPORTINGLIB_BRANCH}"
-    SPACK_BRANCH: "${SPACK_BRANCH}"
-    SYNAPSETOOL_BRANCH: "${SYNAPSETOOL_BRANCH}"
+    CORENEURON_BRANCH: $CI_COMMIT_BRANCH
+    MODELS_COMMON_BRANCH: $MODELS_COMMON_BRANCH
+    NEURON_BRANCH: $NEURON_BRANCH
+    PYNEURODAMUS_BRANCH: $PYNEURODAMUS_BRANCH
+    REPORTINGLIB_BRANCH: $REPORTINGLIB_BRANCH
+    SPACK_BRANCH: $SPACK_BRANCH
+    SYNAPSETOOL_BRANCH: $SYNAPSETOOL_BRANCH
   trigger:
     project: hpc/sim/blueconfigs
     # CoreNEURON CI status depends on the BlueConfigs CI status.
@@ -81,7 +59,6 @@ simulation_stack:
   variables:
     bb5_duration: "2:00:00"
     SPACK_PACKAGE: neuron
-    SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit~rx3d model_tests=channel-benchmark,olfactory,tqperf-heavy
 .gpu_node:
   variables:
@@ -97,7 +74,6 @@ build:nmodl:
   extends: [.build]
   variables:
     SPACK_PACKAGE: nmodl
-    SPACK_PACKAGE_REF: ''
     SPACK_PACKAGE_SPEC: ~legacy-unit
     SPACK_PACKAGE_COMPILER: gcc
 
