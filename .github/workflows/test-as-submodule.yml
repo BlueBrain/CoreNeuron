@@ -54,7 +54,8 @@ jobs:
           GITHUB_PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           nrn_branch=`echo "${GITHUB_PR_BODY}" | grep "^CI_BRANCHES" \
-                      | awk -v FS="(NEURON_BRANCH=|,)" '{print $2}'`
+                      | awk -v FS="NEURON_BRANCH=" '{print $2}'` \
+                      | awk -v FS="," '{print $1}'
           if [ -z "$nrn_branch" ]; then
               nrn_branch=master
           fi
