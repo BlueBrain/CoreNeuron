@@ -43,7 +43,7 @@ simulation_stack:
 
   trigger:
     project: hpc/sim/blueconfigs
-    ref: magkanar/fix_env_variables
+    branch: magkanar/fix_env_variables
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
 
