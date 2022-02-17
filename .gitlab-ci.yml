@@ -13,6 +13,12 @@ variables:
   NMODL_BRANCH:
     description: Branch of NMODL to build CoreNEURON against (NMODL_COMMIT and NMODL_TAG also possible)
     value: master
+  SPACK_BRANCH:
+    description: Branch of BlueBrain Spack to use for the CI pipeline
+    value: develop
+  SPACK_DEPLOYMENT_SUFFIX:
+    description: Extra path component used when finding deployed software. Set to something like `pulls/1497` use software built for https://github.com/BlueBrain/spack/pull/1497. You probably want to set SPACK_BRANCH to the branch used in the relevant PR if you set this.
+    value: ''
 
 # Set up Spack
 spack_setup:
@@ -27,25 +33,12 @@ simulation_stack:
   stage: .pre
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
-  variables:
-    CORENEURON_BRANCH: $CI_COMMIT_BRANCH
-    MODELS_COMMON_BRANCH: $MODELS_COMMON_BRANCH
-    NEURON_BRANCH: $NEURON_BRANCH
-    PYNEURODAMUS_BRANCH: $PYNEURODAMUS_BRANCH
-    REPORTINGLIB_BRANCH: $REPORTINGLIB_BRANCH
-    SPACK_BRANCH: $SPACK_BRANCH
-    SYNAPSETOOL_BRANCH: $SYNAPSETOOL_BRANCH
-    LIBSONATAREPORT_BRANCH: $LIBSONATAREPORT_BRANCH
-    NEURODAMUS_CORE_BRANCH: $NEURODAMUS_CORE_BRANCH
-    NEURODAMUS_HIPPOCAMPUS_BRANCH: $NEURODAMUS_HIPPOCAMPUS_BRANCH
-    NEURODAMUS_MOUSIFY_BRANCH: $NEURODAMUS_MOUSIFY_BRANCH
-    NEURODAMUS_NEOCORTEX_BRANCH: $NEURODAMUS_NEOCORTEX_BRANCH
-    NEURODAMUS_THALAMUS_BRANCH: $NEURODAMUS_THALAMUS_BRANCH
-
   trigger:
     project: hpc/sim/blueconfigs
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
+  variables:
+    SPACK_ENV_FILE_URL: $SPACK_SETUP_COMMIT_MAPPING_URL
 
 # Performance seems to be terrible when we get too many jobs on a single node.
 .build:
@@ -103,7 +96,7 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
 
 .build_coreneuron_nmodl:
   extends: [.build]
-  before_script:
+  variables:
     # NEURON depends on py-mpi4py, most of whose dependencies are pulled in by
     # nmodl%gcc, with the exception of MPI, which is pulled in by
     # coreneuron%{nvhpc,intel}. hpe-mpi is an external package anyway, so
@@ -112,8 +105,7 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
     # means that in the NEURON step an existing py-mpi4py%gcc can be used.
     # Otherwise a new py-mpi4py with hpe-mpi%{nvhpc,intel} will be built.
     # TODO: fix this more robustly so we don't have to play so many games.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^hpe-mpi%gcc"
-    - !reference [.spack_build, before_script]
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc
 
 build:coreneuron:nmodl:nvhpc:omp:
   extends: [.build_coreneuron_nmodl, .spack_nvhpc]
