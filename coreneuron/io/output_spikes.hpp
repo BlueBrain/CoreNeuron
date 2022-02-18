@@ -11,9 +11,10 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include "coreneuron/io/reports/nrnreport.hpp"
 namespace coreneuron {
 void output_spikes(const char* outpath,
-                   const std::vector<std::pair<std::string, int>>& population_name_offset);
+                   const SpikesInfo& spikes_info);
 void mk_spikevec_buffer(int);
 
 extern std::vector<double> spikevec_time;

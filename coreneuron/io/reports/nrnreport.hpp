@@ -39,6 +39,11 @@ struct SummationReportMapping {
     std::unordered_map<std::string, SummationReport> summation_reports_;
 };
 
+struct SpikesInfo {
+    std::string file_name;
+    std::vector<std::pair<std::string, int>> population_info;
+};
+
 // name of the variable in mod file that is used to indicate which synapse
 // is enabled or disable for reporting
 #define SELECTED_VAR_MOD_NAME "selected_for_report"
@@ -105,7 +110,7 @@ void setup_report_engine(double dt_report, double mindelay);
 std::vector<ReportConfiguration> create_report_configurations(
     const std::string& filename,
     const std::string& output_dir,
-    std::vector<std::pair<std::string, int>>& spikes_population_name);
+    SpikesInfo& spikes_info);
 void finalize_report();
 void nrn_flush_reports(double t);
 void set_report_buffer_size(int n);
