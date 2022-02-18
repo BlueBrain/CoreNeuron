@@ -120,8 +120,7 @@ std::vector<ReportConfiguration> create_report_configurations(
 
         report_conf >> report.name >> report.target_name >> report.type_str >> report_on >>
             report.unit >> report.format >> target >> report.report_dt >> report.start >>
-            report.stop >> report.num_gids >> report.buffer_size >> report.population_name >>
-            report.population_offset;
+            report.stop >> report.num_gids >> report.buffer_size;
 
         report.target_type = static_cast<TargetType>(target);
         std::transform(report.type_str.begin(),

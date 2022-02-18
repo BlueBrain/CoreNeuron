@@ -92,7 +92,6 @@ struct ReportConfiguration {
     std::string unit;                     // unit of the report
     std::string format;                   // format of the report (Bin, hdf5, SONATA)
     std::string type_str;                 // type of report string
-    std::string population_name;          // population name of the report
     TargetType target_type;               // type of the target
     ReportType type;                      // type of the report
     SectionType section_type;             // type of section report
@@ -102,7 +101,6 @@ struct ReportConfiguration {
     double stop;                          // stop time of report
     int num_gids;                         // total number of gids
     int buffer_size;                      // hint on buffer size used for this report
-    uint64_t population_offset;           // offset of the node ids in the population
     std::set<int> target;                 // list of gids for this report
 };
 
