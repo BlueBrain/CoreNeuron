@@ -18,6 +18,7 @@ variables:
 spack_setup:
   extends: .spack_setup_ccache
   variables:
+    CORENEURON_COMMIT: ${CI_COMMIT_SHA}
     # Enable fetching GitHub PR descriptions and parsing them to find out what
     # branches to build of other projects.
     PARSE_GITHUB_PR_DESCRIPTIONS: "true"
