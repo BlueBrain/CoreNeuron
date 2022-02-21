@@ -40,7 +40,7 @@ struct SummationReportMapping {
 };
 
 struct SpikesInfo {
-    std::string file_name;
+    std::string file_name = "out";
     std::vector<std::pair<std::string, int>> population_info;
 };
 

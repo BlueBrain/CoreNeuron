@@ -27,7 +27,7 @@ if [ "$sonata_reports" = "ON" ]
 then
   if [ -f test_2.h5 ]
   then
-    h5dump_diff=$(@H5DUMP_EXECUTABLE@ -d /report/All/data -y -O test_2.h5 | sed '1d;$d;s/,//g;s/ //g' | diff $test_ref -)
+    h5dump_diff=$(@H5DUMP_EXECUTABLE@ -d /report/PopA/data -y -O test_2.h5 | sed '1d;$d;s/,//g;s/ //g' | diff $test_ref -)
     
     if [ $? -ne 0 ]
     then
@@ -36,6 +36,11 @@ then
     fi
   else
      echo "[ERROR] Expected SONATA soma file 'test_2.h5' doesn't exist. Test failed!" >&2
+     exit $FAILED
+  fi
+  if [ ! -f spikes.h5 ]
+  then
+     echo "[ERROR] Expected SONATA spike file 'spikes.h5' doesn't exist. Test failed!" >&2
      exit $FAILED
   fi
 fi
