@@ -13,11 +13,18 @@ variables:
   NMODL_BRANCH:
     description: Branch of NMODL to build CoreNEURON against (NMODL_COMMIT and NMODL_TAG also possible)
     value: master
+  SPACK_BRANCH:
+    description: Branch of BlueBrain Spack to use for the CI pipeline
+    value: develop
+  SPACK_DEPLOYMENT_SUFFIX:
+    description: Extra path component used when finding deployed software. Set to something like `pulls/1497` use software built for https://github.com/BlueBrain/spack/pull/1497. You probably want to set SPACK_BRANCH to the branch used in the relevant PR if you set this.
+    value: ''
 
 # Set up Spack
 spack_setup:
   extends: .spack_setup_ccache
   variables:
+    CORENEURON_COMMIT: ${CI_COMMIT_SHA}
     # Enable fetching GitHub PR descriptions and parsing them to find out what
     # branches to build of other projects.
     PARSE_GITHUB_PR_DESCRIPTIONS: "true"
@@ -26,18 +33,12 @@ simulation_stack:
   stage: .pre
   # Take advantage of GitHub PR description parsing in the spack_setup job.
   needs: [spack_setup]
-  variables:
-    CORENEURON_BRANCH: $CI_COMMIT_BRANCH
-    MODELS_COMMON_BRANCH: $MODELS_COMMON_BRANCH
-    NEURON_BRANCH: $NEURON_BRANCH
-    PYNEURODAMUS_BRANCH: $PYNEURODAMUS_BRANCH
-    REPORTINGLIB_BRANCH: $REPORTINGLIB_BRANCH
-    SPACK_BRANCH: $SPACK_BRANCH
-    SYNAPSETOOL_BRANCH: $SYNAPSETOOL_BRANCH
   trigger:
     project: hpc/sim/blueconfigs
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
+  variables:
+    SPACK_ENV_FILE_URL: $SPACK_SETUP_COMMIT_MAPPING_URL
 
 # Performance seems to be terrible when we get too many jobs on a single node.
 .build:
@@ -82,22 +83,20 @@ build:coreneuron:mod2c:nvhpc:acc:
   extends: [.build, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
-    # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +gpu+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +gpu+openmp+tests~legacy-unit build_type=RelWithDebInfo
 
 # Build CoreNEURON with Unified Memory on GPU
 build:coreneuron:mod2c:nvhpc:acc:unified:
   extends: [.build, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
-    # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +gpu+unified+openmp+tests~legacy-unit~report build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +gpu+unified+openmp+tests~legacy-unit build_type=RelWithDebInfo
 
 .build_coreneuron_nmodl:
   extends: [.build]
-  before_script:
+  variables:
     # NEURON depends on py-mpi4py, most of whose dependencies are pulled in by
     # nmodl%gcc, with the exception of MPI, which is pulled in by
     # coreneuron%{nvhpc,intel}. hpe-mpi is an external package anyway, so
@@ -106,26 +105,23 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
     # means that in the NEURON step an existing py-mpi4py%gcc can be used.
     # Otherwise a new py-mpi4py with hpe-mpi%{nvhpc,intel} will be built.
     # TODO: fix this more robustly so we don't have to play so many games.
-    - SPACK_PACKAGE_DEPENDENCIES="${SPACK_PACKAGE_DEPENDENCIES}^hpe-mpi%gcc"
-    - !reference [.spack_build, before_script]
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc
 
 build:coreneuron:nmodl:nvhpc:omp:
   extends: [.build_coreneuron_nmodl, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
-    # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +nmodl+openmp+gpu+tests~legacy-unit~report~sympy build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +nmodl+openmp+gpu+tests~legacy-unit~sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
 build:coreneuron:nmodl:nvhpc:acc:
   extends: [.build_coreneuron_nmodl, .spack_nvhpc]
   variables:
     SPACK_PACKAGE: coreneuron
-    # +report pulls in a lot of dependencies and the tests fail.
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     # Sympy + OpenMP target offload does not currently work with NVHPC
-    SPACK_PACKAGE_SPEC: +nmodl~openmp+gpu+tests~legacy-unit~report+sympy build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +nmodl~openmp+gpu+tests~legacy-unit+sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
 build:coreneuron:mod2c:intel:
