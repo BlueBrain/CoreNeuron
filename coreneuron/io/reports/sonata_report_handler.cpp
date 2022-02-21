@@ -43,10 +43,10 @@ std::pair<std::string, int> SonataReportHandler::get_population_info(int gid) {
         return std::make_pair("All", 0);
     }
     std::pair<std::string, int> prev = m_spikes_info.population_info.front();
-    for(const auto& name_offset: m_spikes_info.population_info) {
+    for (const auto& name_offset: m_spikes_info.population_info) {
         std::string pop_name = name_offset.first;
         int pop_offset = name_offset.second;
-        if(pop_offset > gid) {
+        if (pop_offset > gid) {
             break;
         }
         prev = name_offset;
@@ -74,10 +74,7 @@ void SonataReportHandler::register_report(const NrnThread& nt,
         auto pop_info = get_population_info(gid);
         std::string population_name = pop_info.first;
         int population_offset = pop_info.second;
-        sonata_add_node(config.output_path.data(),
-                        population_name.data(),
-                        population_offset,
-                        gid);
+        sonata_add_node(config.output_path.data(), population_name.data(), population_offset, gid);
         sonata_set_report_max_buffer_size_hint(config.output_path.data(), config.buffer_size);
         for (const auto& variable: vars) {
             sonata_add_element(config.output_path.data(),

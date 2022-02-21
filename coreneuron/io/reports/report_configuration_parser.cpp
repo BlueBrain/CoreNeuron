@@ -103,10 +103,9 @@ void register_target_type(ReportConfiguration& report, ReportType report_type) {
     }
 }
 
-std::vector<ReportConfiguration> create_report_configurations(
-    const std::string& conf_file,
-    const std::string& output_dir,
-    SpikesInfo& spikes_info) {
+std::vector<ReportConfiguration> create_report_configurations(const std::string& conf_file,
+                                                              const std::string& output_dir,
+                                                              SpikesInfo& spikes_info) {
     std::vector<ReportConfiguration> reports;
     std::string report_on;
     int target;

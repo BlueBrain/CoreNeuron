@@ -13,8 +13,7 @@
 #include <utility>
 #include "coreneuron/io/reports/nrnreport.hpp"
 namespace coreneuron {
-void output_spikes(const char* outpath,
-                   const SpikesInfo& spikes_info);
+void output_spikes(const char* outpath, const SpikesInfo& spikes_info);
 void mk_spikevec_buffer(int);
 
 extern std::vector<double> spikevec_time;

@@ -428,7 +428,8 @@ static void trajectory_return() {
     }
 }
 
-std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config, const SpikesInfo& spikes_info) {
+std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config,
+                                                     const SpikesInfo& spikes_info) {
     std::unique_ptr<ReportHandler> report_handler;
     if (config.format == "Bin") {
         report_handler = std::make_unique<BinaryReportHandler>(config);
@@ -592,7 +593,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
         // register all reports into reportinglib
         double min_report_dt = INT_MAX;
         for (size_t i = 0; i < configs.size(); i++) {
-            std::unique_ptr<ReportHandler> report_handler = create_report_handler(configs[i], spikes_info);
+            std::unique_ptr<ReportHandler> report_handler = create_report_handler(configs[i],
+                                                                                  spikes_info);
             if (report_handler) {
                 report_handler->create_report(dt, tstop, delay);
                 report_handlers.push_back(std::move(report_handler));
