@@ -18,27 +18,27 @@ Now we can generate data for `ring` test as:
 
 
 ```bash
-mpirun -n 2 ./x86_64/special ringtest.py -nring 1 -ncell 20 -tstop 100 -mpi
+mpirun -n 2 ./x86_64/special ringtest.py -nring 1 -ncell 20 -tstop 100 -mpi -dumpmodel
 
 # sort spikes and remove old spike output
-sortspike coredat/spk2.std coredat/out.dat.ref
-rm coredat/spk2.std
+sortspike spk2.std coredat/out.dat.ref
+rm spk2.std
 ```
 
 The generated dataset can be copied to `tests/integration/ring/`:
 
 ```bash
-mv coredat/* coreneuron/tests/integration/ring/
+mv coredat/* <external>/coreneuron/tests/integration/ring/
 ```
 
 
 Similarly, dataset for `ring_gap` test can be generated as:
 
 ```bash
-mpirun -n 2 ./x86_64/special ringtest.py -nring 1 -ncell 20 -tstop 100 -gap -mpi
+mpirun -n 2 ./x86_64/special ringtest.py -nring 1 -ncell 20 -tstop 100 -gap -mpi -dumpmodel
 
 # sort spikes and remove old spike output
-sortspike coredat/spk2.std coredat/out.dat.ref
-rm coredat/spk2.std
-mv coredat/* coreneuron/tests/integration/ring_gap/
+sortspike spk2.std coredat/out.dat.ref
+rm spk2.std
+mv coredat/* <external>/coreneuron/tests/integration/ring_gap/
 ```

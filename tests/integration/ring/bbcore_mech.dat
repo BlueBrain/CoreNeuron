@@ -1,4 +1,4 @@
-1.4
+1.5
 25
 morphology 2 0 0 0 1 0
 capacitance 3 0 0 0 2 0
@@ -23,5 +23,5 @@ IntFire1 19 10 1 0 7 3
 IntFire2 20 11 1 0 8 3
 IntFire4 21 12 1 0 32 3
 PointProcessMark 22 13 0 0 1 2
-PatternStim 23 14 1 0 2 4
+PatternStim 23 14 1 0 3 4
 HalfGap 24 15 0 0 5 2
