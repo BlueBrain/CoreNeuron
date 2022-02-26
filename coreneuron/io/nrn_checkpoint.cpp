@@ -239,6 +239,8 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
 
                             d[ix] = p;         // relative to _actual_diam
                         } else if (s == -5) {  // Assume pointer to membrane voltage
+// awaiting pointer2type and test
+assert(0);
                             int p = pinv_nt[d[ix] - (nt._actual_v - nt._data)];
                             d[ix] = p;                    // relative to _actual_v
                         } else if (s >= 0 && s < 1000) {  // ion
@@ -275,6 +277,7 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
                 }
             fh.write_array<int>(d, cnt * sz);
             delete[] d;
+            fh << 0 << " npointer\n";
         }
     }
 
