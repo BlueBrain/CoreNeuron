@@ -7,6 +7,20 @@
 */
 
 /*
+Below, the sense of permutation, is reversed. Though consistent, forward
+permutation should be defined as (and the code should eventually transformed)
+so that
+  v: original vector
+  p: forward permutation
+  pv: permuted vector
+  pv[i] = v[p[i]]
+and
+  pinv: inverse permutation
+  pv[pinv[i]] = v[i]
+Note: pinv[p[i]] = i = p[pinv[i]]
+*/
+
+/*
 Permute nodes.
 
 To make gaussian elimination on gpu more efficient.
@@ -168,7 +182,8 @@ static int full_search(NrnThread& nt, double* pd) {
     return type;
 }
 
-static int type_of_ntdata(NrnThread& nt, int i, bool reset) {
+// no longer static because also used by POINTER in nrn_checkpoint.cpp
+int type_of_ntdata(NrnThread& nt, int i, bool reset) {
     double* pd = nt._data + i;
     assert(pd >= nt._actual_v);
     if (pd < nt._actual_area) {  // voltage first (area just after voltage)
