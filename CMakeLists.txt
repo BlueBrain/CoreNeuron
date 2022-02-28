@@ -441,6 +441,7 @@ add_subdirectory(coreneuron)
 if(CORENRN_ENABLE_GPU)
   get_target_property(CORENRN_LINK_LIBRARIES coreneuron INTERFACE_LINK_LIBRARIES)
   foreach(LIB ${CORENRN_LINK_LIBRARIES})
+    get_filename_component(dir_path ${LIB} DIRECTORY)
     if(TARGET ${LIB})
       # See, for example, caliper where the coreneuron target depends on the caliper target (so we
       # get LIB=caliper in this loop), but -l and -L are already added manually here:
@@ -449,6 +450,9 @@ if(CORENRN_ENABLE_GPU)
         NOTICE
         "Ignoring dependency '${LIB}' of 'coreneuron' and assuming relevant flags have already been added to CORENEURON_LIB_LINK_FLAGS."
       )
+    elseif(NOT dir_path)
+      # In case LIB is not a target but is just the name of a library, e.g. "dl"
+      set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${LIB}")
     else()
       set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " ${LIB}")
     endif()
