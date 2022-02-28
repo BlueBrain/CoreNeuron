@@ -60,6 +60,12 @@ ifeq ($(origin CXX), default)
     CXX = @CMAKE_CXX_COMPILER@
 endif
 
+ifeq (@CORENRN_ENABLE_GPU@, ON)
+  ifneq ($(notdir $(CXX)), nvc++)
+    $(error GPU wheels are only compatible with the NVIDIA C++ compiler nvc++, but CXX=$(CXX))
+  endif
+endif
+
 # In case of wheel, python and perl exe paths are from the build machine.
 # First prefer env variables set by neuron's nrnivmodl wrapper then check
 # binary used during build. If they don't exist then simply use python and
