@@ -64,6 +64,9 @@ ifeq (@CORENRN_ENABLE_GPU@, ON)
   ifneq ($(notdir $(CXX)), nvc++)
     $(error GPU wheels are only compatible with the NVIDIA C++ compiler nvc++, but CXX=$(CXX))
   endif
+  ifneq ($(shell $(CXX) -dumpversion), @CORENRN_NVHPC_DUMPVERSION@)
+    $(error GPU wheels are currently not compatible across NVIDIA HPC SDK versions. You have $(shell $(CXX) -dumpversion) but this wheel was built with @CORENRN_NVHPC_DUMPVERSION@.)
+  endif
 endif
 
 # In case of wheel, python and perl exe paths are from the build machine.
