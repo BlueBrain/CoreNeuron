@@ -426,7 +426,12 @@ endif()
 # =============================================================================
 # Common CXX flags : ignore unknown pragma warnings
 # =============================================================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
+# Do not set this when building wheels. The nrnivmodl workflow means that we do not know what
+# compiler will be invoked with these flags, so we have to use flags that are as generic as
+# possible.
+if(NOT DEFINED NRN_WHEEL_BUILD OR NOT NRN_WHEEL_BUILD)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
+endif()
 
 # =============================================================================
 # Add main directories
