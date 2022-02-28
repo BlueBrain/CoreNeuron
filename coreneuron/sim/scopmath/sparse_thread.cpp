@@ -211,8 +211,8 @@ static int matsol(SparseObj* so, int _iml) {
     /* Upper triangularization */
     so->numop = 0;
     for (unsigned i = 1; i <= so->neqn; i++) {
-        Elm* pivot;
-        if (fabs((pivot = so->diag[i])->value[_iml]) <= ROUNDOFF) {
+        Elm* pivot{so->diag[i]};
+        if (fabs(pivot->value[_iml]) <= ROUNDOFF) {
             return SINGULAR;
         }
         /* Eliminate all elements in pivot column */

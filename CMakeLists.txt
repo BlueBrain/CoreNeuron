@@ -127,13 +127,13 @@ if(CORENRN_ENABLE_GPU)
   # CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
 
   # Fail hard and early if we don't have the PGI/NVHPC compiler.
-  if(NOT CORENRN_HAVE_NVHPC_COMPILER)
-    message(
-      FATAL_ERROR
-        "GPU support is available via OpenACC using PGI/NVIDIA compilers."
-        " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CUDA_COMPILER=nvcc -DCMAKE_CXX_COMPILER=nvc++"
-    )
-  endif()
+  # if(NOT CORENRN_HAVE_NVHPC_COMPILER)
+  #   message(
+  #     FATAL_ERROR
+  #       "GPU support is available via OpenACC using PGI/NVIDIA compilers."
+  #       " Use NVIDIA HPC SDK with -DCMAKE_C_COMPILER=nvc -DCMAKE_CUDA_COMPILER=nvcc -DCMAKE_CXX_COMPILER=nvc++"
+  #   )
+  # endif()
 
   # Set some sensible default CUDA architectures.
   if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
@@ -184,9 +184,9 @@ if(CORENRN_ENABLE_GPU)
   # 3057 : Warning on ignoring __host__ annotation in some functions
   # 3085 : Warning on redeclaring a __host__ function as __host__ __device__
   # ~~~
-  set(CMAKE_CUDA_FLAGS
-      "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcudafe --diag_suppress=3057,--diag_suppress=3085"
-  )
+  # set(CMAKE_CUDA_FLAGS
+  #     "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcudafe --diag_suppress=3057,--diag_suppress=3085"
+  # )
 
   if(CORENRN_ENABLE_NMODL)
     # NMODL supports both OpenACC and OpenMP target offload
@@ -427,6 +427,9 @@ endif()
 # Common CXX flags : ignore unknown pragma warnings
 # =============================================================================
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
+
+# Set coreneuron specific linker flag after NMODL submodule is added
+string(APPEND CMAKE_EXE_LINKER_FLAGS " ${NVHPC_ACC_COMP_FLAGS}")
 
 # =============================================================================
 # Add main directories

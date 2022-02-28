@@ -32,6 +32,9 @@ file(
   "utils/*/*.c"
   "utils/*/*.cpp")
 file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
+list(REMOVE_ITEM CORENEURON_CUDA_FILES "${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu")
+list(REMOVE_ITEM CORENEURON_CUDA_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/profile/cuda_profile.cu")
+list(REMOVE_ITEM CORENEURON_CUDA_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cu")
 set(SCOPMATH_CODE_FILES
     "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp"
     "sim/scopmath/sparse_thread.cpp" "sim/scopmath/ssimplic_thread.cpp")
@@ -129,16 +132,16 @@ if(CORENRN_ENABLE_GPU)
   # CMake <v3.20 does not pass explicit -x <lang> options based on the LANGUAGE property
   # (https://cmake.org/cmake/help/latest/policy/CMP0119.html), so using a single .cu file and
   # setting LANGUAGE=CXX in non-GPU builds does not work.
-  list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
+  #list(REMOVE_ITEM CORENEURON_CODE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/utils/randoms/nrnran123.cpp")
   list(APPEND CORENEURON_CODE_FILES ${CORENEURON_CUDA_FILES})
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
   # within an OpenACC region. Therefore, we need to wrap them in a special API (decorate them with
   # __device__ & acc routine tokens), which allows us to eventually call them from OpenACC. Calling
   # these functions from CUDA kernels presents no issue ...
-  if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
-    list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
-  endif()
+  # if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+  #   list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+  # endif()
 endif()
 
 # =============================================================================
@@ -201,6 +204,8 @@ target_include_directories(coreneuron PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR})
 if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
   target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
 endif()
+
+target_link_libraries(coreneuron CUDA::cudart)
 
 # this is where we handle dynamic mpi library build
 if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)

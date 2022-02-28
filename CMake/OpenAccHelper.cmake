@@ -42,45 +42,68 @@ if(CORENRN_ENABLE_GPU)
     # ${CMAKE_CUDA_COMPILER_VERSION}
     find_package(CUDAToolkit 9.0 REQUIRED)
     # Be a bit paranoid
-    if(NOT ${CMAKE_CUDA_COMPILER_VERSION} STREQUAL ${CUDAToolkit_VERSION})
-      message(
-        FATAL_ERROR
-          "CUDA compiler (${CMAKE_CUDA_COMPILER_VERSION}) and toolkit (${CUDAToolkit_VERSION}) versions are not the same!"
-      )
-    endif()
+    # if(NOT ${CMAKE_CUDA_COMPILER_VERSION} STREQUAL ${CUDAToolkit_VERSION})
+    #   message(
+    #     FATAL_ERROR
+    #       "CUDA compiler (${CMAKE_CUDA_COMPILER_VERSION}) and toolkit (${CUDAToolkit_VERSION}) versions are not the same!"
+    #   )
+    # endif()
     set(CORENRN_CUDA_VERSION_SHORT "${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
   endif()
-  # -cuda links CUDA libraries and also seems to be important to make the NVHPC do the device code
-  # linking. Without this, we had problems with linking between the explicit CUDA (.cu) device code
-  # and offloaded OpenACC/OpenMP code. Using -cuda when compiling seems to improve error messages in
-  # some cases, and to be recommended by NVIDIA. We pass -gpu=cudaX.Y to ensure that OpenACC/OpenMP
-  # code is compiled with the same CUDA version as the explicit CUDA code.
-  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
-  # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
-  # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
-  # same default compute capabilities as each other, particularly on GPU-less build machines.
-  foreach(compute_capability ${CMAKE_CUDA_ARCHITECTURES})
-    string(APPEND NVHPC_ACC_COMP_FLAGS ",cc${compute_capability}")
-  endforeach()
-  if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
-    # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
-    # for a region then prefer OpenMP.
-    add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
-    string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu")
-  elseif(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenACC")
-    # Only enable OpenACC offload for GPU
-    string(APPEND NVHPC_ACC_COMP_FLAGS " -acc")
+  if(CORENRN_HAVE_NVHPC_COMPILER)
+    # -cuda links CUDA libraries and also seems to be important to make the NVHPC do the device code
+    # linking. Without this, we had problems with linking between the explicit CUDA (.cu) device code
+    # and offloaded OpenACC/OpenMP code. Using -cuda when compiling seems to improve error messages in
+    # some cases, and to be recommended by NVIDIA. We pass -gpu=cudaX.Y to ensure that OpenACC/OpenMP
+    # code is compiled with the same CUDA version as the explicit CUDA code.
+    set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
+    # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
+    # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
+    # same default compute capabilities as each other, particularly on GPU-less build machines.
+    foreach(compute_capability ${CMAKE_CUDA_ARCHITECTURES})
+      string(APPEND NVHPC_ACC_COMP_FLAGS ",cc${compute_capability}")
+    endforeach()
+    if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
+      # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
+      # for a region then prefer OpenMP.
+      add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
+      string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu")
+    elseif(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenACC")
+      # Only enable OpenACC offload for GPU
+      string(APPEND NVHPC_ACC_COMP_FLAGS " -acc")
+    else()
+      message(FATAL_ERROR "${CORENRN_ACCELERATOR_OFFLOAD} not supported with NVHPC compilers")
+    endif()
+  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "XLClang")
+    if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
+      set(NVHPC_ACC_COMP_FLAGS "-qsmp=omp -qoffload -qreport")
+      set(NVHPC_ACC_LINK_FLAGS "-qcuda -lcaliper")
+      # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
+      # for a region then prefer OpenMP.
+      add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
+    else()
+      message(FATAL_ERROR "${CORENRN_ACCELERATOR_OFFLOAD} not supported with XLClang compilers")
+    endif()
+  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
+      set(NVHPC_ACC_COMP_FLAGS "-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -Wno-unknown-cuda-version -I${CUDAToolkit_INCLUDE_DIRS}")
+      # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
+      # for a region then prefer OpenMP.
+      add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
+    else()
+      message(FATAL_ERROR "${CORENRN_ACCELERATOR_OFFLOAD} not supported with Clang compilers")
+    endif()
   else()
-    message(FATAL_ERROR "${CORENRN_ACCELERATOR_OFFLOAD} not supported with NVHPC compilers")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} is not supported in GPU builds.")
   endif()
   # avoid PGI adding standard compliant "-A" flags
-  set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${NVHPC_ACC_COMP_FLAGS}")
+  # set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
   # Use `-Mautoinline` option to compile .cpp files generated from .mod files only. This is
   # especially needed when we compile with -O0 or -O1 optimisation level where we get link errors.
   # Use of `-Mautoinline` ensure that the necessary functions like `net_receive_kernel` are inlined
   # for OpenACC code generation.
   set(NVHPC_CXX_INLINE_FLAGS "-Mautoinline")
+  set(NVHPC_CXX_INLINE_FLAGS)
 endif()
 
 # =============================================================================

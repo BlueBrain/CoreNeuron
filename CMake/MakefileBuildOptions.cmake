@@ -50,6 +50,11 @@ list(REMOVE_ITEM CORENRN_LINK_LIBS "Threads::Threads")
 
 # replicate CMake magic to transform system libs to -l<libname>
 foreach(link_lib ${CORENRN_LINK_LIBS})
+  if(TARGET ${link_lib})
+    get_property(link_flag TARGET ${link_lib} PROPERTY INTERFACE_LINK_LIBRARIES)
+    string(APPEND CORENRN_COMMON_LDFLAGS " ${link_flag}")
+    continue()
+  endif()
   if(${link_lib} MATCHES "\-l.*")
     string(APPEND CORENRN_COMMON_LDFLAGS " ${link_lib}")
     continue()
