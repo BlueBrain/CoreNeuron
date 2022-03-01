@@ -52,7 +52,9 @@ CORENRNLIB_FLAGS += $(if @caliper_LIB_DIR@,-L@caliper_LIB_DIR@,)
 # coreneuron/utils/randoms goes first because it needs to override the NEURON
 # directory in INCFLAGS
 INCLUDES = -I$(CORENRN_INC_DIR)/coreneuron/utils/randoms $(INCFLAGS) -I$(CORENRN_INC_DIR)
-INCLUDES += $(if @MPI_CXX_INCLUDE_PATH@, -I$(subst ;, -I,@MPI_CXX_INCLUDE_PATH@),)
+ifeq (@CORENRN_ENABLE_MPI_DYNAMIC@, OFF)
+  INCLUDES += $(if @MPI_CXX_INCLUDE_PATH@, -I$(subst ;, -I,@MPI_CXX_INCLUDE_PATH@),)
+endif
 INCLUDES += $(if @reportinglib_INCLUDE_DIR@, -I$(subst ;, -I,@reportinglib_INCLUDE_DIR@),)
 
 # CXX is always defined. If the definition comes from default change it
