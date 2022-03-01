@@ -3,6 +3,7 @@ include:
     file:
       - spack-build-components.gitlab-ci.yml
       - github-project-pipelines.gitlab-ci.yml
+    ref: '$GITLAB_PIPELINES_BRANCH'
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
 
@@ -38,6 +39,7 @@ simulation_stack:
     # CoreNEURON CI status depends on the BlueConfigs CI status.
     strategy: depend
   variables:
+    GITLAB_PIPELINES_BRANCH: $GITLAB_PIPELINES_BRANCH
     SPACK_ENV_FILE_URL: $SPACK_SETUP_COMMIT_MAPPING_URL
 
 # Performance seems to be terrible when we get too many jobs on a single node.
