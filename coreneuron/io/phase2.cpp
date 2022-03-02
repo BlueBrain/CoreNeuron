@@ -173,7 +173,7 @@ void Phase2::read_file(FileHandler& F, const NrnThread& nt) {
         if (dsz > 0) {
             pdata = F.read_vector<int>(dsz * n);
         }
-        tmls.emplace_back(TML{nodeindices, pdata, 0, {}, {}});
+        tmls.emplace_back(TML{nodeindices, pdata, mech_types[i], {}, {}});
         if (dsz > 0) {
             int sz = F.read_int();
             if (sz) {
