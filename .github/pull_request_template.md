@@ -28,6 +28,15 @@ nrnivmodl mod
  - Version: [e.g. master branch]
  - Backend: [e.g. CPU]
 
-**Use certain branches for the SimulationStack CI**
-
-CI_BRANCHES:NEURON_BRANCH=master,
+**Use certain branches in CI pipelines.**
+<!-- You can steer which versions of CoreNEURON dependencies will be used in
+     the various CI pipelines (GitLab, test-as-submodule) here. Expressions are
+     of the form PROJ_REF=VALUE, where PROJ is the relevant Spack package name,
+     transformed to upper case and with hyphens replaced with underscores.
+     REF may be BRANCH, COMMIT or TAG, with exceptions:
+      - SPACK_COMMIT and SPACK_TAG are invalid (hpc/gitlab-pipelines limitation)
+      - NEURON_COMMIT and NEURON_TAG are invalid (test-as-submodule limitation)
+     These values for NEURON, nmodl and Spack are the defaults and are given
+     for illustrative purposes; they can safely be removed.
+-->
+CI_BRANCHES:NEURON_BRANCH=master,NMODL_BRANCH=master,SPACK_BRANCH=develop
