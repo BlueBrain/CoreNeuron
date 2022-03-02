@@ -328,7 +328,6 @@ If you have a different mpi launcher (than `mpirun`), you can specify it during 
 ```bash
 cmake .. -DTEST_MPI_EXEC_BIN="mpirun" \
          -DTEST_EXEC_PREFIX="mpirun;-n;2" \
-         -DTEST_EXEC_PREFIX="mpirun;-n;2" \
          -DAUTO_TEST_WITH_SLURM=OFF \
          -DAUTO_TEST_WITH_MPIEXEC=OFF \
 ```
