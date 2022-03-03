@@ -167,7 +167,7 @@ void output_spike_populations(const SpikesInfo& spikes_info) {
     }
     int n_populations = spikes_info.population_info.size();
     for (int idx = 0; idx < n_populations; idx++) {
-        auto curr_pop = spikes_info.population_info[idx];
+        const auto& curr_pop = spikes_info.population_info[idx];
         std::string population_name = curr_pop.first;
         int population_offset = curr_pop.second;
         int gid_lower = population_offset;
