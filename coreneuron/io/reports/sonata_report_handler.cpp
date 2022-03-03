@@ -71,7 +71,7 @@ void SonataReportHandler::register_report(const NrnThread& nt,
         if (!vars.size())
             continue;
 
-        auto pop_info = get_population_info(gid);
+        const auto& pop_info = get_population_info(gid);
         std::string population_name = pop_info.first;
         int population_offset = pop_info.second;
         sonata_add_node(config.output_path.data(), population_name.data(), population_offset, gid);
