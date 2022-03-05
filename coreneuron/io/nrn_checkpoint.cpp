@@ -333,7 +333,17 @@ void CheckPoints::write_phase2(NrnThread& nt) const {
         } else {
             Point_process* pnt = ps->pntsrc_;
             assert(pnt);
-            output_vindex[i] = -(pnt->_i_instance * 1000 + pnt->_type);
+            int type = pnt->_type;
+            int ix = pnt->_i_instance;
+            if (nt._ml_list[type]->_permute) {
+                // pnt->_i_instance is the permuted index into pnt->_type
+                if (!ml_pinv[type]) {
+                    Memb_list* ml = nt._ml_list[type];
+                    ml_pinv[type] = inverse_permute(ml->_permute, ml->nodecount);
+                }
+                ix = ml_pinv[type][ix];
+            }
+            output_vindex[i] = -(ix * 1000 + type);
         }
     }
     fh.write_array<int>(output_vindex, nt.n_presyn);
