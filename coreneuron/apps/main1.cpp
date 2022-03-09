@@ -607,9 +607,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
             set_report_buffer_size(corenrn_param.report_buff_size);
         }
 
-        if(!configs.empty()) {
-          setup_report_engine(min_report_dt, delay);
-          configs.clear();
+        if (!configs.empty()) {
+            setup_report_engine(min_report_dt, delay);
+            configs.clear();
         }
 
         // call prcellstate for prcellgid
