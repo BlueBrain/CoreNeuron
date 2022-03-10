@@ -266,11 +266,11 @@ static void update_pdata_values(Memb_list* ml, int type, NrnThread& nt) {
         } else if (s == -5) {  // POINTER
             // assume pointer into nt._data. Most likely voltage.
             // If not voltage, most likely same mechanism for all indices.
-            int v0 = nt._actual_v - nt._data;
             for (int iml = 0; iml < cnt; ++iml) {
                 int* pd = pdata + nrn_i_layout(iml, cnt, i, psz, layout);
                 int etype = type_of_ntdata(nt, *pd, iml == 0);
                 if (etype == voltage) {
+                    int v0 = nt._actual_v - nt._data;
                     int* e_target = nt._permute;
                     int ix = *pd - v0;  // original integer into area array.
                     nrn_assert((ix >= 0) && (ix < nt.end));
