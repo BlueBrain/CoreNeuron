@@ -575,8 +575,8 @@ void Phase2::fill_before_after_lists(NrnThread& nt, const std::vector<Memb_func>
         for (size_t ii = 0; ii < memb_func.size(); ++ii) {
             before_after_map[ii] = nullptr;
         }
-        // First only. In case multiple bam with same mech type.
-        // Will get others, if any, below with bam->next, etc.
+        // Save first before-after block only. In case of multiple before-after blocks with the
+        // same mech type, we will get subsequent ones using linked list below.
         for (auto bam = corenrn.get_bamech()[i]; bam; bam = bam->next) {
             if (!before_after_map[bam->type]) {
                 before_after_map[bam->type] = bam;
