@@ -582,8 +582,7 @@ void Phase2::fill_before_after_lists(NrnThread& nt, const std::vector<Memb_func>
                 before_after_map[bam->type] = bam;
             }
         }
-        /* Unnecessary, but keep in order wrt tml */
-        // But necessary to keep in order wrt multiple BAMech with same mech type
+        // necessary to keep in order wrt multiple BAMech with same mech type
         NrnThreadBAList** ptbl = nt.tbl + i;
         for (auto tml = nt.tml; tml; tml = tml->next) {
             if (before_after_map[tml->index]) {
