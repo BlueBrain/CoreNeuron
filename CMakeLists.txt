@@ -253,9 +253,9 @@ endif()
 # OpenACC needs to build static library in order to have global/routines working.
 # See https://www.pgroup.com/userforum/viewtopic.php?t=5350
 # ~~~
-if(CORENRN_ENABLE_GPU)
-  set(CORENRN_ENABLE_SHARED OFF)
-endif()
+#if(CORENRN_ENABLE_GPU)
+#  set(CORENRN_ENABLE_SHARED OFF)
+#endif()
 
 if(CORENRN_ENABLE_SHARED)
   set(COMPILE_LIBRARY_TYPE "SHARED")
