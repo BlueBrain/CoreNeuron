@@ -35,13 +35,13 @@ using Symbol = char;
 // extern variables require acc declare
 nrn_pragma_omp(declare target)
 extern double celsius;
-nrn_pragma_acc(declare create(celsius))
+//nrn_pragma_acc(declare create(celsius))
 
 extern double pi;
-nrn_pragma_acc(declare create(pi))
+//nrn_pragma_acc(declare create(pi))
 
 extern int secondorder;
-nrn_pragma_acc(declare create(secondorder))
+//nrn_pragma_acc(declare create(secondorder))
 nrn_pragma_omp(end declare target)
 
 extern double t, dt;
