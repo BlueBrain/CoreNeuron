@@ -67,7 +67,12 @@ if(CORENRN_ENABLE_GPU)
   # and offloaded OpenACC/OpenMP code. Using -cuda when compiling seems to improve error messages in
   # some cases, and to be recommended by NVIDIA. We pass -gpu=cudaX.Y to ensure that OpenACC/OpenMP
   # code is compiled with the same CUDA version as the explicit CUDA code.
-  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
+  # TODO nordc option is added based on the recommendation from:
+  #        https://forums.developer.nvidia.com/t/separate-compilation-of-mixed-cuda-openacc-code/192701
+  #      but as discussed in
+  #        https://github.com/BlueBrain/CoreNeuron/issues/141#issuecomment-1086742194
+  #      this is still not completely solving underlying link issue.
+  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo,nordc")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
