@@ -91,9 +91,8 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_d
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
 
-    double* dptr = cnrn_target_deviceptr(ml->data);
-    dptr = dml_data;
-    printf("Setting up nt ml %p d_ml %p ml->data %p and d_ml->data %p :: direct d_ml->data %p \n", ml, d_ml, ml->data, dptr, acc_deviceptr(ml->data));
+    //double* dptr = cnrn_target_deviceptr(ml->data);
+    double* dptr = dml_data;
     cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
     int* d_nodeindices = cnrn_target_copyin(ml->nodeindices, n);
@@ -327,8 +326,6 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         /*copy all double data for thread */
         d__data = cnrn_target_copyin(nt->_data, nt->_ndata);
 
-        printf("BIG DATA : nt->_data %p, d_data = %p and n = %d \n", nt->_data, d__data, nt->_ndata);
-
         /* Here is the example of using OpenACC data enter/exit
          * Remember that we are not allowed to use nt->_data but we have to use:
          *      double *dtmp = nt->_data;  // now use dtmp!
@@ -398,15 +395,14 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             // book keeping for linked-list
             d_last_tml = d_tml;
 
-            /* now for every tml, there is a ml. copy that and setup pointer */
+            //TODO: as cnrn_target_deviceptr is seems bugy (?), calculate
+            // pointer by offset
             double* dml_data = d__data + (tml->ml->data - nt->_data);
 
+            /* now for every tml, there is a ml. copy that and setup pointer */
             Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index, dml_data);
             cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
-            //printf("tml->ml->data on device : %p \n", acc_deviceptr(tml->ml->data));
-            //acc_unmap_data(tml->ml->data);
-            //acc_map_data(tml->ml->data, d__data + offset, tml->ml->nodecount * sizeof(double));
-            //printf("   I am at ml->data %p at %ld with size %ld at device %p\n", tml->ml->data, offset, tml->ml->nodecount, acc_deviceptr(tml->ml->data));
+
             /* setup nt._ml_list */
             cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
         }
