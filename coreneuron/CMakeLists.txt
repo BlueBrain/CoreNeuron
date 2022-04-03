@@ -276,7 +276,7 @@ target_compile_options(coreneuron
 add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
 
 # scopmath is created separately for nrnivmodl-core workflow
-add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
+add_library(scopmath ${COMPILE_LIBRARY_TYPE} ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
 target_include_directories(scopmath PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}
                                             ${CORENEURON_PROJECT_BINARY_DIR}/generated)
 

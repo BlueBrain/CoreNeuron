@@ -219,6 +219,7 @@ $(SPECIAL_EXE): coremech_lib_target
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) $(CORENRNLIB_FLAGS) $(LDFLAGS) \
+	  -L$(CORENRN_LIB_DIR) -lscopmath \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR) -Wl,-rpath,'$(INSTALL_LIB_RPATH)'
 
 coremech_lib_target: $(corenrnmech_lib_target)
@@ -233,7 +234,7 @@ $(ENGINEMECH_OBJ): $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp | $(MOD_OBJS_DIR)
 coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
-	  $(LDFLAGS) $(CORENRN_LIB_DIR)/libscopmath.a \
+	  $(LDFLAGS) -L$(CORENRN_LIB_DIR) -lscopmath\
 	  ${SONAME_OPTION} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR);
 
 # build static library of mechanisms
