@@ -80,7 +80,7 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
     if (step > 0 && (static_cast<int>(step) % reporting_period) == 0) {
         auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt->mapping);
         double* fast_imem_rhs = nt->nrn_fast_imem->nrn_sav_rhs;
-
+        auto& summation_report = nt->summation_report_handler_->summation_reports_[report_path];
         for (const auto& kv: vars_to_report) {
             int gid = kv.first;
             const auto& to_report = kv.second;
@@ -94,7 +94,13 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
                     if(std::isnan(factor)) {
                         factor = 0.0;
                     }
-                    sum += fast_imem_rhs[segment_id] * factor;
+                    double iclamp = 0.0;
+                    for (const auto& value: summation_report.currents_[segment_id]) {
+                        double current_value = *value.first;
+                        int scale = value.second;
+                        iclamp += current_value * scale;
+                    }
+                    sum += (fast_imem_rhs[segment_id] + iclamp) * factor;
                     count++;
             }
             *(to_report.front().var_value) = sum;
@@ -107,8 +113,10 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
 /* reportinglib is not thread safe */
 #pragma omp critical
     {
-        summation_alu(nt);
-        if (report_type == ReportType::LFPReport) {
+        if (report_type == ReportType::SummationReport) {
+            summation_alu(nt);
+        }
+        else if (report_type == ReportType::LFPReport) {
             lfp_calc(nt);
         }
         // each thread needs to know its own step
