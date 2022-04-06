@@ -62,7 +62,8 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
             case LFPReport:
                 // 1 lfp value per gid
                 mapinfo->_lfp.resize(nt.ncell);
-                vars_to_report = get_lfp_vars_to_report(nt, m_report_config, mapinfo->_lfp.data(), nodes_to_gid);
+                vars_to_report =
+                    get_lfp_vars_to_report(nt, m_report_config, mapinfo->_lfp.data(), nodes_to_gid);
                 is_soma_target = m_report_config.section_type == SectionType::Soma ||
                                  m_report_config.section_type == SectionType::Cell;
                 register_section_report(nt, m_report_config, vars_to_report, is_soma_target);
