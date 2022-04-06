@@ -33,14 +33,51 @@ if(NOT "cxx_std_14" IN_LIST CMAKE_CXX_COMPILE_FEATURES OR NOT "cxx_digit_separat
       "This compiler does not fully support C++14, choose an higher version or an other compiler.")
 endif()
 
+# If CoreNEURON is built standalone then it has to know what version of NEURON to claim
+# compatibility with via NRN_VERSION_* macros in VERBATIM blocks.
+set(CORENRN_COMPATIBLE_NRN_VERSION_MAJOR 8)
+set(CORENRN_COMPATIBLE_NRN_VERSION_MINOR 2)
+set(CORENRN_COMPATIBLE_NRN_VERSION_PATCH 0)
+
 # =============================================================================
 # Settings to enable project as submodule
 # =============================================================================
+set(CORENEURON_PROJECT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CORENEURON_PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CORENEURON_AS_SUBPROJECT OFF)
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(CORENEURON_AS_SUBPROJECT ON)
+  # Make these visible to the parent project (NEURON) so it can do some sanity checking.
+  set_property(GLOBAL PROPERTY CORENRN_COMPATIBLE_NRN_VERSION_MAJOR
+                               ${CORENRN_COMPATIBLE_NRN_VERSION_MAJOR})
+  set_property(GLOBAL PROPERTY CORENRN_COMPATIBLE_NRN_VERSION_MINOR
+                               ${CORENRN_COMPATIBLE_NRN_VERSION_MINOR})
+  set_property(GLOBAL PROPERTY CORENRN_COMPATIBLE_NRN_VERSION_PATCH
+                               ${CORENRN_COMPATIBLE_NRN_VERSION_PATCH})
 endif()
+if(NOT DEFINED NRN_VERSION_MAJOR
+   OR NOT DEFINED NRN_VERSION_MINOR
+   OR NOT DEFINED NRN_VERSION_PATCH)
+  if(CORENEURON_AS_SUBPROJECT)
+    set(level WARNING)
+  else()
+    set(level STATUS)
+  endif()
+  # Typically: CoreNEURON is being built standalone. This is an ugly transition measure to allow
+  # consistent support of NRN_VERSION_* macros while standalone CoreNEURON is still supported.
+  set(NRN_VERSION_MAJOR ${CORENRN_COMPATIBLE_NRN_VERSION_MAJOR})
+  set(NRN_VERSION_MINOR ${CORENRN_COMPATIBLE_NRN_VERSION_MINOR})
+  set(NRN_VERSION_PATCH ${CORENRN_COMPATIBLE_NRN_VERSION_PATCH})
+  message(${level} "CoreNEURON could not determine the NEURON version, using the hardcoded "
+          "${NRN_VERSION_MAJOR}.${NRN_VERSION_MINOR}.${NRN_VERSION_PATCH}")
+endif()
+# Regardless of whether we are being built as a submodule of NEURON, NRN_VERSION_{MAJOR,MINOR,PATCH}
+# are now set to the version that we should claim compatibility with when compiling translated MOD
+# files. Generate a header under a special `generated` prefix in the build directory, so that
+# -I/path/to/src -I/path/to/build/generated is safe (headers from the source prefix are copied
+# elsewhere under the build prefix, so there is scope for confusion)
+configure_file(coreneuron/config/neuron_version.hpp.in
+               generated/coreneuron/config/neuron_version.hpp)
 
 # =============================================================================
 # Include cmake modules path
