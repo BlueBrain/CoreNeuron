@@ -89,19 +89,19 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
             int count = 0;
             double sum = 0.0;
             for (const auto& kv: cell_mapping->lfp_factors) {
-                    int segment_id = kv.first;
-                    double factor = kv.second;
-                    if(std::isnan(factor)) {
-                        factor = 0.0;
-                    }
-                    double iclamp = 0.0;
-                    for (const auto& value: summation_report.currents_[segment_id]) {
-                        double current_value = *value.first;
-                        int scale = value.second;
-                        iclamp += current_value * scale;
-                    }
-                    sum += (fast_imem_rhs[segment_id] + iclamp) * factor;
-                    count++;
+                int segment_id = kv.first;
+                double factor = kv.second;
+                if (std::isnan(factor)) {
+                    factor = 0.0;
+                }
+                double iclamp = 0.0;
+                for (const auto& value: summation_report.currents_[segment_id]) {
+                    double current_value = *value.first;
+                    int scale = value.second;
+                    iclamp += current_value * scale;
+                }
+                sum += (fast_imem_rhs[segment_id] + iclamp) * factor;
+                count++;
             }
             *(to_report.front().var_value) = sum;
         }
@@ -115,8 +115,7 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
     {
         if (report_type == ReportType::SummationReport) {
             summation_alu(nt);
-        }
-        else if (report_type == ReportType::LFPReport) {
+        } else if (report_type == ReportType::LFPReport) {
             lfp_calc(nt);
         }
         // each thread needs to know its own step
