@@ -15,6 +15,12 @@ OUTPUT_DIR = @CMAKE_HOST_SYSTEM_PROCESSOR@
 DESTDIR =
 TARGET_LIB_TYPE = $(BUILD_TYPE)
 
+MODS_PATH_FOR_CPP = $(MODS_PATH)
+ifeq ($(CLEAN_MODFILES), 1)
+    $(info coucou)
+    MODS_PATH_FOR_CPP = $(OUTPUT_DIR)/corenrn/mod2c/cleaned_mod
+endif
+
 # required for OSX to execute nrnivmodl-core
 OSX_SYSROOT=@CMAKE_OSX_SYSROOT@
 ifneq ($(OSX_SYSROOT),)
@@ -251,12 +257,15 @@ $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp $(KINDERIV_H_PATH) | $(MOD_OBJS_DIR
 $(MOD_OBJS_DIR)/%.obj: $(MOD_TO_CPP_DIR)/%.ispc | $(MOD_OBJS_DIR)
 	$(ISPC_COMPILE_CMD) $< -o $@
 
+$(MODS_PATH_FOR_CPP)/%.mod: $(MODS_PATH)/%.mod | $(MODS_PATH_FOR_CPP)
+	$(MOD2CPP_ENV_VAR) $(MOD2CPP_BINARY_PATH) $< -o $(MODS_PATH_FOR_CPP)/ passes --convert-neuron
+
 # translate MOD files to ISPC using NMODL
-$(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
+$(mod_ispc_files): $(MOD_TO_CPP_DIR)/%.ispc: $(MODS_PATH_FOR_CPP)/%.mod | $(MOD_TO_CPP_DIR)
 	$(MOD2CPP_ENV_VAR) $(MOD2CPP_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ $(MOD2CPP_FLAGS_ISPC)
 
 # translate MOD files to CPP using mod2c/NMODL
-$(mod_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH)/%.mod | $(MOD_TO_CPP_DIR)
+$(mod_cpp_files): $(MOD_TO_CPP_DIR)/%.cpp: $(MODS_PATH_FOR_CPP)/%.mod | $(MOD_TO_CPP_DIR)
 	$(MOD2CPP_ENV_VAR) $(MOD2CPP_BINARY_PATH) $< -o $(MOD_TO_CPP_DIR)/ $(MOD2CPP_FLAGS_C)
 
 # static pattern to set up the dependencies for the previous recipe
@@ -287,6 +296,9 @@ $(MOD_TO_CPP_DIR):
 
 $(MOD_OBJS_DIR):
 	mkdir -p $(MOD_OBJS_DIR)
+
+$(MODS_PATH_FOR_CPP):
+	mkdir -p $(MODS_PATH_FOR_CPP)
 
 # install binary and libraries
 install: $(SPECIAL_EXE) coremech_lib_target
