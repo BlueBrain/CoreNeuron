@@ -72,29 +72,10 @@ using random123_allocator =
 #else
 using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_State>;
 #endif
-}
-/* Global data structure per process. Using a unique_ptr here causes [minor]
- * problems because its destructor can be called very late during application
- * shutdown. If the destructor calls cudaFree and the CUDA runtime has already
- * been shut down then tools like cuda-memcheck reports errors.
- */
-nrn_pragma_omp(declare target)
-philox4x32_key_t g_k{};
-nrn_pragma_omp(end declare target)
-
-namespace {
 OMP_Mutex g_instance_count_mutex;
-
 std::size_t g_instance_count{};
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
-
-/** @brief Provide a helper function in global namespace that is declared target for OpenMP
- * offloading to function correctly with NVHPC
- */
-CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
-    return philox4x32(s->c, g_k);
-}
 }  // namespace
 
 namespace coreneuron {
@@ -102,6 +83,7 @@ void init_nrnran123() {
     std::cout << "Initialising Random123 global state" << std::endl;
     // This cannot be done at global scope if we want to dynamically load a
     // library containing GPU code.
+    auto& g_k = nrnran123_global_state();
     nrn_pragma_acc(enter data copyin(g_k))
 }
 
@@ -111,23 +93,12 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return g_k.v[0];
+    return nrnran123_global_state().v[0];
 }
 
 void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
     *seq = s->c.v[0];
     *which = s->which_;
-}
-
-// no
-void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
-    if (which > 3) {
-        s->which_ = 0;
-    } else {
-        s->which_ = which;
-    }
-    s->c.v[0] = seq;
-    s->r = philox4x32_helper(s);
 }
 
 void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
@@ -139,50 +110,6 @@ void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_
     *id3 = s->c.v[1];
     *id1 = s->c.v[2];
     *id2 = s->c.v[3];
-}
-
-// no
-uint32_t nrnran123_ipick(nrnran123_State* s) {
-    uint32_t rval;
-    char which = s->which_;
-    rval = s->r.v[int{which++}];
-    if (which > 3) {
-        which = 0;
-        s->c.v[0]++;
-        s->r = philox4x32_helper(s);
-    }
-    s->which_ = which;
-    return rval;
-}
-
-// no
-double nrnran123_dblpick(nrnran123_State* s) {
-    return nrnran123_uint2dbl(nrnran123_ipick(s));
-}
-
-// no
-double nrnran123_negexp(nrnran123_State* s) {
-    /* min 2.3283064e-10 to max 22.18071 */
-    return -std::log(nrnran123_dblpick(s));
-}
-
-// no
-/* at cost of a cached  value we could compute two at a time. */
-double nrnran123_normal(nrnran123_State* s) {
-    double w, x, y;
-    double u1, u2;
-
-    do {
-        u1 = nrnran123_dblpick(s);
-        u2 = nrnran123_dblpick(s);
-        u1 = 2. * u1 - 1.;
-        u2 = 2. * u2 - 1.;
-        w = (u1 * u1) + (u2 * u2);
-    } while (w > 1);
-
-    y = std::sqrt((-2. * log(w)) / w);
-    x = u1 * y;
-    return x;
 }
 
 double nrnran123_uint2dbl(uint32_t u) {
@@ -201,9 +128,10 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
                 << ") were active. This is not safe, some streams will remember the old value ("
-                << g_k.v[0] << ')' << std::endl;
+                << nrnran123_global_state().v[0] << ')' << std::endl;
         }
     }
+    auto& g_k = nrnran123_global_state();
     g_k.v[0] = gix;
     nrn_pragma_acc(update device(g_k))
     nrn_pragma_omp(target update to(g_k))

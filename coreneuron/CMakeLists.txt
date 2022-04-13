@@ -320,7 +320,7 @@ if(CORENRN_ENABLE_SHARED)
       CACHE INTERNAL "coreneuron mechanism library")
 else()
   set(corenrn_mech_library
-      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_STATIC_LIBRARY_SUFFIX}"
+      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}"
       CACHE INTERNAL "coreneuron mechanism library")
 endif()
 

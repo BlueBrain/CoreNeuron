@@ -39,6 +39,8 @@ http://www.deshawresearch.com/resources_random123.html
 #include <Random123/philox.h>
 #include <inttypes.h>
 
+#include <cmath>
+
 // Some files are compiled with DISABLE_OPENACC, and some builds have no GPU
 // support at all. In these two cases, request that the random123 state is
 // allocated using new/delete instead of CUDA unified memory.
@@ -50,11 +52,30 @@ http://www.deshawresearch.com/resources_random123.html
 
 namespace coreneuron {
 
+namespace detail {
+    template <typename = void>
+    struct global_state_helper {
+        static philox4x32_key_t s_k;
+    };
+    nrn_pragma_omp(declare target)
+    template <typename T>
+    philox4x32_key_t global_state_helper<T>::s_k;
+    nrn_pragma_omp(end declare target)
+}
+
+inline philox4x32_key_t& nrnran123_global_state() {
+    return detail::global_state_helper<>::s_k;
+}
+
 struct nrnran123_State {
     philox4x32_ctr_t c;
     philox4x32_ctr_t r;
     char which_;
 };
+
+inline philox4x32_ctr_t philox4x32_helper(nrnran123_State* s) {
+    return philox4x32(s->c, nrnran123_global_state());
+}
 
 struct nrnran123_array4x32 {
     uint32_t v[4];
@@ -93,31 +114,66 @@ nrn_pragma_acc(routine seq)
 void nrnran123_getids(nrnran123_State*, uint32_t* id1, uint32_t* id2);
 nrn_pragma_acc(routine seq)
 void nrnran123_getids3(nrnran123_State*, uint32_t* id1, uint32_t* id2, uint32_t* id3);
-nrn_pragma_acc(routine seq)
-uint32_t nrnran123_ipick(nrnran123_State*); /* uniform 0 to 2^32-1 */
+// uniform 0 to 2^32-1
+inline uint32_t nrnran123_ipick(nrnran123_State* s) {
+    uint32_t rval;
+    char which = s->which_;
+    rval = s->r.v[int{which++}];
+    if (which > 3) {
+        which = 0;
+        s->c.v[0]++;
+        s->r = philox4x32_helper(s);
+    }
+    s->which_ = which;
+    return rval;
+}
 
-/* this could be called from openacc parallel construct */
 nrn_pragma_acc(routine seq)
-double nrnran123_dblpick(nrnran123_State*); /* uniform open interval (0,1)*/
-/* nrnran123_dblpick minimum value is 2.3283064e-10 and max value is 1-min */
+double nrnran123_uint2dbl(uint32_t);
+
+// uniform open interval (0,1), nrnran123_dblpick minimum value is 2.3283064e-10 and max value is 1-min
+inline double nrnran123_dblpick(nrnran123_State* s) {
+    return nrnran123_uint2dbl(nrnran123_ipick(s));
+}
 
 /* this could be called from openacc parallel construct (in INITIAL block) */
-nrn_pragma_acc(routine seq)
-void nrnran123_setseq(nrnran123_State*, uint32_t seq, char which);
-nrn_pragma_acc(routine seq)
-double nrnran123_negexp(nrnran123_State*); /* mean 1.0 */
-/* nrnran123_negexp min value is 2.3283064e-10, max is 22.18071 */
+inline void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
+    if (which > 3) {
+        s->which_ = 0;
+    } else {
+        s->which_ = which;
+    }
+    s->c.v[0] = seq;
+    s->r = philox4x32_helper(s);
+}
 
-/* missing declaration in coreneuron */
-nrn_pragma_acc(routine seq)
-double nrnran123_normal(nrnran123_State*);
+// mean 1.0, min value is 2.3283064e-10, max is 22.18071
+inline double nrnran123_negexp(nrnran123_State* s) {
+    /* min 2.3283064e-10 to max 22.18071 */
+    return -std::log(nrnran123_dblpick(s));
+}
+
+// at cost of a cached  value we could compute two at a time
+inline double nrnran123_normal(nrnran123_State* s) {
+    double w, x, y;
+    double u1, u2;
+    do {
+        u1 = nrnran123_dblpick(s);
+        u2 = nrnran123_dblpick(s);
+        u1 = 2. * u1 - 1.;
+        u2 = 2. * u2 - 1.;
+        w = (u1 * u1) + (u2 * u2);
+    } while (w > 1);
+    y = std::sqrt((-2. * std::log(w)) / w);
+    x = u1 * y;
+    return x;
+}
+
 nrn_pragma_acc(routine seq)
 double nrnran123_gauss(nrnran123_State*); /* mean 0.0, std 1.0 */
 
 /* more fundamental (stateless) (though the global index is still used) */
 nrn_pragma_acc(routine seq)
 nrnran123_array4x32 nrnran123_iran(uint32_t seq, uint32_t id1, uint32_t id2);
-nrn_pragma_acc(routine seq)
-double nrnran123_uint2dbl(uint32_t);
 nrn_pragma_omp(end declare target)
 }  // namespace coreneuron
