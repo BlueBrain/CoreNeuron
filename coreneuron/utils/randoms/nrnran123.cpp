@@ -5,6 +5,7 @@
 # See top-level LICENSE file for details.
 # =============================================================================.
 */
+#include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/utils/nrnmutdec.hpp"
@@ -71,6 +72,7 @@ using random123_allocator =
 #else
 using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_State>;
 #endif
+}
 /* Global data structure per process. Using a unique_ptr here causes [minor]
  * problems because its destructor can be called very late during application
  * shutdown. If the destructor calls cudaFree and the CUDA runtime has already
@@ -79,8 +81,8 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
 nrn_pragma_omp(declare target)
 philox4x32_key_t g_k{};
 nrn_pragma_omp(end declare target)
-nrn_pragma_acc(declare create(g_k))
 
+namespace {
 OMP_Mutex g_instance_count_mutex;
 
 std::size_t g_instance_count{};
@@ -96,6 +98,13 @@ CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_Sta
 }  // namespace
 
 namespace coreneuron {
+void init_nrnran123() {
+    std::cout << "Initialising Random123 global state" << std::endl;
+    // This cannot be done at global scope if we want to dynamically load a
+    // library containing GPU code.
+    nrn_pragma_acc(enter data copyin(g_k))
+}
+
 std::size_t nrnran123_instance_count() {
     return g_instance_count;
 }
@@ -110,6 +119,7 @@ void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
     *which = s->which_;
 }
 
+// no
 void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
     if (which > 3) {
         s->which_ = 0;
@@ -131,6 +141,7 @@ void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_
     *id2 = s->c.v[3];
 }
 
+// no
 uint32_t nrnran123_ipick(nrnran123_State* s) {
     uint32_t rval;
     char which = s->which_;
@@ -144,15 +155,18 @@ uint32_t nrnran123_ipick(nrnran123_State* s) {
     return rval;
 }
 
+// no
 double nrnran123_dblpick(nrnran123_State* s) {
     return nrnran123_uint2dbl(nrnran123_ipick(s));
 }
 
+// no
 double nrnran123_negexp(nrnran123_State* s) {
     /* min 2.3283064e-10 to max 22.18071 */
     return -std::log(nrnran123_dblpick(s));
 }
 
+// no
 /* at cost of a cached  value we could compute two at a time. */
 double nrnran123_normal(nrnran123_State* s) {
     double w, x, y;
