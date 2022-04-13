@@ -35,7 +35,7 @@ set(SCOPMATH_CODE_FILES
     "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp"
     "sim/scopmath/sparse_thread.cpp" "sim/scopmath/ssimplic_thread.cpp")
 set(MPI_LIB_FILES "mpi/lib/mpispike.cpp" "mpi/lib/nrnmpi.cpp")
-set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp" "mpi/core/nrnmpi.cpp" "mpi/core/nrnmpidec.cpp")
+set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp" "mpi/core/resolve.cpp" "mpi/core/nrnmpidec.cpp")
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
      DESTINATION ${CMAKE_BINARY_DIR}/include)
 list(APPEND CORENEURON_CODE_FILES ${PROJECT_BINARY_DIR}/coreneuron/config/config.cpp)
@@ -123,14 +123,14 @@ if(CORENRN_ENABLE_GPU)
   set_source_files_properties(${OPENACC_EXCLUDED_FILES} PROPERTIES COMPILE_FLAGS
                                                                    "-DDISABLE_OPENACC")
   # Only compile the explicit CUDA implementation of the Hines solver in GPU builds.
-  list(APPEND CORENEURON_CODE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
+  # list(APPEND CORENEURON_CODE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
   # within an OpenACC region. Therefore, we need to wrap them in a special API (decorate them with
   # __device__ & acc routine tokens), which allows us to eventually call them from OpenACC. Calling
   # these functions from CUDA kernels presents no issue ...
   if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
-    list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+    # list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
   endif()
 endif()
 
