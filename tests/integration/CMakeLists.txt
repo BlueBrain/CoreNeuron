@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -61,17 +61,13 @@ endif()
 # As reports require MPI, do not add test if report is enabled.
 # GPU tests need SLURM allocation and hence they won't run without srun
 # ~~~
-if(NOT CORENRN_ENABLE_REPORTING AND NOT CORENRN_ENABLE_GPU)
+if(NOT CORENRN_ENABLE_REPORTING)
   list(
     APPEND
     TEST_CASES_WITH_ARGS
     "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
   )
 endif()
-
-set(NEGATIVE_TEST_CASES_WITH_ARGS
-    "ring_different_seed!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_different_seed --seed 123456"
-)
 
 # ~~~
 # There are no directories for permute and multisend related tests,
@@ -80,27 +76,21 @@ set(NEGATIVE_TEST_CASES_WITH_ARGS
 foreach(data_dir "ring" "ring_gap")
   foreach(
     test_suffix
-    "serial"
-    "multisend"
-    "binqueue"
-    "savestate_permute0"
-    "savestate_permute1"
-    "savestate_permute2"
-    "permute1"
-    "permute2"
-    "permute2_cudaInterface")
+    ""
+    "_serial"
+    "_multisend"
+    "_binqueue"
+    "_savestate_permute0"
+    "_savestate_permute1"
+    "_savestate_permute2"
+    "_permute1"
+    "_permute2"
+    "_permute2_cudaInterface")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
-         DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}_${test_suffix}/")
+         DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}${test_suffix}/")
   endforeach()
 endforeach()
-
-# base tests : ring, ring with gap and ring duplication
-foreach(data_dir "ring" "ring_gap")
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
-       DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}/")
-endforeach()
-
-# test for small spike buffer
+# test without ring_gap version
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/ring/out.dat.ref"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer/")
 
@@ -127,25 +117,6 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
   add_test(
     NAME ${TEST_NAME}_TEST
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/integration_test.sh
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
-  set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
-  list(APPEND CORENRN_TEST_NAMES ${TEST_NAME}_TEST)
-endforeach()
-
-foreach(args_line ${NEGATIVE_TEST_CASES})
-  string(REPLACE "!" ";" string_line ${args_line})
-  set(test_num_processors 1)
-  if(MPI_FOUND)
-    set(test_num_processors 2)
-    string(REPLACE ";" " " SRUN_PREFIX "${TEST_MPI_EXEC_BIN};-n;${test_num_processors}")
-  endif()
-  list(GET string_line 0 TEST_NAME)
-  list(GET string_line 1 TEST_ARGS)
-  set(SIM_NAME ${TEST_NAME})
-  configure_file(negative_integration_test.sh.in ${TEST_NAME}/negative_integration_test.sh @ONLY)
-  add_test(
-    NAME ${TEST_NAME}_TEST
-    COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/negative_integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
   set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
   list(APPEND CORENRN_TEST_NAMES ${TEST_NAME}_TEST)
