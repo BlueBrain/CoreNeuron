@@ -59,7 +59,6 @@ endif()
 
 # ~~~
 # As reports require MPI, do not add test if report is enabled.
-# GPU tests need SLURM allocation and hence they won't run without srun
 # ~~~
 if(NOT CORENRN_ENABLE_REPORTING)
   list(
