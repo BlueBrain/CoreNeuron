@@ -185,13 +185,6 @@ void nrn_init_and_load_data(int argc,
         report_mem_usage("After MPI_Init");
     }
 
-    // initialise default coreneuron parameters
-    initnrn();
-
-    // set global variables
-    // precedence is: set by user, globals.dat, 34.0
-    celsius = corenrn_param.celsius;
-
 #if CORENEURON_ENABLE_GPU
     if (!corenrn_param.gpu && corenrn_param.cell_interleave_permute == 2) {
         fprintf(stderr,
@@ -217,9 +210,6 @@ void nrn_init_and_load_data(int argc,
 
     // full path of files.dat file
     std::string filesdat(corenrn_param.datpath + "/" + corenrn_param.filesdat);
-
-    // read the global variable names and set their values from globals.dat
-    set_globals(corenrn_param.datpath.c_str(), (corenrn_param.seed >= 0), corenrn_param.seed);
 
     // set global variables for start time, timestep and temperature
     if (!corenrn_embedded) {
@@ -515,8 +505,19 @@ extern "C" void mk_mech_init(int argc, char** argv) {
         out.close();
     }
 
-    // reads mechanism information from bbcore_mech.dat
+    // initialise default coreneuron parameters
+    initnrn();
 
+    // set global variables
+    // precedence is: set by user, globals.dat, 34.0
+    celsius = corenrn_param.celsius;
+
+    // read the global variable names and set their values from globals.dat
+    // some global variables need to be read before the ion_reg to initialize
+    // properly the in-built ion mechanisms
+    set_globals(corenrn_param.datpath.c_str(), (corenrn_param.seed >= 0), corenrn_param.seed);
+
+    // reads mechanism information from bbcore_mech.dat
     mk_mech((corenrn_param.datpath).c_str());
 }
 
@@ -527,6 +528,11 @@ extern "C" int run_solve_core(int argc, char** argv) {
     std::vector<std::unique_ptr<ReportHandler>> report_handlers;
     SpikesInfo spikes_info;
     bool reports_needs_finalize = false;
+
+
+    // read agin the global variables to set the global variables defined by
+    // the mod files' mechanisms
+    set_globals(corenrn_param.datpath.c_str(), (corenrn_param.seed >= 0), corenrn_param.seed);
 
     if (!corenrn_param.is_quiet()) {
         report_mem_usage("After mk_mech");

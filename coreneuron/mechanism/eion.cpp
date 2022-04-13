@@ -60,6 +60,15 @@ double nrn_ion_charge(int type) {
     return global_charge(type);
 }
 
+std::unordered_map<std::string, double> nrn_ion_init = {
+    {"nai0_na_ion", DEF_nai},
+    {"nao0_na_ion", DEF_nao},
+    {"ki0_k_ion", DEF_ki},
+    {"ko0_k_ion", DEF_ko},
+    {"cai0_ca_ion", DEF_cai},
+    {"cao0_ca_ion", DEF_cao},
+};
+
 void ion_reg(const char* name, double valence) {
     char buf[7][50];
 #define VAL_SENTINAL -10000.
@@ -109,22 +118,30 @@ void ion_reg(const char* name, double valence) {
         sprintf(buf[1], "%so0_%s", name, buf[0]);
         if (strcmp("na", name) == 0) {
             na_ion = mechtype;
-            global_conci(mechtype) = DEF_nai;
-            global_conco(mechtype) = DEF_nao;
+            global_conci(mechtype) = nrn_ion_init["nai0_na_ion"];
+            global_conco(mechtype) = nrn_ion_init["nao0_na_ion"];
             global_charge(mechtype) = 1.;
         } else if (strcmp("k", name) == 0) {
             k_ion = mechtype;
-            global_conci(mechtype) = DEF_ki;
-            global_conco(mechtype) = DEF_ko;
+            global_conci(mechtype) = nrn_ion_init["ki0_k_ion"];
+            global_conco(mechtype) = nrn_ion_init["ko0_k_ion"];
             global_charge(mechtype) = 1.;
         } else if (strcmp("ca", name) == 0) {
             ca_ion = mechtype;
-            global_conci(mechtype) = DEF_cai;
-            global_conco(mechtype) = DEF_cao;
+            global_conci(mechtype) = nrn_ion_init["cai0_ca_ion"];
+            global_conco(mechtype) = nrn_ion_init["cao0_ca_ion"];
             global_charge(mechtype) = 2.;
         } else {
-            global_conci(mechtype) = DEF_ioni;
-            global_conco(mechtype) = DEF_iono;
+            if (nrn_ion_init[static_cast<std::string>(buf[0])]) {
+                global_conci(mechtype) = nrn_ion_init[static_cast<std::string>(buf[0])];
+            } else {
+                global_conci(mechtype) = DEF_ioni;
+            }
+            if (nrn_ion_init[static_cast<std::string>(buf[1])]) {
+                global_conco(mechtype) = nrn_ion_init[static_cast<std::string>(buf[1])];
+            } else {
+                global_conco(mechtype) = DEF_iono;
+            }
             global_charge(mechtype) = VAL_SENTINAL;
         }
     }

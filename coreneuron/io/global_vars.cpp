@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <unordered_map>
 
 #include "coreneuron/utils/randoms/nrnran123.h"
 #include "coreneuron/nrnconf.h"
@@ -27,6 +28,8 @@ using PSD = std::pair<std::size_t, double*>;
 using N2V = std::map<std::string, PSD>;
 
 static N2V* n2v;
+
+extern std::unordered_map<std::string, double> nrn_ion_init;
 
 void hoc_register_var(DoubScal* ds, DoubVec* dv, VoidFunc*) {
     if (!n2v) {
@@ -74,6 +77,9 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                         }
                     }
                 }
+                if (static_cast<std::string>(name).find("ion") != std::string::npos) {
+                    nrn_ion_init[name] = *val;
+                }
                 delete[] val;
                 val = nullptr;
             }
@@ -113,6 +119,9 @@ void set_globals(const char* path, bool cli_global_seed, int cli_global_seed_val
                 if (it != n2v->end()) {
                     nrn_assert(it->second.first == 0);
                     *(it->second.second) = val;
+                }
+                if (static_cast<std::string>(name).find("ion") != std::string::npos) {
+                    nrn_ion_init[name] = val;
                 }
             } else if (sscanf(line, "%[^[][%d]\n", name, &n) == 2) {
                 if (strcmp(name, "0") == 0) {
