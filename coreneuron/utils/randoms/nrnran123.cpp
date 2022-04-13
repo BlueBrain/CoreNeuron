@@ -20,6 +20,14 @@
 #include <unordered_map>
 #endif
 
+// Defining these attributes seems to help nvc++ in OpenMP target offload mode.
+#if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
+    defined(_OPENMP) && defined(__CUDACC__)
+#define CORENRN_HOST_DEVICE __host__ __device__
+#else
+#define CORENRN_HOST_DEVICE
+#endif
+
 namespace {
 #ifdef CORENEURON_USE_BOOST_POOL
 /** Tag type for use with boost::fast_pool_allocator that forwards to
@@ -79,15 +87,12 @@ std::size_t g_instance_count{};
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
-nrn_pragma_omp(declare target)
 /** @brief Provide a helper function in global namespace that is declared target for OpenMP
  * offloading to function correctly with NVHPC
  */
-nrn_pragma_acc(routine seq)
-philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
+CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
     return philox4x32(s->c, g_k);
 }
-nrn_pragma_omp(end declare target)
 }  // namespace
 
 namespace coreneuron {
@@ -105,7 +110,6 @@ void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
     *which = s->which_;
 }
 
-nrn_pragma_acc(routine seq)
 void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
     if (which > 3) {
         s->which_ = 0;
@@ -223,8 +227,6 @@ nrnran123_State* nrnran123_newstream3(uint32_t id1,
     s->c.v[3] = id2;
     nrnran123_setseq(s, 0, 0);
     {
-        // TODO: can I assert something useful about the instance count going
-        // back to zero anywhere? Or that it is zero when some operations happen?
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
         ++g_instance_count;
     }
