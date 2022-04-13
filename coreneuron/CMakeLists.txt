@@ -31,7 +31,6 @@ file(
   "utils/*.cpp"
   "utils/*/*.c"
   "utils/*/*.cpp")
-file(GLOB_RECURSE CORENEURON_CUDA_FILES "*.cu")
 set(SCOPMATH_CODE_FILES
     "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp"
     "sim/scopmath/sparse_thread.cpp" "sim/scopmath/ssimplic_thread.cpp")
@@ -123,7 +122,8 @@ if(CORENRN_ENABLE_GPU)
 
   set_source_files_properties(${OPENACC_EXCLUDED_FILES} PROPERTIES COMPILE_FLAGS
                                                                    "-DDISABLE_OPENACC")
-  list(APPEND CORENEURON_CODE_FILES ${CORENEURON_CUDA_FILES})
+  # Only compile the explicit CUDA implementation of the Hines solver in GPU builds.
+  list(APPEND CORENEURON_CODE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
   # within an OpenACC region. Therefore, we need to wrap them in a special API (decorate them with
