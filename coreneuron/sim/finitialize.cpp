@@ -28,6 +28,7 @@ void allocate_data_in_mechanism_nrn_init() {
         NrnThread& nt = nrn_threads[i];
         for (NrnThreadMembList* tml = nt.tml; tml; tml = tml->next) {
             Memb_list* ml = tml->ml;
+            printf("allocate_data_in_mechanism_nrn_init: ml->_thread=%p\n", ml->_thread);
             mod_f_t s = corenrn.get_memb_func(tml->index).initialize;
             if (s) {
                 (*s)(&nt, ml, tml->index);
