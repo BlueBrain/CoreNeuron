@@ -52,34 +52,46 @@ http://www.deshawresearch.com/resources_random123.html
 
 namespace coreneuron {
 
-namespace detail {
-    template <typename = void>
-    struct global_state_helper {
-        static philox4x32_key_t s_k;
-    };
-    nrn_pragma_omp(declare target)
-    template <typename T>
-    philox4x32_key_t global_state_helper<T>::s_k;
-    nrn_pragma_omp(end declare target)
-}
-
-inline philox4x32_key_t& nrnran123_global_state() {
-    return detail::global_state_helper<>::s_k;
-}
-
 struct nrnran123_State {
     philox4x32_ctr_t c;
     philox4x32_ctr_t r;
     char which_;
 };
 
-inline philox4x32_ctr_t philox4x32_helper(nrnran123_State* s) {
-    return philox4x32(s->c, nrnran123_global_state());
-}
-
 struct nrnran123_array4x32 {
     uint32_t v[4];
 };
+
+namespace random123 {
+namespace detail {
+// This is a C++14 version of an inline variable.
+template <typename = void>
+struct global_state_helper {
+    static philox4x32_key_t s_k;
+};
+nrn_pragma_omp(declare target)
+template <typename T>
+philox4x32_key_t global_state_helper<T>::s_k;
+nrn_pragma_omp(end declare target)
+}  // namespace detail
+
+inline philox4x32_key_t& global_state() {
+    return detail::global_state_helper<>::s_k;
+}
+
+#if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
+    defined(_OPENMP) && defined(__CUDACC__)
+// Defining these attributes seems to help nvc++ in OpenMP target offload mode.
+#define CORENRN_HOST_DEVICE __host__ __device__
+#else
+#define CORENRN_HOST_DEVICE
+#endif
+inline CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(nrnran123_State* s) {
+    return philox4x32(s->c, global_state());
+}
+#undef CORENRN_HOST_DEVICE
+
+}  // namespace random123
 
 /* global index. eg. run number */
 /* all generator instances share this global index */
@@ -88,7 +100,7 @@ uint32_t nrnran123_get_globalindex();
 
 // Utilities used for calculating model size, only called from the CPU.
 std::size_t nrnran123_instance_count();
-inline std::size_t nrnran123_state_size() {
+constexpr std::size_t nrnran123_state_size() {
     return sizeof(nrnran123_State);
 }
 
@@ -106,14 +118,25 @@ inline nrnran123_State* nrnran123_newstream(
 void nrnran123_deletestream(nrnran123_State* s,
                             bool use_unified_memory = CORENRN_RAN123_USE_UNIFIED_MEMORY);
 
-/* minimal data stream */
-nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-void nrnran123_getseq(nrnran123_State*, uint32_t* seq, char* which);
-nrn_pragma_acc(routine seq)
-void nrnran123_getids(nrnran123_State*, uint32_t* id1, uint32_t* id2);
-nrn_pragma_acc(routine seq)
-void nrnran123_getids3(nrnran123_State*, uint32_t* id1, uint32_t* id2, uint32_t* id3);
+// Routines that get called from device code. These are all declared inline to
+// give the OpenACC/OpenMP compilers an easier time.
+
+inline void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
+    *seq = s->c.v[0];
+    *which = s->which_;
+}
+
+inline void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
+    *id1 = s->c.v[2];
+    *id2 = s->c.v[3];
+}
+
+inline void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_t* id3) {
+    *id3 = s->c.v[1];
+    *id1 = s->c.v[2];
+    *id2 = s->c.v[3];
+}
+
 // uniform 0 to 2^32-1
 inline uint32_t nrnran123_ipick(nrnran123_State* s) {
     uint32_t rval;
@@ -122,16 +145,21 @@ inline uint32_t nrnran123_ipick(nrnran123_State* s) {
     if (which > 3) {
         which = 0;
         s->c.v[0]++;
-        s->r = philox4x32_helper(s);
+        s->r = random123::philox4x32_helper(s);
     }
     s->which_ = which;
     return rval;
 }
 
-nrn_pragma_acc(routine seq)
-double nrnran123_uint2dbl(uint32_t);
+// 0 to 2^32-1 transforms to double value in open (0,1) interval, min
+// 2.3283064e-10 to max (1 - 2.3283064e-10)
+inline double nrnran123_uint2dbl(uint32_t u) {
+    constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
+    return (static_cast<double>(u) + 1.0) * SHIFT32;
+}
 
-// uniform open interval (0,1), nrnran123_dblpick minimum value is 2.3283064e-10 and max value is 1-min
+// uniform open interval (0,1), nrnran123_dblpick minimum value is 2.3283064e-10 and max value is
+// 1-min
 inline double nrnran123_dblpick(nrnran123_State* s) {
     return nrnran123_uint2dbl(nrnran123_ipick(s));
 }
@@ -144,7 +172,7 @@ inline void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
         s->which_ = which;
     }
     s->c.v[0] = seq;
-    s->r = philox4x32_helper(s);
+    s->r = random123::philox4x32_helper(s);
 }
 
 // mean 1.0, min value is 2.3283064e-10, max is 22.18071
@@ -169,11 +197,7 @@ inline double nrnran123_normal(nrnran123_State* s) {
     return x;
 }
 
-nrn_pragma_acc(routine seq)
-double nrnran123_gauss(nrnran123_State*); /* mean 0.0, std 1.0 */
+// OL 220414: deleted declarations for nrnran123_gauss, nrnran123_iran that were
+// never defined
 
-/* more fundamental (stateless) (though the global index is still used) */
-nrn_pragma_acc(routine seq)
-nrnran123_array4x32 nrnran123_iran(uint32_t seq, uint32_t id1, uint32_t id2);
-nrn_pragma_omp(end declare target)
 }  // namespace coreneuron

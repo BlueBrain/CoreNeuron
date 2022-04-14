@@ -21,14 +21,6 @@
 #include <unordered_map>
 #endif
 
-// Defining these attributes seems to help nvc++ in OpenMP target offload mode.
-#if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
-    defined(_OPENMP) && defined(__CUDACC__)
-#define CORENRN_HOST_DEVICE __host__ __device__
-#else
-#define CORENRN_HOST_DEVICE
-#endif
-
 namespace {
 #ifdef CORENEURON_USE_BOOST_POOL
 /** Tag type for use with boost::fast_pool_allocator that forwards to
@@ -74,8 +66,6 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
 #endif
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
-
-constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 }  // namespace
 
 namespace coreneuron {
@@ -83,7 +73,7 @@ void init_nrnran123() {
     std::cout << "Initialising Random123 global state" << std::endl;
     // This cannot be done at global scope if we want to dynamically load a
     // library containing GPU code.
-    auto& g_k = nrnran123_global_state();
+    auto& g_k = random123::global_state();
     nrn_pragma_acc(enter data copyin(g_k))
 }
 
@@ -93,29 +83,7 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return nrnran123_global_state().v[0];
-}
-
-void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
-    *seq = s->c.v[0];
-    *which = s->which_;
-}
-
-void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
-    *id1 = s->c.v[2];
-    *id2 = s->c.v[3];
-}
-
-void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_t* id3) {
-    *id3 = s->c.v[1];
-    *id1 = s->c.v[2];
-    *id2 = s->c.v[3];
-}
-
-double nrnran123_uint2dbl(uint32_t u) {
-    /* 0 to 2^32-1 transforms to double value in open (0,1) interval */
-    /* min 2.3283064e-10 to max (1 - 2.3283064e-10) */
-    return ((double) u + 1.0) * SHIFT32;
+    return random123::global_state().v[0];
 }
 
 /* nrn123 streams are created from cpu launcher routine */
@@ -128,10 +96,10 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
                 << ") were active. This is not safe, some streams will remember the old value ("
-                << nrnran123_global_state().v[0] << ')' << std::endl;
+                << random123::global_state().v[0] << ')' << std::endl;
         }
     }
-    auto& g_k = nrnran123_global_state();
+    auto& g_k = random123::global_state();
     g_k.v[0] = gix;
     nrn_pragma_acc(update device(g_k))
     nrn_pragma_omp(target update to(g_k))
