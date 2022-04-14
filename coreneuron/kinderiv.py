@@ -65,8 +65,6 @@ def write_out_kinderiv(fout):
     for item in deriv:
         fout.write('nrn_pragma_acc(routine seq)\n')
         fout.write('extern int %s%s(_threadargsproto_);\n' % (item[0], item[1]))
-        fout.write('nrn_pragma_acc(routine seq)\n')
-        fout.write('extern int _newton_%s%s(_threadargsproto_);\n' % (item[0], item[1]))
 
     for item in kin:
         fout.write('nrn_pragma_acc(routine seq)\n')
@@ -94,12 +92,6 @@ def write_out_kinderiv(fout):
     fout.write("\n#define _NRN_DERIVIMPLICIT_CASES \\\n")
     for item in (deriv):
         fout.write("  case _derivimplicit_%s%s: %s%s(_threadargs_); break; \\\n" % (
-            item[0], item[1], item[0], item[1]))
-    fout.write("\n")
-
-    fout.write("\n#define _NRN_DERIVIMPLICIT_NEWTON_CASES \\\n")
-    for item in deriv:
-        fout.write("  case _derivimplicit_%s%s: _newton_%s%s(_threadargs_); break; \\\n" % (
             item[0], item[1], item[0], item[1]))
     fout.write("\n")
 

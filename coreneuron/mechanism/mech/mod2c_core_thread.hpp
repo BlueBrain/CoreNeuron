@@ -27,7 +27,7 @@ namespace coreneuron {
 
 /**
  * \todo: typedefs like DIFUN can be removed
- * \todo: macros for difun, newtfun, eulerfun are not necessary
+ * \todo: macros for difun, eulerfun are not necessary
  *        and need to be refactored.
  */
 
@@ -39,9 +39,6 @@ nrn_pragma_omp(declare target)
 nrn_pragma_acc(routine seq)
 extern int nrn_derivimplicit_steer(int, _threadargsproto_);
 #define difun(arg) nrn_derivimplicit_steer(arg, _threadargs_);
-nrn_pragma_acc(routine seq)
-extern int nrn_newton_steer(int, _threadargsproto_);
-#define newtfun(arg) nrn_newton_steer(arg, _threadargs_);
 nrn_pragma_acc(routine seq)
 extern int nrn_euler_steer(int, _threadargsproto_);
 #define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
