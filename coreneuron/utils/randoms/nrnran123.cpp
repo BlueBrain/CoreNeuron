@@ -66,15 +66,14 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
 #endif
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
+bool gpu_enabled{false};
 }  // namespace
 
 namespace coreneuron {
 void init_nrnran123() {
     std::cout << "Initialising Random123 global state" << std::endl;
-    // This cannot be done at global scope if we want to dynamically load a
-    // library containing GPU code.
-    auto& g_k = random123::global_state();
-    nrn_pragma_acc(enter data copyin(g_k))
+    gpu_enabled = coreneuron::unified_memory_enabled();
+    nrn_pragma_acc(enter data copyin(random123::global_state) if(gpu_enabled))
 }
 
 std::size_t nrnran123_instance_count() {
@@ -83,7 +82,7 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return random123::global_state().v[0];
+    return random123::global_state.v[0];
 }
 
 /* nrn123 streams are created from cpu launcher routine */
@@ -96,13 +95,15 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << "nrnran123_set_globalindex(" << gix
                 << ") called when a non-zero number of Random123 streams (" << g_instance_count
                 << ") were active. This is not safe, some streams will remember the old value ("
-                << random123::global_state().v[0] << ')' << std::endl;
+                << random123::global_state.v[0] << ')' << std::endl;
         }
     }
-    auto& g_k = random123::global_state();
-    g_k.v[0] = gix;
-    nrn_pragma_acc(update device(g_k))
-    nrn_pragma_omp(target update to(g_k))
+    // TODO: should this have a mutex?
+    if(gix != random123::global_state.v[0]) {
+        random123::global_state.v[0] = gix;
+        nrn_pragma_acc(update device(random123::global_state) if(gpu_enabled))
+        nrn_pragma_omp(target update to(random123::global_state) if(gpu_enabled))
+    }
 }
 
 /** @brief Allocate a new Random123 stream.

@@ -63,21 +63,9 @@ struct nrnran123_array4x32 {
 };
 
 namespace random123 {
-namespace detail {
-// This is a C++14 version of an inline variable.
-template <typename = void>
-struct global_state_helper {
-    static philox4x32_key_t s_k;
-};
 nrn_pragma_omp(declare target)
-template <typename T>
-philox4x32_key_t global_state_helper<T>::s_k;
+inline philox4x32_key_t global_state;
 nrn_pragma_omp(end declare target)
-}  // namespace detail
-
-inline philox4x32_key_t& global_state() {
-    return detail::global_state_helper<>::s_k;
-}
 
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP) && defined(__CUDACC__)
@@ -87,7 +75,7 @@ inline philox4x32_key_t& global_state() {
 #define CORENRN_HOST_DEVICE
 #endif
 inline CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(nrnran123_State* s) {
-    return philox4x32(s->c, global_state());
+    return philox4x32(s->c, global_state);
 }
 #undef CORENRN_HOST_DEVICE
 

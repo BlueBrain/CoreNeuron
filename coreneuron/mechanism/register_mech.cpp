@@ -18,9 +18,8 @@
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
-int secondorder = 0;
 nrn_pragma_omp(declare target)
-double t, dt, celsius, pi;
+double t, dt;
 nrn_pragma_omp(end declare target)
 int rev_dt;
 

@@ -135,16 +135,9 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# eion.cpp depends on CORENRN_USE_LEGACY_UNITS
+# CORENRN_USE_LEGACY_UNITS is used in membfunc.hpp so defined it everywhere
 # =============================================================================
-set(LegacyFR_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/mechanism/eion.cpp ${CMAKE_CURRENT_SOURCE_DIR}/apps/main1.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
-
-set_property(
-  SOURCE ${LegacyFR_FILES}
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS "CORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS}")
+add_compile_definitions(CORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
 
 # =============================================================================
 # run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
