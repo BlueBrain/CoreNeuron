@@ -37,6 +37,4 @@ extern double hoc_Exp(double x);
 
 // defined in eion.cpp and this file included in translated mod files.
 extern double nrn_nernst(double ci, double co, double z, double celsius);
-extern double nrn_ghk(double v, double ci, double co, double z);
-
 }  // namespace coreneuron
