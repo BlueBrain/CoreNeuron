@@ -24,22 +24,8 @@ struct NewtonSpace {
     double* rowmax;
 };
 
-nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern int nrn_crout_thread(NewtonSpace* ns, int n, double** a, int* perm, _threadargsproto_);
-
-nrn_pragma_acc(routine seq)
-extern void nrn_scopmath_solve_thread(int n,
-                                      double** a,
-                                      double* value,
-                                      int* perm,
-                                      double* delta_x,
-                                      int* s,
-                                      _threadargsproto_);
-
 extern NewtonSpace* nrn_cons_newtonspace(int n, int n_instance);
 extern void nrn_destroy_newtonspace(NewtonSpace* ns);
-
 void nrn_newtonspace_copyto_device(NewtonSpace* ns);
 void nrn_newtonspace_delete_from_device(NewtonSpace* ns);
 

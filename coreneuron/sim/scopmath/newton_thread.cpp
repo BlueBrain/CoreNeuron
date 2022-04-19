@@ -57,45 +57,6 @@
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 namespace coreneuron {
-/*------------------------------------------------------------*/
-/*                                                            */
-/*  BUILDJACOBIAN                                 	      */
-/*                                                            */
-/*    Creates the Jacobian matrix by computing partial deriv- */
-/*    atives by finite central differences.  If the column    */
-/*    variable is nonzero, an increment of 2% of the variable */
-/*    is used.  STEP is the minimum increment allowed; it is  */
-/*    currently set to 1.0E-6.                                */
-/*                                                            */
-/*  Returns: no return variable                               */
-/*                                                            */
-/*  Calling sequence:					      */
-/*	 buildjacobian(n, index, x, pfunc, value, jacobian)       */
-/*                                                            */
-/*  Arguments:                                                */
-/*                                                            */
-/*    Input: n, integer, number of variables                  */
-/*                                                            */
-/*           x, pointer to array of addresses of the solution */
-/*		vector elements				      */
-/*                                                            */
-/*	     p, array of parameter values		      */
-/*                                                            */
-/*           pfunc, pointer to function which computes the    */
-/*                     deviation from zero of each equation   */
-/*                     in the model.                          */
-/*                                                            */
-/*	     value, pointer to array of addresses of function */
-/*		       values				      */
-/*                                                            */
-/*    Output: jacobian, double, computed jacobian matrix      */
-/*                                                            */
-/*  Functions called:  user-supplied function with argument   */
-/*                     (p) to compute vector of function      */
-/*		       values for each equation.	      */
-/*		       makevector(), freevector()	      */
-/*                                                            */
-/*------------------------------------------------------------*/
 NewtonSpace* nrn_cons_newtonspace(int n, int n_instance) {
     NewtonSpace* ns = (NewtonSpace*) emalloc(sizeof(NewtonSpace));
     ns->n = n;

@@ -1,18 +1,57 @@
 #pragma once
 #include "coreneuron/sim/scopmath/errcodes.h"
 #include "coreneuron/sim/scopmath/newton_struct.h"
+#include "coreneuron/sim/scopmath/crout_thread.hpp"
 
 namespace coreneuron {
-
 #define ix(arg) ((arg) *_STRIDE)
 #define s_(arg) _p[s[arg] * _STRIDE]
 #define x_(arg) _p[(arg) *_STRIDE]
 namespace detail {
+/*------------------------------------------------------------*/
+/*                                                            */
+/*  BUILDJACOBIAN                                 	      */
+/*                                                            */
+/*    Creates the Jacobian matrix by computing partial deriv- */
+/*    atives by finite central differences.  If the column    */
+/*    variable is nonzero, an increment of 2% of the variable */
+/*    is used.  STEP is the minimum increment allowed; it is  */
+/*    currently set to 1.0E-6.                                */
+/*                                                            */
+/*  Returns: no return variable                               */
+/*                                                            */
+/*  Calling sequence:					      */
+/*	 buildjacobian(n, index, x, pfunc, value, jacobian)       */
+/*                                                            */
+/*  Arguments:                                                */
+/*                                                            */
+/*    Input: n, integer, number of variables                  */
+/*                                                            */
+/*           x, pointer to array of addresses of the solution */
+/*		vector elements				      */
+/*                                                            */
+/*	     p, array of parameter values		      */
+/*                                                            */
+/*           pfunc, pointer to function which computes the    */
+/*                     deviation from zero of each equation   */
+/*                     in the model.                          */
+/*                                                            */
+/*	     value, pointer to array of addresses of function */
+/*		       values				      */
+/*                                                            */
+/*    Output: jacobian, double, computed jacobian matrix      */
+/*                                                            */
+/*  Functions called:  user-supplied function with argument   */
+/*                     (p) to compute vector of function      */
+/*		       values for each equation.	      */
+/*		       makevector(), freevector()	      */
+/*                                                            */
+/*------------------------------------------------------------*/
 template <typename F>
 void nrn_buildjacobian_thread(NewtonSpace* ns,
                               int n,
                               int* index,
-                              F&& func,
+                              F const& func,
                               double* value,
                               double** jacobian,
                               _threadargsproto_) {
@@ -24,11 +63,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     for (int j = 0; j < n; j++) {
         double increment = max(fabs(0.02 * (x_(index[j]))), STEP);
         x_(index[j]) += increment;
-        std::invoke(std::forward<F>(func), _threadargs_);
+        std::invoke(func, _threadargs_);
         for (int i = 0; i < n; i++)
             high_value[ix(i)] = value[ix(i)];
         x_(index[j]) -= 2.0 * increment;
-        std::invoke(std::forward<F>(func), _threadargs_);
+        std::invoke(func, _threadargs_);
         for (int i = 0; i < n; i++) {
             low_value[ix(i)] = value[ix(i)];
 
@@ -40,7 +79,7 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
         /* Restore original variable and function values. */
 
         x_(index[j]) += increment;
-        std::invoke(std::forward<F>(func), _threadargs_);
+        std::invoke(func, _threadargs_);
     }
 }
 #undef x_
@@ -49,7 +88,7 @@ template <typename F>
 inline int nrn_newton_thread(NewtonSpace* ns,
                       int n,
                       int* s,
-                      F&& func,
+                      F func,
                       double* value,
                       _threadargsproto_) {
     int count = 0, error = 0;
@@ -74,7 +113,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
              * than MAXCHANGE
              */
 
-            detail::nrn_buildjacobian_thread(ns, n, s, std::forward<F>(func), value, jacobian, _threadargs_);
+            detail::nrn_buildjacobian_thread(ns, n, s, func, value, jacobian, _threadargs_);
             for (int i = 0; i < n; i++)
                 value[ix(i)] = -value[ix(i)]; /* Required correction to
                                                * function values */
@@ -104,7 +143,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
                 }
             }
             // Evaulate function values with new solution.
-            std::invoke(std::forward<F>(func), _threadargs_);
+            std::invoke(func, _threadargs_);
             max_dev = 0.0;
             for (int i = 0; i < n; i++) {
                 value[ix(i)] = -value[ix(i)]; /* Required correction to function

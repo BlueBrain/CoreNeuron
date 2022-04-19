@@ -62,10 +62,6 @@ def write_out_kinderiv(fout):
     if deriv or kin or euler:
         fout.write('nrn_pragma_omp(declare target)\n')
 
-    for item in deriv:
-        fout.write('nrn_pragma_acc(routine seq)\n')
-        fout.write('extern int %s%s(_threadargsproto_);\n' % (item[0], item[1]))
-
     for item in kin:
         fout.write('nrn_pragma_acc(routine seq)\n')
         fout.write('extern int %s%s(void*, double*, _threadargsproto_);\n' % (item[0], item[1]))
@@ -89,12 +85,6 @@ def write_out_kinderiv(fout):
         fout.write('#define _euler_%s%s %d\n' % (item[0], item[1], i + derivoffset))
 
     fout.write("\n/* switch cases */\n")
-    fout.write("\n#define _NRN_DERIVIMPLICIT_CASES \\\n")
-    for item in (deriv):
-        fout.write("  case _derivimplicit_%s%s: %s%s(_threadargs_); break; \\\n" % (
-            item[0], item[1], item[0], item[1]))
-    fout.write("\n")
-
     fout.write("\n#define _NRN_KINETIC_CASES \\\n")
     for item in kin:
         fout.write("  case _kinetic_%s%s: %s%s(so, rhs, _threadargs_); break; \\\n" % (

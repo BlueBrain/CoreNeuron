@@ -25,16 +25,6 @@
 #include "_kinderiv.h"
 namespace coreneuron {
 nrn_pragma_omp(declare target)
-int derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_) {
-    difun(fun);
-    return 0;
-}
-
-int nrn_derivimplicit_steer(int fun, _threadargsproto_) {
-    switch (fun) { _NRN_DERIVIMPLICIT_CASES }
-    return 0;
-}
-
 int nrn_euler_steer(int fun, _threadargsproto_) {
     switch (fun) { _NRN_EULER_CASES }
     return 0;

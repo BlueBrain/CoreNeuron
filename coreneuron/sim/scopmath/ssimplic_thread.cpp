@@ -56,15 +56,15 @@ int _ss_sparse_thread(SparseObj* v,
     return err;
 }
 
-int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_) {
-    double dtsav = _modl_get_dt_thread(_nt);
-    _modl_set_dt_thread(1e-9, _nt);
+// int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_) {
+//     double dtsav = _modl_get_dt_thread(_nt);
+//     _modl_set_dt_thread(1e-9, _nt);
 
-    int err = derivimplicit_thread(n, slist, dlist, fun, _threadargs_);
+//     int err = derivimplicit_thread(n, slist, dlist, fun, _threadargs_);
 
-    _modl_set_dt_thread(dtsav, _nt);
-    return err;
-}
+//     _modl_set_dt_thread(dtsav, _nt);
+//     return err;
+// }
 
 static int check_state(int n, int* s, _threadargsproto_) {
     bool flag = true;

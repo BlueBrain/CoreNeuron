@@ -26,19 +26,15 @@ namespace coreneuron {
         double _v
 
 /**
- * \todo: typedefs like DIFUN can be removed
- * \todo: macros for difun, eulerfun are not necessary
+ * \todo: typedefs like NEWTFUN can be removed
+ * \todo: macro eulerfun are not necessary
  *        and need to be refactored.
  */
 
-using DIFUN = int;
 using NEWTFUN = int;
 using SPFUN = int;
 using EULFUN = int;
 nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern int nrn_derivimplicit_steer(int, _threadargsproto_);
-#define difun(arg) nrn_derivimplicit_steer(arg, _threadargs_);
 nrn_pragma_acc(routine seq)
 extern int nrn_euler_steer(int, _threadargsproto_);
 #define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
@@ -105,7 +101,7 @@ nrn_pragma_omp(end declare target)
 
 // derived from nrn/src/scopmath/euler.c
 // updated for aos/soa layout index
-static inline int euler_thread(int neqn, int* var, int* der, DIFUN fun, _threadargsproto_) {
+static inline int euler_thread(int neqn, int* var, int* der, EULFUN fun, _threadargsproto_) {
     double dt = _nt->_dt;
     int i;
 
@@ -120,10 +116,6 @@ static inline int euler_thread(int neqn, int* var, int* der, DIFUN fun, _threada
 }
 
 nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern int derivimplicit_thread(int, int*, int*, DIFUN, _threadargsproto_);
-nrn_pragma_acc(routine seq)
-extern int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_);
 nrn_pragma_acc(routine seq)
 extern int
 sparse_thread(SparseObj*, int, int*, int*, double*, double, SPFUN, int, _threadargsproto_);
