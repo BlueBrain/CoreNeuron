@@ -115,7 +115,9 @@ nrn_pragma_omp(declare target)
 nrn_pragma_acc(routine seq)
 extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
 nrn_pragma_omp(end declare target)
-inline double ktf(double celsius) { return 1000. * units::gasconstant * (celsius + 273.15) / units::faraday; }
+inline double ktf(double celsius) {
+    return 1000. * units::gasconstant * (celsius + 273.15) / units::faraday;
+}
 inline double nrn_nernst(double ci, double co, double z, double celsius) {
     if (z == 0) {
         return 0.;

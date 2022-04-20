@@ -17,7 +17,6 @@ static int check_state(int n, int* s, _threadargsproto_) {
 }
 #undef s_
 
-nrn_pragma_acc(routine seq)
 template <typename SPFUN>
 int _ss_sparse_thread(SparseObj* so,
                       int n,
@@ -64,4 +63,4 @@ int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadar
     _modl_set_dt_thread(dtsav, _nt);
     return err;
 }
-}
+}  // namespace coreneuron

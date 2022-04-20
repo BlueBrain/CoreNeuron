@@ -165,12 +165,12 @@ inline int nrn_crout_thread(NewtonSpace* ns, int n, double** a, int* perm, _thre
 /*                                                              */
 /*--------------------------------------------------------------*/
 inline void nrn_scopmath_solve_thread(int n,
-                               double** a,
-                               double* b,
-                               int* perm,
-                               double* p,
-                               int* y,
-                               _threadargsproto_)
+                                      double** a,
+                                      double* b,
+                                      int* perm,
+                                      double* p,
+                                      int* y,
+                                      _threadargsproto_)
 #define y_(arg) _p[y[arg] * _STRIDE]
 #define b_(arg) b[ix(arg)]
 {
@@ -230,4 +230,4 @@ inline void nrn_scopmath_solve_thread(int n,
 #undef ix
 #undef y_
 #undef b_
-}
+}  // namespace coreneuron

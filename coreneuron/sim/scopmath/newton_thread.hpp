@@ -45,11 +45,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     for (int j = 0; j < n; j++) {
         double increment = max(fabs(0.02 * (x_(index[j]))), STEP);
         x_(index[j]) += increment;
-        func(_threadargs_); // std::invoke in C++17
+        func(_threadargs_);  // std::invoke in C++17
         for (int i = 0; i < n; i++)
             high_value[ix(i)] = value[ix(i)];
         x_(index[j]) -= 2.0 * increment;
-        func(_threadargs_); // std::invoke in C++17
+        func(_threadargs_);  // std::invoke in C++17
         for (int i = 0; i < n; i++) {
             low_value[ix(i)] = value[ix(i)];
 
@@ -61,11 +61,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
         /* Restore original variable and function values. */
 
         x_(index[j]) += increment;
-        func(_threadargs_); // std::invoke in C++17
+        func(_threadargs_);  // std::invoke in C++17
     }
 }
 #undef x_
-}
+}  // namespace detail
 
 /**
  * Iteratively solves simultaneous nonlinear equations by Newton's method, using
@@ -85,11 +85,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
  */
 template <typename F>
 inline int nrn_newton_thread(NewtonSpace* ns,
-                      int n,
-                      int* s,
-                      F func,
-                      double* value,
-                      _threadargsproto_) {
+                             int n,
+                             int* s,
+                             F func,
+                             double* value,
+                             _threadargsproto_) {
     int count = 0, error = 0;
     double change = 1.0, max_dev, temp;
     int done = 0;
@@ -141,7 +141,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
                 }
             }
             // Evaulate function values with new solution.
-            func(_threadargs_); // std::invoke in C++17
+            func(_threadargs_);  // std::invoke in C++17
             max_dev = 0.0;
             for (int i = 0; i < n; i++) {
                 value[ix(i)] = -value[ix(i)]; /* Required correction to function
@@ -166,4 +166,4 @@ inline int nrn_newton_thread(NewtonSpace* ns,
 
 NewtonSpace* nrn_cons_newtonspace(int n, int n_instance);
 void nrn_destroy_newtonspace(NewtonSpace* ns);
-}
+}  // namespace coreneuron

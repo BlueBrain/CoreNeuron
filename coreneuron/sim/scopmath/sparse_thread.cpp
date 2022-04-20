@@ -124,7 +124,7 @@ int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_)
     }
     create_coef_list(so, n, fun, _threadargs_); /* calls fun twice */
     scopmath::sparse::init_coef_list(so, _iml);
-    fun(so, so->rhs, _threadargs_); // std::invoke in C++17
+    fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
     int ierr;
     if ((ierr = matsol(so, _iml))) {
         return ierr;
@@ -182,7 +182,7 @@ void initeqn(SparseObj* so, unsigned maxeqn) /* reallocate space for matrix */
  * solved. Also make sure all needed elements are present. This does not mess up
  * the matrix.
  */
-void spar_minorder(SparseObj* so) { 
+void spar_minorder(SparseObj* so) {
     check_assert(so);
     init_minorder(so);
     for (unsigned i = 1; i <= so->neqn; i++) {
@@ -192,8 +192,8 @@ void spar_minorder(SparseObj* so) {
     check_assert(so);
 }
 
-}
-}
+}  // namespace sparse
+}  // namespace scopmath
 
 static void free_elm(SparseObj* so) {
     /* free all elements */

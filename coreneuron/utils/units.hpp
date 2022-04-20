@@ -25,12 +25,14 @@ constexpr double gasconstant{8.3134};
  * See oc/hoc_init.c, nrnoc/eion.c, nrniv/kschan.h
  */
 namespace detail {
-constexpr double electron_charge{1.602176634e-19}; // coulomb exact
-constexpr double avogadro_number{6.02214076e+23}; // exact
-constexpr double boltzmann{1.380649e-23}; // joule/K exact
-}
-constexpr double faraday{detail::electron_charge * detail::avogadro_number}; // 96485.33212... coulomb/mol
-constexpr double gasconstant{detail::boltzmann * detail::avogadro_number}; // 8.314462618... joule/mol-K
+constexpr double electron_charge{1.602176634e-19};  // coulomb exact
+constexpr double avogadro_number{6.02214076e+23};   // exact
+constexpr double boltzmann{1.380649e-23};           // joule/K exact
+}  // namespace detail
+constexpr double faraday{detail::electron_charge * detail::avogadro_number};  // 96485.33212...
+                                                                              // coulomb/mol
+constexpr double gasconstant{detail::boltzmann * detail::avogadro_number};    // 8.314462618...
+                                                                              // joule/mol-K
 #endif
-}
-}
+}  // namespace units
+}  // namespace coreneuron

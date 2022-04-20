@@ -46,7 +46,7 @@ struct Item {
 
 using List = Item; /* list of mixed items */
 
-struct SparseObj {          /* all the state information */
+struct SparseObj {            /* all the state information */
     Elm** rowst{};            /* link to first element in row (solution order)*/
     Elm** diag{};             /* link to pivot element in row (solution order)*/
     void* elmpool{};          /* no interthread cache line sharing for elements */
@@ -54,8 +54,8 @@ struct SparseObj {          /* all the state information */
     unsigned _cntml_padded{}; /* number of instances */
     unsigned* varord{};       /* row and column order for pivots */
     double* rhs{};            /* initially- right hand side        finally - answer */
-    unsigned* ngetcall{}; /* per instance counter for number of calls to _getelm */
-    int phase{};          /* 0-solution phase; 1-count phase; 2-build list phase */
+    unsigned* ngetcall{};     /* per instance counter for number of calls to _getelm */
+    int phase{};              /* 0-solution phase; 1-count phase; 2-build list phase */
     int numop{};
     unsigned coef_list_size{};
     double** coef_list{}; /* pointer to (first instance) value in _getelm order */
