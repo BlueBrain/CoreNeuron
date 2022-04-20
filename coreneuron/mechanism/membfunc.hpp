@@ -151,6 +151,7 @@ using bbcore_read_t = void (*)(double*,
                                Datum*,
                                ThreadDatum*,
                                NrnThread*,
+                               Memb_list*,
                                double);
 
 using bbcore_write_t = void (*)(double*,
@@ -163,6 +164,7 @@ using bbcore_write_t = void (*)(double*,
                                 Datum*,
                                 ThreadDatum*,
                                 NrnThread*,
+                                Memb_list*,
                                 double);
 
 extern int nrn_mech_depend(int type, int* dependencies);

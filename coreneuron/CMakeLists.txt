@@ -327,7 +327,7 @@ add_custom_command(
   OUTPUT ${output_binaries}
   DEPENDS scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b ${COMPILE_LIBRARY_TYPE} -m
-          ${CORENRN_MOD2CPP_BINARY} -p 1 "${modfile_directory}"
+          ${CORENRN_MOD2CPP_BINARY} -p 4 "${modfile_directory}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
   COMMENT "Running nrnivmodl-core with halfgap.mod")
 add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})

@@ -234,15 +234,13 @@ $(ENGINEMECH_OBJ): $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp | $(MOD_OBJS_DIR)
 coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
-	  $(LDFLAGS) -L$(CORENRN_LIB_DIR) -lscopmath\
+	  $(LDFLAGS)\
 	  ${SONAME_OPTION} $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR);
 
 # build static library of mechanisms
 coremech_lib_static: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
-	mkdir -p $(MOD_OBJS_DIR)/scopmath; \
-	cd $(MOD_OBJS_DIR)/scopmath && ar -x $(CORENRN_LIB_DIR)/libscopmath.a && cd -;\
 	rm -f ${COREMECH_LIB_PATH}; \
-	ar cq ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS) $(MOD_OBJS_DIR)/scopmath/*.o;
+	ar cq ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS);
 
 # compile cpp files to .o
 $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp $(KINDERIV_H_PATH) | $(MOD_OBJS_DIR)
