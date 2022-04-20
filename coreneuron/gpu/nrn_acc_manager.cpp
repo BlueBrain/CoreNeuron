@@ -1,24 +1,27 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
 */
+
+#include <queue>
+#include <utility>
+
 #include "coreneuron/apps/corenrn_parameters.hpp"
-#include "coreneuron/coreneuron.hpp"
-#include "coreneuron/gpu/nrn_acc_manager.hpp"
-#include "coreneuron/mpi/nrnmpidec.h"
+#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
+#include "coreneuron/utils/vrecitem.h"
+#include "coreneuron/utils/profile/profiler_interface.h"
 #include "coreneuron/permute/cellorder.hpp"
 #include "coreneuron/permute/data_layout.hpp"
-#include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/sim/scopmath/newton_struct.h"
+#include "coreneuron/coreneuron.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
-#include "coreneuron/utils/profile/profiler_interface.h"
+#include "coreneuron/mpi/nrnmpidec.h"
 #include "coreneuron/utils/utils.hpp"
-#include "coreneuron/utils/vrecitem.h"
 
 #ifdef CRAYPAT
 #include <pat_api.h>
@@ -27,9 +30,6 @@
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && defined(_OPENMP)
 #include <cuda_runtime_api.h>
 #endif
-
-#include <queue>
-#include <utility>
 
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
@@ -77,7 +77,7 @@ void cnrn_target_set_default_device(int device_num) {
 
 #ifdef CORENEURON_ENABLE_GPU
 
-static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_data) {
+static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     // As we never run code for artificial cell inside GPU we don't copy it.
     int is_art = corenrn.get_is_artificial()[type];
     if (is_art) {
@@ -90,7 +90,7 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_d
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
 
-    double* dptr{dml_data};
+    double* dptr = cnrn_target_deviceptr(ml->data);
     cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
 
 
@@ -395,15 +395,8 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             // book keeping for linked-list
             d_last_tml = d_tml;
 
-            // TODO: acc_deviceptr is returning host pointer when
-            // coreneuron is launched via python instead of special
-            //      see: https://github.com/BlueBrain/CoreNeuron/issues/141#issuecomment-1086746848
-            // As ml->data is always within nt->_data, temporarily calculate
-            // device pointer of ml->data on using offset.
-            double* dml_data = d__data + (tml->ml->data - nt->_data);
-
             /* now for every tml, there is a ml. copy that and setup pointer */
-            Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index, dml_data);
+            Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index);
             cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
             /* setup nt._ml_list */
             cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
@@ -1273,9 +1266,6 @@ void init_gpu() {
         std::cout << " Info : " << num_devices_per_node << " GPUs shared by " << local_size
                   << " ranks per node\n";
     }
-
-    nrn_pragma_acc(enter data copyin(celsius, pi, secondorder))
-    init_nrnran123();
 }
 
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {

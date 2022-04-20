@@ -32,11 +32,17 @@ using Symbol = char;
 #define VEC_AREA(i) (_nt->_actual_area[(i)])
 #define VECTORIZE   1
 
+// extern variables require acc declare
 nrn_pragma_omp(declare target)
-inline double celsius, pi;
-inline int secondorder;
+extern double celsius;
+nrn_pragma_acc(declare create(celsius))
+
+extern double pi;
+nrn_pragma_acc(declare create(pi))
+
+extern int secondorder;
+nrn_pragma_acc(declare create(secondorder))
 nrn_pragma_omp(end declare target)
-// nrn_pragma_acc(declare create (celsius, pi, secondorder))
 
 extern double t, dt;
 extern int rev_dt;

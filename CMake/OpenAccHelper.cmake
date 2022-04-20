@@ -88,7 +88,6 @@ if(CORENRN_ENABLE_GPU)
   # avoid PGI adding standard compliant "-A" flags
   set(CMAKE_CXX14_STANDARD_COMPILE_OPTION --c++14)
   string(APPEND CMAKE_EXE_LINKER_FLAGS " ${NVHPC_ACC_COMP_FLAGS}")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${NVHPC_ACC_COMP_FLAGS}")
   # Use `-Mautoinline` option to compile .cpp files generated from .mod files only. This is
   # especially needed when we compile with -O0 or -O1 optimisation level where we get link errors.
   # Use of `-Mautoinline` ensure that the necessary functions like `net_receive_kernel` are inlined

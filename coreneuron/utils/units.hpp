@@ -17,11 +17,11 @@ constexpr double gasconstant{8.3134};
  * some of the constants. Here we gather a few modern units into a single place
  * (but, unfortunately, also in nrnunits.lib.in). Legacy units cannot be
  * gathered here because they can differ slightly from place to place.
- * 
+ *
  * These come from https://physics.nist.gov/cuu/Constants/index.html.
  * Termed the "2018 CODATA recommended values", they became available
  * on 20 May 2019 and replace the 2014 CODATA set.
- * 
+ *
  * See oc/hoc_init.c, nrnoc/eion.c, nrniv/kschan.h
  */
 namespace detail {

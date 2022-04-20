@@ -220,7 +220,7 @@ void nrn_cur_ion(NrnThread* nt, Memb_list* ml, int type) {
     pd = ml->data;
     ppd = ml->pdata;
     // clang-format off
-    nrn_pragma_acc(parallel loop present(celsius, pd[0:_cntml_padded * 5],
+    nrn_pragma_acc(parallel loop present(pd[0:_cntml_padded * 5],
                                          ppd[0:_cntml_actual],
                                          nrn_ion_global_map[0:nrn_ion_global_map_size]
                                                            [0:ion_global_map_member_size])

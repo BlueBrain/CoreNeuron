@@ -573,7 +573,6 @@ void setup_ThreadData(NrnThread& nt) {
         Memb_list* ml = tml->ml;
         if (mf.thread_size_) {
             ml->_thread = (ThreadDatum*) ecalloc_align(mf.thread_size_, sizeof(ThreadDatum));
-            std::cout << "setup_ThreadData: ml->_thread=" << ml->_thread << std::endl;
             if (mf.thread_mem_init_) {
                 {
                     const std::lock_guard<OMP_Mutex> lock(mut);
