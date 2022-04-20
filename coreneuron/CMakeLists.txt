@@ -121,9 +121,9 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# CORENRN_USE_LEGACY_UNITS is used in membfunc.hpp so defined it everywhere
+# CORENEURON_USE_LEGACY_UNITS is used in membfunc.hpp so define it everywhere
 # =============================================================================
-add_compile_definitions(CORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
+add_compile_definitions(CORENEURON_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
 
 # =============================================================================
 # create libraries
@@ -239,8 +239,6 @@ set_target_properties(coreneuron PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 # Suppress some compiler warnings. Note in GPU builds this library includes CUDA files.
 target_compile_options(coreneuron
                        PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENEURON_CXX_WARNING_SUPPRESSIONS}>)
-
-# does this nrnivmodl-core target even exist?
 add_dependencies(coreneuron nrnivmodl-core)
 
 # scopmath is created separately for nrnivmodl-core workflow

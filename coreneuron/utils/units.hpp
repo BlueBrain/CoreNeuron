@@ -8,7 +8,7 @@
 #pragma once
 namespace coreneuron {
 namespace units {
-#if CORENRN_USE_LEGACY_UNITS == 1
+#if CORENEURON_USE_LEGACY_UNITS == 1
 constexpr double faraday{96485.309};
 constexpr double gasconstant{8.3134};
 #else
