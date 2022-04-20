@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -25,21 +25,6 @@ namespace coreneuron {
     int _iml, int _cntml_padded, double *_p, Datum *_ppvar, ThreadDatum *_thread, NrnThread *_nt, \
         double _v
 
-/**
- * \todo: typedefs like NEWTFUN can be removed
- * \todo: macro eulerfun are not necessary
- *        and need to be refactored.
- */
-
-using NEWTFUN = int;
-using SPFUN = int;
-using EULFUN = int;
-nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern int nrn_euler_steer(int, _threadargsproto_);
-#define eulerfun(arg) nrn_euler_steer(arg, _threadargs_);
-nrn_pragma_omp(end declare target)
-
 struct Elm {
     unsigned row;        /* Row location */
     unsigned col;        /* Column location */
@@ -62,26 +47,25 @@ struct Item {
 using List = Item; /* list of mixed items */
 
 struct SparseObj {          /* all the state information */
-    Elm** rowst;            /* link to first element in row (solution order)*/
-    Elm** diag;             /* link to pivot element in row (solution order)*/
-    void* elmpool;          /* no interthread cache line sharing for elements */
-    unsigned neqn;          /* number of equations */
-    unsigned _cntml_padded; /* number of instances */
-    unsigned* varord;       /* row and column order for pivots */
-    double* rhs;            /* initially- right hand side        finally - answer */
-    SPFUN oldfun;
-    unsigned* ngetcall; /* per instance counter for number of calls to _getelm */
-    int phase;          /* 0-solution phase; 1-count phase; 2-build list phase */
-    int numop;
-    unsigned coef_list_size;
-    double** coef_list; /* pointer to (first instance) value in _getelm order */
+    Elm** rowst{};            /* link to first element in row (solution order)*/
+    Elm** diag{};             /* link to pivot element in row (solution order)*/
+    void* elmpool{};          /* no interthread cache line sharing for elements */
+    unsigned neqn{};          /* number of equations */
+    unsigned _cntml_padded{}; /* number of instances */
+    unsigned* varord{};       /* row and column order for pivots */
+    double* rhs{};            /* initially- right hand side        finally - answer */
+    unsigned* ngetcall{}; /* per instance counter for number of calls to _getelm */
+    int phase{};          /* 0-solution phase; 1-count phase; 2-build list phase */
+    int numop{};
+    unsigned coef_list_size{};
+    double** coef_list{}; /* pointer to (first instance) value in _getelm order */
     /* don't really need the rest */
-    int nroworder;   /* just for freeing */
-    Item** roworder; /* roworder[i] is pointer to order item for row i.
+    int nroworder{};   /* just for freeing */
+    Item** roworder{}; /* roworder[i] is pointer to order item for row i.
                              Does not have to be in orderlist */
-    List* orderlist; /* list of rows sorted by norder
+    List* orderlist{}; /* list of rows sorted by norder
                              that haven't been used */
-    int do_flag;
+    int do_flag{};
 };
 
 nrn_pragma_acc(routine seq)
@@ -89,47 +73,23 @@ nrn_pragma_omp(declare target)
 extern double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml);
 nrn_pragma_omp(end declare target)
 
-extern void* nrn_cons_sparseobj(SPFUN, int, Memb_list*, _threadargsproto_);
-
 extern void _nrn_destroy_sparseobj_thread(SparseObj* so);
-
-nrn_pragma_acc(routine seq)
-nrn_pragma_omp(declare target)
-extern int nrn_kinetic_steer(int, SparseObj*, double*, _threadargsproto_);
-nrn_pragma_omp(end declare target)
-#define spfun(arg1, arg2, arg3) nrn_kinetic_steer(arg1, arg2, arg3, _threadargs_);
 
 // derived from nrn/src/scopmath/euler.c
 // updated for aos/soa layout index
-static inline int euler_thread(int neqn, int* var, int* der, EULFUN fun, _threadargsproto_) {
-    double dt = _nt->_dt;
-    int i;
-
+template <typename F>
+int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
     /* calculate the derivatives */
-    eulerfun(fun);
-
+    fun(_threadargs_);
     /* update dependent variables */
-    for (i = 0; i < neqn; i++)
+    double const dt{_nt->_dt};
+    for (int i = 0; i < neqn; i++) {
         _p[var[i] * _STRIDE] += dt * (_p[der[i] * _STRIDE]);
-
+    }
     return 0;
 }
 
 nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern int
-sparse_thread(SparseObj*, int, int*, int*, double*, double, SPFUN, int, _threadargsproto_);
-nrn_pragma_acc(routine seq)
-int _ss_sparse_thread(SparseObj*,
-                      int n,
-                      int* s,
-                      int* d,
-                      double* t,
-                      double dt,
-                      SPFUN fun,
-                      int linflag,
-                      _threadargsproto_);
-
 nrn_pragma_acc(routine seq)
 extern double _modl_get_dt_thread(NrnThread*);
 nrn_pragma_acc(routine seq)

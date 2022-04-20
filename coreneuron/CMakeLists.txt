@@ -44,18 +44,10 @@ file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
      DESTINATION ${CMAKE_BINARY_DIR}/include)
 list(APPEND CORENEURON_CODE_FILES ${PROJECT_BINARY_DIR}/coreneuron/config/config.cpp)
 
-set(DIMPLIC_CODE_FILE "mechanism/mech/dimplic.cpp")
 set(ENGINEMECH_CODE_FILE "mechanism/mech/enginemech.cpp")
 
 # for external mod files we need to generate modl_ref function in mod_func.c
 set(MODFUNC_PERL_SCRIPT "mechanism/mech/mod_func.c.pl")
-
-# ~~~
-# as openacc limits passing function pointers as arguments, mod2c translated files
-# depend on a _kinderiv.h file that is constructed by kinderiv.py
-# ~~~
-set(KINDERIV_PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kinderiv.py")
-set(KINDERIV_HEADER_FILE "${CMAKE_CURRENT_BINARY_DIR}/_kinderiv.h")
 
 set(NMODL_UNITS_FILE "${CMAKE_BINARY_DIR}/share/mod2c/nrnunits.lib")
 
@@ -67,21 +59,11 @@ cpp_cc_build_time_copy(
   OUTPUT "${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl"
   NO_TARGET)
 cpp_cc_build_time_copy(
-  INPUT "${KINDERIV_PYTHON_SCRIPT}"
-  OUTPUT "${CMAKE_BINARY_DIR}/share/coreneuron/kinderiv.py"
-  NO_TARGET)
-cpp_cc_build_time_copy(
-  INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${DIMPLIC_CODE_FILE}"
-  OUTPUT "${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp"
-  NO_TARGET)
-cpp_cc_build_time_copy(
   INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${ENGINEMECH_CODE_FILE}"
   OUTPUT "${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp"
   NO_TARGET)
 set(nrnivmodl_core_dependencies
     "${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl"
-    "${CMAKE_BINARY_DIR}/share/coreneuron/kinderiv.py"
-    "${CMAKE_BINARY_DIR}/share/coreneuron/dimplic.cpp"
     "${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp")
 # Set up build rules that copy builtin mod files from
 # {source}/coreneuron/mechanism/mech/modfile/*.mod to {build_dir}/share/modfile/
@@ -142,17 +124,6 @@ endif()
 # CORENRN_USE_LEGACY_UNITS is used in membfunc.hpp so defined it everywhere
 # =============================================================================
 add_compile_definitions(CORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
-
-# =============================================================================
-# run KINDERIV_PYTHON_SCRIPT to generate _kinderiv.h
-# =============================================================================
-add_custom_command(
-  OUTPUT "${KINDERIV_HEADER_FILE}"
-  DEPENDS ${NMODL_INBUILT_MOD_OUTPUTS} "${KINDERIV_PYTHON_SCRIPT}"
-  COMMAND ${PYTHON_EXECUTABLE} ${KINDERIV_PYTHON_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "Generating kinderiv.h by inspecting MOD files")
-add_custom_target(kin_deriv_header DEPENDS "${KINDERIV_HEADER_FILE}")
 
 # =============================================================================
 # create libraries
@@ -269,8 +240,8 @@ set_target_properties(coreneuron PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_compile_options(coreneuron
                        PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENEURON_CXX_WARNING_SUPPRESSIONS}>)
 
-# need to have _kinderiv.h for mod2c generated files and nrnivmodl-core and nmodl building
-add_dependencies(coreneuron kin_deriv_header nrnivmodl-core)
+# does this nrnivmodl-core target even exist?
+add_dependencies(coreneuron nrnivmodl-core)
 
 # scopmath is created separately for nrnivmodl-core workflow
 add_library(scopmath STATIC ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
@@ -393,8 +364,7 @@ install(
   PATTERN "*.h*"
   PATTERN "*.ipp"
   PATTERN "*.ispc")
-install(FILES ${KINDERIV_PYTHON_SCRIPT} ${MODFUNC_PERL_SCRIPT} ${DIMPLIC_CODE_FILE}
-              ${ENGINEMECH_CODE_FILE} DESTINATION share/coreneuron)
+install(FILES ${MODFUNC_PERL_SCRIPT} ${DIMPLIC_CODE_FILE} ${ENGINEMECH_CODE_FILE} DESTINATION share/coreneuron)
 
 # copy mod2c/nmodl for nrnivmodl-core
 install(PROGRAMS ${CORENRN_MOD2CPP_BINARY} DESTINATION bin)

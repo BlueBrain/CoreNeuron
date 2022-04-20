@@ -80,18 +80,11 @@
         varord[el->col] < varord[el->r_down->col]
 */
 namespace coreneuron {
-static int matsol(SparseObj* so, int _iml);
-static void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml);
-static void bksub(SparseObj* so, int _iml);
-static void initeqn(SparseObj* so, unsigned maxeqn);
 static void free_elm(SparseObj* so);
 static Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem);
-static void create_coef_list(SparseObj* so, int n, SPFUN fun, _threadargsproto_);
-static void init_coef_list(SparseObj* so, int _iml);
 static void init_minorder(SparseObj* so);
 static void increase_order(SparseObj* so, unsigned row);
 static void reduce_order(SparseObj* so, unsigned row);
-static void spar_minorder(SparseObj* so);
 static void get_next_pivot(SparseObj* so, unsigned i);
 static Item* newitem();
 static List* newlist();
@@ -103,7 +96,6 @@ static void* myemalloc(unsigned n);
 static void myfree(void*);
 static void check_assert(SparseObj* so);
 static void re_link(SparseObj* so, unsigned i);
-static SparseObj* create_sparseobj();
 
 #ifdef CORENEURON_ENABLE_GPU
 #undef emalloc
@@ -112,91 +104,27 @@ static SparseObj* create_sparseobj();
 #define ecalloc(arg1, arg2) malloc((arg1) * (arg2))
 #endif
 
-static Elm* nrn_pool_alloc(void* arg) {
-    return (Elm*) emalloc(sizeof(Elm));
-}
-
-/* sparse matrix dynamic allocation:
-create_coef_list makes a list for fast setup, does minimum ordering and
-ensures all elements needed are present */
-/* this could easily be made recursive but it isn't right now */
-
-void* nrn_cons_sparseobj(SPFUN fun, int n, Memb_list* ml, _threadargsproto_) {
-    SparseObj* so;
-    // fill in the unset _threadargsproto_ assuming _iml = 0;
-    _iml = 0; /* from _threadargsproto_ */
-    _p = ml->data;
-    _ppvar = ml->pdata;
-    _v = _nt->_actual_v[ml->nodeindices[_iml]];
-
-    so = create_sparseobj();
-    so->_cntml_padded = _cntml_padded;
-    create_coef_list(so, n, fun, _threadargs_);
-    nrn_sparseobj_copyto_device(so);
-    return so;
-}
-
-int sparse_thread(SparseObj* so,
-                  int n,
-                  int* s,
-                  int* d,
-                  double* t,
-                  double dt,
-                  SPFUN fun,
-                  int linflag,
-                  _threadargsproto_) {
 #define ix(arg) ((arg) *_STRIDE)
 #define s_(arg) _p[ix(s[arg])]
 #define d_(arg) _p[ix(d[arg])]
 
-    int i, j, ierr;
-    double err;
-
-    for (i = 0; i < n; i++) { /*save old state*/
-        d_(i) = s_(i);
-    }
-    for (err = 1, j = 0; err > CONVERGE; j++) {
-        init_coef_list(so, _iml);
-        spfun(fun, so, so->rhs);
-        if ((ierr = matsol(so, _iml))) {
-            return ierr;
-        }
-        for (err = 0., i = 1; i <= n; i++) { /* why oh why did I write it from 1 */
-            s_(i - 1) += so->rhs[ix(i)];
-            if (!linflag && s_(i - 1) < 0.) {
-                s_(i - 1) = 0.;
-            }
-            err += fabs(so->rhs[ix(i)]);
-        }
-        if (j > MAXSTEPS) {
-            return EXCEED_ITERS;
-        }
-        if (linflag)
-            break;
-    }
-    init_coef_list(so, _iml);
-    spfun(fun, so, so->rhs);
-    for (i = 0; i < n; i++) { /*restore Dstate at t+dt*/
-        d_(i) = (s_(i) - d_(i)) / dt;
-    }
-    return SUCCESS;
+static Elm* nrn_pool_alloc(void* arg) {
+    return (Elm*) emalloc(sizeof(Elm));
 }
 
 /* for solving ax=b */
+template <typename SPFUN>
 int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_)
 #define x_(arg) _p[x[arg] * _STRIDE]
 {
     SparseObj* so = (SparseObj*) (*v);
     if (!so) {
-        so = create_sparseobj();
-        *v = (void*) so;
+        so = new SparseObj{};
+        *v = so;
     }
-    if (so->oldfun != fun) {
-        so->oldfun = fun;
-        create_coef_list(so, n, fun, _threadargs_); /* calls fun twice */
-    }
-    init_coef_list(so, _iml);
-    spfun(fun, so, so->rhs);
+    create_coef_list(so, n, fun, _threadargs_); /* calls fun twice */
+    scopmath::sparse::init_coef_list(so, _iml);
+    fun(so, so->rhs, _threadargs_); // std::invoke in C++17
     int ierr;
     if ((ierr = matsol(so, _iml))) {
         return ierr;
@@ -207,50 +135,9 @@ int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_)
     return SUCCESS;
 }
 
-static int matsol(SparseObj* so, int _iml) {
-    /* Upper triangularization */
-    so->numop = 0;
-    for (unsigned i = 1; i <= so->neqn; i++) {
-        Elm* pivot;
-        if (fabs((pivot = so->diag[i])->value[_iml]) <= ROUNDOFF) {
-            return SINGULAR;
-        }
-        /* Eliminate all elements in pivot column */
-        for (auto el = pivot->r_down; el; el = el->r_down) {
-            subrow(so, pivot, el, _iml);
-        }
-    }
-    bksub(so, _iml);
-    return (SUCCESS);
-}
-
-static void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml) {
-    int _cntml_padded = so->_cntml_padded;
-    double r = rowsub->value[_iml] / pivot->value[_iml];
-    so->rhs[ix(rowsub->row)] -= so->rhs[ix(pivot->row)] * r;
-    so->numop++;
-    for (auto el = pivot->c_right; el; el = el->c_right) {
-        for (rowsub = rowsub->c_right; rowsub->col != el->col; rowsub = rowsub->c_right) {
-            ;
-        }
-        rowsub->value[_iml] -= el->value[_iml] * r;
-        so->numop++;
-    }
-}
-
-static void bksub(SparseObj* so, int _iml) {
-    int _cntml_padded = so->_cntml_padded;
-    for (unsigned i = so->neqn; i >= 1; i--) {
-        for (Elm* el = so->diag[i]->c_right; el; el = el->c_right) {
-            so->rhs[ix(el->row)] -= el->value[_iml] * so->rhs[ix(el->col)];
-            so->numop++;
-        }
-        so->rhs[ix(so->diag[i]->row)] /= so->diag[i]->value[_iml];
-        so->numop++;
-    }
-}
-
-static void initeqn(SparseObj* so, unsigned maxeqn) /* reallocate space for matrix */
+namespace scopmath {
+namespace sparse {
+void initeqn(SparseObj* so, unsigned maxeqn) /* reallocate space for matrix */
 {
     if (maxeqn == so->neqn)
         return;
@@ -288,6 +175,24 @@ static void initeqn(SparseObj* so, unsigned maxeqn) /* reallocate space for matr
     for (unsigned i = 0; i < nn; ++i) {
         so->rhs[i] = 0.;
     }
+}
+
+/**
+ * Minimum ordering algorithm to determine the order that the matrix should be
+ * solved. Also make sure all needed elements are present. This does not mess up
+ * the matrix.
+ */
+void spar_minorder(SparseObj* so) { 
+    check_assert(so);
+    init_minorder(so);
+    for (unsigned i = 1; i <= so->neqn; i++) {
+        get_next_pivot(so, i);
+    }
+    so->do_flag = 0;
+    check_assert(so);
+}
+
+}
 }
 
 static void free_elm(SparseObj* so) {
@@ -417,32 +322,6 @@ double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml) {
     return el->value;
 }
 
-static void create_coef_list(SparseObj* so, int n, SPFUN fun, _threadargsproto_) {
-    initeqn(so, (unsigned) n);
-    so->phase = 1;
-    so->ngetcall[0] = 0;
-    spfun(fun, so, so->rhs);
-    if (so->coef_list) {
-        free(so->coef_list);
-    }
-    so->coef_list_size = so->ngetcall[0];
-    so->coef_list = (double**) myemalloc(so->ngetcall[0] * sizeof(double*));
-    spar_minorder(so);
-    so->phase = 2;
-    so->ngetcall[0] = 0;
-    spfun(fun, so, so->rhs);
-    so->phase = 0;
-}
-
-static void init_coef_list(SparseObj* so, int _iml) {
-    so->ngetcall[_iml] = 0;
-    for (unsigned i = 1; i <= so->neqn; i++) {
-        for (Elm* el = so->rowst[i]; el; el = el->c_right) {
-            el->value[_iml] = 0.;
-        }
-    }
-}
-
 static void init_minorder(SparseObj* so) {
     /* matrix has been set up. Construct the orderlist and orderfind
        vector.
@@ -494,20 +373,6 @@ static void reduce_order(SparseObj* so, unsigned row) {
     delete_item(order);
     order->norder--;
     insert(so, order);
-}
-
-static void spar_minorder(SparseObj* so) { /* Minimum ordering algorithm to determine the order
-                        that the matrix should be solved. Also make sure
-                        all needed elements are present.
-                        This does not mess up the matrix
-                      */
-    check_assert(so);
-    init_minorder(so);
-    for (unsigned i = 1; i <= so->neqn; i++) {
-        get_next_pivot(so, i);
-    }
-    so->do_flag = 0;
-    check_assert(so);
 }
 
 static void get_next_pivot(SparseObj* so, unsigned i) {
@@ -729,28 +594,6 @@ static void re_link(SparseObj* so, unsigned i) {
     }
 }
 
-static SparseObj* create_sparseobj() {
-    SparseObj* so = (SparseObj*) myemalloc(sizeof(SparseObj));
-    nrn_malloc_lock();
-    nrn_malloc_unlock();
-    so->rowst = 0;
-    so->diag = 0;
-    so->neqn = 0;
-    so->_cntml_padded = 0;
-    so->varord = 0;
-    so->rhs = 0;
-    so->oldfun = 0;
-    so->ngetcall = 0;
-    so->phase = 0;
-    so->coef_list = 0;
-    so->roworder = 0;
-    so->nroworder = 0;
-    so->orderlist = 0;
-    so->do_flag = 0;
-
-    return so;
-}
-
 void _nrn_destroy_sparseobj_thread(SparseObj* so) {
     if (!so) {
         return;
@@ -764,8 +607,7 @@ void _nrn_destroy_sparseobj_thread(SparseObj* so) {
         Free(so->varord);
     if (so->rhs)
         Free(so->rhs);
-    if (so->coef_list)
-        Free(so->coef_list);
+    delete[] so->coef_list;
     if (so->roworder) {
         for (int i = 1; i <= so->nroworder; ++i) {
             Free(so->roworder[i]);
@@ -774,6 +616,6 @@ void _nrn_destroy_sparseobj_thread(SparseObj* so) {
     }
     if (so->orderlist)
         freelist(so->orderlist);
-    Free(so);
+    delete so;
 }
 }  // namespace coreneuron

@@ -1,3 +1,8 @@
+/*
+# =============================================================================
+# Originally newton.c from SCoP library, Copyright (c) 1987-90 Duke University
+# =============================================================================
+*/
 #pragma once
 #include "coreneuron/sim/scopmath/errcodes.h"
 #include "coreneuron/sim/scopmath/newton_struct.h"
@@ -8,45 +13,22 @@ namespace coreneuron {
 #define s_(arg) _p[s[arg] * _STRIDE]
 #define x_(arg) _p[(arg) *_STRIDE]
 namespace detail {
-/*------------------------------------------------------------*/
-/*                                                            */
-/*  BUILDJACOBIAN                                 	      */
-/*                                                            */
-/*    Creates the Jacobian matrix by computing partial deriv- */
-/*    atives by finite central differences.  If the column    */
-/*    variable is nonzero, an increment of 2% of the variable */
-/*    is used.  STEP is the minimum increment allowed; it is  */
-/*    currently set to 1.0E-6.                                */
-/*                                                            */
-/*  Returns: no return variable                               */
-/*                                                            */
-/*  Calling sequence:					      */
-/*	 buildjacobian(n, index, x, pfunc, value, jacobian)       */
-/*                                                            */
-/*  Arguments:                                                */
-/*                                                            */
-/*    Input: n, integer, number of variables                  */
-/*                                                            */
-/*           x, pointer to array of addresses of the solution */
-/*		vector elements				      */
-/*                                                            */
-/*	     p, array of parameter values		      */
-/*                                                            */
-/*           pfunc, pointer to function which computes the    */
-/*                     deviation from zero of each equation   */
-/*                     in the model.                          */
-/*                                                            */
-/*	     value, pointer to array of addresses of function */
-/*		       values				      */
-/*                                                            */
-/*    Output: jacobian, double, computed jacobian matrix      */
-/*                                                            */
-/*  Functions called:  user-supplied function with argument   */
-/*                     (p) to compute vector of function      */
-/*		       values for each equation.	      */
-/*		       makevector(), freevector()	      */
-/*                                                            */
-/*------------------------------------------------------------*/
+/**
+ * @brief Calculate the Jacobian matrix using finite central differences.
+ *
+ * Creates the Jacobian matrix by computing partial derivatives by finite
+ * central differences. If the column variable is nonzero, an increment of 2% of
+ * the variable is used. STEP is the minimum increment allowed; it is currently
+ * set to 1.0E-6.
+ *
+ * @param n number of variables
+ * @param x pointer to array of addresses of the solution vector elements
+ * @param p array of parameter values
+ * @param func callable that computes the deviation from zero of each equation
+ *             in the model
+ * @param value pointer to array of addresses of function values
+ * @param[out] jacobian computed jacobian matrix
+ */
 template <typename F>
 void nrn_buildjacobian_thread(NewtonSpace* ns,
                               int n,
@@ -84,6 +66,23 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
 }
 #undef x_
 }
+
+/**
+ * Iteratively solves simultaneous nonlinear equations by Newton's method, using
+ * a Jacobian matrix computed by finite differences.
+ *
+ * @return 0 if no error; 2 if matrix is singular or ill-conditioned; 1 if
+ *         maximum iterations exceeded.
+ * @param n number of variables to solve for
+ * @param x pointer to array of the solution vector elements possibly indexed by
+ *          index
+ * @param p array of parameter values
+ * @param func callable that computes the deviation from zero of each equation
+ *             in the model
+ * @param value pointer to array to array of the function values
+ * @param[out] x contains the solution value or the most recent iteration's
+ *               result in the event of an error.
+ */
 template <typename F>
 inline int nrn_newton_thread(NewtonSpace* ns,
                       int n,
@@ -112,7 +111,6 @@ inline int nrn_newton_thread(NewtonSpace* ns,
              * Recalculate Jacobian matrix if solution has changed by more
              * than MAXCHANGE
              */
-
             detail::nrn_buildjacobian_thread(ns, n, s, func, value, jacobian, _threadargs_);
             for (int i = 0; i < n; i++)
                 value[ix(i)] = -value[ix(i)]; /* Required correction to
@@ -165,4 +163,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
 }
 #undef ix
 #undef s_
+
+NewtonSpace* nrn_cons_newtonspace(int n, int n_instance);
+void nrn_destroy_newtonspace(NewtonSpace* ns);
 }

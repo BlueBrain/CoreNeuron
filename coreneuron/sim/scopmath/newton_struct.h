@@ -5,9 +5,7 @@
 # See top-level LICENSE file for details.
 # =============================================================================
 */
-
 #pragma once
-
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 
 namespace coreneuron {
@@ -24,8 +22,6 @@ struct NewtonSpace {
     double* rowmax;
 };
 
-extern NewtonSpace* nrn_cons_newtonspace(int n, int n_instance);
-extern void nrn_destroy_newtonspace(NewtonSpace* ns);
 void nrn_newtonspace_copyto_device(NewtonSpace* ns);
 void nrn_newtonspace_delete_from_device(NewtonSpace* ns);
 

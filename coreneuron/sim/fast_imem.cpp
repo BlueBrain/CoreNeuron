@@ -21,9 +21,10 @@ bool nrn_use_fast_imem;
 void fast_imem_free() {
     for (auto nt = nrn_threads; nt < nrn_threads + nrn_nthread; ++nt) {
         if (nt->nrn_fast_imem) {
-            free(nt->nrn_fast_imem->nrn_sav_rhs);
-            free(nt->nrn_fast_imem->nrn_sav_d);
-            free(nt->nrn_fast_imem);
+            // Forwards to cudaFree if CORENEURON_UNIFIED_MEMORY is set.
+            free_memory(nt->nrn_fast_imem->nrn_sav_rhs);
+            free_memory(nt->nrn_fast_imem->nrn_sav_d);
+            free_memory(nt->nrn_fast_imem);
             nt->nrn_fast_imem = nullptr;
         }
     }
@@ -34,9 +35,10 @@ void nrn_fast_imem_alloc() {
         fast_imem_free();
         for (auto nt = nrn_threads; nt < nrn_threads + nrn_nthread; ++nt) {
             int n = nt->end;
-            nt->nrn_fast_imem = (NrnFastImem*) ecalloc(1, sizeof(NrnFastImem));
-            nt->nrn_fast_imem->nrn_sav_rhs = (double*) ecalloc_align(n, sizeof(double));
-            nt->nrn_fast_imem->nrn_sav_d = (double*) ecalloc_align(n, sizeof(double));
+            // Forwards to cudaMallocManaged if CORENEURON_UNIFIED_MEMORY is set.
+            nt->nrn_fast_imem = static_cast<NrnFastImem*>(ecalloc_align(1, sizeof(NrnFastImem)));
+            nt->nrn_fast_imem->nrn_sav_rhs = static_cast<double*>(ecalloc_align(n, sizeof(double)));
+            nt->nrn_fast_imem->nrn_sav_d = static_cast<double*>(ecalloc_align(n, sizeof(double)));
         }
     }
 }
