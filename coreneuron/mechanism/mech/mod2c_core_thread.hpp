@@ -34,7 +34,6 @@ struct Elm {
     struct Elm* c_left;  /* Link to left element in same row */
     struct Elm* c_right; /*       in solution order (see getelm) */
 };
-#define ELM0 (Elm*) 0
 
 struct Item {
     Elm* elm;
@@ -67,11 +66,6 @@ struct SparseObj {            /* all the state information */
                              that haven't been used */
     int do_flag{};
 };
-
-nrn_pragma_acc(routine seq)
-nrn_pragma_omp(declare target)
-extern double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml);
-nrn_pragma_omp(end declare target)
 
 extern void _nrn_destroy_sparseobj_thread(SparseObj* so);
 
