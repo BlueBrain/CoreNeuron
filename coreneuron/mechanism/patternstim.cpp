@@ -38,6 +38,7 @@ extern void pattern_stim_setup_helper(int size,
                                       Datum* _ppvar,
                                       ThreadDatum* _thread,
                                       NrnThread* _nt,
+                                      Memb_list* ml,
                                       double v);
 
 static size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double tstop);
@@ -93,7 +94,7 @@ void nrn_mkPatternStim(const char* fname, double tstop) {
     } else {
         assert(0);
     }
-    pattern_stim_setup_helper(size, tvec, gidvec, _iml, _cntml, _p, _ppvar, nullptr, nt, 0.0);
+    pattern_stim_setup_helper(size, tvec, gidvec, _iml, _cntml, _p, _ppvar, nullptr, nt, ml, 0.0);
 }
 
 size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double tstop) {

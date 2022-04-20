@@ -754,6 +754,11 @@ void nrn_cleanup() {
                 ml->_thread = nullptr;
             }
 
+            if (ml->instance) {
+                free(ml->instance);
+                ml->instance = nullptr;
+            }
+
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
             if (nrb) {
                 if (nrb->_size) {

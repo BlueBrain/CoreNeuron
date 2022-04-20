@@ -867,6 +867,7 @@ void Phase2::get_info_from_bbcore(NrnThread& nt,
                                                pd,
                                                ml->_thread,
                                                &nt,
+                                               ml,
                                                0.0);
         }
         assert(dk == static_cast<int>(tmls[i].dArray.size()));

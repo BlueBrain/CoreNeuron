@@ -72,7 +72,7 @@ if(CORENRN_ENABLE_GPU)
   #      but as discussed in
   #        https://github.com/BlueBrain/CoreNeuron/issues/141#issuecomment-1086742194
   #      this is still not completely solving underlying link issue.
-  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo,nordc")
+  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
