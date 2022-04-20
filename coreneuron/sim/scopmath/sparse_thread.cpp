@@ -10,6 +10,7 @@
 #include "coreneuron/mechanism/mech/cfile/scoplib.h"
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp" /* _threadargs, _STRIDE, etc. */
 #include "coreneuron/sim/scopmath/errcodes.h"
+#include "coreneuron/sim/scopmath/sparse_thread.hpp"
 #include "coreneuron/utils/nrnoc_aux.hpp"
 
 /* Aug 2016 coreneuron : very different prototype and memory organization */

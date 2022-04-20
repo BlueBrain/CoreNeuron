@@ -1,3 +1,10 @@
+/*
+# =============================================================================
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
+#
+# See top-level LICENSE file for details.
+# =============================================================================
+*/
 #pragma once
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 
@@ -29,7 +36,7 @@ int _ss_sparse_thread(SparseObj* so,
                       _threadargsproto_) {
     int err;
     double ss_dt = 1e9;
-    _modl_set_dt_thread(ss_dt, _nt);
+    _nt->_dt = ss_dt;
 
     if (linflag) { /*iterate linear solution*/
         err = sparse_thread(so, n, s, d, t, ss_dt, fun, 0, _threadargs_);
@@ -51,16 +58,16 @@ int _ss_sparse_thread(SparseObj* so,
         }
     }
 
-    _modl_set_dt_thread(dt, _nt);
+    _nt->_dt = dt;
     return err;
 }
 
 template <typename DIFUN>
 int _ss_derivimplicit_thread(int n, int* slist, int* dlist, DIFUN fun, _threadargsproto_) {
-    double dtsav = _modl_get_dt_thread(_nt);
-    _modl_set_dt_thread(1e-9, _nt);
+    double const dtsav{_nt->_dt};
+    _nt->_dt = 1e-9;
     int err = fun(_threadargs_);
-    _modl_set_dt_thread(dtsav, _nt);
+    _nt->_dt = dtsav;
     return err;
 }
 }  // namespace coreneuron

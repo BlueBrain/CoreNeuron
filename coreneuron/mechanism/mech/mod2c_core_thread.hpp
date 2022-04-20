@@ -89,13 +89,6 @@ int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
     return 0;
 }
 
-nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-extern double _modl_get_dt_thread(NrnThread*);
-nrn_pragma_acc(routine seq)
-extern void _modl_set_dt_thread(double, NrnThread*);
-nrn_pragma_omp(end declare target)
-
 void nrn_sparseobj_copyto_device(SparseObj* so);
 void nrn_sparseobj_delete_from_device(SparseObj* so);
 
