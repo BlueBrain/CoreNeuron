@@ -63,11 +63,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     for (int j = 0; j < n; j++) {
         double increment = max(fabs(0.02 * (x_(index[j]))), STEP);
         x_(index[j]) += increment;
-        std::invoke(func, _threadargs_);
+        func(_threadargs_); // std::invoke in C++17
         for (int i = 0; i < n; i++)
             high_value[ix(i)] = value[ix(i)];
         x_(index[j]) -= 2.0 * increment;
-        std::invoke(func, _threadargs_);
+        func(_threadargs_); // std::invoke in C++17
         for (int i = 0; i < n; i++) {
             low_value[ix(i)] = value[ix(i)];
 
@@ -79,7 +79,7 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
         /* Restore original variable and function values. */
 
         x_(index[j]) += increment;
-        std::invoke(func, _threadargs_);
+        func(_threadargs_); // std::invoke in C++17
     }
 }
 #undef x_
@@ -143,7 +143,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
                 }
             }
             // Evaulate function values with new solution.
-            std::invoke(func, _threadargs_);
+            func(_threadargs_); // std::invoke in C++17
             max_dev = 0.0;
             for (int i = 0; i < n; i++) {
                 value[ix(i)] = -value[ix(i)]; /* Required correction to function
