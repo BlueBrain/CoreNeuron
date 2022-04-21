@@ -138,7 +138,7 @@ size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double t
 
 // see nrn_setup.cpp:read_phase2 for how it creates NrnThreadMembList instances.
 static NrnThreadMembList* alloc_nrn_thread_memb(int type) {
-    NrnThreadMembList* tml = (NrnThreadMembList*) emalloc(sizeof(NrnThreadMembList));
+    NrnThreadMembList* tml = (NrnThreadMembList*) ecalloc(1, sizeof(NrnThreadMembList));
     tml->dependencies = nullptr;
     tml->ndependencies = 0;
     tml->index = type;
@@ -149,7 +149,7 @@ static NrnThreadMembList* alloc_nrn_thread_memb(int type) {
     int psize = corenrn.get_prop_param_size()[type];
     int dsize = corenrn.get_prop_dparam_size()[type];
     int layout = corenrn.get_mech_data_layout()[type];
-    tml->ml = (Memb_list*) emalloc(sizeof(Memb_list));
+    tml->ml = (Memb_list*) ecalloc(1, sizeof(Memb_list));
     tml->ml->nodecount = 1;
     tml->ml->_nodecount_padded = tml->ml->nodecount;
     tml->ml->nodeindices = nullptr;
