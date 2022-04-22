@@ -2,12 +2,13 @@
 # =============================================================================
 # Originally sparse.c from SCoP library, Copyright (c) 1989-90 Duke University
 # =============================================================================
+# Subsequent extensive prototype and memory layout changes for CoreNEURON
+#
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
-/**
- * Apr 1993 converted to object so many models can use it
- * Jan 2008 thread safe
- * Aug 2016 coreneuron : very different prototype and memory organization
- */
 #pragma once
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
@@ -607,15 +608,14 @@ int sparse_thread(SparseObj* so,
 #undef scopmath_sparse_d
 #undef scopmath_sparse_ix
 #undef scopmath_sparse_s
-
 #define scopmath_sparse_x(arg) _p[x[arg] * _STRIDE]
 /* for solving ax=b */
 template <typename SPFUN>
-int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_) {
-    SparseObj* so = (SparseObj*) (*v);
+int _cvode_sparse_thread(void** vpr, int n, int* x, SPFUN fun, _threadargsproto_) {
+    SparseObj* so = (SparseObj*) (*vpr);
     if (!so) {
         so = new SparseObj{};
-        *v = so;
+        *vpr = so;
     }
     scopmath::sparse::create_coef_list(so, n, fun, _threadargs_); /* calls fun twice */
     scopmath::sparse::init_coef_list(so, _iml);
@@ -631,7 +631,7 @@ int _cvode_sparse_thread(void** v, int n, int* x, SPFUN fun, _threadargsproto_) 
 }
 #undef scopmath_sparse_x
 
-void _nrn_destroy_sparseobj_thread(SparseObj* so) {
+inline void _nrn_destroy_sparseobj_thread(SparseObj* so) {
     if (!so) {
         return;
     }
