@@ -437,25 +437,24 @@ inline void init_coef_list(SparseObj* so, int _iml) {
 
 #define scopmath_sparse_ix(arg) ((arg) *_STRIDE)
 inline void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml) {
-    //printf("subrow(%p, %p, %p, %d)\n", so, pivot, rowsub, _iml);
     int const _cntml_padded{so->_cntml_padded};
     double const r{rowsub->value[_iml] / pivot->value[_iml]};
     so->rhs[scopmath_sparse_ix(rowsub->row)] -= so->rhs[scopmath_sparse_ix(pivot->row)] * r;
     so->numop++;
     for (auto el = pivot->c_right; el; el = el->c_right) {
-        for (rowsub = rowsub->c_right; rowsub->col != el->col; rowsub = rowsub->c_right) {}
+        for (rowsub = rowsub->c_right; rowsub->col != el->col; rowsub = rowsub->c_right) {
+        }
         rowsub->value[_iml] -= el->value[_iml] * r;
         so->numop++;
     }
 }
 
 inline void bksub(SparseObj* so, int _iml) {
-    // printf("bksub(%p, %d)\n", so, _iml);
     int _cntml_padded = so->_cntml_padded;
     for (unsigned i = so->neqn; i >= 1; i--) {
         for (Elm* el = so->diag[i]->c_right; el; el = el->c_right) {
-            so->rhs[scopmath_sparse_ix(el->row)] -=
-                el->value[_iml] * so->rhs[scopmath_sparse_ix(el->col)];
+            so->rhs[scopmath_sparse_ix(el->row)] -= el->value[_iml] *
+                                                    so->rhs[scopmath_sparse_ix(el->col)];
             so->numop++;
         }
         so->rhs[scopmath_sparse_ix(so->diag[i]->row)] /= so->diag[i]->value[_iml];
@@ -643,7 +642,7 @@ inline void _nrn_destroy_sparseobj_thread(SparseObj* so) {
     delete[] so->coef_list;
     if (so->roworder) {
         for (int i = 1; i <= so->nroworder; ++i) {
-            delete so->roworder[i-1];
+            delete so->roworder[i - 1];
         }
         delete[] so->roworder;
     }
