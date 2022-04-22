@@ -34,5 +34,4 @@ extern void hoc_execerror(const char*, const char*); /* print and abort */
 extern void hoc_warning(const char*, const char*);
 
 extern double hoc_Exp(double x);
-
 }  // namespace coreneuron

@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================.
@@ -154,23 +154,9 @@ the USEION statement of any model using this ion\n",
     }
 }
 
-#ifndef CORENRN_USE_LEGACY_UNITS
-#define CORENRN_USE_LEGACY_UNITS 0
-#endif
-
-#if CORENRN_USE_LEGACY_UNITS == 1
-#define FARADAY     96485.309
-#define gasconstant 8.3134
-#else
-#include "coreneuron/nrnoc/nrnunits_modern.h"
-#define FARADAY     _faraday_codata2018
-#define gasconstant _gasconstant_codata2018
-#endif
-
-#define ktf (1000. * gasconstant * (celsius + 273.15) / FARADAY)
-
-double nrn_nernst(double ci, double co, double z, double celsius) {
-    /*printf("nrn_nernst %g %g %g\n", ci, co, z);*/
+// std::log isn't constexpr, but there are argument values for which nrn_nernst
+// is a constant expression
+constexpr double nrn_nernst(double ci, double co, double z, double celsius) {
     if (z == 0) {
         return 0.;
     }
@@ -179,7 +165,7 @@ double nrn_nernst(double ci, double co, double z, double celsius) {
     } else if (co <= 0.) {
         return -1e6;
     } else {
-        return ktf / z * log(co / ci);
+        return ktf(celsius) / z * std::log(co / ci);
     }
 }
 
@@ -200,23 +186,7 @@ void nrn_wrote_conc(int type,
         pe[0] = nrn_nernst(pe[1 * _STRIDE], pe[2 * _STRIDE], gimap[type][2], celsius);
     }
 }
-
-static double efun(double x) {
-    if (fabs(x) < 1e-4) {
-        return 1. - x / 2.;
-    } else {
-        return x / (exp(x) - 1);
-    }
-}
-
 nrn_pragma_omp(end declare target)
-
-double nrn_ghk(double v, double ci, double co, double z, double celsius) {
-    double temp = z * v / ktf;
-    double eco = co * efun(temp);
-    double eci = ci * efun(-temp);
-    return (.001) * z * FARADAY * (eci - eco);
-}
 
 #if VECTORIZE
 #define erev   pd[0 * _STRIDE] /* From Eion */
@@ -257,7 +227,7 @@ ion_style("name_ion", [c_style, e_style, einit, eadvance, cinit])
 
 double nrn_nernst_coef(int type) {
     /* for computing jacobian element dconc'/dconc */
-    return ktf / charge;
+    return ktf(celsius) / charge;
 }
 
 /* Must be called prior to any channels which update the currents */
