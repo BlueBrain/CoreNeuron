@@ -32,8 +32,7 @@ file(
   "utils/*/*.c"
   "utils/*/*.cpp")
 set(SCOPMATH_CODE_FILES
-    "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp"
-    "sim/scopmath/sparse_thread.cpp")
+    "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp")
 set(MPI_LIB_FILES "mpi/lib/mpispike.cpp" "mpi/lib/nrnmpi.cpp")
 set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp")
 if(CORENRN_ENABLE_MPI)
