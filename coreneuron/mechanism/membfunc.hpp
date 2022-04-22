@@ -1,17 +1,19 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================.
 */
-
 #pragma once
-
-#include <vector>
 
 #include "coreneuron/mechanism/mechanism.hpp"
 #include "coreneuron/utils/offload.hpp"
+#include "coreneuron/utils/units.hpp"
+
+#include <cmath>
+#include <vector>
+
 namespace coreneuron {
 
 using Pfrpdat = Datum* (*) (void);
@@ -113,11 +115,30 @@ extern void nrn_writes_conc(int, int);
 nrn_pragma_omp(declare target)
 nrn_pragma_acc(routine seq)
 extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
-nrn_pragma_acc(routine seq)
-double nrn_nernst(double ci, double co, double z, double celsius);
-nrn_pragma_acc(routine seq)
-extern double nrn_ghk(double v, double ci, double co, double z);
 nrn_pragma_omp(end declare target)
+constexpr double ktf(double celsius) {
+    return 1000. * units::gasconstant * (celsius + 273.15) / units::faraday;
+}
+inline double nrn_ghk(double v, double ci, double co, double z, double celsius) {
+    auto const efun = [](double x) {
+        if (std::abs(x) < 1e-4) {
+            return 1. - x / 2.;
+        } else {
+            return x / (std::exp(x) - 1.);
+        }
+    };
+    double const temp{z * v / ktf(celsius)};
+    double const eco{co * efun(+temp)};
+    double const eci{ci * efun(-temp)};
+    return .001 * z * units::faraday * (eci - eco);
+}
+/**
+ * This signature requires the use of the `celsius` global variable, which can
+ * cause problems when executing on GPU.
+ */
+[[deprecated]] inline double nrn_ghk(double v, double ci, double co, double z) {
+    return nrn_ghk(v, ci, co, z, celsius);
+}
 extern void hoc_register_prop_size(int, int, int);
 extern void hoc_register_dparam_semantics(int type, int, const char* name);
 extern void hoc_reg_ba(int, mod_f_t, int);
