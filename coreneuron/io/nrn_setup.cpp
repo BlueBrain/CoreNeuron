@@ -759,6 +759,11 @@ void nrn_cleanup() {
                 ml->instance = nullptr;
             }
 
+            if (ml->global_variables) {
+                free(ml->global_variables);
+                ml->global_variables = nullptr;
+            }
+
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
             if (nrb) {
                 if (nrb->_size) {

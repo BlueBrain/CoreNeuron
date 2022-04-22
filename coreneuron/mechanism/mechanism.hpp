@@ -143,7 +143,8 @@ struct Memb_list {
     NetSendBuffer_t* _net_send_buffer = nullptr;
     int nodecount; /* actual node count */
     int _nodecount_padded;
-    void* instance = nullptr; /* mechanism instance struct from NMODL or global variables struct in
-                                 mod2c */
+    void* instance = nullptr;         /* mechanism instance struct from NMODL */
+    void* global_variables = nullptr; /* global variables struct for each mechanism */
+    int global_variables_size = 0;    /* size of global variables struct in bytes */
 };
 }  // namespace coreneuron
