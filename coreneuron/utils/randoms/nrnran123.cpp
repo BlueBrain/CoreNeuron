@@ -5,6 +5,7 @@
 # See top-level LICENSE file for details.
 # =============================================================================.
 */
+#include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/mpi/core/nrnmpi.hpp"
 #include "coreneuron/utils/memory.h"
 #include "coreneuron/utils/nrnmutdec.hpp"
@@ -96,6 +97,10 @@ CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_Sta
 }  // namespace
 
 namespace coreneuron {
+void init_nrnran123() {
+    nrn_pragma_acc(enter data copyin(g_k))
+}
+
 std::size_t nrnran123_instance_count() {
     return g_instance_count;
 }
