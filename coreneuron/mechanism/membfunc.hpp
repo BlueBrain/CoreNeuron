@@ -114,7 +114,7 @@ extern void nrn_jacob_capacitance(NrnThread*, Memb_list*, int);
 extern void nrn_writes_conc(int, int);
 nrn_pragma_omp(declare target)
 nrn_pragma_acc(routine seq)
-extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
+void nrn_wrote_conc(int, double*, int, int, double**, double, int);
 nrn_pragma_omp(end declare target)
 constexpr double ktf(double celsius) {
     return 1000. * units::gasconstant * (celsius + 273.15) / units::faraday;
