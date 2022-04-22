@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "coreneuron/apps/corenrn_parameters.hpp"
+#include "coreneuron/gpu/nrn_acc_manager.hpp"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/network/netcon.hpp"
 #include "coreneuron/nrniv/nrniv_decl.h"
@@ -1287,6 +1288,8 @@ void init_gpu() {
         std::cout << " Info : " << num_devices_per_node << " GPUs shared by " << local_size
                   << " ranks per node\n";
     }
+
+    init_nrnran123();
 }
 
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
