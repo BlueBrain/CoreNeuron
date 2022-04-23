@@ -211,7 +211,7 @@ static double efun(double x) {
 
 nrn_pragma_omp(end declare target)
 
-double nrn_ghk(double v, double ci, double co, double z) {
+double nrn_ghk(double v, double ci, double co, double z, double celsius) {
     double temp = z * v / ktf;
     double eco = co * efun(temp);
     double eci = ci * efun(-temp);

@@ -116,7 +116,8 @@ extern void nrn_wrote_conc(int, double*, int, int, double**, double, int);
 nrn_pragma_acc(routine seq)
 double nrn_nernst(double ci, double co, double z, double celsius);
 nrn_pragma_acc(routine seq)
-extern double nrn_ghk(double v, double ci, double co, double z);
+//TODO: check if this should be via overload
+extern double nrn_ghk(double v, double ci, double co, double z, double celsius);
 nrn_pragma_omp(end declare target)
 extern void hoc_register_prop_size(int, int, int);
 extern void hoc_register_dparam_semantics(int type, int, const char* name);
