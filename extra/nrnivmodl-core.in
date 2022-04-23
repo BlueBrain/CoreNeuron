@@ -102,12 +102,12 @@ fi
 # if defined mods dir be in $1
 if [ $# -eq 1 ]; then
     # Note: due to bug #712 makefile wont handle mod dir with spaces, so we let it fail here
-    params_MODS_PATH=$1
+    params_MODS_PATH="$1"
 fi
 
 # warn if no mod files provided
-if [ -d $params_MODS_PATH ]; then
-    ls $params_MODS_PATH/*.mod &>/dev/null || echo "WARNING: No mod files found, compiling default ones only!"
+if [ -d "$params_MODS_PATH" ]; then
+    ls "$params_MODS_PATH/"*.mod &>/dev/null || echo "WARNING: No mod files found, compiling default ones only!"
 else
     echo "FATAL: Invalid mods directory: '$params_MODS_PATH'"
     exit 1
@@ -120,7 +120,7 @@ mkdir -p $temp_mod_dir
 # copy mod files with include files. note that ${ROOT_DIR}/share
 # has inbuilt mod files and user provided mod files are in $params_MODS_PATH.
 set +e
-for mod_dir in ${ROOT_DIR}/share/modfile $params_MODS_PATH;
+for mod_dir in ${ROOT_DIR}/share/modfile "$params_MODS_PATH" ;
 do
     # copy mod files and include files
     files=`ls $mod_dir/*.mod $mod_dir/*.inc $mod_dir/*.h* 2>/dev/null`
@@ -136,7 +136,7 @@ done
 set -e
 
 # use new mod files directory for compilation
-params_MODS_PATH=$temp_mod_dir
+params_MODS_PATH="$temp_mod_dir"
 
 # build params to make command
 make_params=("ROOT=${ROOT_DIR}")
