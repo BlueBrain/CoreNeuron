@@ -21,9 +21,9 @@ bool nrn_use_fast_imem;
 void fast_imem_free() {
     for (auto nt = nrn_threads; nt < nrn_threads + nrn_nthread; ++nt) {
         if (nt->nrn_fast_imem) {
-            free(nt->nrn_fast_imem->nrn_sav_rhs);
-            free(nt->nrn_fast_imem->nrn_sav_d);
-            free(nt->nrn_fast_imem);
+            free_memory(nt->nrn_fast_imem->nrn_sav_rhs);
+            free_memory(nt->nrn_fast_imem->nrn_sav_d);
+            free_memory(nt->nrn_fast_imem);
             nt->nrn_fast_imem = nullptr;
         }
     }
