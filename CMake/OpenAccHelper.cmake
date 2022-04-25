@@ -105,7 +105,7 @@ if(CORENRN_ENABLE_GPU)
     GLOBAL
     PROPERTY
       CORENEURON_LIB_LINK_FLAGS
-      "${NVHPC_ACC_COMP_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -lscopmath -L$(libdir) -lcoreneuron -Wl,--no-whole-archive"
+      "${NVHPC_ACC_COMP_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -Wl,--no-whole-archive"
   )
 else()
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
