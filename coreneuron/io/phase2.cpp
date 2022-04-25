@@ -337,7 +337,7 @@ void Phase2::read_direct(int thread_id, const NrnThread& nt) {
         offset += nrn_soa_padded_size(nodecounts[i], layout) * param_sizes[type];
         if (nodeindices_) {
             std::copy(nodeindices_, nodeindices_ + nodecounts[i], tml.nodeindices.data());
-            free_memory(nodeindices_);
+            free(nodeindices_); // not free_memory because this is allocated by NEURON?
         }
         if (corenrn.get_is_artificial()[type]) {
             assert(nodeindices_ == nullptr);
