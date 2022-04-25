@@ -132,13 +132,6 @@ inline double nrn_ghk(double v, double ci, double co, double z, double celsius) 
     double const eci{ci * efun(-temp)};
     return .001 * z * units::faraday * (eci - eco);
 }
-/**
- * This signature requires the use of the `celsius` global variable, which can
- * cause problems when executing on GPU.
- */
-[[deprecated]] inline double nrn_ghk(double v, double ci, double co, double z) {
-    return nrn_ghk(v, ci, co, z, celsius);
-}
 extern void hoc_register_prop_size(int, int, int);
 extern void hoc_register_dparam_semantics(int type, int, const char* name);
 extern void hoc_reg_ba(int, mod_f_t, int);
