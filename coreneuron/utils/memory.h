@@ -22,13 +22,13 @@
 #endif
 
 namespace coreneuron {
-/** @brief Check if allocate_unified will return a unified memory address.
- *
- *  If false, [de]allocate_unified simply forward to new/delete. It is
- *  convenient to include this method here to avoid having to access
- *  corenrn_param directly.
+/**
+ * @brief Check if GPU support is enabled.
+ * 
+ * This returns true if GPU support was enabled at compile time and at runtime
+ * via coreneuron.gpu = True and/or --gpu, otherwise it returnss false.
  */
-bool unified_memory_enabled();
+bool gpu_enabled();
 
 /** @brief Allocate unified memory in GPU builds iff GPU enabled, otherwise new
  */

@@ -77,7 +77,7 @@ void cnrn_target_set_default_device(int device_num) {
 }
 
 #ifdef CORENEURON_ENABLE_GPU
-
+#ifndef CORENEURON_UNIFIED_MEMORY
 static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_data) {
     // As we never run code for artificial cell inside GPU we don't copy it.
     int is_art = corenrn.get_is_artificial()[type];
@@ -169,6 +169,7 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_d
 
     return d_ml;
 }
+#endif
 
 static void update_ml_on_host(const Memb_list* ml, int type) {
     int is_art = corenrn.get_is_artificial()[type];
@@ -258,6 +259,7 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
         cnrn_target_delete(ml->pdata, pcnt);
     }
     if (ml->global_variables) {
+        // std::byte* in C++17
         cnrn_target_delete(reinterpret_cast<char*>(ml->global_variables),
                            ml->global_variables_size);
     }
@@ -1121,7 +1123,7 @@ void nrn_newtonspace_delete_from_device(NewtonSpace* ns) {
 }
 
 void nrn_sparseobj_copyto_device(SparseObj* so) {
-#ifdef CORENEURON_ENABLE_GPU
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_UNIFIED_MEMORY)
     // FIXME this check needs to be tweaked if we ever want to run with a mix
     //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {
@@ -1204,7 +1206,7 @@ void nrn_sparseobj_copyto_device(SparseObj* so) {
 }
 
 void nrn_sparseobj_delete_from_device(SparseObj* so) {
-#ifdef CORENEURON_ENABLE_GPU
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_UNIFIED_MEMORY)
     // FIXME this check needs to be tweaked if we ever want to run with a mix
     //       of CPU and GPU threads.
     if (nrn_threads[0].compute_gpu == 0) {

@@ -44,7 +44,7 @@ struct Item {
 
 using List = Item; /* list of mixed items */
 
-struct SparseObj {            /* all the state information */
+struct SparseObj : public MemoryManaged {            /* all the state information */
     Elm** rowst{};            /* link to first element in row (solution order)*/
     Elm** diag{};             /* link to pivot element in row (solution order)*/
     void* elmpool{};          /* no interthread cache line sharing for elements */

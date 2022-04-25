@@ -98,6 +98,7 @@ CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_Sta
 
 namespace coreneuron {
 void init_nrnran123() {
+    // TODO only do this if it isn't already present?
     nrn_pragma_acc(enter data copyin(g_k))
 }
 
@@ -160,20 +161,16 @@ double nrnran123_negexp(nrnran123_State* s) {
 
 /* at cost of a cached  value we could compute two at a time. */
 double nrnran123_normal(nrnran123_State* s) {
-    double w, x, y;
-    double u1, u2;
-
+    double w, u1;
     do {
         u1 = nrnran123_dblpick(s);
-        u2 = nrnran123_dblpick(s);
+        double u2{nrnran123_dblpick(s)};
         u1 = 2. * u1 - 1.;
         u2 = 2. * u2 - 1.;
         w = (u1 * u1) + (u2 * u2);
     } while (w > 1);
-
-    y = std::sqrt((-2. * log(w)) / w);
-    x = u1 * y;
-    return x;
+    double y{std::sqrt((-2. * std::log(w)) / w)};
+    return u1 * y;
 }
 
 double nrnran123_uint2dbl(uint32_t u) {
@@ -196,8 +193,10 @@ void nrnran123_set_globalindex(uint32_t gix) {
         }
     }
     g_k.v[0] = gix;
-    nrn_pragma_acc(update device(g_k))
-    nrn_pragma_omp(target update to(g_k))
+    if(coreneuron::gpu_enabled()) {
+        nrn_pragma_acc(update device(g_k))
+        nrn_pragma_omp(target update to(g_k))
+    }
 }
 
 /** @brief Allocate a new Random123 stream.

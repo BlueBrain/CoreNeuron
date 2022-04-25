@@ -760,7 +760,8 @@ void nrn_cleanup() {
             }
 
             if (ml->global_variables) {
-                free(ml->global_variables);
+                std::cout << "Cannot generically free Memb_list::global_variables, leaking it" << std::endl;
+                // free(ml->global_variables);
                 ml->global_variables = nullptr;
             }
 
