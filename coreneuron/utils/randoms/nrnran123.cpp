@@ -21,9 +21,13 @@
 #include <unordered_map>
 #endif
 
+#include <nv/target>
+
 // Defining these attributes seems to help nvc++ in OpenMP target offload mode.
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP) && defined(__CUDACC__)
+#define CORENRN_HOST_DEVICE __host__ __device__
+#elif defined(__CUDACC__)
 #define CORENRN_HOST_DEVICE __host__ __device__
 #else
 #define CORENRN_HOST_DEVICE
@@ -77,14 +81,27 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
  * shutdown. If the destructor calls cudaFree and the CUDA runtime has already
  * been shut down then tools like cuda-memcheck reports errors.
  */
-nrn_pragma_omp(declare target)
-philox4x32_key_t g_k{};
-nrn_pragma_omp(end declare target)
-nrn_pragma_acc(declare create(g_k))
-
+// nrn_pragma_omp(declare target)
+// philox4x32_key_t g_k_real{};
+// nrn_pragma_omp(end declare target)
+// nrn_pragma_acc(declare create(g_k))
 OMP_Mutex g_instance_count_mutex;
-
 std::size_t g_instance_count{};
+
+// not sure quite how nvc++ handles these, not sure we actually need the 2
+// different names?
+philox4x32_key_t g_k{};
+__constant__ __device__ philox4x32_key_t g_k_dev{};
+// noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
+__attribute__((noinline)) philox4x32_key_t& global_state() {
+    if target (nv::target::is_device) {
+        // printf("dev: &g_k=%p [seed %d]\n", &g_k_dev, g_k_dev.v[0]);
+        return g_k_dev;
+    } else {
+        // printf("host: &g_k=%p [seed %d]\n", &g_k, g_k.v[0]);
+        return g_k;
+    }
+}
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
@@ -92,14 +109,17 @@ constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
  * offloading to function correctly with NVHPC
  */
 CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
-    return philox4x32(s->c, g_k);
+    return philox4x32(s->c, global_state());
 }
 }  // namespace
 
 namespace coreneuron {
 void init_nrnran123() {
-    // TODO only do this if it isn't already present?
-    nrn_pragma_acc(enter data copyin(g_k))
+    // if(coreneuron::gpu_enabled()) {
+    //     // TODO only do this if it isn't already present?
+    //     auto& g_k = global_state();
+    //     nrn_pragma_acc(enter data copyin(g_k))
+    // }
 }
 
 std::size_t nrnran123_instance_count() {
@@ -108,7 +128,7 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return g_k.v[0];
+    return global_state().v[0];
 }
 
 void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
@@ -182,6 +202,7 @@ double nrnran123_uint2dbl(uint32_t u) {
 /* nrn123 streams are created from cpu launcher routine */
 void nrnran123_set_globalindex(uint32_t gix) {
     // If the global seed is changing then we shouldn't have any active streams.
+    auto& g_k = global_state();
     {
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
         if (g_instance_count != 0 && nrnmpi_myid == 0) {
@@ -192,10 +213,22 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << g_k.v[0] << ')' << std::endl;
         }
     }
-    g_k.v[0] = gix;
-    if(coreneuron::gpu_enabled()) {
-        nrn_pragma_acc(update device(g_k))
-        nrn_pragma_omp(target update to(g_k))
+    if(g_k.v[0] != gix) {
+        g_k.v[0] = gix;
+        if(coreneuron::gpu_enabled()) {
+            {
+                auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
+                assert(code == cudaSuccess);
+            }
+            {
+                auto const code = cudaDeviceSynchronize();
+                assert(code == cudaSuccess);
+            }
+            std::cout << "trying to read g_k_dev from host..." << std::endl;
+            std::cout << g_k_dev.v[0] << std::endl;
+            //     nrn_pragma_acc(update device(g_k))
+            //     nrn_pragma_omp(target update to(g_k))
+        }
     }
 }
 
