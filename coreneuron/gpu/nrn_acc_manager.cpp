@@ -32,14 +32,67 @@
 #include <cuda_runtime_api.h>
 #endif
 
+#ifdef CORENEURON_ENABLE_PRESENT_TABLE
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <mutex>
+namespace {
+enum class byte : unsigned char {};  // std::byte in C++17
+std::map<byte const*, std::pair<std::size_t, byte*>> present_table;
+std::mutex present_table_mutex;
+}  // namespace
+#endif
+
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
-void copy_ivoc_vect_to_device(const IvocVect& iv, IvocVect& div);
-void delete_ivoc_vect_from_device(IvocVect&);
 void nrn_ion_global_map_copyto_device();
 void nrn_ion_global_map_delete_from_device();
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay);
 void nrn_VecPlay_delete_from_device(NrnThread* nt);
+
+#ifdef CORENEURON_ENABLE_PRESENT_TABLE
+void* cnrn_target_deviceptr_impl(void const* h_ptr) {
+    if (!h_ptr) {
+        return nullptr;
+    }
+    // note no locking, undefined behaviour if you call this concurrently with
+    // the copyin/delete methods (which do lock)
+    assert(!present_table.empty());
+    // prev(first iterator greater than h_ptr or last if not found) gives the first iterator less
+    // than or equal to h_ptr
+    auto const iter = std::prev(std::upper_bound(
+        present_table.begin(), present_table.end(), h_ptr, [](void const* hp, auto const& entry) {
+            return hp < entry.first;
+        }));
+    assert(iter != present_table.end());
+    byte const* const h_byte_ptr{static_cast<byte const*>(h_ptr)};
+    byte const* const h_start_of_block{iter->first};
+    std::size_t const block_size{iter->second.first};
+    byte* const d_start_of_block{iter->second.second};
+    assert(h_byte_ptr < h_start_of_block + block_size);
+    return d_start_of_block + (h_byte_ptr - h_start_of_block);
+}
+void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len) {
+    if (!h_ptr) {
+        assert(!d_ptr);
+        return;
+    }
+    std::lock_guard<std::mutex> _{present_table_mutex};
+    auto const result = present_table.emplace(static_cast<byte const*>(h_ptr),
+                                              std::make_pair(len, static_cast<byte*>(d_ptr)));
+}
+void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len) {
+    if (!h_ptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> _{present_table_mutex};
+    auto const iter = present_table.find(static_cast<byte const*>(h_ptr));
+    assert(iter != present_table.end());
+    assert(iter->second.first == len);
+    present_table.erase(iter);
+}
+#endif
 
 int cnrn_target_get_num_devices() {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
@@ -260,8 +313,7 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
     }
     if (ml->global_variables) {
         // std::byte* in C++17
-        cnrn_target_delete(reinterpret_cast<char*>(ml->global_variables),
-                           ml->global_variables_size);
+        cnrn_target_delete(static_cast<char*>(ml->global_variables), ml->global_variables_size);
     }
 
     cnrn_target_delete(ml->nodeindices, n);
@@ -618,7 +670,7 @@ void delete_ivoc_vect_from_device(IvocVect& vec) {
     if (n) {
         cnrn_target_delete(vec.data(), n);
     }
-    cnrn_target_delete(&vec);
+    // cnrn_target_delete(&vec);
 #else
     (void) vec;
 #endif
@@ -1329,7 +1381,7 @@ void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {
 
 void nrn_VecPlay_delete_from_device(NrnThread* nt) {
     for (int i = 0; i < nt->n_vecplay; i++) {
-        auto* vecplay_instance = reinterpret_cast<VecPlayContinuous*>(nt->_vecplay[i]);
+        auto* vecplay_instance = static_cast<VecPlayContinuous*>(nt->_vecplay[i]);
         cnrn_target_delete(vecplay_instance->e_);
         if (vecplay_instance->discon_indices_) {
             delete_ivoc_vect_from_device(*(vecplay_instance->discon_indices_));

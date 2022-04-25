@@ -213,9 +213,9 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 << g_k.v[0] << ')' << std::endl;
         }
     }
-    if(g_k.v[0] != gix) {
+    if (g_k.v[0] != gix) {
         g_k.v[0] = gix;
-        if(coreneuron::gpu_enabled()) {
+        if (coreneuron::gpu_enabled()) {
             {
                 auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
                 assert(code == cudaSuccess);

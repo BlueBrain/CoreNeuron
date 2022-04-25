@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -25,9 +25,20 @@
 #include <cstddef>
 
 namespace coreneuron {
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
+    defined(_OPENACC)
+// Homegrown implementation for buggy NVHPC versions (<=22.3?)
+#define CORENEURON_ENABLE_PRESENT_TABLE
+void* cnrn_target_deviceptr_impl(void const* h_ptr);
+void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len);
+void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len);
+#endif
+
 template <typename T>
 T* cnrn_target_deviceptr(const T* h_ptr) {
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
+#ifdef CORENEURON_ENABLE_PRESENT_TABLE
+    return static_cast<T*>(cnrn_target_deviceptr_impl(h_ptr));
+#elif defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENACC)
     return static_cast<T*>(acc_deviceptr(const_cast<T*>(h_ptr)));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
@@ -48,7 +59,11 @@ template <typename T>
 T* cnrn_target_copyin(const T* h_ptr, std::size_t len = 1) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENACC)
-    return static_cast<T*>(acc_copyin(const_cast<T*>(h_ptr), len * sizeof(T)));
+    auto* d_ptr = static_cast<T*>(acc_copyin(const_cast<T*>(h_ptr), len * sizeof(T)));
+#ifdef CORENEURON_ENABLE_PRESENT_TABLE
+    cnrn_target_copyin_update_present_table(h_ptr, d_ptr, len * sizeof(T));
+#endif
+    return d_ptr;
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP)
     nrn_pragma_omp(target enter data map(to : h_ptr[:len]))
@@ -63,6 +78,9 @@ template <typename T>
 void cnrn_target_delete(T* h_ptr, std::size_t len = 1) {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENACC)
+#ifdef CORENEURON_ENABLE_PRESENT_TABLE
+    cnrn_target_delete_update_present_table(h_ptr, len * sizeof(T));
+#endif
     acc_delete(h_ptr, len * sizeof(T));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP)

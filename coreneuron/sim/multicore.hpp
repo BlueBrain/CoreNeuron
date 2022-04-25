@@ -53,7 +53,7 @@ struct NrnFastImem {
     double* nrn_sav_d;
 };
 
-struct TrajectoryRequests {
+struct TrajectoryRequests: public MemoryManaged {
     void** vpr;       /* PlayRecord Objects known by NEURON */
     double** scatter; /* if bsize == 0, each time step */
     double** varrays; /* if bsize > 0, the Vector data pointers. */

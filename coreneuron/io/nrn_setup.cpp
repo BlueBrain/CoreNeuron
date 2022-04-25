@@ -754,13 +754,16 @@ void nrn_cleanup() {
                 ml->_thread = nullptr;
             }
 
+            // Probably causes problems with NMODL, which allocates its instance
+            // in unified memory.
             if (ml->instance) {
                 free(ml->instance);
                 ml->instance = nullptr;
             }
 
             if (ml->global_variables) {
-                std::cout << "Cannot generically free Memb_list::global_variables, leaking it" << std::endl;
+                std::cout << "Cannot generically free Memb_list::global_variables, leaking it"
+                          << std::endl;
                 // free(ml->global_variables);
                 ml->global_variables = nullptr;
             }
