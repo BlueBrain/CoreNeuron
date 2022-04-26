@@ -15,10 +15,10 @@ set -e
 unset PMI_RANK
 
 # name of the script
-APP_NAME="$(basename $0)"
+APP_NAME="$(basename "$0")"
 
 # directory and parent directory of this script
-PARENT_DIR="$(dirname $BASH_SOURCE)/.."
+PARENT_DIR="$(dirname "$BASH_SOURCE")/.."
 
 # prefer perl exe set by neuron wrappers in case of wheel
 PERL_EXE="${CORENRN_PERLEXE:-@PERL_EXECUTABLE@}"
