@@ -120,16 +120,17 @@ mkdir -p $temp_mod_dir
 # copy mod files with include files. note that ${ROOT_DIR}/share
 # has inbuilt mod files and user provided mod files are in $params_MODS_PATH.
 set +e
+shopt -s nullglob
 for mod_dir in ${ROOT_DIR}/share/modfile "$params_MODS_PATH" ;
 do
     # copy mod files and include files
-    files=`ls $mod_dir/*.mod $mod_dir/*.inc $mod_dir/*.h* 2>/dev/null`
-    for f in $files;
+    files=( "$mod_dir/"*.mod "$mod_dir/"*.inc "$mod_dir/"*.h* )
+    for f in "${files[@]}";
     do
         # copy mod files only if it's changed (to avoid rebuild)
-        target_file_path=$temp_mod_dir/`basename $f`
-        if ! diff -q $f $target_file_path &>/dev/null;  then
-            cp $f $target_file_path
+        target_file_path="$temp_mod_dir/$(basename "$f")"
+        if ! diff -q "$f" "$target_file_path" &>/dev/null;  then
+            cp "$f" "$target_file_path"
         fi
     done
 done
