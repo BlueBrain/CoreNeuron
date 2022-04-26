@@ -670,9 +670,8 @@ void delete_ivoc_vect_from_device(IvocVect& vec) {
     if (n) {
         cnrn_target_delete(vec.data(), n);
     }
-    // cnrn_target_delete(&vec);
 #else
-    (void) vec;
+    static_cast<void>(vec);
 #endif
 }
 
@@ -1342,8 +1341,6 @@ void init_gpu() {
         std::cout << " Info : " << num_devices_per_node << " GPUs shared by " << local_size
                   << " ranks per node\n";
     }
-
-    init_nrnran123();
 }
 
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay) {

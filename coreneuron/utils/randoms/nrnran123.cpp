@@ -21,13 +21,16 @@
 #include <unordered_map>
 #endif
 
+#ifdef __CUDACC__
 #include <nv/target>
+#endif
 
 // Defining these attributes seems to help nvc++ in OpenMP target offload mode.
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP) && defined(__CUDACC__)
 #define CORENRN_HOST_DEVICE __host__ __device__
 #elif defined(__CUDACC__)
+// This is necessary to make the new CUDA-syntax-in-.cpp version compile
 #define CORENRN_HOST_DEVICE __host__ __device__
 #else
 #define CORENRN_HOST_DEVICE
@@ -88,20 +91,24 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
 
-// not sure quite how nvc++ handles these, not sure we actually need the 2
-// different names?
 philox4x32_key_t g_k{};
+#ifdef __CUDACC__
+// Not 100% clear we need a different name (g_k_dev) here in addition to g_k,
+// but it's clearer and the overhead cannot be high (if it exists).
 __constant__ __device__ philox4x32_key_t g_k_dev{};
 // noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
 __attribute__((noinline)) philox4x32_key_t& global_state() {
     if target (nv::target::is_device) {
-        // printf("dev: &g_k=%p [seed %d]\n", &g_k_dev, g_k_dev.v[0]);
         return g_k_dev;
     } else {
-        // printf("host: &g_k=%p [seed %d]\n", &g_k, g_k.v[0]);
         return g_k;
     }
 }
+#else
+philox4x32_key_t& global_state() {
+    return g_k;
+}
+#endif
 
 constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
 
@@ -114,14 +121,6 @@ CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_Sta
 }  // namespace
 
 namespace coreneuron {
-void init_nrnran123() {
-    // if(coreneuron::gpu_enabled()) {
-    //     // TODO only do this if it isn't already present?
-    //     auto& g_k = global_state();
-    //     nrn_pragma_acc(enter data copyin(g_k))
-    // }
-}
-
 std::size_t nrnran123_instance_count() {
     return g_instance_count;
 }
@@ -216,6 +215,7 @@ void nrnran123_set_globalindex(uint32_t gix) {
     if (g_k.v[0] != gix) {
         g_k.v[0] = gix;
         if (coreneuron::gpu_enabled()) {
+#ifdef __CUDACC__
             {
                 auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
                 assert(code == cudaSuccess);
@@ -224,10 +224,10 @@ void nrnran123_set_globalindex(uint32_t gix) {
                 auto const code = cudaDeviceSynchronize();
                 assert(code == cudaSuccess);
             }
-            std::cout << "trying to read g_k_dev from host..." << std::endl;
-            std::cout << g_k_dev.v[0] << std::endl;
-            //     nrn_pragma_acc(update device(g_k))
-            //     nrn_pragma_omp(target update to(g_k))
+#else
+            nrn_pragma_acc(update device(g_k))
+            nrn_pragma_omp(target update to(g_k))
+#endif
         }
     }
 }
