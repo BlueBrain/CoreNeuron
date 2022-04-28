@@ -470,7 +470,10 @@ inline int matsol(SparseObj* so, int _iml) {
         if (fabs(pivot->value[_iml]) <= ROUNDOFF) {
             return SINGULAR;
         }
-        /* Eliminate all elements in pivot column */
+        // Eliminate all elements in pivot column. The OpenACC annotation here
+        // is to avoid problems with nvc++'s automatic paralellisation; see:
+        // https://forums.developer.nvidia.com/t/device-kernel-hangs-at-o-and-above/212733
+        nrn_pragma_acc(loop seq)
         for (auto el = pivot->r_down; el; el = el->r_down) {
             subrow(so, pivot, el, _iml);
         }
