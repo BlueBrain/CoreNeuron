@@ -214,7 +214,7 @@ inline int soa_padded_size(int cnt, int layout) {
 /** Check for the pointer alignment.
  */
 inline bool is_aligned(void* pointer, size_t alignment) {
-    return (((uintptr_t) (const void*) (pointer)) % (alignment) == 0);
+    return (((uintptr_t)(const void*) (pointer)) % (alignment) == 0);
 }
 
 /** Allocate the aligned memory.
