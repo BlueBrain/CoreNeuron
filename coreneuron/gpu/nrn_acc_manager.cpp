@@ -617,6 +617,7 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
+        nrn_pragma_acc(wait(nt->stream_id))
         // free existing vectors in buffers on gpu
         cnrn_target_delete(nrb->_pnt_index, nrb->_size);
         cnrn_target_delete(nrb->_weight_index, nrb->_size);
@@ -629,41 +630,37 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 
     // Reallocate host
     nrb->_size *= 2;
-    nrb->_pnt_index = (int*) erealloc(nrb->_pnt_index, nrb->_size * sizeof(int));
-    nrb->_weight_index = (int*) erealloc(nrb->_weight_index, nrb->_size * sizeof(int));
-    nrb->_nrb_t = (double*) erealloc(nrb->_nrb_t, nrb->_size * sizeof(double));
-    nrb->_nrb_flag = (double*) erealloc(nrb->_nrb_flag, nrb->_size * sizeof(double));
-    nrb->_displ = (int*) erealloc(nrb->_displ, (nrb->_size + 1) * sizeof(int));
-    nrb->_nrb_index = (int*) erealloc(nrb->_nrb_index, nrb->_size * sizeof(int));
+    nrb->_pnt_index = static_cast<int*>(erealloc(nrb->_pnt_index, nrb->_size * sizeof(int)));
+    nrb->_weight_index = static_cast<int*>(erealloc(nrb->_weight_index, nrb->_size * sizeof(int)));
+    nrb->_nrb_t = static_cast<double*>(erealloc(nrb->_nrb_t, nrb->_size * sizeof(double)));
+    nrb->_nrb_flag = static_cast<double*>(erealloc(nrb->_nrb_flag, nrb->_size * sizeof(double)));
+    nrb->_displ = static_cast<int*>(erealloc(nrb->_displ, (nrb->_size + 1) * sizeof(int)));
+    nrb->_nrb_index = static_cast<int*>(erealloc(nrb->_nrb_index, nrb->_size * sizeof(int)));
 
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
-        int *d_weight_index, *d_pnt_index, *d_displ, *d_nrb_index;
-        double *d_nrb_t, *d_nrb_flag;
-
         // update device copy
-        nrn_pragma_acc(update device(nrb));
+        nrn_pragma_acc(update device(nrb[0:1]));
         nrn_pragma_omp(target update to(nrb));
 
-        NetReceiveBuffer_t* d_nrb = cnrn_target_deviceptr(nrb);
-
+        NetReceiveBuffer_t* const d_nrb{cnrn_target_deviceptr(nrb)};
         // recopy the vectors in the buffer
-        d_pnt_index = cnrn_target_copyin(nrb->_pnt_index, nrb->_size);
+        int* const d_pnt_index{cnrn_target_copyin(nrb->_pnt_index, nrb->_size)};
         cnrn_target_memcpy_to_device(&(d_nrb->_pnt_index), &d_pnt_index);
 
-        d_weight_index = cnrn_target_copyin(nrb->_weight_index, nrb->_size);
+        int* const d_weight_index{cnrn_target_copyin(nrb->_weight_index, nrb->_size)};
         cnrn_target_memcpy_to_device(&(d_nrb->_weight_index), &d_weight_index);
 
-        d_nrb_t = cnrn_target_copyin(nrb->_nrb_t, nrb->_size);
+        double* const d_nrb_t{cnrn_target_copyin(nrb->_nrb_t, nrb->_size)};
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_t), &d_nrb_t);
 
-        d_nrb_flag = cnrn_target_copyin(nrb->_nrb_flag, nrb->_size);
+        double* const d_nrb_flag{cnrn_target_copyin(nrb->_nrb_flag, nrb->_size)};
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_flag), &d_nrb_flag);
 
-        d_displ = cnrn_target_copyin(nrb->_displ, nrb->_size + 1);
+        int* const d_displ{cnrn_target_copyin(nrb->_displ, nrb->_size + 1)};
         cnrn_target_memcpy_to_device(&(d_nrb->_displ), &d_displ);
 
-        d_nrb_index = cnrn_target_copyin(nrb->_nrb_index, nrb->_size);
+        int* const d_nrb_index{cnrn_target_copyin(nrb->_nrb_index, nrb->_size)};
         cnrn_target_memcpy_to_device(&(d_nrb->_nrb_index), &d_nrb_index);
     }
 #endif

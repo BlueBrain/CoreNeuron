@@ -276,7 +276,7 @@ bool NetCvode::deliver_event(double til, NrnThread* nt) {
         return false;
     }
 
-    DiscreteEvent* de = (DiscreteEvent*) q->data_;
+    DiscreteEvent* de = q->data_;
     double tt = q->t_;
     delete q;
 #if PRINT_EVENT
@@ -287,9 +287,11 @@ bool NetCvode::deliver_event(double til, NrnThread* nt) {
     de->deliver(tt, this, nt);
 
     /// In case of a self event we need to delete the self event
-    if (de->type() == SelfEventType)
-        delete (SelfEvent*) de;
-
+    if (de->type() == SelfEventType) {
+        auto* se = dynamic_cast<SelfEvent*>(de);
+        assert(se);
+        delete se;
+    }
     return true;
 }
 
@@ -379,8 +381,10 @@ void NetCon::send(double tt, NetCvode* ns, NrnThread* nt) {
 void NetCon::deliver(double tt, NetCvode* /* ns */, NrnThread* nt) {
     nrn_assert(target_);
 
-    if (PP2NT(target_) != nt)
-        printf("NetCon::deliver nt=%d target=%d\n", nt->id, PP2NT(target_)->id);
+    if (PP2NT(target_) != nt) {
+        auto* nt_other = PP2NT(target_);
+        printf("NetCon::deliver nt=%d (%p) target=%d (%p)\n", nt->id, nt, nt_other->id, nt_other);
+    }
 
     nrn_assert(PP2NT(target_) == nt);
     int typ = target_->_type;
@@ -462,7 +466,9 @@ void InputPreSyn::deliver(double, NetCvode*, NrnThread*) {
 }
 
 void SelfEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
-    nrn_assert(nt == PP2NT(target_));
+    auto* other_nt = PP2NT(target_);
+    printf("nt %d %p other_nt %d %p\n", nt->id, nt, other_nt->id, other_nt);
+    nrn_assert(nt == other_nt);
     PP2t(target_) = tt;
     // printf("SelfEvent::deliver t=%g tt=%g %s\n", PP2t(target_), tt, pnt_name(target_));
     call_net_receive(ns);
@@ -651,7 +657,7 @@ tryagain:
     if (nrn_use_bin_queue_) {
         TQItem* q;
         while ((q = p[tid].tqe_->dequeue_bin()) != 0) {
-            DiscreteEvent* db = (DiscreteEvent*) q->data_;
+            DiscreteEvent* db = q->data_;
 
 #if PRINT_EVENT
             if (print_event_) {
