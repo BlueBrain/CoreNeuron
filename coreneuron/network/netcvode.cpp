@@ -331,13 +331,16 @@ void NetCvode::move_event(TQItem* q, double tnew, NrnThread* nt) {
 }
 
 void NetCvode::deliver_events(double til, NrnThread* nt) {
+    if(nt != &nrn_threads[0] && nt != &nrn_threads[1]) {
+        printf("nt %p nrn_threads[0] %p nrn_threads[1] %p\n", nt, &nrn_threads[0], &nrn_threads[1]);
+    }
     // printf("deliver_events til %20.15g\n", til);
     /// Enqueue any outstanding events in the interthread event buffer
     p[nt->id].enqueue(this, nt);
 
     /// Deliver events. When the map is used, the loop is explicit
-    while (deliver_event(til, nt))
-        ;
+    while (deliver_event(til, nt)) {
+    }
 }
 
 void PreSyn::record(double tt) {
@@ -467,7 +470,9 @@ void InputPreSyn::deliver(double, NetCvode*, NrnThread*) {
 
 void SelfEvent::deliver(double tt, NetCvode* ns, NrnThread* nt) {
     auto* other_nt = PP2NT(target_);
-    printf("nt %d %p other_nt %d %p\n", nt->id, nt, other_nt->id, other_nt);
+    if(nt != other_nt) {
+        printf("nt %d %p other_nt %d %p\n", nt->id, nt, other_nt->id, other_nt);
+    } 
     nrn_assert(nt == other_nt);
     PP2t(target_) = tt;
     // printf("SelfEvent::deliver t=%g tt=%g %s\n", PP2t(target_), tt, pnt_name(target_));
