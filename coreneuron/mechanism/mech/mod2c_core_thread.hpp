@@ -36,12 +36,11 @@ struct Elm {
 };
 
 struct Item {
-    Elm* elm;
-    unsigned norder; /* order of a row */
-    struct Item* next;
-    struct Item* prev;
+    Elm* elm{};
+    unsigned norder{}; /* order of a row */
+    Item* next{};
+    Item* prev{};
 };
-#define ITEM0 (Item*) 0
 
 using List = Item; /* list of mixed items */
 

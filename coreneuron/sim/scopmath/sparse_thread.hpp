@@ -30,22 +30,22 @@ inline void delete_item(Item* item) {
     item->next = nullptr;
 }
 
-/*link i before item*/
-inline void linkitem(Item* item, Item* i) {
-    i->prev = item->prev;
-    i->next = item;
-    item->prev = i;
-    i->prev->next = i;
+/*link ii before item*/
+inline void linkitem(Item* item, Item* ii) {
+    ii->prev = item->prev;
+    ii->next = item;
+    item->prev = ii;
+    ii->prev->next = ii;
 }
 
 inline void insert(SparseObj* so, Item* item) {
-    Item* i;
-    for (i = so->orderlist->next; i != so->orderlist; i = i->next) {
-        if (i->norder >= item->norder) {
+    Item* ii{};
+    for (ii = so->orderlist->next; ii != so->orderlist; ii = ii->next) {
+        if (ii->norder >= item->norder) {
             break;
         }
     }
-    linkitem(i, item);
+    linkitem(ii, item);
 }
 
 inline void increase_order(SparseObj* so, unsigned row) {
@@ -179,24 +179,15 @@ It is intended that this implementation be hidden from the user via the
 following function calls.
 */
 
-inline Item* newitem() {
-    auto* i = new Item{};
-    i->prev = nullptr;
-    i->next = nullptr;
-    i->norder = 0;
-    i->elm = nullptr;
-    return i;
-}
-
 inline List* newlist() {
-    Item* i = newitem();
-    i->prev = i;
-    i->next = i;
-    return (List*) i;
+    auto* ii = new Item{};
+    ii->prev = ii;
+    ii->next = ii;
+    return ii;
 }
 
-inline void freelist(List* list) /*free the list but not the elements*/
-{
+/*free the list but not the elements*/
+inline void freelist(List* list) {
     Item* i2;
     for (Item* i1 = list->next; i1 != list; i1 = i2) {
         i2 = i1->next;
@@ -314,14 +305,14 @@ inline void init_minorder(SparseObj* so) {
         }
         delete[] so->roworder;
     }
-    so->roworder = new Item*[so->neqn + 1];
+    so->roworder = new Item*[so->neqn + 1]{};
     so->nroworder = so->neqn;
     if (so->orderlist) {
         freelist(so->orderlist);
     }
     so->orderlist = newlist();
     for (unsigned i = 1; i <= so->neqn; i++) {
-        so->roworder[i] = newitem();
+        so->roworder[i] = new Item{};
     }
     for (unsigned i = 1; i <= so->neqn; i++) {
         unsigned j = 0;
@@ -644,8 +635,8 @@ inline void _nrn_destroy_sparseobj_thread(SparseObj* so) {
     delete[] so->rhs;
     delete[] so->coef_list;
     if (so->roworder) {
-        for (int i = 1; i <= so->nroworder; ++i) {
-            delete so->roworder[i - 1];
+        for (int ii = 1; ii <= so->nroworder; ++ii) {
+            delete so->roworder[ii];
         }
         delete[] so->roworder;
     }
