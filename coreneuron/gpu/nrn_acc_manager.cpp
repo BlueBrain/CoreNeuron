@@ -627,16 +627,24 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
         cnrn_target_delete(nrb->_nrb_index, nrb->_size);
     }
 #endif
-
-    // Reallocate host
+    // Reallocate host buffers using ecalloc_align (as in phase2.cpp) and
+    // free_memory (as in nrn_setup.cpp)
+    auto const realloc = [old_size=nrb->_size, nrb](auto*& ptr, std::size_t extra_size = 0) {
+        using T = std::remove_pointer_t<std::remove_reference_t<decltype(ptr)>>;
+        static_assert(std::is_trivial<T>::value, "Only trivially constructible and copiable types are supported.");
+        static_assert(std::is_same<decltype(ptr), T*&>::value, "ptr should be reference-to-pointer");
+        auto* const new_data = static_cast<T*>(ecalloc_align((nrb->_size + extra_size), sizeof(T)));
+        std::memcpy(new_data, ptr, (old_size + extra_size) * sizeof(T));
+        free_memory(ptr);
+        ptr = new_data;
+    };
     nrb->_size *= 2;
-    nrb->_pnt_index = static_cast<int*>(erealloc(nrb->_pnt_index, nrb->_size * sizeof(int)));
-    nrb->_weight_index = static_cast<int*>(erealloc(nrb->_weight_index, nrb->_size * sizeof(int)));
-    nrb->_nrb_t = static_cast<double*>(erealloc(nrb->_nrb_t, nrb->_size * sizeof(double)));
-    nrb->_nrb_flag = static_cast<double*>(erealloc(nrb->_nrb_flag, nrb->_size * sizeof(double)));
-    nrb->_displ = static_cast<int*>(erealloc(nrb->_displ, (nrb->_size + 1) * sizeof(int)));
-    nrb->_nrb_index = static_cast<int*>(erealloc(nrb->_nrb_index, nrb->_size * sizeof(int)));
-
+    realloc(nrb->_pnt_index);
+    realloc(nrb->_weight_index);
+    realloc(nrb->_nrb_t);
+    realloc(nrb->_nrb_flag);
+    realloc(nrb->_displ, 1);
+    realloc(nrb->_nrb_index);
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
         // update device copy
