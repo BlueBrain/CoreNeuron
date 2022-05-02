@@ -9,9 +9,12 @@
 #include "coreneuron/sim/scopmath/crout_thread.hpp"
 
 namespace coreneuron {
-#define ix(arg) ((arg) *_STRIDE)
-#define s_(arg) _p[s[arg] * _STRIDE]
-#define x_(arg) _p[(arg) *_STRIDE]
+#if defined(scopmath_newton_ix) || defined(scopmath_newton_s) || defined(scopmath_newton_x)
+#error "naming clash on newton_thread.hpp-internal macros"
+#endif
+#define scopmath_newton_ix(arg) ((arg) *_STRIDE)
+#define scopmath_newton_s(arg)  _p[s[arg] * _STRIDE]
+#define scopmath_newton_x(arg)  _p[(arg) *_STRIDE]
 namespace detail {
 /**
  * @brief Calculate the Jacobian matrix using finite central differences.
@@ -43,28 +46,30 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     /* Compute partial derivatives by central finite differences */
 
     for (int j = 0; j < n; j++) {
-        double increment = max(fabs(0.02 * (x_(index[j]))), STEP);
-        x_(index[j]) += increment;
+        double increment = max(fabs(0.02 * (scopmath_newton_x(index[j]))), STEP);
+        scopmath_newton_x(index[j]) += increment;
         func(_threadargs_);  // std::invoke in C++17
         for (int i = 0; i < n; i++)
-            high_value[ix(i)] = value[ix(i)];
-        x_(index[j]) -= 2.0 * increment;
+            high_value[scopmath_newton_ix(i)] = value[scopmath_newton_ix(i)];
+        scopmath_newton_x(index[j]) -= 2.0 * increment;
         func(_threadargs_);  // std::invoke in C++17
         for (int i = 0; i < n; i++) {
-            low_value[ix(i)] = value[ix(i)];
+            low_value[scopmath_newton_ix(i)] = value[scopmath_newton_ix(i)];
 
             /* Insert partials into jth column of Jacobian matrix */
 
-            jacobian[i][ix(j)] = (high_value[ix(i)] - low_value[ix(i)]) / (2.0 * increment);
+            jacobian[i][scopmath_newton_ix(j)] = (high_value[scopmath_newton_ix(i)] -
+                                                  low_value[scopmath_newton_ix(i)]) /
+                                                 (2.0 * increment);
         }
 
         /* Restore original variable and function values. */
 
-        x_(index[j]) += increment;
+        scopmath_newton_x(index[j]) += increment;
         func(_threadargs_);  // std::invoke in C++17
     }
 }
-#undef x_
+#undef scopmath_newton_x
 }  // namespace detail
 
 /**
@@ -113,8 +118,9 @@ inline int nrn_newton_thread(NewtonSpace* ns,
              */
             detail::nrn_buildjacobian_thread(ns, n, s, func, value, jacobian, _threadargs_);
             for (int i = 0; i < n; i++)
-                value[ix(i)] = -value[ix(i)]; /* Required correction to
-                                               * function values */
+                value[scopmath_newton_ix(i)] = -value[scopmath_newton_ix(i)]; /* Required correction
+                                                                               * to
+                                                                               * function values */
             error = nrn_crout_thread(ns, n, jacobian, perm, _threadargs_);
             if (error != SUCCESS) {
                 done = 2;
@@ -129,24 +135,29 @@ inline int nrn_newton_thread(NewtonSpace* ns,
             change = 0.0;
             if (s) {
                 for (int i = 0; i < n; i++) {
-                    if (fabs(s_(i)) > ZERO && (temp = fabs(delta_x[ix(i)] / (s_(i)))) > change)
+                    if (fabs(scopmath_newton_s(i)) > ZERO &&
+                        (temp = fabs(delta_x[scopmath_newton_ix(i)] / (scopmath_newton_s(i)))) >
+                            change)
                         change = temp;
-                    s_(i) += delta_x[ix(i)];
+                    scopmath_newton_s(i) += delta_x[scopmath_newton_ix(i)];
                 }
             } else {
                 for (int i = 0; i < n; i++) {
-                    if (fabs(s_(i)) > ZERO && (temp = fabs(delta_x[ix(i)] / (s_(i)))) > change)
+                    if (fabs(scopmath_newton_s(i)) > ZERO &&
+                        (temp = fabs(delta_x[scopmath_newton_ix(i)] / (scopmath_newton_s(i)))) >
+                            change)
                         change = temp;
-                    s_(i) += delta_x[ix(i)];
+                    scopmath_newton_s(i) += delta_x[scopmath_newton_ix(i)];
                 }
             }
             // Evaulate function values with new solution.
             func(_threadargs_);  // std::invoke in C++17
             max_dev = 0.0;
             for (int i = 0; i < n; i++) {
-                value[ix(i)] = -value[ix(i)]; /* Required correction to function
-                                               * values */
-                if ((temp = fabs(value[ix(i)])) > max_dev)
+                value[scopmath_newton_ix(i)] = -value[scopmath_newton_ix(i)]; /* Required correction
+                                                                               * to function
+                                                                               * values */
+                if ((temp = fabs(value[scopmath_newton_ix(i)])) > max_dev)
                     max_dev = temp;
             }
 
@@ -161,8 +172,8 @@ inline int nrn_newton_thread(NewtonSpace* ns,
 
     return (error);
 }
-#undef ix
-#undef s_
+#undef scopmath_newton_ix
+#undef scopmath_newton_s
 
 NewtonSpace* nrn_cons_newtonspace(int n, int n_instance);
 void nrn_destroy_newtonspace(NewtonSpace* ns);

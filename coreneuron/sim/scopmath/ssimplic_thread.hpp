@@ -10,19 +10,21 @@
 
 namespace coreneuron {
 
-#define s_(arg) _p[s[arg] * _STRIDE]
-
+#if defined(scopmath_ssimplic_s)
+#error "naming clash on ssimplic_thread.hpp-internal macros"
+#endif
+#define scopmath_ssimplic_s(arg) _p[s[arg] * _STRIDE]
 static int check_state(int n, int* s, _threadargsproto_) {
-    bool flag = true;
+    bool flag{true};
     for (int i = 0; i < n; i++) {
-        if (s_(i) < -1e-6) {
-            s_(i) = 0.;
+        if (scopmath_ssimplic_s(i) < -1e-6) {
+            scopmath_ssimplic_s(i) = 0.;
             flag = false;
         }
     }
-    return flag ? 1 : 0;
+    return flag;
 }
-#undef s_
+#undef scopmath_ssimplic_s
 
 template <typename SPFUN>
 int _ss_sparse_thread(SparseObj* so,
@@ -35,25 +37,24 @@ int _ss_sparse_thread(SparseObj* so,
                       int linflag,
                       _threadargsproto_) {
     int err;
-    double ss_dt = 1e9;
+    double ss_dt{1e9};
     _nt->_dt = ss_dt;
 
     if (linflag) { /*iterate linear solution*/
         err = sparse_thread(so, n, s, d, t, ss_dt, fun, 0, _threadargs_);
     } else {
-#define NIT 7
-        int i = NIT;
+        int ii{7};
         err = 0;
-        while (i) {
+        while (ii) {
             err = sparse_thread(so, n, s, d, t, ss_dt, fun, 1, _threadargs_);
             if (!err) {
                 if (check_state(n, s, _threadargs_)) {
                     err = sparse_thread(so, n, s, d, t, ss_dt, fun, 0, _threadargs_);
                 }
             }
-            --i;
+            --ii;
             if (!err) {
-                i = 0;
+                ii = 0;
             }
         }
     }

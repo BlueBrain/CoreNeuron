@@ -305,7 +305,7 @@ inline void init_minorder(SparseObj* so) {
         }
         delete[] so->roworder;
     }
-    so->roworder = new Item*[so->neqn + 1]{};
+    so->roworder = new Item* [so->neqn + 1] {};
     so->nroworder = so->neqn;
     if (so->orderlist) {
         freelist(so->orderlist);
@@ -426,6 +426,10 @@ inline void init_coef_list(SparseObj* so, int _iml) {
     }
 }
 
+#if defined(scopmath_sparse_d) || defined(scopmath_sparse_ix) || defined(scopmath_sparse_s) || \
+    defined(scopmath_sparse_x)
+#error "naming clash on sparse_thread.hpp-internal macros"
+#endif
 #define scopmath_sparse_ix(arg) ((arg) *_STRIDE)
 inline void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml) {
     int const _cntml_padded{so->_cntml_padded};

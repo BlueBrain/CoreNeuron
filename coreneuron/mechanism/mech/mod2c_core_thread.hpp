@@ -72,10 +72,10 @@ extern void _nrn_destroy_sparseobj_thread(SparseObj* so);
 // updated for aos/soa layout index
 template <typename F>
 int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
+    double const dt{_nt->_dt};
     /* calculate the derivatives */
     fun(_threadargs_);
     /* update dependent variables */
-    double const dt{_nt->_dt};
     for (int i = 0; i < neqn; i++) {
         _p[var[i] * _STRIDE] += dt * (_p[der[i] * _STRIDE]);
     }
