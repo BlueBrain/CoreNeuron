@@ -64,7 +64,7 @@ if(NOT CORENRN_ENABLE_REPORTING)
   list(
     APPEND
     TEST_CASES_WITH_ARGS
-    "ring_serial!${GPU_ARGS} --tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
+    "ring_serial!--tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
   )
 endif()
 

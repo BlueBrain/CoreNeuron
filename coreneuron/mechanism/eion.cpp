@@ -148,6 +148,35 @@ the USEION statement of any model using this ion\n",
     }
 }
 
+#ifndef CORENRN_USE_LEGACY_UNITS
+#define CORENRN_USE_LEGACY_UNITS 0
+#endif
+
+#if CORENRN_USE_LEGACY_UNITS == 1
+#define FARADAY     96485.309
+#define gasconstant 8.3134
+#else
+#include "coreneuron/nrnoc/nrnunits_modern.h"
+#define FARADAY     _faraday_codata2018
+#define gasconstant _gasconstant_codata2018
+#endif
+
+#define ktf (1000. * gasconstant * (celsius + 273.15) / FARADAY)
+
+double nrn_nernst(double ci, double co, double z, double celsius) {
+    /*printf("nrn_nernst %g %g %g\n", ci, co, z);*/
+    if (z == 0) {
+        return 0.;
+    }
+    if (ci <= 0.) {
+        return 1e6;
+    } else if (co <= 0.) {
+        return -1e6;
+    } else {
+        return ktf / z * log(co / ci);
+    }
+}
+
 nrn_pragma_omp(declare target)
 void nrn_wrote_conc(int type,
                     double* p1,
@@ -166,6 +195,21 @@ void nrn_wrote_conc(int type,
     }
 }
 nrn_pragma_omp(end declare target)
+
+static double efun(double x) {
+    if (fabs(x) < 1e-4) {
+        return 1. - x / 2.;
+    } else {
+        return x / (exp(x) - 1);
+    }
+}
+
+double nrn_ghk(double v, double ci, double co, double z) {
+    double temp = z * v / ktf;
+    double eco = co * efun(temp);
+    double eci = ci * efun(-temp);
+    return (.001) * z * FARADAY * (eci - eco);
+}
 
 #if VECTORIZE
 #define erev   pd[0 * _STRIDE] /* From Eion */
@@ -206,7 +250,7 @@ ion_style("name_ion", [c_style, e_style, einit, eadvance, cinit])
 
 double nrn_nernst_coef(int type) {
     /* for computing jacobian element dconc'/dconc */
-    return ktf(celsius) / charge;
+    return ktf / charge;
 }
 
 /* Must be called prior to any channels which update the currents */

@@ -629,10 +629,12 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 #endif
     // Reallocate host buffers using ecalloc_align (as in phase2.cpp) and
     // free_memory (as in nrn_setup.cpp)
-    auto const realloc = [old_size=nrb->_size, nrb](auto*& ptr, std::size_t extra_size = 0) {
+    auto const realloc = [old_size = nrb->_size, nrb](auto*& ptr, std::size_t extra_size = 0) {
         using T = std::remove_pointer_t<std::remove_reference_t<decltype(ptr)>>;
-        static_assert(std::is_trivial<T>::value, "Only trivially constructible and copiable types are supported.");
-        static_assert(std::is_same<decltype(ptr), T*&>::value, "ptr should be reference-to-pointer");
+        static_assert(std::is_trivial<T>::value,
+                      "Only trivially constructible and copiable types are supported.");
+        static_assert(std::is_same<decltype(ptr), T*&>::value,
+                      "ptr should be reference-to-pointer");
         auto* const new_data = static_cast<T*>(ecalloc_align((nrb->_size + extra_size), sizeof(T)));
         std::memcpy(new_data, ptr, (old_size + extra_size) * sizeof(T));
         free_memory(ptr);
@@ -648,7 +650,7 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
         // update device copy
-        nrn_pragma_acc(update device(nrb[0:1]));
+        nrn_pragma_acc(update device(nrb [0:1]));
         nrn_pragma_omp(target update to(nrb));
 
         NetReceiveBuffer_t* const d_nrb{cnrn_target_deviceptr(nrb)};

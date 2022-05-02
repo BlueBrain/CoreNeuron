@@ -31,13 +31,13 @@ file(
   "utils/*.cpp"
   "utils/*/*.c"
   "utils/*/*.cpp")
-set(SCOPMATH_CODE_FILES
-    "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp" "sim/scopmath/newton_thread.cpp")
+set(SCOPMATH_CODE_FILES "sim/scopmath/abort.cpp" "sim/scopmath/crout_thread.cpp"
+                        "sim/scopmath/newton_thread.cpp")
 set(MPI_LIB_FILES "mpi/lib/mpispike.cpp" "mpi/lib/nrnmpi.cpp")
 set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp")
 if(CORENRN_ENABLE_MPI)
   # Building these requires -ldl, which is only added if MPI is enabled.
-  list(APPEND MPI_CORE_FILES "mpi/core/resolve.cpp" "mpi/core/nrnmpidec.cpp")
+  list(APPEND MPI_CORE_FILES "mpi/core/nrnmpi.cpp" "mpi/core/nrnmpidec.cpp")
 endif()
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
      DESTINATION ${CMAKE_BINARY_DIR}/include)
@@ -61,9 +61,8 @@ cpp_cc_build_time_copy(
   INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${ENGINEMECH_CODE_FILE}"
   OUTPUT "${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp"
   NO_TARGET)
-set(nrnivmodl_core_dependencies
-    "${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl"
-    "${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp")
+set(nrnivmodl_core_dependencies "${CMAKE_BINARY_DIR}/share/coreneuron/mod_func.c.pl"
+                                "${CMAKE_BINARY_DIR}/share/coreneuron/enginemech.cpp")
 # Set up build rules that copy builtin mod files from
 # {source}/coreneuron/mechanism/mech/modfile/*.mod to {build_dir}/share/modfile/
 file(GLOB builtin_modfiles
@@ -120,9 +119,16 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# CORENEURON_USE_LEGACY_UNITS is used in membfunc.hpp so define it everywhere
+# eion.cpp depends on CORENRN_USE_LEGACY_UNITS
 # =============================================================================
-add_compile_definitions(CORENEURON_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
+set(LegacyFR_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/mechanism/eion.cpp ${CMAKE_CURRENT_SOURCE_DIR}/apps/main1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/io/global_vars.cpp)
+
+set_property(
+  SOURCE ${LegacyFR_FILES}
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS "CORENRN_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS}")
 
 # =============================================================================
 # create libraries
@@ -361,7 +367,7 @@ install(
   PATTERN "*.h*"
   PATTERN "*.ipp"
   PATTERN "*.ispc")
-install(FILES ${MODFUNC_PERL_SCRIPT} ${DIMPLIC_CODE_FILE} ${ENGINEMECH_CODE_FILE} DESTINATION share/coreneuron)
+install(FILES ${MODFUNC_PERL_SCRIPT} ${ENGINEMECH_CODE_FILE} DESTINATION share/coreneuron)
 
 # copy mod2c/nmodl for nrnivmodl-core
 install(PROGRAMS ${CORENRN_MOD2CPP_BINARY} DESTINATION bin)
