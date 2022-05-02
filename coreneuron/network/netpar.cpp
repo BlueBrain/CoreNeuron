@@ -32,7 +32,9 @@
 #include "coreneuron/mpi/core/nrnmpi.hpp"
 int localgid_size_;
 int ag_send_nspike;
+namespace coreneuron {
 int* nrnmpi_nin_;
+}
 int ovfl_capacity;
 int icapacity;
 unsigned char* spikeout_fixed;

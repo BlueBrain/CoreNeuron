@@ -8,6 +8,9 @@
 #include "coreneuron/sim/scopmath/newton_struct.h"
 #include "coreneuron/sim/scopmath/crout_thread.hpp"
 
+#include <algorithm>
+#include <cmath>
+
 namespace coreneuron {
 #if defined(scopmath_newton_ix) || defined(scopmath_newton_s) || defined(scopmath_newton_x)
 #error "naming clash on newton_thread.hpp-internal macros"
@@ -46,7 +49,7 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     /* Compute partial derivatives by central finite differences */
 
     for (int j = 0; j < n; j++) {
-        double increment = max(fabs(0.02 * (scopmath_newton_x(index[j]))), STEP);
+        double increment = std::max(std::fabs(0.02 * (scopmath_newton_x(index[j]))), STEP);
         scopmath_newton_x(index[j]) += increment;
         func(_threadargs_);  // std::invoke in C++17
         for (int i = 0; i < n; i++)
@@ -135,17 +138,17 @@ inline int nrn_newton_thread(NewtonSpace* ns,
             change = 0.0;
             if (s) {
                 for (int i = 0; i < n; i++) {
-                    if (fabs(scopmath_newton_s(i)) > ZERO &&
-                        (temp = fabs(delta_x[scopmath_newton_ix(i)] / (scopmath_newton_s(i)))) >
-                            change)
+                    if (std::fabs(scopmath_newton_s(i)) > ZERO &&
+                        (temp = std::fabs(delta_x[scopmath_newton_ix(i)] /
+                                          (scopmath_newton_s(i)))) > change)
                         change = temp;
                     scopmath_newton_s(i) += delta_x[scopmath_newton_ix(i)];
                 }
             } else {
                 for (int i = 0; i < n; i++) {
-                    if (fabs(scopmath_newton_s(i)) > ZERO &&
-                        (temp = fabs(delta_x[scopmath_newton_ix(i)] / (scopmath_newton_s(i)))) >
-                            change)
+                    if (std::fabs(scopmath_newton_s(i)) > ZERO &&
+                        (temp = std::fabs(delta_x[scopmath_newton_ix(i)] /
+                                          (scopmath_newton_s(i)))) > change)
                         change = temp;
                     scopmath_newton_s(i) += delta_x[scopmath_newton_ix(i)];
                 }
@@ -157,7 +160,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
                 value[scopmath_newton_ix(i)] = -value[scopmath_newton_ix(i)]; /* Required correction
                                                                                * to function
                                                                                * values */
-                if ((temp = fabs(value[scopmath_newton_ix(i)])) > max_dev)
+                if ((temp = std::fabs(value[scopmath_newton_ix(i)])) > max_dev)
                     max_dev = temp;
             }
 

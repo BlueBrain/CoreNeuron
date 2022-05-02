@@ -432,7 +432,7 @@ inline void init_coef_list(SparseObj* so, int _iml) {
 #endif
 #define scopmath_sparse_ix(arg) ((arg) *_STRIDE)
 inline void subrow(SparseObj* so, Elm* pivot, Elm* rowsub, int _iml) {
-    int const _cntml_padded{so->_cntml_padded};
+    unsigned int const _cntml_padded{so->_cntml_padded};
     double const r{rowsub->value[_iml] / pivot->value[_iml]};
     so->rhs[scopmath_sparse_ix(rowsub->row)] -= so->rhs[scopmath_sparse_ix(pivot->row)] * r;
     so->numop++;
