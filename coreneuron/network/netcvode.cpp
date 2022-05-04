@@ -379,10 +379,8 @@ void NetCon::send(double tt, NetCvode* ns, NrnThread* nt) {
 void NetCon::deliver(double tt, NetCvode* /* ns */, NrnThread* nt) {
     nrn_assert(target_);
 
-    if (PP2NT(target_) != nt) {
-        auto* nt_other = PP2NT(target_);
-        printf("NetCon::deliver nt=%d (%p) target=%d (%p)\n", nt->id, nt, nt_other->id, nt_other);
-    }
+    if (PP2NT(target_) != nt)
+        printf("NetCon::deliver nt=%d target=%d\n", nt->id, PP2NT(target_)->id);
 
     nrn_assert(PP2NT(target_) == nt);
     int typ = target_->_type;
