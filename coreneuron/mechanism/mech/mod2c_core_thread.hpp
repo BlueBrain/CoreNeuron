@@ -74,7 +74,7 @@ template <typename F>
 int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
     double const dt{_nt->_dt};
     /* calculate the derivatives */
-    fun(_threadargs_);
+    fun(_threadargs_);  // std::invoke in C++17
     /* update dependent variables */
     for (int i = 0; i < neqn; i++) {
         _p[var[i] * _STRIDE] += dt * (_p[der[i] * _STRIDE]);

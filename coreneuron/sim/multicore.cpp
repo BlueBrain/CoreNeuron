@@ -106,7 +106,6 @@ void nrn_threads_create(int n) {
             for (int i = 0; i < nrn_nthread; ++i) {
                 NrnThread& nt = nrn_threads[i];
                 nt.id = i;
-                printf("nrn_threads[%d]=%p %d\n", i, &nt, nt.id);
                 for (int j = 0; j < BEFORE_AFTER_SIZE; ++j) {
                     nt.tbl[j] = nullptr;
                 }

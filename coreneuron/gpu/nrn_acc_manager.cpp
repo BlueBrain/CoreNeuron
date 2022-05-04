@@ -617,7 +617,6 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
-        nrn_pragma_acc(wait(nt->stream_id))
         // free existing vectors in buffers on gpu
         cnrn_target_delete(nrb->_pnt_index, nrb->_size);
         cnrn_target_delete(nrb->_weight_index, nrb->_size);
@@ -650,7 +649,7 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
         // update device copy
-        nrn_pragma_acc(update device(nrb [0:1]));
+        nrn_pragma_acc(update device(nrb));
         nrn_pragma_omp(target update to(nrb));
 
         NetReceiveBuffer_t* const d_nrb{cnrn_target_deviceptr(nrb)};
