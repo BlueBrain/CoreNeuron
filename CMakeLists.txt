@@ -13,6 +13,8 @@ project(
   VERSION 8.2.0
   LANGUAGES CXX)
 
+message(STATUS "Cheep cheep!")
+
 # ~~~
 # It is a bad idea having floating point versions, since macros cant handle them
 # We therefore, have version as an int, which is pretty much standard
