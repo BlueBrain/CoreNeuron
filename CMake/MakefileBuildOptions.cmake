@@ -60,7 +60,7 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
       link_flag
       TARGET ${link_lib}
       PROPERTY INTERFACE_LINK_LIBRARIES)
-    string(JOIN " " ${local_libs} ${link_flag})
+    string(JOIN " " local_libs ${link_flag})
     string(APPEND CORENRN_COMMON_LDFLAGS " ${local_libs}")
   elseif(NOT path)
     string(APPEND CORENRN_COMMON_LDFLAGS " -l${link_lib}")
@@ -72,6 +72,7 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
     string(APPEND CORENRN_COMMON_LDFLAGS " ${link_lib}")
   endif()
 endforeach()
+message(STATUS ">>>> ${CORENRN_COMMON_LDFLAGS}")
 
 # =============================================================================
 # compile flags : common to all backend
