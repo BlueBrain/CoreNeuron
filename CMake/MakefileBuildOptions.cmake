@@ -60,6 +60,7 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
       link_flag
       TARGET ${link_lib}
       PROPERTY INTERFACE_LINK_LIBRARIES)
+    message(STATUS "From ${link_lib}: ${link_flag}")
     string(APPEND CORENRN_COMMON_LDFLAGS " ${link_flag}")
   elseif(NOT path)
     string(APPEND CORENRN_COMMON_LDFLAGS " -l${link_lib}")
