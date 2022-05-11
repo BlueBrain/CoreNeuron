@@ -176,7 +176,7 @@ if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
   target_include_directories(
     ${CORENRN_MPI_LIB_NAME} PRIVATE ${MPI_INCLUDE_PATH} ${CORENEURON_PROJECT_SOURCE_DIR}
                                     ${CORENEURON_PROJECT_BINARY_DIR}/generated)
-  if (OpenMP_FOUND)
+  if(OpenMP_FOUND)
     target_link_libraries(${CORENRN_MPI_LIB_NAME} OpenMP::OpenMP_CXX)
   endif()
   set_property(TARGET ${CORENRN_MPI_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -197,7 +197,7 @@ add_library(
 
 target_include_directories(coreneuron PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}
                                               ${CORENEURON_PROJECT_BINARY_DIR}/generated)
-if (OpenMP_FOUND)
+if(OpenMP_FOUND)
   target_link_libraries(coreneuron OpenMP::OpenMP_CXX)
 endif()
 # we can link to MPI libraries in non-dynamic-mpi build
