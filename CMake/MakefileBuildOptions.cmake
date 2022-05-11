@@ -60,8 +60,8 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
       link_flag
       TARGET ${link_lib}
       PROPERTY INTERFACE_LINK_LIBRARIES)
-    message(STATUS "From ${link_lib}: ${link_flag}")
-    string(APPEND CORENRN_COMMON_LDFLAGS " ${link_flag}")
+    string(JOIN " " ${local_libs} ${link_flag})
+    string(APPEND CORENRN_COMMON_LDFLAGS " ${local_libs}")
   elseif(NOT path)
     string(APPEND CORENRN_COMMON_LDFLAGS " -l${link_lib}")
   elseif("${path}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
