@@ -55,7 +55,13 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
     continue()
   endif()
   get_filename_component(path ${link_lib} DIRECTORY)
-  if(NOT path)
+  if(TARGET ${link_lib})
+    get_property(
+      link_flag
+      TARGET ${link_lib}
+      PROPERTY INTERFACE_LINK_LIBRARIES)
+    string(APPEND CORENRN_COMMON_LDFLAGS " ${link_flag}")
+  elseif(NOT path)
     string(APPEND CORENRN_COMMON_LDFLAGS " -l${link_lib}")
   elseif("${path}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
     get_filename_component(libname ${link_lib} NAME_WE)
