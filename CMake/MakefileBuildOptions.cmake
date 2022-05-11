@@ -72,7 +72,6 @@ foreach(link_lib ${CORENRN_LINK_LIBS})
     string(APPEND CORENRN_COMMON_LDFLAGS " ${link_lib}")
   endif()
 endforeach()
-message(STATUS ">>>> ${CORENRN_COMMON_LDFLAGS}")
 
 # =============================================================================
 # compile flags : common to all backend

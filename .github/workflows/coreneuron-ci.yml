@@ -127,7 +127,7 @@ jobs:
           else
               cmake ${cmake_option} -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DPYTHON_EXECUTABLE=$(which python3) ..;
           fi
-          make VERBOSE=1
+          make
           ctest --output-on-failure
           make install
         env:
