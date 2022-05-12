@@ -82,6 +82,12 @@ int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
     return 0;
 }
 
+template <typename F>
+int derivimplicit_thread(int n, int* slist, int* dlist, F fun, _threadargsproto_) {
+    fun(_threadargs_);  // std::invoke in C++17
+    return 0;
+}
+
 void nrn_sparseobj_copyto_device(SparseObj* so);
 void nrn_sparseobj_delete_from_device(SparseObj* so);
 
