@@ -315,6 +315,12 @@ endif()
 
 if(CORENRN_ENABLE_OPENMP)
   find_package(OpenMP QUIET)
+  if(OpenMP_FOUND)
+      message(STATUS "FLAGS: ${OpenMP_CXX_FLAGS}")
+      message(STATUS "INCLUDE_DIRS: ${OpenMP_CXX_INCLUDE_DIRS}")
+      message(STATUS "LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
+      message(STATUS "LIBRARIES: ${OpenMP_CXX_LIBRARIES}")
+  endif()
 endif()
 
 add_definitions("-DLAYOUT=0")
