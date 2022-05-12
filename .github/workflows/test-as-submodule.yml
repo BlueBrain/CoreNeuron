@@ -97,6 +97,10 @@ jobs:
           cd build
           # NEURON CMake assumes this is defined.
           export SHELL=$(command -v bash)
+          openMP=" -DCORENRN_ENABLE_OPENMP=ON"
+          if [[ "${{ startsWith(matrix.os, 'macOS') }}" = "true" ]]; then
+            openMP=" -DCORENRN_ENABLE_OPENMP=OFF"
+          fi
           cmake .. -G Ninja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=../install \
@@ -105,7 +109,7 @@ jobs:
             -DNRN_ENABLE_INTERVIEWS=OFF \
             -DNRN_ENABLE_RX3D=OFF \
             -DNRN_ENABLE_MPI_DYNAMIC=ON \
-            -DNRN_ENABLE_TESTS=ON
+            -DNRN_ENABLE_TESTS=ON ${openMP}
 
       - name: Build NEURON
         run: |
