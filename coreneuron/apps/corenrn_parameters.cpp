@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================.
@@ -192,9 +192,9 @@ void corenrn_parameters::parse(int argc, char** argv) {
 
 #ifndef CORENEURON_ENABLE_GPU
     if (gpu) {
-        std::cerr << "GPU support was not enabled at build time but --gpu was passed. This is "
-                     "probably not what you meant."
-                  << std::endl;
+        std::cerr
+            << "Error: GPU support was not enabled at build time but GPU execution was requested."
+            << std::endl;
         exit(42);
     }
 #endif

@@ -2,6 +2,12 @@
 # =============================================================================
 # Originally newton.c from SCoP library, Copyright (c) 1987-90 Duke University
 # =============================================================================
+# Subsequent extensive prototype and memory layout changes for CoreNEURON
+#
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
+#
+# See top-level LICENSE file for details.
+# =============================================================================.
 */
 #pragma once
 #include "coreneuron/sim/scopmath/errcodes.h"

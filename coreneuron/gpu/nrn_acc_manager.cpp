@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
@@ -953,8 +953,11 @@ void delete_nrnthreads_on_device(NrnThread* threads, int nthreads) {
 #ifdef CORENEURON_ENABLE_GPU
     for (int i = 0; i < nthreads; i++) {
         NrnThread* nt = threads + i;
-        cnrn_target_delete(nt->_fornetcon_weight_perm);
-        cnrn_target_delete(nt->_fornetcon_perm_indices);
+        if (!nt->compute_gpu) {
+            continue;
+        }
+        cnrn_target_delete(nt->_fornetcon_weight_perm, nt->_fornetcon_weight_perm_size);
+        cnrn_target_delete(nt->_fornetcon_perm_indices, nt->_fornetcon_perm_indices_size);
         {
             TrajectoryRequests* tr = nt->trajec_requests;
             if (tr) {
