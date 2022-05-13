@@ -416,6 +416,28 @@ if(MINGW)
 endif()
 
 # =============================================================================
+# ~~~
+# Update hh.mod for CoreNEURON GPU compatibility
+# - Comment out TABLE if GPU is enabled
+# ~~~
+# =============================================================================
+if(CORENRN_ENABLE_GPU)
+  set(TABLE_VAR_TOGGLE_COMMAND "'s/ TABLE minf/ :TABLE minf/'")
+else()
+  set(TABLE_VAR_TOGGLE_COMMAND "'s/ :TABLE minf/ TABLE minf/'")
+endif()
+separate_arguments(TABLE_VAR_TOGGLE_COMMAND UNIX_COMMAND "${TABLE_VAR_TOGGLE_COMMAND}")
+add_custom_target(
+  hh_update
+  COMMAND sed ${TABLE_VAR_TOGGLE_COMMAND} ${CMAKE_BINARY_DIR}/hh.mod >
+          ${CMAKE_BINARY_DIR}/hh.mod.1
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/hh.mod.1
+          ${CMAKE_SOURCE_DIR}/src/nrnoc/hh.mod
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/hh.mod.1
+  COMMENT "Update hh.mod for CoreNEURON GPU compatibility"
+  VERBATIM)
+
+# =============================================================================
 # NMODL specific options
 # =============================================================================
 if(CORENRN_ENABLE_NMODL)
