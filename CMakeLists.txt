@@ -430,11 +430,12 @@ separate_arguments(TABLE_VAR_TOGGLE_COMMAND UNIX_COMMAND "${TABLE_VAR_TOGGLE_COM
 add_custom_target(
   hh_update_corenrn
   COMMAND
-    sed ${TABLE_VAR_TOGGLE_COMMAND} ${CMAKE_SOURCE_DIR}/coreneuron/mechanism/mech/modfile/hh.mod >
-    ${CMAKE_BINARY_DIR}/hh.mod.1
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/hh.mod.1
-    ${CMAKE_SOURCE_DIR}/coreneuron/mechanism/mech/modfile/hh.mod
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/hh.mod.1
+    sed ${TABLE_VAR_TOGGLE_COMMAND}
+    ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile/hh.mod >
+    ${CMAKE_BINARY_DIR}/hh.mod.coreneuron.1
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/hh.mod.coreneuron.1
+          ${CORENEURON_PROJECT_SOURCE_DIR}/coreneuron/mechanism/mech/modfile/hh.mod
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/hh.mod.coreneuron.1
   COMMENT "Update hh.mod for CoreNEURON GPU compatibility"
   VERBATIM)
 
