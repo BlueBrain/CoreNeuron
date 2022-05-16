@@ -428,7 +428,7 @@ else()
 endif()
 separate_arguments(TABLE_VAR_TOGGLE_COMMAND UNIX_COMMAND "${TABLE_VAR_TOGGLE_COMMAND}")
 add_custom_target(
-  hh_update
+  hh_update_corenrn
   COMMAND
     sed ${TABLE_VAR_TOGGLE_COMMAND} ${CMAKE_SOURCE_DIR}/coreneuron/mechanism/mech/modfile/hh.mod >
     ${CMAKE_BINARY_DIR}/hh.mod.1

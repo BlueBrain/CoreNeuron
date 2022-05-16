@@ -170,7 +170,7 @@ if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
 endif()
 
 # Enable TABLE expression in hh.mod on CPU builds
-add_dependencies(coreneuron hh_update)
+add_dependencies(coreneuron hh_update_corenrn)
 
 # this is where we handle dynamic mpi library build
 if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
