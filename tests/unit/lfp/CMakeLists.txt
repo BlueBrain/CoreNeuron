@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright (C) 2016-2020 Blue Brain Project
+# Copyright (c) 2016-2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================
