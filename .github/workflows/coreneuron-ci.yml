@@ -146,7 +146,7 @@ jobs:
           fi
 
           if [[ "${{matrix.config.flag_warnings}}" == "ON" ]]; then
-              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall -Wno-format-overflow")
+              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall" -DCORENRN_EXTRA_MECH_CXX_FLAGS="-Wno-format-overflow")
           fi
           
           echo "------- Build, Test and Install -------"
