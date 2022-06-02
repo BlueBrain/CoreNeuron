@@ -218,7 +218,7 @@ jobs:
         # Hyphens here will be replaced with commas before the value is passed
         # to CORENRN_SANITIZERS
         # TODO: might be interesting to add the thread sanitizer too
-        sanitizer: [undefined, address-leak]
+        sanitizer: [undefined, address]
       fail-fast: false
     steps:
       - name: Setup cmake
