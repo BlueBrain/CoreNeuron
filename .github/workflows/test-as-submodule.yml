@@ -63,7 +63,7 @@ jobs:
           echo "Will use neuron branch: $nrn_branch"
           echo ::set-output name=neuron_branch::"${nrn_branch}"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout NEURON
         with:
           path: nrn

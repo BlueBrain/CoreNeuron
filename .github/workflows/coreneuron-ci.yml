@@ -31,7 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-18.04, macOS-10.15 ]
+        os: [ ubuntu-20.04, macOS-10.15 ]
         config:
           # Defaults: CORENRN_ENABLE_MPI=ON
           - {cmake_option: "-DCORENRN_ENABLE_MPI=ON -DCORENRN_ENABLE_DEBUG_CODE=ON", documentation: ON}
@@ -68,7 +68,7 @@ jobs:
           GCC_VERSION: ${{ matrix.config.gcc_version }}
 
       - name: Set up Python3
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
         env:
@@ -92,9 +92,9 @@ jobs:
       - name: Install NMODL dependencies
         if: ${{ matrix.config.use_nmodl == 'ON' ||  matrix.config.use_ispc == 'ON' }}
         run: |
-          python3 -m pip install --upgrade pip jinja2 pyyaml pytest "sympy<1.6";
+          python3 -m pip install --upgrade pip jinja2 pyyaml pytest sympy
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Python3 documentation dependencies
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.config.documentation == 'ON' }}
@@ -162,7 +162,7 @@ jobs:
           echo ::set-output name=status::done
           
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@v4
         if: steps.documentation.outputs.status == 'done' && github.ref == 'refs/heads/master'
         with:
           branch: gh-pages # The branch the action should deploy to.
