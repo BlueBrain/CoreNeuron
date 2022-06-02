@@ -52,21 +52,23 @@ jobs:
         if: startsWith(matrix.os, 'macOS')
         run: |
           brew update
-          brew install bison boost coreutils flex ninja openmpi
+          brew install bison boost ccache coreutils flex ninja openmpi
           echo /usr/local/opt/flex/bin:/usr/local/opt/bison/bin >> $GITHUB_PATH
         shell: bash
 
       - name: Install apt packages
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo apt-get install doxygen bison flex libboost-all-dev libfl-dev \
-            libopenmpi-dev ninja-build openmpi-bin
+          sudo apt-get install bison ccache doxygen flex libboost-all-dev \
+            libfl-dev libopenmpi-dev ninja-build openmpi-bin
         shell: bash
 
       - name: Install specific apt packages
         if: startsWith(matrix.os, 'ubuntu') && matrix.config.gcc_version
         run: |
           sudo apt-get install gcc-${{matrix.config.gcc_version}}
+          echo CC="gcc-${GCC_VERSION}" >> $GITHUB_ENV
+          echo CXX="g++-${GCC_VERSION}" >> $GITHUB_ENV
         shell: bash
 
       - name: Set up Python3
@@ -91,6 +93,7 @@ jobs:
           url="https://github.com/ispc/ispc/releases/download/${ispc_version}/ispc-${ispc_version}${ispc_version_suffix}-${url_os}.tar.gz";
           wget -O ispc.tar.gz $url;
           mkdir ispc && tar -xvzf ispc.tar.gz -C ispc --strip 1;
+
       - name: Install NMODL dependencies
         if: ${{ matrix.config.use_nmodl == 'ON' ||  matrix.config.use_ispc == 'ON' }}
         run: |
@@ -111,15 +114,30 @@ jobs:
         if: ${{matrix.config.flag_warnings == 'ON'}}
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
 
+      - name: Hash config dictionary
+        run: |
+          cat << EOF > matrix.json
+          ${{toJSON(matrix.config)}}
+          EOF
+          echo matrix.config JSON:
+          cat matrix.json
+          echo -----
+
+      - name: Restore compiler cache
+        uses: pat-s/always-upload-cache@v3
+        with:
+          path: |
+            ${{runner.workspace}}/ccache
+          key: ${{matrix.os}}-${{hashfiles('matrix.json')}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{matrix.os}}-${{hashfiles('matrix.json')}}-${{github.ref}}-
+            ${{matrix.os}}-${{hashfiles('matrix.json')}}-
+
       - name: Build and Test
         id: build-test
         shell: bash
         working-directory: ${{runner.workspace}}/CoreNeuron
         run:  |
-          if [ -n "$GCC_VERSION" ]; then
-              export CC="gcc-${GCC_VERSION}"
-              export CXX="g++-${GCC_VERSION}"
-          fi
           cmake_args=(${{matrix.config.cmake_option}})
           if [[ "${{ startsWith(matrix.os, 'macOS') }}" = "true" ]]; then
               cmake_args+=(-DCORENRN_ENABLE_OPENMP=OFF)
@@ -138,15 +156,19 @@ jobs:
           elif [[ "$USE_NMODL" == "ON" ]]; then
               cmake_args+=(-DCORENRN_ENABLE_NMODL=ON "-DCORENRN_NMODL_FLAGS=sympy --analytic")
           fi
-          cmake .. -G Ninja "${cmake_args[@]}" "-DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install" -DPYTHON_EXECUTABLE=$(command -v python3)
+          cmake .. -G Ninja "${cmake_args[@]}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            "-DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install" \
+            -DPYTHON_EXECUTABLE=$(command -v python3)
           cmake --build . --parallel
           ctest --output-on-failure
           cmake --build . --target install
         env:
-          cmake_option: ${{ matrix.config.cmake_option }}
-          USE_ISPC: ${{ matrix.config.use_ispc }}
-          USE_NMODL: ${{ matrix.config.use_nmodl }}
-          GCC_VERSION: ${{ matrix.config.gcc_version }}
+          CCACHE_BASEDIR: ${{runner.workspace}}/CoreNeuron
+          CCACHE_DIR: ${{runner.workspace}}/ccache
+          USE_ISPC: ${{matrix.config.use_ispc}}
+          USE_NMODL: ${{matrix.config.use_nmodl}}
 
       # This step will set up an SSH connection on tmate.io for live debugging.
       # To enable it, you have to:
@@ -195,7 +217,8 @@ jobs:
       - name: Install apt packages
         run: |
           sudo apt-get update
-          sudo apt-get install bison ccache flex libfl-dev clang-14 ninja-build
+          sudo apt-get install bison ccache flex libboost-all-dev libfl-dev \
+            libopenmpi-dev clang-14 ninja-build openmpi-bin
           # Make clang++ and llvm-symbolizer point at clang/llvm-14
           # Priority (200) chosen to be bigger than that in
           # https://github.com/actions/virtual-environments/blob/main/images/linux/scripts/installers/clang.sh
@@ -242,6 +265,7 @@ jobs:
         shell: bash
         working-directory: ${{runner.workspace}}/CoreNeuron/build
         env:
+          CCACHE_BASEDIR: ${{runner.workspace}}/CoreNeuron
           CCACHE_DIR: ${{runner.workspace}}/ccache
         run:  |
           echo "------- Building -------"
