@@ -67,8 +67,8 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.config.gcc_version
         run: |
           sudo apt-get install gcc-${{matrix.config.gcc_version}}
-          echo CC="gcc-${GCC_VERSION}" >> $GITHUB_ENV
-          echo CXX="g++-${GCC_VERSION}" >> $GITHUB_ENV
+          echo CC="gcc-${{matrix.config.gcc_version}}" >> $GITHUB_ENV
+          echo CXX="g++-${{matrix.config.gcc_version}}" >> $GITHUB_ENV
         shell: bash
 
       - name: Set up Python3
