@@ -648,7 +648,7 @@ double* stdindex2ptr(int mtype, int index, NrnThread& nt) {
             node_permute(&ix, 1, nt._permute);
         }
         return nt.nrn_fast_imem->nrn_sav_rhs + ix;
-    } else if (mtype > 0 && mtype < corenrn.get_memb_funcs().size()) {  //
+    } else if (mtype > 0 && mtype < static_cast<int>(corenrn.get_memb_funcs().size())) {  //
         Memb_list* ml = nt._ml_list[mtype];
         nrn_assert(ml);
         int ix = nrn_param_layout(index, mtype, ml);

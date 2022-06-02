@@ -146,7 +146,7 @@ jobs:
           fi
 
           if [[ "${{matrix.config.flag_warnings}}" == "ON" ]]; then
-              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall")
+              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall -Wno-format-overflow")
           fi
           
           echo "------- Build, Test and Install -------"
@@ -161,7 +161,17 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             "-DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install" \
             -DPYTHON_EXECUTABLE=$(command -v python3)
+          if ccache --version | grep -E '^ccache version 4\.(4|4\.1)$'
+          then
+            echo "------- Disable ccache direct mode -------"
+            # https://github.com/ccache/ccache/issues/935
+            export CCACHE_NODIRECT=1
+          fi
+          ccache -z
+          # Older versions don't support -v (verbose)
+          ccache -vs 2>/dev/null || ccache -s
           cmake --build . --parallel
+          ccache -vs 2>/dev/null || ccache -s
           ctest --output-on-failure
           cmake --build . --target install
         env:
