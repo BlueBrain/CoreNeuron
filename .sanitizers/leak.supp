@@ -1,3 +1,0 @@
-leak:coreneuron::allocate_data_in_mechanism_nrn_init()
-leak:coreneuron::setup_instance(coreneuron::NrnThread*, coreneuron::Memb_list*)
-leak:nmodl::parser::NmodlParser::parse()
