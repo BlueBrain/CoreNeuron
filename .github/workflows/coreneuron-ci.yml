@@ -41,9 +41,19 @@ jobs:
           - {use_ispc: ON, py_version: 3.6.7}
         include:
           - os: ubuntu-20.04
-            config: {gcc_version: 10}
+            config:
+              gcc_version: 10
           - os: ubuntu-20.04
-            config: {cmake_option: "-DCORENRN_ENABLE_DEBUG_CODE=ON", documentation: ON}
+            config:
+              cmake_option: -DCORENRN_ENABLE_DEBUG_CODE=ON
+              documentation: ON
+          - os: ubuntu-22.04
+            config:
+              sanitizer: address
+          - os: ubuntu-22.04
+            config:
+              flag_warnings: ON
+              sanitizer: undefined
       fail-fast: false
 
     steps:
@@ -109,10 +119,13 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade -r docs/docs_requirements.txt
 
-      - name: Register gcc problem matcher
-        # Only report warnings from one gcc build and one clang build
+      - name: Register compiler warning problem matcher
         if: ${{matrix.config.flag_warnings == 'ON'}}
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+
+      - name: Register sanitizer problem matcher
+        if: ${{matrix.config.sanitizer}}
+        run: echo "::add-matcher::.github/problem-matchers/${{matrix.config.sanitizer}}.json"
 
       - name: Hash config dictionary
         run: |
@@ -146,7 +159,18 @@ jobs:
           fi
 
           if [[ "${{matrix.config.flag_warnings}}" == "ON" ]]; then
-              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall" -DCORENRN_EXTRA_MECH_CXX_FLAGS="-Wno-format-overflow")
+              cmake_args+=(-DCORENRN_EXTRA_CXX_FLAGS="-Wall")
+          fi
+
+          if [[ -n "${{matrix.config.sanitizer}}" ]]; then
+              CC=$(command -v clang-14)
+              CXX=$(command -v clang++-14)
+              symbolizer_path=$(realpath $(command -v llvm-symbolizer-14))
+              cmake_args+=(-DCMAKE_BUILD_TYPE=Custom \
+                           -DCMAKE_C_FLAGS="-O1 -g -Wno-writable-strings" \
+                           -DCMAKE_CXX_FLAGS="-O1 -g -Wno-writable-strings" \
+                           -DLLVM_SYMBOLIZER_PATH="${symbolizer_path}" \
+                           -DCORENRN_SANITIZERS=$(echo ${{matrix.config.sanitizer}} | sed -e 's/-/,/g'))
           fi
           
           echo "------- Build, Test and Install -------"
@@ -157,7 +181,9 @@ jobs:
               cmake_args+=(-DCORENRN_ENABLE_NMODL=ON "-DCORENRN_NMODL_FLAGS=sympy --analytic")
           fi
           cmake .. -G Ninja "${cmake_args[@]}" \
+            -DCMAKE_C_COMPILER="${CC}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             "-DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install" \
             -DPYTHON_EXECUTABLE=$(command -v python3)
@@ -172,13 +198,18 @@ jobs:
           ccache -vs 2>/dev/null || ccache -s
           cmake --build . --parallel
           ccache -vs 2>/dev/null || ccache -s
-          ctest --output-on-failure
+          ctest -T Test --output-on-failure
           cmake --build . --target install
         env:
           CCACHE_BASEDIR: ${{runner.workspace}}/CoreNeuron
           CCACHE_DIR: ${{runner.workspace}}/ccache
           USE_ISPC: ${{matrix.config.use_ispc}}
           USE_NMODL: ${{matrix.config.use_nmodl}}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ctest-results-${{hashfiles('matrix.json')}}-sanitizer
+          path: ${{runner.workspace}}/CoreNeuron/build/Testing/*/Test.xml
 
       # This step will set up an SSH connection on tmate.io for live debugging.
       # To enable it, you have to:
@@ -207,94 +238,3 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: ${{runner.workspace}}/CoreNeuron/build/docs  # The folder the action should deploy.
           single-commit: true #have a single commit on the deployment branch instead of maintaining the full history
-  sanitizers:
-    needs: ci
-    name: ${{ matrix.sanitizer }}-sanitizer
-    runs-on: ubuntu-22.04
-    env:
-      CMAKE_BUILD_PARALLEL_LEVEL: 2
-    strategy:
-      matrix:
-        # Hyphens here will be replaced with commas before the value is passed
-        # to CORENRN_SANITIZERS
-        # TODO: might be interesting to add the thread sanitizer too
-        sanitizer: [undefined, address]
-      fail-fast: false
-    steps:
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v1
-
-      - name: Install apt packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install bison ccache flex libboost-all-dev libfl-dev \
-            libopenmpi-dev clang-14 ninja-build openmpi-bin
-          # Make clang++ and llvm-symbolizer point at clang/llvm-14
-          # Priority (200) chosen to be bigger than that in
-          # https://github.com/actions/virtual-environments/blob/main/images/linux/scripts/installers/clang.sh
-          sudo update-alternatives --install /usr/bin/clang++         clang++         /usr/bin/clang++-14         200
-          sudo update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-14 200
-          clang++ --version
-          llvm-symbolizer --version
-        shell: bash
-
-      - name: Set up Python3
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ env.DEFAULT_PY_VERSION }}
-
-      - uses: actions/checkout@v3
-
-      - name: Configure
-        shell: bash
-        working-directory: ${{runner.workspace}}/CoreNeuron
-        run:  |
-          echo "------- Configure -------"
-          mkdir build && pushd build
-          cmake .. -G Ninja \
-            -DCMAKE_BUILD_TYPE=Custom \
-            -DCMAKE_CXX_FLAGS="-O1 -g" \
-            -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-            -DCORENRN_SANITIZERS=$(echo ${{matrix.sanitizer}} | sed -e 's/-/,/g')
-        env:
-          INSTALL_DIR: ${{ runner.workspace }}/install
-
-      - name: Restore compiler cache
-        uses: pat-s/always-upload-cache@v3
-        with:
-          path: |
-            ${{runner.workspace}}/ccache
-          key: ${{matrix.sanitizer}}-${{github.ref}}-${{github.sha}}
-          restore-keys: |
-            ${{matrix.sanitizer}}-${{github.ref}}-
-            ${{matrix.sanitizer}}-
-
-      - name: Build
-        shell: bash
-        working-directory: ${{runner.workspace}}/CoreNeuron/build
-        env:
-          CCACHE_BASEDIR: ${{runner.workspace}}/CoreNeuron
-          CCACHE_DIR: ${{runner.workspace}}/ccache
-        run:  |
-          echo "------- Building -------"
-          ccache -z
-          ccache -vs
-          cmake --build .
-          ccache -vs
-
-      - name: Register problem matcher
-        run: echo "::add-matcher::.github/problem-matchers/${{matrix.sanitizer}}.json"
-
-      - name: Test
-        shell: bash
-        working-directory: ${{runner.workspace}}/CoreNeuron/build
-        run: |
-          echo "------- Testing -------"
-          ctest -T Test --output-on-failure
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ctest-results-${{matrix.sanitizer}}-sanitizer
-          path: ${{runner.workspace}}/CoreNeuron/build/Testing/*/Test.xml
