@@ -171,6 +171,9 @@ jobs:
                            -DCMAKE_CXX_FLAGS="-O1 -g -Wno-writable-strings" \
                            -DLLVM_SYMBOLIZER_PATH="${symbolizer_path}" \
                            -DCORENRN_SANITIZERS=$(echo ${{matrix.config.sanitizer}} | sed -e 's/-/,/g'))
+          else
+              CC=${CC:-gcc}
+              CXX=${CXX:-g++}
           fi
           
           echo "------- Build, Test and Install -------"
