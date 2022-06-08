@@ -118,6 +118,7 @@ foreach(args_line ${TEST_CASES_WITH_ARGS})
     COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}/integration_test.sh
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}")
   set_tests_properties(${TEST_NAME}_TEST PROPERTIES PROCESSORS ${test_num_processors})
+  cpp_cc_configure_sanitizers(TEST ${TEST_NAME}_TEST)
   list(APPEND CORENRN_TEST_NAMES ${TEST_NAME}_TEST)
 endforeach()
 
@@ -133,6 +134,7 @@ if(CORENRN_ENABLE_REPORTING)
       NAME ${SIM_NAME}
       COMMAND "/bin/sh" ${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}/reporting_test.sh
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${SIM_NAME}")
+    cpp_cc_configure_sanitizers(TEST ${SIM_NAME})
     list(APPEND CORENRN_TEST_NAMES ${SIM_NAME})
   endforeach()
 endif()
