@@ -28,7 +28,8 @@ void write_mech_report() {
             const int type = tml->index;
             const auto& ml = tml->ml;
             local_mech_count[type] += ml->nodecount;
-            mech_size[type] = corenrn.get_prop_param_size()[type] * sizeof(double) + corenrn.get_prop_dparam_size()[type] * sizeof(Datum);
+            mech_size[type] = corenrn.get_prop_param_size()[type] * sizeof(double) +
+                              corenrn.get_prop_dparam_size()[type] * sizeof(Datum);
         }
     }
 
@@ -51,9 +52,19 @@ void write_mech_report() {
     /// print global stats to stdout
     if (nrnmpi_myid == 0) {
         printf("\n================ MECHANISMS COUNT BY TYPE ==================\n");
-        printf("%4s %20s %10s %25s %25s\n", "Id", "Name", "Count", "Size per mechanism (Bytes)", "Total memory size (KBs)");
+        printf("%4s %20s %10s %25s %25s\n",
+               "Id",
+               "Name",
+               "Count",
+               "Size per mechanism (Bytes)",
+               "Total memory size (KBs)");
         for (size_t i = 0; i < total_mech_count.size(); i++) {
-            printf("%4lu %20s %10ld %25zu %25.2lf\n", i, nrn_get_mechname(i), total_mech_count[i], mech_size[i], static_cast<double>(total_mech_count[i]*mech_size[i])/1024);
+            printf("%4lu %20s %10ld %25zu %25.2lf\n",
+                   i,
+                   nrn_get_mechname(i),
+                   total_mech_count[i],
+                   mech_size[i],
+                   static_cast<double>(total_mech_count[i] * mech_size[i]) / 1024);
         }
         printf("=============================================================\n");
     }
