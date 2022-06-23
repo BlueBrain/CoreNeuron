@@ -966,11 +966,37 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
     nt.summation_report_handler_ = std::make_unique<SummationReportMapping>();
 }
 
-// Returns the size of the dynamically allocated memory for NrnThreadMembList
-size_t memb_list_size(NrnThreadMembList* tml) {
+/* Returns the size of the dynamically allocated memory for NrnThreadMembList
+ * Includes:
+ *  - Size of NrnThreadMembList
+ *  - Size of Memb_list
+ *  - Size of nodeindices
+ *  - Size of _permute
+ *  - Size of _thread
+ *  - Size of NetReceive and NetSend Buffers
+ *  - Size of int variables
+ *  - Size of double variables (If include_data is enabled. Those variables are already counted
+ * since they point to nt->_data.)
+ */
+size_t memb_list_size(NrnThreadMembList* tml, bool include_data) {
     size_t nbyte = sizeof(NrnThreadMembList) + sizeof(Memb_list);
     nbyte += tml->ml->nodecount * sizeof(int);
-    nbyte += corenrn.get_prop_param_size()[tml->index] * tml->ml->nodecount * sizeof(double);
+    if (tml->ml->_permute) {
+        nbyte += tml->ml->nodecount * sizeof(int);
+    }
+    if (tml->ml->_thread) {
+        Memb_func& mf = corenrn.get_memb_func(tml->index);
+        nbyte += mf.thread_size_ * sizeof(ThreadDatum);
+    }
+    if (tml->ml->_net_receive_buffer) {
+        nbyte += sizeof(NetReceiveBuffer_t) + tml->ml->_net_receive_buffer->size_of_object();
+    }
+    if (tml->ml->_net_send_buffer) {
+        nbyte += sizeof(NetSendBuffer_t) + tml->ml->_net_send_buffer->size_of_object();
+    }
+    if (include_data) {
+        nbyte += corenrn.get_prop_param_size()[tml->index] * tml->ml->nodecount * sizeof(double);
+    }
     nbyte += corenrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
 #ifdef DEBUG
     int i = tml->index;
@@ -1033,7 +1059,7 @@ size_t model_size(bool detailed_report) {
         // Memb_list size
         int nmech = 0;
         for (auto tml = nt.tml; tml; tml = tml->next) {
-            nb_nt += memb_list_size(tml);
+            nb_nt += memb_list_size(tml, false);
             ++nmech;
         }
 

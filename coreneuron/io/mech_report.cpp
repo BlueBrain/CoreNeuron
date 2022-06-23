@@ -29,7 +29,7 @@ void write_mech_report() {
             const int type = tml->index;
             const auto& ml = tml->ml;
             local_mech_count[type] += ml->nodecount;
-            local_mech_size[type] = memb_list_size(tml);
+            local_mech_size[type] = memb_list_size(tml, true);
         }
     }
 
