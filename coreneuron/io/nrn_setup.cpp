@@ -991,7 +991,7 @@ size_t output_presyn_size(void) {
     size_t nbyte = sizeof(gid2out) + sizeof(int) * gid2out.size() +
                    sizeof(PreSyn*) * gid2out.size();
 #ifdef DEBUG
-    printf(" gid2out table bytes=~%ld size=%d\n", nbyte, gid2out.size());
+    printf(" gid2out table bytes=~%ld size=%ld\n", nbyte, gid2out.size());
 #endif
     return nbyte;
 }
@@ -1003,7 +1003,7 @@ size_t input_presyn_size(void) {
     size_t nbyte = sizeof(gid2in) + sizeof(int) * gid2in.size() +
                    sizeof(InputPreSyn*) * gid2in.size();
 #ifdef DEBUG
-    printf(" gid2in table bytes=~%ld size=%d\n", nbyte, gid2in.size());
+    printf(" gid2in table bytes=~%ld size=%ld\n", nbyte, gid2in.size());
 #endif
     return nbyte;
 }
