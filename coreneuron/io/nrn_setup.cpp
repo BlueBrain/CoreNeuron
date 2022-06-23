@@ -966,9 +966,11 @@ void read_phase3(NrnThread& nt, UserParams& userParams) {
     nt.summation_report_handler_ = std::make_unique<SummationReportMapping>();
 }
 
-static size_t memb_list_size(NrnThreadMembList* tml) {
+// Returns the size of the dynamically allocated memory for NrnThreadMembList
+size_t memb_list_size(NrnThreadMembList* tml) {
     size_t nbyte = sizeof(NrnThreadMembList) + sizeof(Memb_list);
     nbyte += tml->ml->nodecount * sizeof(int);
+    nbyte += corenrn.get_prop_param_size()[tml->index] * tml->ml->nodecount * sizeof(double);
     nbyte += corenrn.get_prop_dparam_size()[tml->index] * tml->ml->nodecount * sizeof(Datum);
 #ifdef DEBUG
     int i = tml->index;
