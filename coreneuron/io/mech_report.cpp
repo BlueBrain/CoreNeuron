@@ -57,7 +57,7 @@ void write_mech_report() {
     /// print global stats to stdout
     if (nrnmpi_myid == 0) {
         printf("\n================= MECHANISMS COUNT BY TYPE ===================\n");
-        printf("%4s %20s %10s %25s\n", "Id", "Name", "Count", "Total memory size (kB)");
+        printf("%4s %20s %10s %25s\n", "Id", "Name", "Count", "Total memory size (KiB)");
         for (size_t i = 0; i < total_mech_count.size(); i++) {
             printf("%4lu %20s %10ld %25.2lf\n",
                    i,
