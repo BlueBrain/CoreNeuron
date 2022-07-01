@@ -71,7 +71,6 @@ struct mpi_function_base {
 // This could be done with a simpler
 //   template <auto fptr> struct function : function_base { ... };
 // pattern in C++17...
-// TODO this could be done in this PR
 template <typename>
 struct mpi_function {};
 

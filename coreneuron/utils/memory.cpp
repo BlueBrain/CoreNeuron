@@ -23,7 +23,7 @@ bool unified_memory_enabled() {
 #endif
 }
 
-void* allocate_unified(std::size_t num_bytes, std::align_val_t alignment) {
+void* allocate_unified(std::size_t num_bytes) {
 #ifdef CORENEURON_ENABLE_GPU
     // The build supports GPU execution, check if --gpu was passed to actually
     // enable it. We should not call CUDA APIs in GPU builds if --gpu was not passed.
@@ -32,25 +32,19 @@ void* allocate_unified(std::size_t num_bytes, std::align_val_t alignment) {
         void* ptr{nullptr};
         auto const code = cudaMallocManaged(&ptr, num_bytes);
         assert(code == cudaSuccess);
-        assert(is_aligned(ptr, static_cast<std::size_t>(alignment)));
         return ptr;
     }
 #endif
     // Either the build does not have GPU support or --gpu was not passed.
     // Allocate using standard operator new.
-#ifdef __cpp_aligned_new
-    if (static_cast<std::size_t>(alignment) > __STDCPP_DEFAULT_NEW_ALIGNMENT__) {
-        return ::operator new(num_bytes, alignment);
-    }
-#endif
+    // When we have C++17 support then propagate `alignment` here.
     return ::operator new(num_bytes);
 }
 
-void deallocate_unified(void* ptr, std::size_t num_bytes, std::align_val_t alignment) {
+void deallocate_unified(void* ptr, std::size_t num_bytes) {
     // See comments in allocate_unified to understand the different branches.
 #ifdef CORENEURON_ENABLE_GPU
     if (corenrn_param.gpu) {
-        assert(is_aligned(ptr, static_cast<std::size_t>(alignment)));
         // Deallocate managed/unified memory.
         auto const code = cudaFree(ptr);
         assert(code == cudaSuccess);
@@ -58,20 +52,8 @@ void deallocate_unified(void* ptr, std::size_t num_bytes, std::align_val_t align
     }
 #endif
 #ifdef __cpp_sized_deallocation
-#ifdef __cpp_aligned_new
-    if (static_cast<std::size_t>(alignment) > __STDCPP_DEFAULT_NEW_ALIGNMENT__) {
-        ::operator delete(ptr, num_bytes, alignment);
-        return;
-    }
-#endif
     ::operator delete(ptr, num_bytes);
 #else
-#ifdef __cpp_aligned_new
-    if (static_cast<std::size_t>(alignment) > __STDCPP_DEFAULT_NEW_ALIGNMENT__) {
-        ::operator delete(ptr, alignment);
-        return;
-    }
-#endif
     ::operator delete(ptr);
 #endif
 }
