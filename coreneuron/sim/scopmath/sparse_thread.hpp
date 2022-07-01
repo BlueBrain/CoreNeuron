@@ -13,6 +13,8 @@
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
 
+#include <functional>
+
 namespace coreneuron {
 namespace scopmath {
 namespace sparse {
@@ -479,7 +481,7 @@ void create_coef_list(SparseObj* so, int n, SPFUN fun, _threadargsproto_) {
     initeqn(so, (unsigned) n);
     so->phase = 1;
     so->ngetcall[0] = 0;
-    fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
+    std::invoke(fun, so, so->rhs, _threadargs_);
     if (so->coef_list) {
         free(so->coef_list);
     }
@@ -488,7 +490,7 @@ void create_coef_list(SparseObj* so, int n, SPFUN fun, _threadargsproto_) {
     spar_minorder(so);
     so->phase = 2;
     so->ngetcall[0] = 0;
-    fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
+    std::invoke(fun, so, so->rhs, _threadargs_);
     so->phase = 0;
 }
 }  // namespace sparse
@@ -565,7 +567,7 @@ int sparse_thread(SparseObj* so,
     }
     for (err = 1, j = 0; err > CONVERGE; j++) {
         scopmath::sparse::init_coef_list(so, _iml);
-        fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
+        std::invoke(fun, so, so->rhs, _threadargs_);
         if ((ierr = scopmath::sparse::matsol(so, _iml))) {
             return ierr;
         }
@@ -583,8 +585,8 @@ int sparse_thread(SparseObj* so,
             break;
     }
     scopmath::sparse::init_coef_list(so, _iml);
-    fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
-    for (i = 0; i < n; i++) {        /*restore Dstate at t+dt*/
+    std::invoke(fun, so, so->rhs, _threadargs_);
+    for (i = 0; i < n; i++) { /*restore Dstate at t+dt*/
         scopmath_sparse_d(i) = (scopmath_sparse_s(i) - scopmath_sparse_d(i)) / dt;
     }
     return SUCCESS;
@@ -603,7 +605,7 @@ int _cvode_sparse_thread(void** vpr, int n, int* x, SPFUN fun, _threadargsproto_
     }
     scopmath::sparse::create_coef_list(so, n, fun, _threadargs_); /* calls fun twice */
     scopmath::sparse::init_coef_list(so, _iml);
-    fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
+    std::invoke(fun, so, so->rhs, _threadargs_);
     int ierr;
     if ((ierr = scopmath::sparse::matsol(so, _iml))) {
         return ierr;

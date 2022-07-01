@@ -38,6 +38,7 @@ void* allocate_unified(std::size_t num_bytes) {
     // Either the build does not have GPU support or --gpu was not passed.
     // Allocate using standard operator new.
     // When we have C++17 support then propagate `alignment` here.
+    // TODO this could be done in this PR
     return ::operator new(num_bytes);
 }
 

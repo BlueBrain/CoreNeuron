@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 namespace coreneuron {
 #if defined(scopmath_newton_ix) || defined(scopmath_newton_s) || defined(scopmath_newton_x)
@@ -57,11 +58,11 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
     for (int j = 0; j < n; j++) {
         double increment = std::max(std::fabs(0.02 * (scopmath_newton_x(index[j]))), STEP);
         scopmath_newton_x(index[j]) += increment;
-        func(_threadargs_);  // std::invoke in C++17
+        std::invoke(func, _threadargs_);
         for (int i = 0; i < n; i++)
             high_value[scopmath_newton_ix(i)] = value[scopmath_newton_ix(i)];
         scopmath_newton_x(index[j]) -= 2.0 * increment;
-        func(_threadargs_);  // std::invoke in C++17
+        std::invoke(func, _threadargs_);
         for (int i = 0; i < n; i++) {
             low_value[scopmath_newton_ix(i)] = value[scopmath_newton_ix(i)];
 
@@ -75,7 +76,7 @@ void nrn_buildjacobian_thread(NewtonSpace* ns,
         /* Restore original variable and function values. */
 
         scopmath_newton_x(index[j]) += increment;
-        func(_threadargs_);  // std::invoke in C++17
+        std::invoke(func, _threadargs_);
     }
 }
 #undef scopmath_newton_x
@@ -160,7 +161,7 @@ inline int nrn_newton_thread(NewtonSpace* ns,
                 }
             }
             // Evaulate function values with new solution.
-            func(_threadargs_);  // std::invoke in C++17
+            std::invoke(func, _threadargs_);
             max_dev = 0.0;
             for (int i = 0; i < n; i++) {
                 value[scopmath_newton_ix(i)] = -value[scopmath_newton_ix(i)]; /* Required correction
