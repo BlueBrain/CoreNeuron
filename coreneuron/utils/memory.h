@@ -32,11 +32,14 @@ bool unified_memory_enabled();
 
 /** @brief Allocate unified memory in GPU builds iff GPU enabled, otherwise new
  */
-void* allocate_unified(std::size_t num_bytes);
+void* allocate_unified(std::size_t num_bytes,
+                       std::align_val_t alignment = std::align_val_t{alignof(std::max_align_t)});
 
 /** @brief Deallocate memory allocated by `allocate_unified`.
  */
-void deallocate_unified(void* ptr, std::size_t num_bytes);
+void deallocate_unified(void* ptr,
+                        std::size_t num_bytes,
+                        std::align_val_t alignment = std::align_val_t{alignof(std::max_align_t)});
 
 /** @brief C++ allocator that uses [de]allocate_unified.
  */
@@ -50,11 +53,12 @@ struct unified_allocator {
     unified_allocator(unified_allocator<U> const&) noexcept {}
 
     value_type* allocate(std::size_t n) {
-        return static_cast<value_type*>(allocate_unified(n * sizeof(value_type)));
+        return static_cast<value_type*>(
+            allocate_unified(n * sizeof(value_type), std::align_val_t{alignof(T)}));
     }
 
     void deallocate(value_type* p, std::size_t n) noexcept {
-        deallocate_unified(p, n * sizeof(value_type));
+        deallocate_unified(p, n * sizeof(value_type), std::align_val_t{alignof(T)});
     }
 };
 
