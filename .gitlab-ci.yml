@@ -66,10 +66,6 @@ build:neuron:mod2c:intel:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:coreneuron:mod2c:intel"]
 
-# Test CoreNEURON
-  extends: [.ctest]
-  needs: ["build:coreneuron:mod2c:intel"]
-
 # Test NEURON
 test:neuron:mod2c:intel:
   extends: [.test_neuron]
