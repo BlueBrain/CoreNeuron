@@ -8,6 +8,8 @@ include:
     file: enable-upload.yml
 
 variables:
+  # Stop all MPI tests getting pinned to the first few cores
+  MPI_DSM_DISTRIBUTE: 0
   NEURON_BRANCH:
     description: Branch of NEURON to build against CoreNEURON (NEURON_COMMIT and NEURON_TAG also possible)
     value: master
