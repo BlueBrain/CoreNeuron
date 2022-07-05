@@ -12,8 +12,6 @@
 #include "coreneuron/mechanism/mechanism.hpp"
 #include "coreneuron/utils/offload.hpp"
 
-#include <functional>
-
 namespace coreneuron {
 
 #define _STRIDE _cntml_padded + _iml
@@ -76,7 +74,7 @@ template <typename F>
 int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
     double const dt{_nt->_dt};
     /* calculate the derivatives */
-    std::invoke(fun, _threadargs_);
+    fun(_threadargs_);  // std::invoke in C++17
     /* update dependent variables */
     for (int i = 0; i < neqn; i++) {
         _p[var[i] * _STRIDE] += dt * (_p[der[i] * _STRIDE]);
@@ -86,7 +84,7 @@ int euler_thread(int neqn, int* var, int* der, F fun, _threadargsproto_) {
 
 template <typename F>
 int derivimplicit_thread(int n, int* slist, int* dlist, F fun, _threadargsproto_) {
-    std::invoke(fun, _threadargs_);
+    fun(_threadargs_);  // std::invoke in C++17
     return 0;
 }
 
