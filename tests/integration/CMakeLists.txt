@@ -31,6 +31,9 @@ set(PERMUTE2_ARGS "--cell-permute 2")
 set(CUDA_INTERFACE "--cuda-interface")
 if(CORENRN_ENABLE_GPU)
   set(GPU_ARGS "--gpu")
+  set(permutation_modes 1 2)
+else()
+  set(permutation_modes 0 1)
 endif()
 
 # List of tests with arguments
@@ -39,16 +42,32 @@ set(TEST_CASES_WITH_ARGS
     "ring_binqueue!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_binqueue --binqueue"
     "ring_multisend!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_multisend --multisend"
     "ring_spike_buffer!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_spike_buffer --spikebuf 1"
-    "ring_permute1!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute1 ${PERMUTE1_ARGS}"
-    "ring_permute2!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute2 ${PERMUTE2_ARGS}"
     "ring_gap!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap"
     "ring_gap_binqueue!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_binqueue --binqueue"
     "ring_gap_multisend!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_multisend --multisend"
-    "ring_gap_permute1!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute1 ${PERMUTE1_ARGS}"
-    "ring_gap_permute2!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute2 ${PERMUTE2_ARGS}"
 )
+set(test_suffixes "" "_binqueue" "_multisend")
+foreach(cell_permute ${permutation_modes})
+  list(APPEND test_suffixes "_permute${cell_permute}")
+  list(
+    APPEND
+    TEST_CASES_WITH_ARGS
+    "ring_permute${cell_permute}!${RING_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_permute${cell_permute} --cell-permute=${cell_permute}"
+    "ring_gap_permute${cell_permute}!${RING_GAP_COMMON_ARGS} ${GPU_ARGS} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_gap_permute${cell_permute} --cell-permute=${cell_permute}"
+  )
+  # As reports require MPI, do not add test if report is enabled.
+  if(NOT CORENRN_ENABLE_REPORTING)
+    list(APPEND test_suffixes "_serial_permute${cell_permute}")
+    list(
+      APPEND
+      TEST_CASES_WITH_ARGS
+      "ring_serial_permute${cell_permute}!${GPU_ARGS} --cell-permute=${cell_permute} --tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial_permute${cell_permute}"
+    )
+  endif()
+endforeach()
 
 if(CORENRN_ENABLE_GPU)
+  list(APPEND test_suffixes "_permute2_cudaInterface")
   list(
     APPEND
     TEST_CASES_WITH_ARGS
@@ -58,33 +77,11 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # ~~~
-# As reports require MPI, do not add test if report is enabled.
-# ~~~
-if(NOT CORENRN_ENABLE_REPORTING)
-  list(
-    APPEND
-    TEST_CASES_WITH_ARGS
-    "ring_serial!${GPU_ARGS} --tstop 100. --celsius 6.3 --datpath ${RING_DATASET_DIR} ${MODEL_STATS_ARG} --outpath ${CMAKE_CURRENT_BINARY_DIR}/ring_serial"
-  )
-endif()
-
-# ~~~
 # There are no directories for permute and multisend related tests,
 # create them and copy reference spikes
 # ~~~
 foreach(data_dir "ring" "ring_gap")
-  foreach(
-    test_suffix
-    ""
-    "_serial"
-    "_multisend"
-    "_binqueue"
-    "_savestate_permute0"
-    "_savestate_permute1"
-    "_savestate_permute2"
-    "_permute1"
-    "_permute2"
-    "_permute2_cudaInterface")
+  foreach(test_suffix ${test_suffixes})
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
          DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}${test_suffix}/")
   endforeach()
