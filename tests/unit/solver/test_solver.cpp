@@ -93,8 +93,6 @@ struct SetupThreads {
         nrn_threads_create(config.num_threads);
         create_interleave_info();
         int num_cells_remaining{config.num_cells}, total_cells{};
-        // Hack so stateful produce_* functions have the same state for all solver implementations.
-        auto local_config = config;
         for (auto ithread = 0; ithread < nrn_nthread; ++ithread) {
             auto& nt = nrn_threads[ithread];
             // How many cells to distribute on this thread, trying to get the right
@@ -107,12 +105,13 @@ struct SetupThreads {
             auto const padded_size = nrn_soa_padded_size(nt.end, 0);
             // Allocate one big block because the GPU data transfer code assumes this.
             nt._ndata = padded_size * 4;
-            nt._data = new double[nt._ndata];
+            nt._data = static_cast<double*>(emalloc_align(nt._ndata * sizeof(double)));
             auto* vec_rhs = (nt._actual_rhs = nt._data + 0 * padded_size);
             auto* vec_d = (nt._actual_d = nt._data + 1 * padded_size);
             auto* vec_a = (nt._actual_a = nt._data + 2 * padded_size);
             auto* vec_b = (nt._actual_b = nt._data + 3 * padded_size);
-            auto* parent_indices = (nt._v_parent_index = new int[padded_size]);
+            auto* parent_indices =
+                (nt._v_parent_index = static_cast<int*>(emalloc_align(padded_size * sizeof(int))));
             // Magic value to check against later.
             std::fill(parent_indices, parent_indices + nt.end, magic_index_value);
             // Put all the root nodes first, then put the other segments
@@ -128,10 +127,10 @@ struct SetupThreads {
             for (auto icell = 0; icell < nt.ncell; ++icell) {
                 for (auto iseg = 0; iseg < config.num_segments_per_cell; ++iseg) {
                     auto const global_index = get_index(icell, iseg);
-                    vec_a[global_index] = local_config.produce_a(icell, iseg);
-                    vec_b[global_index] = local_config.produce_b(icell, iseg);
-                    vec_d[global_index] = local_config.produce_d(icell, iseg);
-                    vec_rhs[global_index] = local_config.produce_rhs(icell, iseg);
+                    vec_a[global_index] = config.produce_a(icell, iseg);
+                    vec_b[global_index] = config.produce_b(icell, iseg);
+                    vec_d[global_index] = config.produce_d(icell, iseg);
+                    vec_rhs[global_index] = config.produce_rhs(icell, iseg);
                     // 0th element is the root node, which has no parent
                     // other elements are attached in a binary tree configuration
                     // |      0      |
@@ -187,9 +186,9 @@ struct SetupThreads {
     ~SetupThreads() {
         delete_nrnthreads_on_device(nrn_threads, nrn_nthread);
         for (auto& nt: *this) {
-            delete[] std::exchange(nt._data, nullptr);
+            free_memory(std::exchange(nt._data, nullptr));
             delete[] std::exchange(nt._permute, nullptr);
-            delete[] std::exchange(nt._v_parent_index, nullptr);
+            free_memory(std::exchange(nt._v_parent_index, nullptr));
         }
         destroy_interleave_info();
         nrn_threads_free();
@@ -377,11 +376,7 @@ auto random_config() {
     ToyModelConfig config{};
     config.produce_a = [g = gen, d = std::normal_distribution{1.0, 0.1}](int icell,
                                                                          int iseg) mutable {
-        auto const v = d(g);
-        if (icell == 0 && iseg == 0) {
-            std::cout << "returning a=" << v << " for (0, 0)" << std::endl;
-        }
-        return v;
+        return d(g);
     };
     config.produce_b = [g = gen, d = std::normal_distribution{7.0, 0.2}](int, int) mutable {
         return d(g);

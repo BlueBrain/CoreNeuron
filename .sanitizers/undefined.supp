@@ -1,1 +1,2 @@
 unsigned-integer-overflow:_philox4x32bumpkey(r123array2x32)
+unsigned-integer-overflow:coreneuron::TNode::mkhash()
