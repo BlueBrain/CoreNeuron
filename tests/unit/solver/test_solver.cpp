@@ -196,7 +196,7 @@ struct SetupThreads {
     }
 
     auto dump_solver_data() {
-        std::vector<SolverData> ret{nrn_nthread};
+        std::vector<SolverData> ret{static_cast<std::size_t>(nrn_nthread)};
         // Sync the solver data from GPU to host
         update_nrnthreads_on_host(nrn_threads, nrn_nthread);
         // Un-permute the data in and store it in ret.{d,parent_index,rhs}
