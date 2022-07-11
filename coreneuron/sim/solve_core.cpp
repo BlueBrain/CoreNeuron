@@ -42,6 +42,7 @@ static void triang(NrnThread* _nt) {
     nrn_pragma_acc(parallel loop seq present(
         vec_a [0:i3], vec_b [0:i3], vec_d [0:i3], vec_rhs [0:i3], parent_index [0:i3])
                        async(_nt->stream_id) if (_nt->compute_gpu))
+    nrn_pragma_omp(target if (_nt->compute_gpu))
     for (int i = i3 - 1; i >= i2; --i) {
         double p = vec_a[i] / vec_d[i];
         vec_d[parent_index[i]] -= p * vec_b[i];
