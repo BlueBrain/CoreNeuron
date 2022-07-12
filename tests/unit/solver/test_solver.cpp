@@ -196,7 +196,9 @@ struct SetupThreads {
     }
 
     ~SetupThreads() {
-        delete_nrnthreads_on_device(nrn_threads, nrn_nthread);
+        if (corenrn_param.gpu) {
+            delete_nrnthreads_on_device(nrn_threads, nrn_nthread);
+        }
         for (auto& nt: *this) {
             free_memory(std::exchange(nt._data, nullptr));
             delete[] std::exchange(nt._permute, nullptr);
@@ -273,7 +275,7 @@ auto active_implementations() {
     ret.push_back(SolverImplementation::CellPermute0_GPU);
     ret.push_back(SolverImplementation::CellPermute1_GPU);
     ret.push_back(SolverImplementation::CellPermute2_GPU);
-    ret.push_back(SolverImplementation::CellPermute2_CUDA);
+    // ret.push_back(SolverImplementation::CellPermute2_CUDA);
 #endif
     return ret;
 }
