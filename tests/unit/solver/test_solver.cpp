@@ -251,32 +251,6 @@ auto solve_and_dump(Args&&... args) {
     return threads.dump_solver_data();
 }
 
-/** Try and test the cell-permute={0,1,2} solvers in an isolated environment.
- */
-BOOST_AUTO_TEST_CASE(CellPermute0_CPU) {
-    solve_and_dump(SolverImplementation::CellPermute0_CPU);
-}
-
-BOOST_AUTO_TEST_CASE(CellPermute0_GPU) {
-    solve_and_dump(SolverImplementation::CellPermute0_GPU);
-}
-
-BOOST_AUTO_TEST_CASE(CellPermute1_CPU) {
-    solve_and_dump(SolverImplementation::CellPermute1_CPU);
-}
-
-BOOST_AUTO_TEST_CASE(CellPermute1_GPU) {
-    solve_and_dump(SolverImplementation::CellPermute1_GPU);
-}
-
-BOOST_AUTO_TEST_CASE(CellPermute2_CUDA) {
-    solve_and_dump(SolverImplementation::CellPermute2_CUDA);
-}
-
-BOOST_AUTO_TEST_CASE(CellPermute2_GPU) {
-    solve_and_dump(SolverImplementation::CellPermute2_GPU);
-}
-
 auto active_implementations() {
     // These two are always available
     std::vector<SolverImplementation> ret{SolverImplementation::CellPermute0_CPU,
