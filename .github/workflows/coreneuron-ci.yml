@@ -36,9 +36,9 @@ jobs:
           - {cmake_option: "-DCORENRN_ENABLE_MPI_DYNAMIC=ON", flag_warnings: ON}
           - {cmake_option: "-DCORENRN_ENABLE_MPI_DYNAMIC=ON -DCORENRN_ENABLE_SHARED=OFF"}
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
-          - {use_nmodl: ON, py_version: 3.6.7}
+          - {use_nmodl: ON, py_version: 3.7}
           - {use_nmodl: ON}
-          - {use_ispc: ON, py_version: 3.6.7}
+          - {use_ispc: ON, py_version: 3.7}
         include:
           - os: ubuntu-20.04
             config:
