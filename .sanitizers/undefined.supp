@@ -1,1 +1,3 @@
 unsigned-integer-overflow:_philox4x32bumpkey(r123array2x32)
+unsigned-integer-overflow:coreneuron::TNode::mkhash()
+unsigned-integer-overflow:std::mersenne_twister_engine
