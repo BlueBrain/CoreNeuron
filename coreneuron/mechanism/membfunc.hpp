@@ -112,12 +112,39 @@ extern void hoc_register_watch_check(nrn_watch_check_t, int);
 
 extern void nrn_jacob_capacitance(NrnThread*, Memb_list*, int);
 extern void nrn_writes_conc(int, int);
-nrn_pragma_omp(declare target)
-nrn_pragma_acc(routine seq)
-void nrn_wrote_conc(int, double*, int, int, double**, double, int);
-nrn_pragma_omp(end declare target)
 constexpr double ktf(double celsius) {
     return 1000. * units::gasconstant * (celsius + 273.15) / units::faraday;
+}
+// std::log isn't constexpr, but there are argument values for which nrn_nernst
+// is a constant expression
+constexpr double nrn_nernst(double ci, double co, double z, double celsius) {
+    if (z == 0) {
+        return 0.;
+    }
+    if (ci <= 0.) {
+        return 1e6;
+    } else if (co <= 0.) {
+        return -1e6;
+    } else {
+        return ktf(celsius) / z * std::log(co / ci);
+    }
+}
+constexpr void nrn_wrote_conc(int type,
+                    double* p1,
+                    int p2,
+                    int it,
+                    double** gimap,
+                    double celsius,
+                    int _cntml_padded) {
+    if (it & 040) {
+        constexpr int _iml = 0;
+        int const STRIDE{_cntml_padded + _iml};
+        /* passing _nt to this function causes cray compiler to segfault during compilation
+         * hence passing _cntml_padded
+         */
+        double* pe = p1 - p2 * STRIDE;
+        pe[0] = nrn_nernst(pe[1 * STRIDE], pe[2 * STRIDE], gimap[type][2], celsius);
+    }
 }
 inline double nrn_ghk(double v, double ci, double co, double z, double celsius) {
     auto const efun = [](double x) {
@@ -195,10 +222,6 @@ extern void artcell_net_move(void**, Point_process*, double);
 extern void nrn2ncs_outputevent(int netcon_output_index, double firetime);
 extern bool nrn_use_localgid_;
 extern void net_sem_from_gpu(int sendtype, int i_vdata, int, int ith, int ipnt, double, double);
-nrn_pragma_acc(routine seq)
-nrn_pragma_omp(declare target)
-extern int at_time(NrnThread*, double);
-nrn_pragma_omp(end declare target)
 
 // _OPENACC and/or NET_RECEIVE_BUFFERING
 extern void net_sem_from_gpu(int, int, int, int, int, double, double);

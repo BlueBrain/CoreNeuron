@@ -21,10 +21,6 @@
 #include <unordered_map>
 #endif
 
-#ifdef __CUDACC__
-#include <nv/target>
-#endif
-
 // Defining these attributes seems to help nvc++ in OpenMP target offload mode.
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP) && defined(__CUDACC__)
@@ -84,40 +80,8 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
  * shutdown. If the destructor calls cudaFree and the CUDA runtime has already
  * been shut down then tools like cuda-memcheck reports errors.
  */
-// nrn_pragma_omp(declare target)
-// philox4x32_key_t g_k_real{};
-// nrn_pragma_omp(end declare target)
-// nrn_pragma_acc(declare create(g_k))
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
-
-philox4x32_key_t g_k{};
-#ifdef __CUDACC__
-// Not 100% clear we need a different name (g_k_dev) here in addition to g_k,
-// but it's clearer and the overhead cannot be high (if it exists).
-__constant__ __device__ philox4x32_key_t g_k_dev{};
-// noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
-__attribute__((noinline)) philox4x32_key_t& global_state() {
-    if target (nv::target::is_device) {
-        return g_k_dev;
-    } else {
-        return g_k;
-    }
-}
-#else
-philox4x32_key_t& global_state() {
-    return g_k;
-}
-#endif
-
-constexpr double SHIFT32 = 1.0 / 4294967297.0; /* 1/(2^32 + 1) */
-
-/** @brief Provide a helper function in global namespace that is declared target for OpenMP
- * offloading to function correctly with NVHPC
- */
-CORENRN_HOST_DEVICE philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
-    return philox4x32(s->c, global_state());
-}
 }  // namespace
 
 namespace coreneuron {
@@ -127,81 +91,13 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return global_state().v[0];
-}
-
-void nrnran123_getseq(nrnran123_State* s, uint32_t* seq, char* which) {
-    *seq = s->c.v[0];
-    *which = s->which_;
-}
-
-void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
-    if (which > 3) {
-        s->which_ = 0;
-    } else {
-        s->which_ = which;
-    }
-    s->c.v[0] = seq;
-    s->r = philox4x32_helper(s);
-}
-
-void nrnran123_getids(nrnran123_State* s, uint32_t* id1, uint32_t* id2) {
-    *id1 = s->c.v[2];
-    *id2 = s->c.v[3];
-}
-
-void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id2, uint32_t* id3) {
-    *id3 = s->c.v[1];
-    *id1 = s->c.v[2];
-    *id2 = s->c.v[3];
-}
-
-uint32_t nrnran123_ipick(nrnran123_State* s) {
-    uint32_t rval;
-    char which = s->which_;
-    rval = s->r.v[int{which++}];
-    if (which > 3) {
-        which = 0;
-        s->c.v[0]++;
-        s->r = philox4x32_helper(s);
-    }
-    s->which_ = which;
-    return rval;
-}
-
-double nrnran123_dblpick(nrnran123_State* s) {
-    return nrnran123_uint2dbl(nrnran123_ipick(s));
-}
-
-double nrnran123_negexp(nrnran123_State* s) {
-    /* min 2.3283064e-10 to max 22.18071 */
-    return -std::log(nrnran123_dblpick(s));
-}
-
-/* at cost of a cached  value we could compute two at a time. */
-double nrnran123_normal(nrnran123_State* s) {
-    double w, u1;
-    do {
-        u1 = nrnran123_dblpick(s);
-        double u2{nrnran123_dblpick(s)};
-        u1 = 2. * u1 - 1.;
-        u2 = 2. * u2 - 1.;
-        w = (u1 * u1) + (u2 * u2);
-    } while (w > 1);
-    double y{std::sqrt((-2. * std::log(w)) / w)};
-    return u1 * y;
-}
-
-double nrnran123_uint2dbl(uint32_t u) {
-    /* 0 to 2^32-1 transforms to double value in open (0,1) interval */
-    /* min 2.3283064e-10 to max (1 - 2.3283064e-10) */
-    return ((double) u + 1.0) * SHIFT32;
+    return random123::detail::global_state().v[0];
 }
 
 /* nrn123 streams are created from cpu launcher routine */
 void nrnran123_set_globalindex(uint32_t gix) {
     // If the global seed is changing then we shouldn't have any active streams.
-    auto& g_k = global_state();
+    auto& g_k = random123::detail::global_state();
     {
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
         if (g_instance_count != 0 && nrnmpi_myid == 0) {
@@ -217,7 +113,7 @@ void nrnran123_set_globalindex(uint32_t gix) {
         if (coreneuron::gpu_enabled()) {
 #ifdef __CUDACC__
             {
-                auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
+                auto const code = cudaMemcpyToSymbol(random123::detail::g_k_dev, &g_k, sizeof(g_k));
                 assert(code == cudaSuccess);
             }
             {

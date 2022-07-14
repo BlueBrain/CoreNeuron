@@ -154,40 +154,6 @@ the USEION statement of any model using this ion\n",
     }
 }
 
-// std::log isn't constexpr, but there are argument values for which nrn_nernst
-// is a constant expression
-constexpr double nrn_nernst(double ci, double co, double z, double celsius) {
-    if (z == 0) {
-        return 0.;
-    }
-    if (ci <= 0.) {
-        return 1e6;
-    } else if (co <= 0.) {
-        return -1e6;
-    } else {
-        return ktf(celsius) / z * std::log(co / ci);
-    }
-}
-
-nrn_pragma_omp(declare target)
-void nrn_wrote_conc(int type,
-                    double* p1,
-                    int p2,
-                    int it,
-                    double** gimap,
-                    double celsius,
-                    int _cntml_padded) {
-    if (it & 040) {
-        int _iml = 0;
-        /* passing _nt to this function causes cray compiler to segfault during compilation
-         * hence passing _cntml_padded
-         */
-        double* pe = p1 - p2 * _STRIDE;
-        pe[0] = nrn_nernst(pe[1 * _STRIDE], pe[2 * _STRIDE], gimap[type][2], celsius);
-    }
-}
-nrn_pragma_omp(end declare target)
-
 #if VECTORIZE
 #define erev   pd[0 * _STRIDE] /* From Eion */
 #define conci  pd[1 * _STRIDE]
