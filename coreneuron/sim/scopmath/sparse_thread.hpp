@@ -101,8 +101,7 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
 #endif
             {
                 new_elem = new Elm{};
-                // Using array-new here causes problems in GPU compilation.
-                new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
+                new_elem->value = new double[so->_cntml_padded];
                 increase_order(so, row);
             }
         }
@@ -151,7 +150,7 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
 #endif
             {
                 new_elem = new Elm{};
-                new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
+                new_elem->value = new double[so->_cntml_padded];
                 increase_order(so, row);
             }
         }
