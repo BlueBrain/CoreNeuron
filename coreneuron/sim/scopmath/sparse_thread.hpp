@@ -13,6 +13,10 @@
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
 
+#ifdef __CUDACC__
+#include <nv/target>
+#endif
+
 namespace coreneuron {
 namespace scopmath {
 namespace sparse {
@@ -90,10 +94,17 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
         }
         /* insert below el */
         if (!new_elem) {
-            new_elem = new Elm{};
-            // Using array-new here causes problems in GPU compilation.
-            new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
-            increase_order(so, row);
+#ifdef __CUDACC__
+            if target (nv::target::is_device) {
+                assert(false);
+            } else
+#endif
+            {
+                new_elem = new Elm{};
+                // Using array-new here causes problems in GPU compilation.
+                new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
+                increase_order(so, row);
+            }
         }
         new_elem->r_down = el->r_down;
         el->r_down = new_elem;
@@ -133,9 +144,16 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
         }
         /* insert above el */
         if (!new_elem) {
-            new_elem = new Elm{};
-            new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
-            increase_order(so, row);
+#ifdef __CUDACC__
+            if target (nv::target::is_device) {
+                assert(false);
+            } else
+#endif
+            {
+                new_elem = new Elm{};
+                new_elem->value = static_cast<double*>(std::malloc(so->_cntml_padded * sizeof(double)));
+                increase_order(so, row);
+            }
         }
         new_elem->r_up = el->r_up;
         el->r_up = new_elem;
