@@ -212,7 +212,7 @@ $(SPECIAL_EXE): coremech_lib_target
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) $(CORENRNLIB_FLAGS) $(LDFLAGS) \
-	  -L$(CORENRN_LIB_DIR) -lscopmath \
+	  -L$(CORENRN_LIB_DIR) \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR) -Wl,-rpath,'$(INSTALL_LIB_RPATH)'
 
 coremech_lib_target: $(corenrnmech_lib_target)

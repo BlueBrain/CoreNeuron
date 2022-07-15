@@ -109,7 +109,7 @@ if(CORENRN_ENABLE_GPU)
   )
 else()
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
-                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -lscopmath")
+                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech")
 endif(CORENRN_ENABLE_GPU)
 
 if(CORENRN_HAVE_NVHPC_COMPILER)
