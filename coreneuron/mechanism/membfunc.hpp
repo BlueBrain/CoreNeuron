@@ -130,12 +130,12 @@ constexpr double nrn_nernst(double ci, double co, double z, double celsius) {
     }
 }
 constexpr void nrn_wrote_conc(int type,
-                    double* p1,
-                    int p2,
-                    int it,
-                    double** gimap,
-                    double celsius,
-                    int _cntml_padded) {
+                              double* p1,
+                              int p2,
+                              int it,
+                              double** gimap,
+                              double celsius,
+                              int _cntml_padded) {
     if (it & 040) {
         constexpr int _iml = 0;
         int const STRIDE{_cntml_padded + _iml};

@@ -56,7 +56,7 @@ struct nrnran123_State {
     char which_;
 };
 
-}
+}  // namespace coreneuron
 
 /** @brief Provide a helper function in global namespace that is declared target for OpenMP
  * offloading to function correctly with NVHPC
