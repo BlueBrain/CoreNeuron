@@ -82,7 +82,30 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
  */
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
+
+philox4x32_key_t g_k{};
+#ifdef __CUDACC__
+// Not 100% clear we need a different name (g_k_dev) here in addition to g_k,
+// but it's clearer and the overhead cannot be high (if it exists).
+__constant__ __device__ philox4x32_key_t g_k_dev{};
+// noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
+__attribute__((noinline)) philox4x32_key_t& global_state() {
+    if target (nv::target::is_device) {
+        return g_k_dev;
+    } else {
+        return g_k;
+    }
+}
+#else
+philox4x32_key_t& global_state() {
+    return g_k;
+}
+#endif
 }  // namespace
+
+philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
+    return philox4x32(s->c, global_state());
+}
 
 namespace coreneuron {
 std::size_t nrnran123_instance_count() {
@@ -91,13 +114,13 @@ std::size_t nrnran123_instance_count() {
 
 /* if one sets the global, one should reset all the stream sequences. */
 uint32_t nrnran123_get_globalindex() {
-    return random123::detail::global_state().v[0];
+    return global_state().v[0];
 }
 
 /* nrn123 streams are created from cpu launcher routine */
 void nrnran123_set_globalindex(uint32_t gix) {
     // If the global seed is changing then we shouldn't have any active streams.
-    auto& g_k = random123::detail::global_state();
+    auto& g_k = global_state();
     {
         std::lock_guard<OMP_Mutex> _{g_instance_count_mutex};
         if (g_instance_count != 0 && nrnmpi_myid == 0) {
@@ -113,7 +136,7 @@ void nrnran123_set_globalindex(uint32_t gix) {
         if (coreneuron::gpu_enabled()) {
 #ifdef __CUDACC__
             {
-                auto const code = cudaMemcpyToSymbol(random123::detail::g_k_dev, &g_k, sizeof(g_k));
+                auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
                 assert(code == cudaSuccess);
             }
             {

@@ -60,9 +60,17 @@ struct nrnran123_State {
     char which_;
 };
 
-struct nrnran123_array4x32 {
-    uint32_t v[4];
-};
+}
+
+/** @brief Provide a helper function in global namespace that is declared target for OpenMP
+ * offloading to function correctly with NVHPC
+ */
+nrn_pragma_acc(routine seq)
+nrn_pragma_omp(declare target)
+philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s);
+nrn_pragma_omp(end declare target)
+
+namespace coreneuron {
 
 /* global index. eg. run number */
 /* all generator instances share this global index */
@@ -104,43 +112,14 @@ constexpr void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id
     *id2 = s->c.v[3];
 }
 
-namespace random123::detail {
-inline philox4x32_key_t g_k{};
-#ifdef __CUDACC__
-// Not 100% clear we need a different name (g_k_dev) here in addition to g_k,
-// but it's clearer and the overhead cannot be high (if it exists).
-__constant__ __device__ inline philox4x32_key_t g_k_dev{};
-// noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
-__attribute__((noinline)) inline philox4x32_key_t& global_state() {
-    if target (nv::target::is_device) {
-        return g_k_dev;
-    } else {
-        return g_k;
-    }
-}
-#else
-inline philox4x32_key_t& global_state() {
-    return g_k;
-}
-#endif
-
-/** @brief Provide a helper function in global namespace that is declared target for OpenMP
- * offloading to function correctly with NVHPC
- */
-inline philox4x32_ctr_t philox4x32_helper(coreneuron::nrnran123_State* s) {
-    return philox4x32(s->c, global_state());
-}
-}  // namespace random123::detail
-
 // Uniform 0 to 2*32-1
-inline uint32_t nrnran123_ipick(nrnran123_State* s) {
-    uint32_t rval;
+constexpr uint32_t nrnran123_ipick(nrnran123_State* s) {
     char which = s->which_;
-    rval = s->r.v[int{which++}];
+    uint32_t rval{s->r.v[int{which++}]};
     if (which > 3) {
         which = 0;
         s->c.v[0]++;
-        s->r = random123::detail::philox4x32_helper(s);
+        s->r = coreneuron_random123_philox4x32_helper(s);
     }
     s->which_ = which;
     return rval;
@@ -154,19 +133,19 @@ constexpr double nrnran123_uint2dbl(uint32_t u) {
 }
 
 // Uniform open interval (0,1), minimum value is 2.3283064e-10 and max value is 1-min
-inline double nrnran123_dblpick(nrnran123_State* s) {
+constexpr double nrnran123_dblpick(nrnran123_State* s) {
     return nrnran123_uint2dbl(nrnran123_ipick(s));
 }
 
 /* this could be called from openacc parallel construct (in INITIAL block) */
-inline void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
+constexpr void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
     if (which > 3) {
         s->which_ = 0;
     } else {
         s->which_ = which;
     }
     s->c.v[0] = seq;
-    s->r = random123::detail::philox4x32_helper(s);
+    s->r = coreneuron_random123_philox4x32_helper(s);
 }
 
 // nrnran123_negexp min value is 2.3283064e-10, max is 22.18071, mean 1.0
@@ -189,4 +168,5 @@ inline double nrnran123_normal(nrnran123_State* s) {
 }
 
 // nrnran123_gauss, nrnran123_iran were declared but not defined in CoreNEURON
+// nrnran123_array4x32 was declared but not used in CoreNEURON
 }  // namespace coreneuron
