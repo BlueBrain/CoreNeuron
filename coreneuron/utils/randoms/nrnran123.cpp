@@ -11,15 +11,19 @@
 #include "coreneuron/utils/nrnmutdec.hpp"
 #include "coreneuron/utils/randoms/nrnran123.h"
 
-#include <cmath>
-#include <iostream>
-#include <memory>
-#include <mutex>
-
 #ifdef CORENEURON_USE_BOOST_POOL
 #include <boost/pool/pool_alloc.hpp>
 #include <unordered_map>
 #endif
+
+#ifdef __CUDACC__
+#include <nv/target>
+#endif
+
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <mutex>
 
 // Defining these attributes seems to help nvc++ in OpenMP target offload mode.
 #if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \

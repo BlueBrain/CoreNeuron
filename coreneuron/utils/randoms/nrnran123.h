@@ -39,10 +39,6 @@ http://www.deshawresearch.com/resources_random123.html
 #include <Random123/philox.h>
 #include <inttypes.h>
 
-#ifdef __CUDACC__
-#include <nv/target>
-#endif
-
 // Some files are compiled with DISABLE_OPENACC, and some builds have no GPU
 // support at all. In these two cases, request that the random123 state is
 // allocated using new/delete instead of CUDA unified memory.
