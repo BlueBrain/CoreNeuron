@@ -233,7 +233,7 @@ coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  $(LDFLAGS) ${SONAME_OPTION} -Wl,--start-group \
 	  $(MOD_OBJS_DIR)/libcoreneuron-core/*.o \
-		-Wl,--end-group $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR)
+		-Wl,--end-group $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR) -L$(CORENRN_LIB_DIR) -lcoreneuron-cuda
 	# cleanup
 	rm $(MOD_OBJS_DIR)/libcoreneuron-core/*.o
 

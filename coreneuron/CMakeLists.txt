@@ -250,18 +250,9 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   install(TARGETS ${corenrn_mpi_targets} DESTINATION lib)
 endif()
 
-# Prevent CMake from running a device code link step when assembling libcoreneuron.a in GPU builds.
-# The device code linking needs to be deferred to the final step, where it is done by `nvc++ -cuda`.
-# set_target_properties(coreneuron-core PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF
-# CUDA_SEPARABLE_COMPILATION ON) if(TARGET coreneuron-cuda)
-# set_target_properties(coreneuron-cuda PROPERTIES )
-# endif() Suppress some compiler warnings. TODO no it doesn't: Note in GPU builds this library
-# includes CUDA files.
-target_compile_options(coreneuron-core
-                       PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENEURON_CXX_WARNING_SUPPRESSIONS}>)
-add_dependencies(coreneuron-core nrnivmodl-core) # TODO why?
-
-target_link_libraries(coreneuron-core ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
+# Suppress some compiler warnings.
+target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESSIONS})
+target_link_libraries(coreneuron-core PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
                       ${CALIPER_LIB} ${likwid_LIBRARIES})
 
 target_include_directories(coreneuron-core SYSTEM
@@ -320,9 +311,11 @@ if(CORENRN_ENABLE_GPU)
                          PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
 endif()
 
-# Create an extra target for internal use that unit tests and so on can depend on
+# Create an extra target for internal use that unit tests and so on can depend
+# on. ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the
+# compiled default mechanisms and the content of libcoreneuron-core.a
 add_library(coreneuron-all INTERFACE)
-target_link_libraries(coreneuron-all INTERFACE coreneuron-core ${coreneuron_cuda_target}
+target_link_libraries(coreneuron-all INTERFACE ${coreneuron_cuda_target}
                                                "${corenrn_mech_library}")
 
 # =============================================================================

@@ -171,9 +171,6 @@ set(CORENRN_ACCELERATOR_OFFLOAD "Disabled")
 if(CORENRN_ENABLE_GPU)
   # Older CMake versions than 3.15 have not been tested for GPU/CUDA/OpenACC support after
   # https://github.com/BlueBrain/CoreNeuron/pull/609.
-  # https://cmake.org/cmake/help/latest/release/3.14.html#properties suggests there would be
-  # problems because of expressions like set_target_properties(lfp_test_bin PROPERTIES
-  # CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
 
   # Fail hard and early if we don't have the PGI/NVHPC compiler.
   if(NOT CORENRN_HAVE_NVHPC_COMPILER)
