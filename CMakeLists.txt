@@ -271,12 +271,11 @@ find_package(Perl REQUIRED)
 # Common build options
 # =============================================================================
 # build mod files for coreneuron
-add_definitions(-DCORENEURON_BUILD)
-
+list(APPEND CORENRN_COMPILE_DEFS CORENEURON_BUILD)
 set(CMAKE_REQUIRED_QUIET TRUE)
 check_include_files(malloc.h have_malloc_h)
 if(have_malloc_h)
-  add_definitions("-DHAVE_MALLOC_H")
+  list(APPEND CORENRN_COMPILE_DEFS HAVE_MALLOC_H)
 endif()
 
 # =============================================================================
@@ -313,14 +312,14 @@ endif()
 
 if(CORENRN_ENABLE_MPI)
   find_package(MPI REQUIRED)
-  add_definitions("-DNRNMPI=1")
+  list(APPEND CORENRN_COMPILE_DEFS NRNMPI=1)
   # avoid linking to C++ bindings
-  add_definitions("-DMPI_NO_CPPBIND=1")
-  add_definitions("-DOMPI_SKIP_MPICXX=1")
-  add_definitions("-DMPICH_SKIP_MPICXX=1")
+  list(APPEND CORENRN_COMPILE_DEFS MPI_NO_CPPBIND=1)
+  list(APPEND CORENRN_COMPILE_DEFS OMPI_SKIP_MPICXX=1)
+  list(APPEND CORENRN_COMPILE_DEFS MPICH_SKIP_MPICXX=1)
 else()
-  add_definitions("-DNRNMPI=0")
-  add_definitions("-DNRN_MULTISEND=0")
+  list(APPEND CORENRN_COMPILE_DEFS NRNMPI=0)
+  list(APPEND CORENRN_COMPILE_DEFS NRN_MULTISEND=0)
 endif()
 
 if(CORENRN_ENABLE_OPENMP)
@@ -331,23 +330,23 @@ if(CORENRN_ENABLE_OPENMP)
   endif()
 endif()
 
-add_definitions("-DLAYOUT=0")
+list(APPEND CORENRN_COMPILE_DEFS LAYOUT=0)
 
 if(NOT CORENRN_ENABLE_HOC_EXP)
-  add_definitions("-DDISABLE_HOC_EXP")
+  list(APPEND CORENRN_COMPILE_DEFS DISABLE_HOC_EXP)
 endif()
 
 # splay tree required for net_move
 if(CORENRN_ENABLE_SPLAYTREE_QUEUING)
-  add_definitions("-DENABLE_SPLAYTREE_QUEUING")
+  list(APPEND CORENRN_COMPILE_DEFS ENABLE_SPLAYTREE_QUEUING)
 endif()
 
 if(NOT CORENRN_ENABLE_NET_RECEIVE_BUFFER)
-  add_definitions("-DNET_RECEIVE_BUFFERING=0")
+  list(APPEND CORENRN_COMPILE_DEFS NET_RECEIVE_BUFFERING=0)
 endif()
 
 if(NOT CORENRN_ENABLE_TIMEOUT)
-  add_definitions("-DDISABLE_TIMEOUT")
+  list(APPEND CORENRN_COMPILE_DEFS DISABLE_TIMEOUT)
 endif()
 
 if(CORENRN_ENABLE_REPORTING)
@@ -356,7 +355,7 @@ if(CORENRN_ENABLE_REPORTING)
   find_program(H5DUMP_EXECUTABLE h5dump)
 
   if(reportinglib_FOUND)
-    add_definitions("-DENABLE_BIN_REPORTS")
+    list(APPEND CORENRN_COMPILE_DEFS ENABLE_BIN_REPORTS)
     set(ENABLE_BIN_REPORTS_TESTS ON)
   else()
     set(reportinglib_INCLUDE_DIR "")
@@ -364,7 +363,7 @@ if(CORENRN_ENABLE_REPORTING)
   endif()
   if(sonata_FOUND)
     if(TARGET sonata::sonata_report)
-      add_definitions("-DENABLE_SONATA_REPORTS")
+      list(APPEND CORENRN_COMPILE_DEFS ENABLE_SONATA_REPORTS)
       set(ENABLE_SONATA_REPORTS_TESTS ON)
     else()
       message(SEND_ERROR "SONATA library was found but without reporting support")
@@ -384,6 +383,7 @@ if(CORENRN_ENABLE_LEGACY_UNITS)
 else()
   set(CORENRN_USE_LEGACY_UNITS 0)
 endif()
+list(APPEND CORENRN_COMPILE_DEFS CORENEURON_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
 # Propagate Legacy Units flag to backends.
 set(MOD2C_ENABLE_LEGACY_UNITS
     ${CORENRN_ENABLE_LEGACY_UNITS}
@@ -396,7 +396,7 @@ if(CORENRN_ENABLE_MPI_DYNAMIC)
   if(NOT CORENRN_ENABLE_MPI)
     message(FATAL_ERROR "Cannot enable dynamic mpi without mpi")
   endif()
-  add_compile_definitions(CORENRN_ENABLE_MPI_DYNAMIC)
+  list(APPEND CORENRN_COMPILE_DEFS CORENEURON_ENABLE_MPI_DYNAMIC)
 endif()
 
 if(CORENRN_ENABLE_PRCELLSTATE)
@@ -405,7 +405,7 @@ else()
   set(CORENRN_NRN_PRCELLSTATE 0)
 endif()
 if(MINGW)
-  add_definitions("-DMINGW")
+  list(APPEND CORENRN_COMPILE_DEFS MINGW)
 endif()
 
 # =============================================================================
@@ -448,22 +448,20 @@ endif()
 # =============================================================================
 if(CORENRN_ENABLE_CALIPER_PROFILING)
   find_package(caliper REQUIRED)
-  include_directories(${caliper_INCLUDE_DIR})
-  add_definitions("-DCORENEURON_CALIPER")
-  set(CALIPER_LIB "caliper")
-  set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS
-                                             " -L${caliper_LIB_DIR} -l${CALIPER_LIB}")
+  list(APPEND CORENRN_COMPILE_DEFS CORENEURON_CALIPER)
+  set(CORENRN_CALIPER_LIB caliper)
 endif()
 
 if(CORENRN_ENABLE_LIKWID_PROFILING)
   find_package(likwid REQUIRED)
+  list(APPEND CORENRN_COMPILE_DEFS LIKWID_PERFMON)
+  # TODO: avoid this part, probably by using some likwid CMake target
   include_directories(${likwid_INCLUDE_DIRS})
-  add_definitions("-DLIKWID_PERFMON")
 endif()
 
 # enable debugging code with extra logs to stdout
 if(CORENRN_ENABLE_DEBUG_CODE)
-  add_definitions(-DCORENRN_DEBUG -DCHKPNTDEBUG -DCORENRN_DEBUG_QUEUE -DINTERLEAVE_DEBUG)
+  list(APPEND CORENRN_COMPILE_DEFS CORENRN_DEBUG CHKPNTDEBUG CORENRN_DEBUG_QUEUE INTERLEAVE_DEBUG)
 endif()
 
 # =============================================================================
@@ -473,38 +471,19 @@ endif()
 # compiler will be invoked with these flags, so we have to use flags that are as generic as
 # possible.
 if(NOT DEFINED NRN_WHEEL_BUILD OR NOT NRN_WHEEL_BUILD)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
+  list(APPEND CORENRN_EXTRA_CXX_FLAGS "${IGNORE_UNKNOWN_PRAGMA_FLAGS}")
 endif()
 
-# =============================================================================
-# Add main directories
-# =============================================================================
+# Add the main source directory
 add_subdirectory(coreneuron)
 
-if(CORENRN_ENABLE_GPU)
-  get_target_property(CORENRN_LINK_LIBRARIES coreneuron-core INTERFACE_LINK_LIBRARIES)
-  if(CORENRN_LINK_LIBRARIES)
-    foreach(LIB ${CORENRN_LINK_LIBRARIES})
-      get_filename_component(dir_path ${LIB} DIRECTORY)
-      if(TARGET ${LIB})
-        # See, for example, caliper where the coreneuron target depends on the caliper target (so we
-        # get LIB=caliper in this loop), but -l and -L are already added manually here:
-        # https://github.com/BlueBrain/CoreNeuron/blob/856cea4aa647c8f2b0d5bda6d0fc32144c5942e3/CMakeLists.txt#L411-L412
-        message(
-          NOTICE
-          "Ignoring dependency '${LIB}' of 'coreneuron-core' and assuming relevant flags have already been added to CORENEURON_LIB_LINK_FLAGS."
-        )
-      elseif(NOT dir_path)
-        # In case LIB is not a target but is just the name of a library, e.g. "dl"
-        set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${LIB}")
-      else()
-        set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " ${LIB}")
-      endif()
-    endforeach()
-  endif()
-endif()
-
+# Extract the various compiler option strings to use inside nrnivmodl-core. Sets
+# the global property CORENEURON_LIB_LINK_FLAGS, which contains the arguments
+# that must be added to the link line for `special` to link against
+# `libcoreneuron.{a,so}`
 include(MakefileBuildOptions)
+
+# Generate the nrnivmodl-core script and makefile using the options from MakefileBuildOptions
 add_subdirectory(extra)
 
 if(CORENRN_ENABLE_UNIT_TESTS)

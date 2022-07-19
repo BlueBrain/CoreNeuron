@@ -21,7 +21,7 @@ file(
   CORENEURON_CODE_FILES
   "apps/main1.cpp"
   "apps/corenrn_parameters.cpp"
-  "gpu/*.cpp"
+  "gpu/nrn_acc_manager.cpp"
   "io/*.cpp"
   "io/reports/*.cpp"
   "mechanism/*.cpp"
@@ -122,11 +122,6 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# CORENEURON_USE_LEGACY_UNITS is used in membfunc.hpp so define it everywhere
-# =============================================================================
-add_compile_definitions(CORENEURON_USE_LEGACY_UNITS=${CORENRN_USE_LEGACY_UNITS})
-
-# =============================================================================
 # create libraries
 # =============================================================================
 
@@ -156,18 +151,16 @@ endif()
 #   (nrniv-core)
 #
 # This scheme means that both core and mechanism .o files are linked in a single step, which is
-# important for GPU linking. It does, however, mean that in a shared library CPU build then the core
-# code is installed twice, once in libcoreneuron-core.a and once in the libcoreneuron.so that
-# contains the default mechanisms for the installed nrniv-core binary. In a GPU build,
+# important for GPU linking. It does, however, mean that the core code is installed twice, once in
+# libcoreneuron-core.a and once in libcoreneuron.so (shared) or nrniv-core (static). In a GPU build,
 # libcoreneuron-cuda.{a,so} is also linked to provide the CUDA implementation of the Hines solver.
-add_library(coreneuron-core STATIC ${CORENEURON_CODE_FILES} ${CORENRN_MPI_OBJ})
-
-# Library containing explicit CUDA code, compiled by nvcc. This cannot be included in
-# coreneuron-core because of this issue:
+# This cannot be included in coreneuron-core because of this issue:
 # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
+add_library(coreneuron-core STATIC ${CORENEURON_CODE_FILES} ${CORENRN_MPI_OBJ})
 if(CORENRN_ENABLE_GPU)
   set(coreneuron_cuda_target coreneuron-cuda)
   add_library(coreneuron-cuda ${COMPILE_LIBRARY_TYPE} ${CORENEURON_CUDA_FILES})
+  target_link_libraries(coreneuron-core PUBLIC coreneuron-cuda)
 endif()
 
 foreach(target coreneuron-core ${coreneuron_cuda_target})
@@ -252,13 +245,11 @@ endif()
 # Suppress some compiler warnings.
 target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESSIONS})
 target_link_libraries(coreneuron-core PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
-                                             ${CALIPER_LIB} ${likwid_LIBRARIES})
+                                             ${CORENRN_CALIPER_LIB} ${likwid_LIBRARIES})
 
 # TODO: fix adding a dependency of coreneuron-core on CLI11::CLI11 when CLI11 is a submodule. Right
-# now this doesn't work because the CLI11 targets are not exported/installed, but coreneuron-core
-# is.
+# now this doesn't work because the CLI11 targets are not exported/installed but coreneuron-core is.
 get_target_property(CLI11_HEADER_DIRECTORY CLI11::CLI11 INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "CLI11_HEADER_DIRECTORY=${CLI11_HEADER_DIRECTORY}")
 target_include_directories(
   coreneuron-core SYSTEM PRIVATE ${CLI11_HEADER_DIRECTORY}
                                  ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
@@ -282,7 +273,7 @@ set_target_properties(
   coreneuron-core ${coreneuron_cuda_target}
   PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
              LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-             POSITION_INDEPENDENT_CODE ON)
+             POSITION_INDEPENDENT_CODE ${CORENRN_ENABLE_SHARED})
 cpp_cc_configure_sanitizers(TARGET coreneuron-core ${coreneuron_cuda_target} ${corenrn_mpi_targets})
 
 # =============================================================================
@@ -295,12 +286,12 @@ file(GLOB modfiles "${modfile_directory}/*.mod")
 # symbols in the translated versions of default .mod files
 set(nrniv_core_prefix "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}")
 set(corenrn_mech_library
-    "${nrniv_core_prefix}/libcoreneuron${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}")
+    "${nrniv_core_prefix}/${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_PREFIX}coreneuron${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}")
 set(output_binaries "${nrniv_core_prefix}/special-core" "${corenrn_mech_library}")
 
 add_custom_command(
   OUTPUT ${output_binaries}
-  DEPENDS coreneuron-core ${coreneuron_cuda_target} ${NMODL_TARGET_TO_DEPEND} ${modfiles}
+  DEPENDS coreneuron-core ${NMODL_TARGET_TO_DEPEND} ${modfiles}
           ${CORENEURON_BUILTIN_MODFILES}
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b ${COMPILE_LIBRARY_TYPE} -m
           ${CORENRN_MOD2CPP_BINARY} -p 4 "${modfile_directory}"
@@ -318,18 +309,7 @@ endif()
 # ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the compiled default
 # mechanisms and the content of libcoreneuron-core.a
 add_library(coreneuron-all INTERFACE)
-target_link_libraries(coreneuron-all INTERFACE ${coreneuron_cuda_target} "${corenrn_mech_library}")
-
-# =============================================================================
-# Extract link definitions to be used with nrnivmodl-core
-# =============================================================================
-get_target_property(CORENRN_LINK_LIBS coreneuron-core LINK_LIBRARIES)
-if(NOT CORENRN_LINK_LIBS)
-  set(CORENRN_LINK_LIBS "")
-endif()
-set(CORENRN_LINK_LIBS
-    "${CORENRN_LINK_LIBS}"
-    PARENT_SCOPE)
+target_link_libraries(coreneuron-all INTERFACE "${corenrn_mech_library}")
 
 # Make headers avail to build tree
 configure_file(engine.h.in ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h @ONLY)
@@ -357,20 +337,12 @@ file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
 # coreneuron main libraries
 install(
-  TARGETS coreneuron-core
+  TARGETS coreneuron-core ${coreneuron_cuda_target}
   EXPORT coreneuron
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   INCLUDES
   DESTINATION $<INSTALL_INTERFACE:include>)
-
-if(TARGET coreneuron-cuda)
-  install(
-    TARGETS coreneuron-cuda
-    EXPORT coreneuron
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib)
-endif()
 
 # headers and some standalone code files for nrnivmodl-core
 install(

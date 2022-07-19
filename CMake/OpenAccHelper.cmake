@@ -34,13 +34,13 @@ if(CORENRN_ENABLE_GPU)
   cnrn_parse_version(${CMAKE_CXX_COMPILER_VERSION} OUTPUT_MAJOR_MINOR
                      CORENRN_NVHPC_MAJOR_MINOR_VERSION)
   # Enable cudaProfiler{Start,Stop}() behind the Instrumentor::phase... APIs
-  add_compile_definitions(CORENEURON_CUDA_PROFILING CORENEURON_ENABLE_GPU)
+  list(APPEND CORENRN_COMPILE_DEFS CORENEURON_CUDA_PROFILING CORENEURON_ENABLE_GPU)
   # Plain C++ code in CoreNEURON may need to use CUDA runtime APIs for, for example, starting and
   # stopping profiling. This makes sure those headers can be found.
   include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
   # cuda unified memory support
   if(CORENRN_ENABLE_CUDA_UNIFIED_MEMORY)
-    add_compile_definitions(CORENEURON_UNIFIED_MEMORY)
+    list(APPEND CORENRN_COMPILE_DEFS CORENEURON_UNIFIED_MEMORY)
   endif()
   if(${CMAKE_VERSION} VERSION_LESS 3.17)
     # Hopefully we can drop this soon. Parse ${CMAKE_CUDA_COMPILER_VERSION} into a shorter X.Y
@@ -81,7 +81,7 @@ if(CORENRN_ENABLE_GPU)
   if(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenMP")
     # Enable OpenMP target offload to GPU and if both OpenACC and OpenMP directives are available
     # for a region then prefer OpenMP.
-    add_compile_definitions(CORENEURON_PREFER_OPENMP_OFFLOAD)
+    list(APPEND CORENRN_COMPILE_DEFS CORENEURON_PREFER_OPENMP_OFFLOAD)
     string(APPEND NVHPC_ACC_COMP_FLAGS " -mp=gpu")
   elseif(CORENRN_ACCELERATOR_OFFLOAD STREQUAL "OpenACC")
     # Only enable OpenACC offload for GPU
@@ -98,20 +98,16 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# Set global property that will be used by NEURON to link with CoreNEURON
+# Initialise global property that will be used by NEURON to link with CoreNEURON
 # =============================================================================
-# TODO this should be derived from what we use internally to link special-core?
-if(CORENRN_ENABLE_GPU)
-  set_property(
-    GLOBAL
-    PROPERTY
-      CORENEURON_LIB_LINK_FLAGS
-      "${NVHPC_ACC_COMP_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcoreneuron -lcoreneuron-cuda -Wl,--no-whole-archive"
-  )
-else()
-  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
-                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcoreneuron")
-endif(CORENRN_ENABLE_GPU)
+if(CORENRN_ENABLE_GPU AND CORENRN_ENABLE_SHARED)
+  # Because of
+  # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
+  # we have to tell NEURON to pass OpenACC flags when linking special, otherwise
+  # we end up with an `nrniv` binary that cannot dynamically load CoreNEURON in
+  # shared-library builds
+  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
+endif()
 
 if(CORENRN_HAVE_NVHPC_COMPILER)
   if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 20.7)

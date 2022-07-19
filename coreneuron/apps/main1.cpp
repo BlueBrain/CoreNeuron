@@ -456,7 +456,7 @@ std::unique_ptr<ReportHandler> create_report_handler(ReportConfiguration& config
 
 using namespace coreneuron;
 
-#if NRNMPI && defined CORENRN_ENABLE_MPI_DYNAMIC
+#if NRNMPI && defined(CORENEURON_ENABLE_MPI_DYNAMIC)
 static void* load_dynamic_mpi(const std::string& libname) {
     dlerror();
     void* handle = dlopen(libname.c_str(), RTLD_NOW | RTLD_GLOBAL);
@@ -478,7 +478,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-#ifdef CORENRN_ENABLE_MPI_DYNAMIC
+#ifdef CORENEURON_ENABLE_MPI_DYNAMIC
         // coreneuron rely on neuron to detect mpi library distribution and
         // the name of the library itself. Make sure the library name is specified
         // via CLI option.
