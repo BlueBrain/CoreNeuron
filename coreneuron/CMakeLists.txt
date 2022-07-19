@@ -306,16 +306,18 @@ endif()
 
 # Create an extra target for internal use that unit tests and so on can depend on.
 # ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the compiled default
-# mechanisms and the content of libcoreneuron-core.a. Also copy the dependencies of
-# libcoreneuron-core as interface dependencies of this new target (example: ${corenrn_mech_library}
-# will probably depend on MPI, so when the unit tests link against ${corenrn_mech_library} they need
-# to know to link against MPI too).
+# mechanisms and the content of libcoreneuron-core.a.
 add_library(coreneuron-all INTERFACE)
 target_link_libraries(coreneuron-all INTERFACE "${corenrn_mech_library}")
+# Also copy the dependencies of libcoreneuron-core as interface dependencies of this new target
+# (example: ${corenrn_mech_library} will probably depend on MPI, so when the unit tests link against
+# ${corenrn_mech_library} they need to know to link against MPI too).
 get_target_property(coreneuron_core_deps coreneuron-core LINK_LIBRARIES)
-foreach(dep ${coreneuron_core_deps})
-  target_link_libraries(coreneuron-all INTERFACE ${dep})
-endforeach()
+if(coreneuron_core_deps)
+  foreach(dep ${coreneuron_core_deps})
+    target_link_libraries(coreneuron-all INTERFACE ${dep})
+  endforeach()
+endif()
 
 # Make headers avail to build tree
 configure_file(engine.h.in ${CMAKE_BINARY_DIR}/include/coreneuron/engine.h @ONLY)
