@@ -253,7 +253,7 @@ endif()
 # Suppress some compiler warnings.
 target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESSIONS})
 target_link_libraries(coreneuron-core PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
-                      ${CALIPER_LIB} ${likwid_LIBRARIES})
+                                             ${CALIPER_LIB} ${likwid_LIBRARIES})
 
 target_include_directories(coreneuron-core SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
@@ -311,12 +311,11 @@ if(CORENRN_ENABLE_GPU)
                          PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
 endif()
 
-# Create an extra target for internal use that unit tests and so on can depend
-# on. ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the
-# compiled default mechanisms and the content of libcoreneuron-core.a
+# Create an extra target for internal use that unit tests and so on can depend on.
+# ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the compiled default
+# mechanisms and the content of libcoreneuron-core.a
 add_library(coreneuron-all INTERFACE)
-target_link_libraries(coreneuron-all INTERFACE ${coreneuron_cuda_target}
-                                               "${corenrn_mech_library}")
+target_link_libraries(coreneuron-all INTERFACE ${coreneuron_cuda_target} "${corenrn_mech_library}")
 
 # =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
