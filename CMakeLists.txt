@@ -477,10 +477,9 @@ endif()
 # Add the main source directory
 add_subdirectory(coreneuron)
 
-# Extract the various compiler option strings to use inside nrnivmodl-core. Sets
-# the global property CORENEURON_LIB_LINK_FLAGS, which contains the arguments
-# that must be added to the link line for `special` to link against
-# `libcoreneuron.{a,so}`
+# Extract the various compiler option strings to use inside nrnivmodl-core. Sets the global property
+# CORENEURON_LIB_LINK_FLAGS, which contains the arguments that must be added to the link line for
+# `special` to link against `libcoreneuron.{a,so}`
 include(MakefileBuildOptions)
 
 # Generate the nrnivmodl-core script and makefile using the options from MakefileBuildOptions

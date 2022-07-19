@@ -29,28 +29,25 @@ set(NMODL_ISPC_BACKEND_ARGS "host --ispc")
 set(NMODL_ACC_BACKEND_ARGS "host --c acc --oacc")
 
 # =============================================================================
-# Construct the linker arguments that are used inside nrnivmodl-core (to build
-# libcoreneuron from libcoreneuron-core, libcoreneuron-cuda and mechanism object
-# files) and inside nrnivmodl (to link NEURON's special against CoreNEURON's
-# libcoreneuron).
+# Construct the linker arguments that are used inside nrnivmodl-core (to build libcoreneuron from
+# libcoreneuron-core, libcoreneuron-cuda and mechanism object files) and inside nrnivmodl (to link
+# NEURON's special against CoreNEURON's libcoreneuron).
 # =============================================================================
-# Essentially we "just" want to unpack the CMake dependencies of the
-# `coreneuron-core` target into a plain string that we can bake into the
-# Makefiles in both NEURON and CoreNEURON.
+# Essentially we "just" want to unpack the CMake dependencies of the `coreneuron-core` target into a
+# plain string that we can bake into the Makefiles in both NEURON and CoreNEURON.
 function(coreneuron_process_target target)
   if(TARGET ${target})
     if(NOT target STREQUAL "coreneuron-core")
-      # This is a special case: libcoreneuron-core.a is manually unpacked into .o
-      # files by the nrnivmodl-core Makefile, so we do not want to also emit an
-      # -lcoreneuron-core argument.
-      # TODO: probably need to extract an -L and RPATH path and include that here?
+      # This is a special case: libcoreneuron-core.a is manually unpacked into .o files by the
+      # nrnivmodl-core Makefile, so we do not want to also emit an -lcoreneuron-core argument. TODO:
+      # probably need to extract an -L and RPATH path and include that here?
       set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${target}")
     endif()
     get_target_property(target_libraries ${target} LINK_LIBRARIES)
     if(target_libraries)
       foreach(child_target ${target_libraries})
         coreneuron_process_target(${child_target})
-      endforeach()  
+      endforeach()
     endif()
     return()
   endif()
@@ -73,9 +70,8 @@ coreneuron_process_target(coreneuron-core)
 get_property(CORENEURON_LIB_LINK_FLAGS GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS)
 message(STATUS "CORENEURON_LIB_LINK_FLAGS=${CORENEURON_LIB_LINK_FLAGS}")
 
-# Things that used to be in CORENEURON_LIB_LINK_FLAGS: -rdynamic -lrt
-# -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -Wl,--no-whole-archive
-# -L${caliper_LIB_DIR} -l${CALIPER_LIB}
+# Things that used to be in CORENEURON_LIB_LINK_FLAGS: -rdynamic -lrt -Wl,--whole-archive
+# -L${CMAKE_HOST_SYSTEM_PROCESSOR} -Wl,--no-whole-archive -L${caliper_LIB_DIR} -l${CALIPER_LIB}
 
 # =============================================================================
 # Turn CORENRN_COMPILE_DEFS into a list of -DFOO[=BAR] options.
@@ -83,9 +79,8 @@ message(STATUS "CORENEURON_LIB_LINK_FLAGS=${CORENEURON_LIB_LINK_FLAGS}")
 list(TRANSFORM CORENRN_COMPILE_DEFS PREPEND -D OUTPUT_VARIABLE CORENRN_COMPILE_DEF_FLAGS)
 
 # =============================================================================
-# Extra link flags that we need to include when linking libcoreneuron.{a,so} in
-# CoreNEURON but that do not need to be passed to NEURON to use when linking
-# nrniv/special (why?)
+# Extra link flags that we need to include when linking libcoreneuron.{a,so} in CoreNEURON but that
+# do not need to be passed to NEURON to use when linking nrniv/special (why?)
 # =============================================================================
 string(JOIN " " CORENRN_COMMON_LDFLAGS ${CORENEURON_LIB_LINK_FLAGS} ${CORENRN_EXTRA_LINK_FLAGS})
 if(CORENRN_SANITIZER_LIBRARY_DIR)

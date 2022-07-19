@@ -286,13 +286,13 @@ file(GLOB modfiles "${modfile_directory}/*.mod")
 # symbols in the translated versions of default .mod files
 set(nrniv_core_prefix "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}")
 set(corenrn_mech_library
-    "${nrniv_core_prefix}/${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_PREFIX}coreneuron${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}")
+    "${nrniv_core_prefix}/${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_PREFIX}coreneuron${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}"
+)
 set(output_binaries "${nrniv_core_prefix}/special-core" "${corenrn_mech_library}")
 
 add_custom_command(
   OUTPUT ${output_binaries}
-  DEPENDS coreneuron-core ${NMODL_TARGET_TO_DEPEND} ${modfiles}
-          ${CORENEURON_BUILTIN_MODFILES}
+  DEPENDS coreneuron-core ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b ${COMPILE_LIBRARY_TYPE} -m
           ${CORENRN_MOD2CPP_BINARY} -p 4 "${modfile_directory}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin

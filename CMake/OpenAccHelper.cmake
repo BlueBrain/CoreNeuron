@@ -103,9 +103,8 @@ endif()
 if(CORENRN_ENABLE_GPU AND CORENRN_ENABLE_SHARED)
   # Because of
   # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
-  # we have to tell NEURON to pass OpenACC flags when linking special, otherwise
-  # we end up with an `nrniv` binary that cannot dynamically load CoreNEURON in
-  # shared-library builds
+  # we have to tell NEURON to pass OpenACC flags when linking special, otherwise we end up with an
+  # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
 endif()
 
