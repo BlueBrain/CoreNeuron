@@ -177,7 +177,7 @@ endforeach()
 
 # we can link to MPI libraries in non-dynamic-mpi build
 if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
-  target_link_libraries(coreneuron-core ${MPI_CXX_LIBRARIES})
+  target_link_libraries(coreneuron-core PUBLIC ${MPI_CXX_LIBRARIES})
 endif()
 
 # this is where we handle dynamic mpi library build
@@ -186,7 +186,7 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   # main coreneuron library needs to be linked to libdl.so and
   # and should be aware of shared library suffix on different platforms.
   # ~~~
-  target_link_libraries(coreneuron-core ${CMAKE_DL_LIBS})
+  target_link_libraries(coreneuron-core PUBLIC ${CMAKE_DL_LIBS})
 
   # store mpi library targets that will be built
   list(APPEND corenrn_mpi_targets "")
@@ -234,8 +234,7 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
       # ~~~
       if(MINGW) # type msmpi only
         add_dependencies(core${libname}_lib coreneuron-core)
-        target_link_libraries(core${libname}_lib ${MPI_C_LIBRARIES})
-        target_link_libraries(core${libname}_lib coreneuron-core)
+        target_link_libraries(core${libname}_lib ${MPI_C_LIBRARIES} coreneuron-core)
       endif()
       set_property(TARGET core${libname}_lib PROPERTY OUTPUT_NAME core${libname})
       list(APPEND corenrn_mpi_targets "core${libname}_lib")
@@ -262,7 +261,7 @@ target_include_directories(coreneuron-core SYSTEM
 
 # See: https://en.cppreference.com/w/cpp/filesystem#Notes
 if(CMAKE_CXX_COMPILER_IS_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
-  target_link_libraries(coreneuron-core stdc++fs)
+  target_link_libraries(coreneuron-core PUBLIC stdc++fs)
 endif()
 
 if(CORENRN_ENABLE_GPU)

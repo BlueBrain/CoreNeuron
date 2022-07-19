@@ -131,7 +131,7 @@ constexpr double nrnran123_uint2dbl(uint32_t u) {
 }
 
 // Uniform open interval (0,1), minimum value is 2.3283064e-10 and max value is 1-min
-constexpr double nrnran123_dblpick(nrnran123_State* s) {
+inline double nrnran123_dblpick(nrnran123_State* s) {
     return nrnran123_uint2dbl(nrnran123_ipick(s));
 }
 
