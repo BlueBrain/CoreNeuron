@@ -576,7 +576,7 @@ void solve_interleaved2(int ith) {
     if (corenrn_param.gpu && corenrn_param.cuda_interface) {
         auto* d_nt = static_cast<NrnThread*>(acc_deviceptr(nt));
         auto* d_info = static_cast<InterleaveInfo*>(acc_deviceptr(interleave_info + ith));
-        // solve_interleaved2_launcher(d_nt, d_info, ncore, acc_get_cuda_stream(nt->stream_id));
+        solve_interleaved2_launcher(d_nt, d_info, ncore, acc_get_cuda_stream(nt->stream_id));
     } else {
 #endif
         int* ncycles = ii.cellsize;         // nwarp of these

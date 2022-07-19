@@ -100,16 +100,17 @@ endif()
 # =============================================================================
 # Set global property that will be used by NEURON to link with CoreNEURON
 # =============================================================================
+# TODO this should be derived from what we use internally to link special-core?
 if(CORENRN_ENABLE_GPU)
   set_property(
     GLOBAL
     PROPERTY
       CORENEURON_LIB_LINK_FLAGS
-      "${NVHPC_ACC_COMP_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech -Wl,--no-whole-archive"
+      "${NVHPC_ACC_COMP_FLAGS} -rdynamic -lrt -Wl,--whole-archive -L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcoreneuron -lcoreneuron-cuda -Wl,--no-whole-archive"
   )
 else()
   set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS
-                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcorenrnmech")
+                               "-L${CMAKE_HOST_SYSTEM_PROCESSOR} -lcoreneuron")
 endif(CORENRN_ENABLE_GPU)
 
 if(CORENRN_HAVE_NVHPC_COMPILER)

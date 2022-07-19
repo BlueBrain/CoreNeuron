@@ -16,8 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # =============================================================================
 # gather various source files
 # =============================================================================
-file(GLOB_RECURSE CORENEURON_HEADER_FILES "*.h*")
-file(GLOB_RECURSE CORENEURON_TEMPLATE_FILES "*.ipp")
 file(
   GLOB
   CORENEURON_CODE_FILES
@@ -27,18 +25,19 @@ file(
   "io/*.cpp"
   "io/reports/*.cpp"
   "mechanism/*.cpp"
+  "mpi/core/nrnmpi_def_cinc.cpp"
   "network/*.cpp"
   "permute/*.cpp"
   "sim/*.cpp"
+  "sim/scopmath/abort.cpp"
+  "sim/scopmath/newton_thread.cpp"
   "utils/*.cpp"
   "utils/*/*.c"
   "utils/*/*.cpp")
-set(SCOPMATH_CODE_FILES "sim/scopmath/abort.cpp" "sim/scopmath/newton_thread.cpp")
 set(MPI_LIB_FILES "mpi/lib/mpispike.cpp" "mpi/lib/nrnmpi.cpp")
-set(MPI_CORE_FILES "mpi/core/nrnmpi_def_cinc.cpp")
 if(CORENRN_ENABLE_MPI)
   # Building these requires -ldl, which is only added if MPI is enabled.
-  list(APPEND MPI_CORE_FILES "mpi/core/resolve.cpp" "mpi/core/nrnmpidec.cpp")
+  list(APPEND CORENEURON_CODE_FILES "mpi/core/resolve.cpp" "mpi/core/nrnmpidec.cpp")
 endif()
 file(COPY ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include/Random123
      DESTINATION ${CMAKE_BINARY_DIR}/include)
@@ -107,15 +106,20 @@ if(CORENRN_ENABLE_GPU)
 
   set_source_files_properties(${OPENACC_EXCLUDED_FILES} PROPERTIES COMPILE_FLAGS
                                                                    "-DDISABLE_OPENACC")
-  # Only compile the explicit CUDA implementation of the Hines solver in GPU builds. list(APPEND
-  # CORENEURON_CODE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
+  # Only compile the explicit CUDA implementation of the Hines solver in GPU
+  # builds. Because of
+  # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
+  # this cannot be included in the same shared library as the rest of the
+  # OpenACC code.
+  set(CORENEURON_CUDA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
 
   # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
   # within an OpenACC region. Therefore, we need to wrap them in a special API (decorate them with
   # __device__ & acc routine tokens), which allows us to eventually call them from OpenACC. Calling
   # these functions from CUDA kernels presents no issue ...
+  # TODO is it going to work to call these from libcoreneuron-cuda.so? probably not...
   if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
-    # list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+    list(APPEND CORENEURON_CUDA_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
   endif()
 endif()
 
@@ -143,23 +147,42 @@ if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
   set(CORENRN_MPI_OBJ $<TARGET_OBJECTS:${CORENRN_MPI_LIB_NAME}>)
 endif()
 
-# main coreneuron library
+# Library containing the bulk of the non-mechanism CoreNEURON code. This is
+# always created and installed as a static library, and then the nrnivmodl-core
+# workflow extracts the object files from it and does one of the following:
+# ~~~
+# - shared build: creates libcoreneuron.so from these objects plus those from
+#   the translated MOD files
+# - static build: creates a (temporary) libcoreneuron.a from these objects plus
+#   those from the translated MOD files, then statically links that into
+#   special-core (nrniv-core)
+# ~~~
+# This scheme means that both core and mechanism .o files are linked in a single
+# step, which is important for GPU linking. It does, however, mean that in a
+# shared library CPU build then the core code is installed twice, once in
+# libcoreneuron-core.a and once in the libcoreneuron.so that contains the
+# default mechanisms for the installed nrniv-core binary. In a GPU build,
+# libcoreneuron-cuda.{a,so} is also linked to provide the CUDA implementation of
+# the Hines solver.
 add_library(
-  coreneuron
-  ${COMPILE_LIBRARY_TYPE}
-  ${CORENEURON_HEADER_FILES}
-  ${CORENEURON_TEMPLATE_FILES}
+  coreneuron-core
+  STATIC
   ${CORENEURON_CODE_FILES}
-  ${cudacorenrn_objs}
-  ${NMODL_INBUILT_MOD_OUTPUTS}
-  ${MPI_CORE_FILES}
   ${CORENRN_MPI_OBJ})
 
-target_include_directories(coreneuron PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}
-                                              ${CORENEURON_PROJECT_BINARY_DIR}/generated)
+if(CORENRN_ENABLE_GPU)
+  set(coreneuron_cuda_target coreneuron-cuda)
+  add_library(coreneuron-cuda ${COMPILE_LIBRARY_TYPE} ${CORENEURON_CUDA_FILES})
+endif()
+
+foreach(target coreneuron-core ${coreneuron_cuda_target})
+  target_include_directories(${target} PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}
+                                               ${CORENEURON_PROJECT_BINARY_DIR}/generated)
+endforeach()
+
 # we can link to MPI libraries in non-dynamic-mpi build
 if(CORENRN_ENABLE_MPI AND NOT CORENRN_ENABLE_MPI_DYNAMIC)
-  target_link_libraries(coreneuron ${MPI_CXX_LIBRARIES})
+  target_link_libraries(coreneuron-core ${MPI_CXX_LIBRARIES})
 endif()
 
 # this is where we handle dynamic mpi library build
@@ -168,7 +191,7 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
   # main coreneuron library needs to be linked to libdl.so and
   # and should be aware of shared library suffix on different platforms.
   # ~~~
-  target_link_libraries(coreneuron ${CMAKE_DL_LIBS})
+  target_link_libraries(coreneuron-core ${CMAKE_DL_LIBS})
 
   # store mpi library targets that will be built
   list(APPEND corenrn_mpi_targets "")
@@ -215,9 +238,9 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
       # when we will test coreneuron on windows.
       # ~~~
       if(MINGW) # type msmpi only
-        add_dependencies(core${libname}_lib coreneuron)
+        add_dependencies(core${libname}_lib coreneuron-core)
         target_link_libraries(core${libname}_lib ${MPI_C_LIBRARIES})
-        target_link_libraries(core${libname}_lib coreneuron)
+        target_link_libraries(core${libname}_lib coreneuron-core)
       endif()
       set_property(TARGET core${libname}_lib PROPERTY OUTPUT_NAME core${libname})
       list(APPEND corenrn_mpi_targets "core${libname}_lib")
@@ -234,28 +257,26 @@ endif()
 
 # Prevent CMake from running a device code link step when assembling libcoreneuron.a in GPU builds.
 # The device code linking needs to be deferred to the final step, where it is done by `nvc++ -cuda`.
-set_target_properties(coreneuron PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-# Suppress some compiler warnings. Note in GPU builds this library includes CUDA files.
-target_compile_options(coreneuron
+#set_target_properties(coreneuron-core PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF CUDA_SEPARABLE_COMPILATION ON)
+#if(TARGET coreneuron-cuda)
+  # set_target_properties(coreneuron-cuda PROPERTIES )
+#endif()
+# Suppress some compiler warnings. TODO no it doesn't: Note in GPU builds this library includes CUDA files.
+target_compile_options(coreneuron-core
                        PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENEURON_CXX_WARNING_SUPPRESSIONS}>)
-add_dependencies(coreneuron nrnivmodl-core)
+add_dependencies(coreneuron-core nrnivmodl-core) # TODO why?
 
-# scopmath is created separately for nrnivmodl-core workflow
-add_library(scopmath ${COMPILE_LIBRARY_TYPE} ${CORENEURON_HEADER_FILES} ${SCOPMATH_CODE_FILES})
-target_include_directories(scopmath PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}
-                                            ${CORENEURON_PROJECT_BINARY_DIR}/generated)
-
-target_link_libraries(coreneuron ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
+target_link_libraries(coreneuron-core ${reportinglib_LIBRARY} ${sonatareport_LIBRARY} ${CALIPER_LIB}
                       ${likwid_LIBRARIES})
 
-target_include_directories(coreneuron SYSTEM
+target_include_directories(coreneuron-core SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
-target_include_directories(coreneuron SYSTEM
+target_include_directories(coreneuron-core SYSTEM
                            PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
 
 # See: https://en.cppreference.com/w/cpp/filesystem#Notes
 if(CMAKE_CXX_COMPILER_IS_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
-  target_link_libraries(coreneuron stdc++fs)
+  target_link_libraries(coreneuron-core stdc++fs)
 endif()
 
 if(CORENRN_ENABLE_GPU)
@@ -263,17 +284,17 @@ if(CORENRN_ENABLE_GPU)
   find_package(Boost QUIET)
   if(Boost_FOUND)
     message(STATUS "Boost found, enabling use of memory pools for Random123...")
-    target_include_directories(coreneuron SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
-    target_compile_definitions(coreneuron PRIVATE CORENEURON_USE_BOOST_POOL)
+    target_include_directories(coreneuron-core SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
+    target_compile_definitions(coreneuron-core PRIVATE CORENEURON_USE_BOOST_POOL)
   endif()
 endif()
 
 set_target_properties(
-  coreneuron scopmath
+  coreneuron-core ${coreneuron_cuda_target}
   PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
              LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
              POSITION_INDEPENDENT_CODE ON)
-cpp_cc_configure_sanitizers(TARGET coreneuron scopmath ${corenrn_mpi_targets})
+cpp_cc_configure_sanitizers(TARGET coreneuron-core ${coreneuron_cuda_target} ${corenrn_mpi_targets})
 
 # =============================================================================
 # create special-core with halfgap.mod for tests
@@ -283,11 +304,11 @@ file(GLOB modfiles "${modfile_directory}/*.mod")
 
 if(CORENRN_ENABLE_SHARED)
   set(corenrn_mech_library
-      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}"
+      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcoreneuron${CMAKE_SHARED_LIBRARY_SUFFIX}"
       CACHE INTERNAL "coreneuron mechanism library")
 else()
   set(corenrn_mech_library
-      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcorenrnmech${CMAKE_SHARED_LIBRARY_SUFFIX}"
+      "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/libcoreneuron${CMAKE_STATIC_LIBRARY_SUFFIX}"
       CACHE INTERNAL "coreneuron mechanism library")
 endif()
 
@@ -296,7 +317,7 @@ set(output_binaries "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/special-c
 
 add_custom_command(
   OUTPUT ${output_binaries}
-  DEPENDS scopmath coreneuron ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
+  DEPENDS coreneuron-core ${coreneuron_cuda_target} ${NMODL_TARGET_TO_DEPEND} ${modfiles} ${CORENEURON_BUILTIN_MODFILES}
   COMMAND ${CMAKE_BINARY_DIR}/bin/nrnivmodl-core -b ${COMPILE_LIBRARY_TYPE} -m
           ${CORENRN_MOD2CPP_BINARY} -p 4 "${modfile_directory}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
@@ -305,14 +326,18 @@ add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
 
 if(CORENRN_ENABLE_GPU)
   separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
-  target_compile_options(coreneuron BEFORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
-  target_compile_options(scopmath BEFORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
+  target_compile_options(coreneuron-core BEFORE PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
 endif()
+
+# Create an extra target for internal use that unit tests and so on can depend
+# on
+add_library(coreneuron-all INTERFACE)
+target_link_libraries(coreneuron-all INTERFACE coreneuron-core ${coreneuron_cuda_target} "${corenrn_mech_library}")
 
 # =============================================================================
 # Extract link definitions to be used with nrnivmodl-core
 # =============================================================================
-get_target_property(CORENRN_LINK_LIBS coreneuron LINK_LIBRARIES)
+get_target_property(CORENRN_LINK_LIBS coreneuron-core LINK_LIBRARIES)
 if(NOT CORENRN_LINK_LIBS)
   set(CORENRN_LINK_LIBS "")
 endif()
@@ -346,18 +371,19 @@ file(COPY apps/coreneuron.cpp DESTINATION ${CMAKE_BINARY_DIR}/share/coreneuron)
 
 # coreneuron main libraries
 install(
-  TARGETS coreneuron
+  TARGETS coreneuron-core
   EXPORT coreneuron
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   INCLUDES
   DESTINATION $<INSTALL_INTERFACE:include>)
 
-# scopemath into share for nrnivmodl-core
-install(
-  TARGETS scopmath
-  EXPORT coreneuron
-  DESTINATION lib)
+if(TARGET coreneuron-cuda)
+  install(TARGETS coreneuron-cuda
+          EXPORT coreneuron
+          ARCHIVE DESTINATION lib
+          LIBRARY DESTINATION lib)
+endif()
 
 # headers and some standalone code files for nrnivmodl-core
 install(

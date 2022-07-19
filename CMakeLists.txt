@@ -303,10 +303,6 @@ if(CORENRN_HAVE_NVHPC_COMPILER)
   endif()
 endif()
 
-if(CORENRN_ENABLE_GPU)
-  set(CORENRN_ENABLE_SHARED OFF)
-endif()
-
 if(CORENRN_ENABLE_SHARED)
   set(COMPILE_LIBRARY_TYPE "SHARED")
 else()
@@ -489,7 +485,7 @@ endif()
 add_subdirectory(coreneuron)
 
 if(CORENRN_ENABLE_GPU)
-  get_target_property(CORENRN_LINK_LIBRARIES coreneuron INTERFACE_LINK_LIBRARIES)
+  get_target_property(CORENRN_LINK_LIBRARIES coreneuron-core INTERFACE_LINK_LIBRARIES)
   if(CORENRN_LINK_LIBRARIES)
     foreach(LIB ${CORENRN_LINK_LIBRARIES})
       get_filename_component(dir_path ${LIB} DIRECTORY)
@@ -499,7 +495,7 @@ if(CORENRN_ENABLE_GPU)
         # https://github.com/BlueBrain/CoreNeuron/blob/856cea4aa647c8f2b0d5bda6d0fc32144c5942e3/CMakeLists.txt#L411-L412
         message(
           NOTICE
-          "Ignoring dependency '${LIB}' of 'coreneuron' and assuming relevant flags have already been added to CORENEURON_LIB_LINK_FLAGS."
+          "Ignoring dependency '${LIB}' of 'coreneuron-core' and assuming relevant flags have already been added to CORENEURON_LIB_LINK_FLAGS."
         )
       elseif(NOT dir_path)
         # In case LIB is not a target but is just the name of a library, e.g. "dl"

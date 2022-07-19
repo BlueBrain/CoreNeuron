@@ -104,7 +104,7 @@ ifeq (@CORENRN_ENABLE_NMODL@, ON)
 endif
 
 # name of the mechanism library with suffix if provided
-COREMECH_LIB_NAME = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
+COREMECH_LIB_NAME = coreneuron$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
 COREMECH_LIB_PATH = $(OUTPUT_DIR)/lib$(COREMECH_LIB_NAME)$(LIB_SUFFIX)
 
 # Various header and C++/Object file
@@ -114,8 +114,8 @@ ENGINEMECH_OBJ = $(MOD_OBJS_DIR)/enginemech.o
 
 # Depending on static/shared build, determine library name and it's suffix
 ifeq ($(TARGET_LIB_TYPE), STATIC)
-    LIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
-    corenrnmech_lib_target = coremech_lib_shared
+    LIB_SUFFIX = @CMAKE_STATIC_LIBRARY_SUFFIX@
+    corenrnmech_lib_target = coremech_lib_static
 else
     LIB_SUFFIX = @CMAKE_SHARED_LIBRARY_SUFFIX@
     corenrnmech_lib_target = coremech_lib_shared
@@ -211,7 +211,7 @@ $(SPECIAL_EXE): coremech_lib_target
 	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
-	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) $(CORENRNLIB_FLAGS) $(LDFLAGS) \
+	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) -lcoreneuron-cuda $(CORENRNLIB_FLAGS) $(LDFLAGS) \
 	  -L$(CORENRN_LIB_DIR) \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR) -Wl,-rpath,'$(INSTALL_LIB_RPATH)'
 
@@ -225,18 +225,17 @@ $(ENGINEMECH_OBJ): $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp | $(MOD_OBJS_DIR)
 
 # build shared library of mechanisms
 coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
-	# extract the object files from libcoreneuron.a
-	mkdir -p $(MOD_OBJS_DIR)/libcoreneuron
-	ar --output=$(MOD_OBJS_DIR)/libcoreneuron x $(CORENRN_LIB_DIR)/libcoreneuron.a
-	# extract the object files from libscopmath.a
-	mkdir -p $(MOD_OBJS_DIR)/libscopmath
-	ar --output=$(MOD_OBJS_DIR)/libscopmath x $(CORENRN_LIB_DIR)/libscopmath.a
+	# extract the object files from libcoreneuron-core.a
+	mkdir -p $(MOD_OBJS_DIR)/libcoreneuron-core
+	rm -f $(MOD_OBJS_DIR)/libcoreneuron-core/*.o
+	ar --output=$(MOD_OBJS_DIR)/libcoreneuron-core x $(CORENRN_LIB_DIR)/libcoreneuron-core.a
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  $(LDFLAGS) ${SONAME_OPTION} -Wl,--start-group \
-	  $(MOD_OBJS_DIR)/libcoreneuron/*.o \
-		-Wl,--end-group -Wl,--start-group $(MOD_OBJS_DIR)/libscopmath/*.o \
-		-Wl,--end-group $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR);
+	  $(MOD_OBJS_DIR)/libcoreneuron-core/*.o \
+		-Wl,--end-group $(CORENRNLIB_FLAGS) -Wl,-rpath,$(CORENRN_LIB_DIR)
+	# cleanup
+	rm $(MOD_OBJS_DIR)/libcoreneuron-core/*.o
 
 # build static library of mechanisms
 coremech_lib_static: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always

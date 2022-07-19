@@ -275,7 +275,7 @@ auto active_implementations() {
     ret.push_back(SolverImplementation::CellPermute0_GPU);
     ret.push_back(SolverImplementation::CellPermute1_GPU);
     ret.push_back(SolverImplementation::CellPermute2_GPU);
-    // ret.push_back(SolverImplementation::CellPermute2_CUDA);
+    ret.push_back(SolverImplementation::CellPermute2_CUDA);
 #endif
     return ret;
 }
