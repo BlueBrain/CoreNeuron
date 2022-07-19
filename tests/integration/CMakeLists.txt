@@ -86,7 +86,6 @@ foreach(data_dir "ring" "ring_gap")
   math(EXPR num_suffixes_m1 "${num_suffixes} - 1")
   foreach(suffix_index RANGE 0 ${num_suffixes_m1})
     list(GET test_suffixes ${suffix_index} test_suffix)
-    message(STATUS "test_suffix=${test_suffix}")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/${data_dir}/out.dat.ref"
          DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${data_dir}${test_suffix}/")
   endforeach()
