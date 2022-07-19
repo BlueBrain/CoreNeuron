@@ -511,7 +511,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 
     if (!corenrn_param.writeParametersFilepath.empty()) {
         std::ofstream out(corenrn_param.writeParametersFilepath, std::ios::trunc);
-        out << corenrn_param.app.config_to_str(false, false);
+        out << corenrn_param.config_to_str(false, false);
         out.close();
     }
 

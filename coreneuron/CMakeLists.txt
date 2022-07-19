@@ -148,13 +148,13 @@ endif()
 # Library containing the bulk of the non-mechanism CoreNEURON code. This is always created and
 # installed as a static library, and then the nrnivmodl-core workflow extracts the object files from
 # it and does one of the following:
-# ~~~
-# - shared build: creates libcoreneuron.so from these objects plus those from
-#   the translated MOD files
-# - static build: creates a (temporary, does not get installed) libcoreneuron.a
-#   from these objects plus those from the translated MOD files, then
-#   statically links that into special-core (nrniv-core)
-# ~~~
+#
+# * shared build: creates libcoreneuron.so from these objects plus those from the translated MOD
+#   files
+# * static build: creates a (temporary, does not get installed) libcoreneuron.a from these objects
+#   plus those from the translated MOD files, then statically links that into special-core
+#   (nrniv-core)
+#
 # This scheme means that both core and mechanism .o files are linked in a single step, which is
 # important for GPU linking. It does, however, mean that in a shared library CPU build then the core
 # code is installed twice, once in libcoreneuron-core.a and once in the libcoreneuron.so that
@@ -254,10 +254,14 @@ target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESS
 target_link_libraries(coreneuron-core PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
                                              ${CALIPER_LIB} ${likwid_LIBRARIES})
 
-target_include_directories(coreneuron-core SYSTEM
-                           PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
-target_include_directories(coreneuron-core SYSTEM
-                           PRIVATE ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
+# TODO: fix adding a dependency of coreneuron-core on CLI11::CLI11 when CLI11 is a submodule. Right
+# now this doesn't work because the CLI11 targets are not exported/installed, but coreneuron-core
+# is.
+get_target_property(CLI11_HEADER_DIRECTORY CLI11::CLI11 INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "CLI11_HEADER_DIRECTORY=${CLI11_HEADER_DIRECTORY}")
+target_include_directories(
+  coreneuron-core SYSTEM PRIVATE ${CLI11_HEADER_DIRECTORY}
+                                 ${CORENEURON_PROJECT_SOURCE_DIR}/external/Random123/include)
 
 # See: https://en.cppreference.com/w/cpp/filesystem#Notes
 if(CMAKE_CXX_COMPILER_IS_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
@@ -265,7 +269,7 @@ if(CMAKE_CXX_COMPILER_IS_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
 endif()
 
 if(CORENRN_ENABLE_GPU)
-  # nrnran123.cpp possibly-temporarily uses Boost.Pool in GPU builds if it's available.
+  # nrnran123.cpp uses Boost.Pool in GPU builds if it's available.
   find_package(Boost QUIET)
   if(Boost_FOUND)
     message(STATUS "Boost found, enabling use of memory pools for Random123...")
