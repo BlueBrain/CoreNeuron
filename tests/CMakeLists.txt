@@ -27,7 +27,10 @@ find_package(Boost 1.59 QUIET COMPONENTS filesystem system atomic unit_test_fram
 
 if(Boost_FOUND)
   if(CORENRN_ENABLE_UNIT_TESTS)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    add_library(coreneuron-unit-test INTERFACE)
+    target_compile_options(coreneuron-unit-test INTERFACE ${CORENEURON_BOOST_UNIT_TEST_COMPILE_FLAGS})
+    target_include_directories(coreneuron-unit-test SYSTEM INTERFACE ${Boost_INCLUDE_DIRS} ${CORENEURON_PROJECT_SOURCE_DIR}/external/CLI11/include)
+    target_link_libraries(coreneuron-unit-test INTERFACE coreneuron-all ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
     add_subdirectory(unit/cmdline_interface)
     add_subdirectory(unit/interleave_info)
     add_subdirectory(unit/alignment)
