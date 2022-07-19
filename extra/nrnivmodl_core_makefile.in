@@ -207,18 +207,13 @@ endif
 
 
 # main target to build binary
-$(SPECIAL_EXE): coremech_lib_target
+$(SPECIAL_EXE): $(corenrnmech_lib_target)
 	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) -lcoreneuron-cuda $(CORENRNLIB_FLAGS) $(LDFLAGS) \
 	  -L$(CORENRN_LIB_DIR) \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR) -Wl,-rpath,'$(INSTALL_LIB_RPATH)'
-
-coremech_lib_target: $(corenrnmech_lib_target)
-	rm -rf $(OUTPUT_DIR)/.libs/lib$(COREMECH_LIB_NAME)$(LIB_SUFFIX); \
-	mkdir -p $(OUTPUT_DIR)/.libs; \
-	ln -s ../lib$(COREMECH_LIB_NAME)$(LIB_SUFFIX) $(OUTPUT_DIR)/.libs/lib$(COREMECH_LIB_NAME)$(LIB_SUFFIX)
 
 $(ENGINEMECH_OBJ): $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp | $(MOD_OBJS_DIR)
 	$(CXX_COMPILE_CMD) -c -DADDITIONAL_MECHS $(CORENRN_SHARE_CORENRN_DIR)/enginemech.cpp -o $(ENGINEMECH_OBJ)
@@ -279,7 +274,7 @@ $(MOD_OBJS_DIR):
 	mkdir -p $(MOD_OBJS_DIR)
 
 # install binary and libraries
-install: $(SPECIAL_EXE) coremech_lib_target
+install: $(SPECIAL_EXE)
 	install -d $(DESTDIR)/bin $(DESTDIR)/lib
 	install ${COREMECH_LIB_PATH} $(DESTDIR)/lib
 	install $(SPECIAL_EXE) $(DESTDIR)/bin
