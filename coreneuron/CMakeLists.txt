@@ -301,8 +301,7 @@ add_custom_target(nrniv-core ALL DEPENDS ${output_binaries})
 
 if(CORENRN_ENABLE_GPU)
   separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
-  target_compile_options(coreneuron-core BEFORE
-                         PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CORENRN_ACC_FLAGS}>)
+  target_compile_options(coreneuron-core PRIVATE ${CORENRN_ACC_FLAGS})
 endif()
 
 # Create an extra target for internal use that unit tests and so on can depend on.
@@ -310,7 +309,7 @@ endif()
 # mechanisms and the content of libcoreneuron-core.a. Also copy the dependencies of
 # libcoreneuron-core as interface dependencies of this new target (example: ${corenrn_mech_library}
 # will probably depend on MPI, so when the unit tests link against ${corenrn_mech_library} they need
-# to know about MPI too).
+# to know to link against MPI too).
 add_library(coreneuron-all INTERFACE)
 target_link_libraries(coreneuron-all INTERFACE "${corenrn_mech_library}")
 get_target_property(coreneuron_core_deps coreneuron-core LINK_LIBRARIES)
