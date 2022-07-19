@@ -229,8 +229,10 @@ coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 
 # build static library of mechanisms
 coremech_lib_static: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
-	rm -f ${COREMECH_LIB_PATH}; \
-	ar cq ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS);
+	# make a libcoreneuron.a by copying libcoreneuron-core.a and then appending
+	# the newly compiled objects
+	cp $(CORENRN_LIB_DIR)/libcoreneuron-core.a ${COREMECH_LIB_PATH}
+	ar r ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS)
 
 # compile cpp files to .o
 $(MOD_OBJS_DIR)/%.o: $(MOD_TO_CPP_DIR)/%.cpp | $(MOD_OBJS_DIR)
