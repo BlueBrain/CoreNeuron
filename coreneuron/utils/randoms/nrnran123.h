@@ -39,6 +39,8 @@ http://www.deshawresearch.com/resources_random123.html
 #include <Random123/philox.h>
 #include <inttypes.h>
 
+#include <cmath>
+
 // Some files are compiled with DISABLE_OPENACC, and some builds have no GPU
 // support at all. In these two cases, request that the random123 state is
 // allocated using new/delete instead of CUDA unified memory.
@@ -109,7 +111,7 @@ constexpr void nrnran123_getids3(nrnran123_State* s, uint32_t* id1, uint32_t* id
 }
 
 // Uniform 0 to 2*32-1
-constexpr uint32_t nrnran123_ipick(nrnran123_State* s) {
+inline uint32_t nrnran123_ipick(nrnran123_State* s) {
     char which = s->which_;
     uint32_t rval{s->r.v[int{which++}]};
     if (which > 3) {
@@ -134,7 +136,7 @@ constexpr double nrnran123_dblpick(nrnran123_State* s) {
 }
 
 /* this could be called from openacc parallel construct (in INITIAL block) */
-constexpr void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
+inline void nrnran123_setseq(nrnran123_State* s, uint32_t seq, char which) {
     if (which > 3) {
         s->which_ = 0;
     } else {
