@@ -113,8 +113,8 @@ foreach(COMPILER_LANGUAGE ${SUPPORTED_COMPILER_LANGUAGE_LIST})
     # Force same ld behavior as when called from gcc --as-needed forces the linker to check whether
     # a dynamic library mentioned in the command line is actually needed by the objects being
     # linked. Symbols needed in shared objects are already linked when building that library.
-    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed")
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
+    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_SHARED_LINKER_FLAGS}")
 
     # rest of the world
   else()
