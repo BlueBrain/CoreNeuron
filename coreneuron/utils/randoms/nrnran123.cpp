@@ -87,24 +87,15 @@ using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_
 OMP_Mutex g_instance_count_mutex;
 std::size_t g_instance_count{};
 
-philox4x32_key_t g_k{};
 #ifdef __CUDACC__
-// Not 100% clear we need a different name (g_k_dev) here in addition to g_k,
-// but it's clearer and the overhead cannot be high (if it exists).
-__constant__ __device__ philox4x32_key_t g_k_dev{};
-// noinline to force "CUDA" not "acc routine seq" behaviour :shrug:
-__attribute__((noinline)) philox4x32_key_t& global_state() {
-    if target (nv::target::is_device) {
-        return g_k_dev;
-    } else {
-        return g_k;
-    }
-}
+#define g_k_qualifiers __device__ __constant__
 #else
+#define g_k_qualifiers
+#endif
+g_k_qualifiers philox4x32_key_t g_k{};
 philox4x32_key_t& global_state() {
     return g_k;
 }
-#endif
 }  // namespace
 
 philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
@@ -138,19 +129,8 @@ void nrnran123_set_globalindex(uint32_t gix) {
     if (g_k.v[0] != gix) {
         g_k.v[0] = gix;
         if (coreneuron::gpu_enabled()) {
-#ifdef __CUDACC__
-            {
-                auto const code = cudaMemcpyToSymbol(g_k_dev, &g_k, sizeof(g_k));
-                assert(code == cudaSuccess);
-            }
-            {
-                auto const code = cudaDeviceSynchronize();
-                assert(code == cudaSuccess);
-            }
-#else
             nrn_pragma_acc(update device(g_k))
             nrn_pragma_omp(target update to(g_k))
-#endif
         }
     }
 }
