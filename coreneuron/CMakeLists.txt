@@ -216,6 +216,7 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
       list(GET NRN_MPI_LIBNAME_LIST ${val} libname)
 
       add_library(core${libname}_lib SHARED ${MPI_LIB_FILES})
+      target_link_libraries(core${libname}_lib ${CORENRN_CALIPER_LIB})
       target_include_directories(
         core${libname}_lib
         PUBLIC ${include}

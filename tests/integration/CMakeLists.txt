@@ -12,7 +12,7 @@ if(CORENRN_ENABLE_MPI_DYNAMIC)
   # building single generic mpi library libcorenrn_mpi.<suffix>
   # ~~~
   if(CORENEURON_AS_SUBPROJECT)
-    message(INFO "CoreNEURON integration tests are disabled with dynamic MPI")
+    message(STATUS "CoreNEURON integration tests are disabled with dynamic MPI")
     return()
   else()
     set(CORENRN_MPI_LIB_ARG
