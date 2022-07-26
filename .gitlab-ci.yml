@@ -81,31 +81,10 @@ build:nmodl:
     SPACK_PACKAGE_COMPILER: gcc
 
 # Build CoreNEURON
-build:coreneuron:mod2c:nvhpc:acc:
-  extends: [.build, .spack_nvhpc]
-  variables:
-    SPACK_PACKAGE: coreneuron
-    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
-
-build:coreneuron:mod2c:nvhpc:acc:shared:
-  extends: [.build, .spack_nvhpc]
-  variables:
-    SPACK_PACKAGE: coreneuron
-    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp+shared+tests~legacy-unit build_type=RelWithDebInfo
-
-# Build CoreNEURON with Unified Memory on GPU
-build:coreneuron:mod2c:nvhpc:acc:unified:
-  extends: [.build, .spack_nvhpc]
-  variables:
-    SPACK_PACKAGE: coreneuron
-    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: ~caliper+gpu+unified+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
-
-.build_coreneuron_nmodl:
+.build_coreneuron:
   extends: [.build]
   variables:
+    SPACK_PACKAGE: coreneuron
     # NEURON depends on py-mpi4py, most of whose dependencies are pulled in by
     # nmodl%gcc, with the exception of MPI, which is pulled in by
     # coreneuron%{nvhpc,intel}. hpe-mpi is an external package anyway, so
@@ -113,36 +92,52 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
     # dependency graph and not changing which installation is used, but this
     # means that in the NEURON step an existing py-mpi4py%gcc can be used.
     # Otherwise a new py-mpi4py with hpe-mpi%{nvhpc,intel} will be built.
+    # caliper: papi%nvhpc does not build; use the caliper from the deployment
     # TODO: fix this more robustly so we don't have to play so many games.
-    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^caliper%gcc+cuda cuda_arch=70
+
+build:coreneuron:mod2c:nvhpc:acc:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
+
+build:coreneuron:mod2c:nvhpc:acc:shared:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp+shared+tests~legacy-unit build_type=RelWithDebInfo
+
+# Build CoreNEURON with Unified Memory on GPU
+build:coreneuron:mod2c:nvhpc:acc:unified:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
+    SPACK_PACKAGE_SPEC: ~caliper+gpu+unified+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:
-  extends: [.build_coreneuron_nmodl, .spack_nvhpc]
+  extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    SPACK_PACKAGE: coreneuron
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     SPACK_PACKAGE_SPEC: +caliper+nmodl+openmp+gpu~shared+tests~legacy-unit~sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
 build:coreneuron:nmodl:nvhpc:acc:
-  extends: [.build_coreneuron_nmodl, .spack_nvhpc]
+  extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    SPACK_PACKAGE: coreneuron
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     # Sympy + OpenMP target offload does not currently work with NVHPC
     SPACK_PACKAGE_SPEC: ~caliper+nmodl~openmp+gpu~shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
 build:coreneuron:mod2c:intel:
-  extends: [.build, .spack_intel]
+  extends: [.build_coreneuron, .spack_intel]
   variables:
-    SPACK_PACKAGE: coreneuron
     SPACK_PACKAGE_SPEC: +caliper+tests~legacy-unit build_type=Debug
 
 build:coreneuron:nmodl:intel:
-  extends: [.build_coreneuron_nmodl, .spack_intel]
+  extends: [.build_coreneuron, .spack_intel]
   variables:
-    SPACK_PACKAGE: coreneuron
     SPACK_PACKAGE_SPEC: ~caliper+nmodl+tests~legacy-unit build_type=Debug
   needs: ["build:nmodl"]
 
