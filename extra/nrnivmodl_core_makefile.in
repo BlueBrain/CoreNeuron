@@ -218,7 +218,8 @@ coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 	# extract the object files from libcoreneuron-core.a
 	mkdir -p $(MOD_OBJS_DIR)/libcoreneuron-core
 	rm -f $(MOD_OBJS_DIR)/libcoreneuron-core/*.o
-	ar --output=$(MOD_OBJS_DIR)/libcoreneuron-core x $(CORENRN_LIB_DIR)/libcoreneuron-core.a
+	# --output is only supported by modern versions of ar
+	(cd $(MOD_OBJS_DIR)/libcoreneuron-core && ar x $(CORENRN_LIB_DIR)/libcoreneuron-core.a)
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
 	  $(LDFLAGS) ${SONAME_OPTION} -Wl,--start-group \
