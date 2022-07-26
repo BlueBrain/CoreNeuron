@@ -478,7 +478,7 @@ endif()
 add_subdirectory(coreneuron)
 
 # Extract the various compiler option strings to use inside nrnivmodl-core. Sets the global property
-# CORENEURON_LIB_LINK_FLAGS, which contains the arguments that must be added to the link line for
+# CORENRN_LIB_LINK_FLAGS, which contains the arguments that must be added to the link line for
 # `special` to link against `libcoreneuron.{a,so}`
 include(MakefileBuildOptions)
 
@@ -492,7 +492,7 @@ endif()
 # =============================================================================
 # Install cmake modules
 # =============================================================================
-get_property(CORENEURON_LIB_LINK_FLAGS GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS)
+get_property(CORENRN_NEURON_LINK_FLAGS GLOBAL PROPERTY CORENRN_NEURON_LINK_FLAGS)
 configure_file(CMake/coreneuron-config.cmake.in CMake/coreneuron-config.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CMake/coreneuron-config.cmake" DESTINATION share/cmake)
 install(EXPORT coreneuron DESTINATION share/cmake)

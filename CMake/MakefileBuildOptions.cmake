@@ -41,7 +41,7 @@ function(coreneuron_process_target target)
       # This is a special case: libcoreneuron-core.a is manually unpacked into .o files by the
       # nrnivmodl-core Makefile, so we do not want to also emit an -lcoreneuron-core argument. TODO:
       # probably need to extract an -L and RPATH path and include that here?
-      set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${target}")
+      set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${target}")
     endif()
     get_target_property(target_libraries ${target} LINK_LIBRARIES)
     if(target_libraries)
@@ -55,20 +55,19 @@ function(coreneuron_process_target target)
   message(STATUS "target=${target} target_dir=${target_dir}")
   if(NOT target_dir)
     # In case target is not a target but is just the name of a library, e.g. "dl"
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${target}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${target}")
   elseif("${target_dir}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
     # e.g. /usr/lib64/libpthread.so -> -lpthread
     get_filename_component(libname ${target} NAME_WE)
     string(REGEX REPLACE "^lib" "" libname ${libname})
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " -l${libname}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${libname}")
   else()
     # It's a full path, include that on the line
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENEURON_LIB_LINK_FLAGS " ${target}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " ${target}")
   endif()
 endfunction()
 coreneuron_process_target(coreneuron-core)
-get_property(CORENEURON_LIB_LINK_FLAGS GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS)
-message(STATUS "CORENEURON_LIB_LINK_FLAGS=${CORENEURON_LIB_LINK_FLAGS}")
+get_property(CORENRN_LIB_LINK_FLAGS GLOBAL PROPERTY CORENRN_LIB_LINK_FLAGS)
 
 # Detect if --start-group and --end-group are valid linker arguments. These are typically needed
 # when linking mutually-dependent .o files (or where we don't know the correct order) on Linux, but
@@ -79,7 +78,7 @@ if(CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
   set(CORENEURON_LINKER_START_GROUP -Wl,--start-group)
   set(CORENEURON_LINKER_END_GROUP -Wl,--end-group)
 endif()
-# Things that used to be in CORENEURON_LIB_LINK_FLAGS: -rdynamic -lrt -Wl,--whole-archive
+# Things that used to be in CORENRN_LIB_LINK_FLAGS: -rdynamic -lrt -Wl,--whole-archive
 # -L${CMAKE_HOST_SYSTEM_PROCESSOR} -Wl,--no-whole-archive -L${caliper_LIB_DIR} -l${CALIPER_LIB}
 
 # =============================================================================
@@ -91,7 +90,7 @@ list(TRANSFORM CORENRN_COMPILE_DEFS PREPEND -D OUTPUT_VARIABLE CORENRN_COMPILE_D
 # Extra link flags that we need to include when linking libcoreneuron.{a,so} in CoreNEURON but that
 # do not need to be passed to NEURON to use when linking nrniv/special (why?)
 # =============================================================================
-string(JOIN " " CORENRN_COMMON_LDFLAGS ${CORENEURON_LIB_LINK_FLAGS} ${CORENRN_EXTRA_LINK_FLAGS})
+string(JOIN " " CORENRN_COMMON_LDFLAGS ${CORENRN_LIB_LINK_FLAGS} ${CORENRN_EXTRA_LINK_FLAGS})
 if(CORENRN_SANITIZER_LIBRARY_DIR)
   string(APPEND CORENRN_COMMON_LDFLAGS " -Wl,-rpath,${CORENRN_SANITIZER_LIBRARY_DIR}")
 endif()

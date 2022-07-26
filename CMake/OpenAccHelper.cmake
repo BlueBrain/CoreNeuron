@@ -66,12 +66,8 @@ if(CORENRN_ENABLE_GPU)
   # linking. Without this, we had problems with linking between the explicit CUDA (.cu) device code
   # and offloaded OpenACC/OpenMP code. Using -cuda when compiling seems to improve error messages in
   # some cases, and to be recommended by NVIDIA. We pass -gpu=cudaX.Y to ensure that OpenACC/OpenMP
-  # code is compiled with the same CUDA version as the explicit CUDA code. TODO nordc option is
-  # added based on the recommendation from:
-  # https://forums.developer.nvidia.com/t/separate-compilation-of-mixed-cuda-openacc-code/192701 but
-  # as discussed in https://github.com/BlueBrain/CoreNeuron/issues/141#issuecomment-1086742194 this
-  # is still not completely solving underlying link issue.
-  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo,rdc")
+  # code is compiled with the same CUDA version as the explicit CUDA code.
+  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
@@ -104,8 +100,13 @@ if(CORENRN_ENABLE_GPU AND CORENRN_ENABLE_SHARED)
   # Because of
   # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
   # we have to tell NEURON to pass OpenACC flags when linking special, otherwise we end up with an
-  # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds
-  set_property(GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
+  # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds.
+  # CORENRN_LIB_LINK_FLAGS is the full set of flags needed to link against libcoreneuron.so:
+  # something like `-acc -lcoreneuron ...`. CORENRN_NEURON_LINK_FLAGS only contains flags that need
+  # to be used when linking the NEURON Python module to make sure it is able to dynamically load
+  # libcoreneuron.so.
+  set_property(GLOBAL PROPERTY CORENRN_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
+  set_property(GLOBAL PROPERTY CORENRN_NEURON_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
 endif()
 
 if(CORENRN_HAVE_NVHPC_COMPILER)
