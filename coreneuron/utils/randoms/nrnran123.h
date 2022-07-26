@@ -69,6 +69,8 @@ philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_St
 nrn_pragma_omp(end declare target)
 
 namespace coreneuron {
+void nrnran123_initialise_global_state_on_device();
+void nrnran123_destroy_global_state_on_device();
 
 /* global index. eg. run number */
 /* all generator instances share this global index */

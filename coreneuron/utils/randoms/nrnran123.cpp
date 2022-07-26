@@ -135,6 +135,20 @@ void nrnran123_set_globalindex(uint32_t gix) {
     }
 }
 
+void nrnran123_initialise_global_state_on_device() {
+    if (coreneuron::gpu_enabled()) {
+        auto& g_k = global_state();
+        nrn_pragma_acc(enter data copyin(g_k))
+    }
+}
+
+void nrnran123_destroy_global_state_on_device() {
+    if (coreneuron::gpu_enabled()) {
+        auto& g_k = global_state();
+        nrn_pragma_acc(exit data delete (g_k))
+    }
+}
+
 /** @brief Allocate a new Random123 stream.
  *  @todo  It would be nicer if the API return type was
  *  std::unique_ptr<nrnran123_State, ...not specified...>, so we could use a

@@ -506,6 +506,7 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 #ifdef CORENEURON_ENABLE_GPU
     if (corenrn_param.gpu) {
         init_gpu();
+        nrnran123_initialise_global_state_on_device();
     }
 #endif
 
@@ -683,6 +684,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
         if (nrn_have_gaps) {
             nrn_partrans::delete_gap_indices_from_device();
         }
+        nrnran123_destroy_global_state_on_device();
     }
 
     // Cleaning the memory
