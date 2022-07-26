@@ -26,7 +26,7 @@
 
 namespace coreneuron {
 #if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
-    defined(_OPENACC)
+    defined(_OPENACC) && !defined(CORENEURON_UNIFIED_MEMORY)
 // Homegrown implementation for buggy NVHPC versions (<=22.3?)
 #define CORENEURON_ENABLE_PRESENT_TABLE
 void* cnrn_target_deviceptr_impl(void const* h_ptr);
