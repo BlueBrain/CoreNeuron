@@ -25,17 +25,6 @@
 #include <memory>
 #include <mutex>
 
-// Defining these attributes seems to help nvc++ in OpenMP target offload mode.
-#if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
-    defined(_OPENMP) && defined(__CUDACC__)
-#define CORENRN_HOST_DEVICE __host__ __device__
-#elif defined(__CUDACC__)
-// This is necessary to make the new CUDA-syntax-in-.cpp version compile
-#define CORENRN_HOST_DEVICE __host__ __device__
-#else
-#define CORENRN_HOST_DEVICE
-#endif
-
 namespace {
 #ifdef CORENEURON_USE_BOOST_POOL
 /** Tag type for use with boost::fast_pool_allocator that forwards to
@@ -129,23 +118,36 @@ void nrnran123_set_globalindex(uint32_t gix) {
     if (g_k.v[0] != gix) {
         g_k.v[0] = gix;
         if (coreneuron::gpu_enabled()) {
+#ifdef __CUDACC__
+            {
+                auto const code = cudaMemcpyToSymbol(g_k, &g_k, sizeof(g_k));
+                assert(code == cudaSuccess);
+            }
+            {
+                auto const code = cudaDeviceSynchronize();
+                assert(code == cudaSuccess);
+            }
+#else
             nrn_pragma_acc(update device(g_k))
             nrn_pragma_omp(target update to(g_k))
+#endif
         }
     }
 }
 
 void nrnran123_initialise_global_state_on_device() {
     if (coreneuron::gpu_enabled()) {
-        auto& g_k = global_state();
+#ifndef __CUDACC__
         nrn_pragma_acc(enter data copyin(g_k))
+#endif
     }
 }
 
 void nrnran123_destroy_global_state_on_device() {
     if (coreneuron::gpu_enabled()) {
-        auto& g_k = global_state();
+#ifndef __CUDACC__
         nrn_pragma_acc(exit data delete (g_k))
+#endif
     }
 }
 
