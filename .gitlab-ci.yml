@@ -113,7 +113,7 @@ build:coreneuron:mod2c:nvhpc:acc:unified:
   extends: [.build_coreneuron, .spack_nvhpc]
   variables:
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
-    SPACK_PACKAGE_SPEC: ~caliper+gpu+unified+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +caliper+gpu+unified+openmp~shared+tests~legacy-unit build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:
   extends: [.build_coreneuron, .spack_nvhpc]
@@ -127,7 +127,7 @@ build:coreneuron:nmodl:nvhpc:acc:
   variables:
     # See https://github.com/BlueBrain/CoreNeuron/issues/518 re: build_type
     # Sympy + OpenMP target offload does not currently work with NVHPC
-    SPACK_PACKAGE_SPEC: ~caliper+nmodl~openmp+gpu~shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu~shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
 build:coreneuron:mod2c:intel:
@@ -138,7 +138,7 @@ build:coreneuron:mod2c:intel:
 build:coreneuron:nmodl:intel:
   extends: [.build_coreneuron, .spack_intel]
   variables:
-    SPACK_PACKAGE_SPEC: ~caliper+nmodl+tests~legacy-unit build_type=Debug
+    SPACK_PACKAGE_SPEC: +caliper+nmodl+tests~legacy-unit build_type=Debug
   needs: ["build:nmodl"]
 
 # Build NEURON
