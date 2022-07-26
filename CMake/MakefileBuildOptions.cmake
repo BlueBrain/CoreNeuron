@@ -70,6 +70,15 @@ coreneuron_process_target(coreneuron-core)
 get_property(CORENEURON_LIB_LINK_FLAGS GLOBAL PROPERTY CORENEURON_LIB_LINK_FLAGS)
 message(STATUS "CORENEURON_LIB_LINK_FLAGS=${CORENEURON_LIB_LINK_FLAGS}")
 
+# Detect if --start-group and --end-group are valid linker arguments. These are typically needed
+# when linking mutually-dependent .o files (or where we don't know the correct order) on Linux, but
+# they are not needed *or* recognised by the macOS linker.
+include(CheckLinkerFlag) # requires CMake 3.18
+check_linker_flag(CXX -Wl,--start-group CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
+if(CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
+  set(CORENEURON_LINKER_START_GROUP -Wl,--start-group)
+  set(CORENEURON_LINKER_END_GROUP -Wl,--end-group)
+endif()
 # Things that used to be in CORENEURON_LIB_LINK_FLAGS: -rdynamic -lrt -Wl,--whole-archive
 # -L${CMAKE_HOST_SYSTEM_PROCESSOR} -Wl,--no-whole-archive -L${caliper_LIB_DIR} -l${CALIPER_LIB}
 
