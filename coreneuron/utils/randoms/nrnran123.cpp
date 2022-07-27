@@ -82,7 +82,10 @@ std::size_t g_instance_count{};
 #define g_k_qualifiers
 #endif
 g_k_qualifiers philox4x32_key_t g_k{};
-philox4x32_key_t& global_state() {
+// Cannot refer to g_k directly from a nrn_pragma_acc(routine seq) method like
+// coreneuron_random123_philox4x32_helper, and cannot have this inlined there at
+// higher optimisation levels
+__attribute__((noinline)) philox4x32_key_t& global_state() {
     return g_k;
 }
 }  // namespace
