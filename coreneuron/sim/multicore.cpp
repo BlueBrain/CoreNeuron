@@ -166,7 +166,7 @@ void nrn_thread_table_check() {
         auto tml = static_cast<NrnThreadMembList*>(table_check_[i + 1]._pvoid);
         Memb_list* ml = tml->ml;
         (*corenrn.get_memb_func(tml->index).thread_table_check_)(
-            0, ml->_nodecount_padded, ml->data, ml->pdata, ml->_thread, &nt, tml->index);
+            0, ml->_nodecount_padded, ml->data, ml->pdata, ml->_thread, &nt, ml, tml->index);
     }
 }
 }  // namespace coreneuron
