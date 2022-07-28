@@ -13,10 +13,6 @@
 #include "coreneuron/mechanism/mech/mod2c_core_thread.hpp"
 #include "coreneuron/sim/scopmath/errcodes.h"
 
-#ifdef __CUDACC__
-#include <nv/target>
-#endif
-
 namespace coreneuron {
 namespace scopmath {
 namespace sparse {
@@ -71,7 +67,8 @@ inline void increase_order(SparseObj* so, unsigned row) {
  * biggest difference is that elements are no longer removed and this saves much
  * time allocating and freeing during the solve phase.
  */
-inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
+template <enabled_code code_to_enable = enabled_code::all>
+Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
     Elm *el, *elnext;
 
     unsigned vrow = so->varord[row];
@@ -94,12 +91,10 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
         }
         /* insert below el */
         if (!new_elem) {
-#ifdef __CUDACC__
-            if target (nv::target::is_device) {
+            if constexpr (code_to_enable == enabled_code::compute_only) {
+                // Dynamic allocation should not happen during the compute phase.
                 assert(false);
-            } else
-#endif
-            {
+            } else {
                 new_elem = new Elm{};
                 new_elem->value = new double[so->_cntml_padded];
                 increase_order(so, row);
@@ -143,12 +138,9 @@ inline Elm* getelm(SparseObj* so, unsigned row, unsigned col, Elm* new_elem) {
         }
         /* insert above el */
         if (!new_elem) {
-#ifdef __CUDACC__
-            if target (nv::target::is_device) {
+            if constexpr (code_to_enable == enabled_code::compute_only) {
                 assert(false);
-            } else
-#endif
-            {
+            } else {
                 new_elem = new Elm{};
                 new_elem->value = new double[so->_cntml_padded];
                 increase_order(so, row);
@@ -508,16 +500,13 @@ void create_coef_list(SparseObj* so, int n, SPFUN fun, _threadargsproto_) {
     fun(so, so->rhs, _threadargs_);  // std::invoke in C++17
     so->phase = 0;
 }
-}  // namespace sparse
-}  // namespace scopmath
 
-// Methods that may be called from translated MOD files are kept outside the
-// scopmath::sparse namespace.
-inline double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml) {
+template <enabled_code code_to_enable = enabled_code::all>
+double* thread_getelm(SparseObj* so, int row, int col, int _iml) {
     if (!so->phase) {
         return so->coef_list[so->ngetcall[_iml]++];
     }
-    Elm* el = scopmath::sparse::getelm(so, (unsigned) row, (unsigned) col, nullptr);
+    Elm* el = scopmath::sparse::getelm<code_to_enable>(so, (unsigned) row, (unsigned) col, nullptr);
     if (so->phase == 1) {
         so->ngetcall[_iml]++;
     } else {
@@ -525,7 +514,11 @@ inline double* _nrn_thread_getelm(SparseObj* so, int row, int col, int _iml) {
     }
     return el->value;
 }
+}  // namespace sparse
+}  // namespace scopmath
 
+// Methods that may be called from translated MOD files are kept outside the
+// scopmath::sparse namespace.
 #define scopmath_sparse_s(arg) _p[scopmath_sparse_ix(s[arg])]
 #define scopmath_sparse_d(arg) _p[scopmath_sparse_ix(d[arg])]
 
