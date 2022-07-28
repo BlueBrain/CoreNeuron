@@ -192,7 +192,7 @@ test:coreneuron:mod2c:nvhpc:acc:shared:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
 
-test:coreneuron:mod2c:nvhpc:acc:shared:
+test:coreneuron:mod2c:nvhpc:acc:shared:debug:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:mod2c:nvhpc:acc:shared:debug"]
 
@@ -221,9 +221,17 @@ test:neuron:mod2c:nvhpc:acc:
   extends: [.test_neuron, .gpu_node]
   needs: ["build:neuron:mod2c:nvhpc:acc"]
 
+test:neuron:mod2c:nvhpc:acc:debug:
+  extends: [.test_neuron, .gpu_node]
+  needs: ["build:neuron:mod2c:nvhpc:acc:debug"]
+
 test:neuron:mod2c:nvhpc:acc:shared:
   extends: [.test_neuron, .gpu_node]
   needs: ["build:neuron:mod2c:nvhpc:acc:shared"]
+
+test:neuron:mod2c:nvhpc:acc:shared:debug:
+  extends: [.test_neuron, .gpu_node]
+  needs: ["build:neuron:mod2c:nvhpc:acc:shared:debug"]
 
 test:neuron:nmodl:nvhpc:omp:
   extends: [.test_neuron, .gpu_node]

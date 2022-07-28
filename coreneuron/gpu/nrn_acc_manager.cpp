@@ -34,13 +34,13 @@
 
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <map>
-#include <mutex>
+#include <shared_mutex>
 namespace {
-enum class byte : unsigned char {};  // std::byte in C++17
-std::map<byte const*, std::pair<std::size_t, byte*>> present_table;
-std::mutex present_table_mutex;
+std::map<std::byte const*, std::pair<std::size_t, std::byte*>> present_table;
+std::shared_mutex present_table_mutex;
 }  // namespace
 #endif
 
@@ -56,8 +56,9 @@ void* cnrn_target_deviceptr_impl(void const* h_ptr) {
     if (!h_ptr) {
         return nullptr;
     }
-    // note no locking, undefined behaviour if you call this concurrently with
-    // the copyin/delete methods (which do lock)
+    // Concurrent calls to this method are safe, but they must be serialised
+    // w.r.t. calls to the cnrn_target_*_update_present_table methods.
+    std::shared_lock _{present_table_mutex};
     assert(!present_table.empty());
     // prev(first iterator greater than h_ptr or last if not found) gives the first iterator less
     // than or equal to h_ptr
@@ -66,10 +67,10 @@ void* cnrn_target_deviceptr_impl(void const* h_ptr) {
             return hp < entry.first;
         }));
     assert(iter != present_table.end());
-    byte const* const h_byte_ptr{static_cast<byte const*>(h_ptr)};
-    byte const* const h_start_of_block{iter->first};
+    std::byte const* const h_byte_ptr{static_cast<std::byte const*>(h_ptr)};
+    std::byte const* const h_start_of_block{iter->first};
     std::size_t const block_size{iter->second.first};
-    byte* const d_start_of_block{iter->second.second};
+    std::byte* const d_start_of_block{iter->second.second};
     assert(h_byte_ptr < h_start_of_block + block_size);
     return d_start_of_block + (h_byte_ptr - h_start_of_block);
 }
@@ -78,16 +79,16 @@ void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std
         assert(!d_ptr);
         return;
     }
-    std::lock_guard<std::mutex> _{present_table_mutex};
-    auto const result = present_table.emplace(static_cast<byte const*>(h_ptr),
-                                              std::make_pair(len, static_cast<byte*>(d_ptr)));
+    std::lock_guard _{present_table_mutex};
+    auto const result = present_table.emplace(static_cast<std::byte const*>(h_ptr),
+                                              std::make_pair(len, static_cast<std::byte*>(d_ptr)));
 }
 void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len) {
     if (!h_ptr) {
         return;
     }
-    std::lock_guard<std::mutex> _{present_table_mutex};
-    auto const iter = present_table.find(static_cast<byte const*>(h_ptr));
+    std::lock_guard _{present_table_mutex};
+    auto const iter = present_table.find(static_cast<std::byte const*>(h_ptr));
     assert(iter != present_table.end());
     assert(iter->second.first == len);
     present_table.erase(iter);
