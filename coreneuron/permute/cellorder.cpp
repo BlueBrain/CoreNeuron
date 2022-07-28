@@ -482,9 +482,9 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
     int icycle = ncycle - 1;
     int istride = stride[icycle];
     int i = lastnode - istride + icore;
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
     int ii = i;
-#endif
+//#endif
 
     // execute until all tree depths are executed
     bool has_subtrees_to_compute = true;
@@ -492,11 +492,12 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
     // clang-format off
     nrn_pragma_acc(loop seq)
     for (; has_subtrees_to_compute; ) {  // ncycle loop
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
         // serial test, gpu does this in parallel
+        nrn_pragma_acc(loop)
         for (int icore = 0; icore < warpsize; ++icore) {
             int i = ii + icore;
-#endif
+//#endif
             if (icore < istride) {  // most efficient if istride equal  warpsize
                 // what is the index
                 int ip = GPU_PARENT(i);
@@ -508,9 +509,9 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
                 nrn_pragma_omp(atomic update)
                 GPU_RHS(ip) -= p * GPU_RHS(i);
             }
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
         }
-#endif
+//#endif
         // if finished with all tree depths then ready to break
         // (note that break is not allowed in OpenACC)
         if (icycle == 0) {
@@ -520,9 +521,9 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
         --icycle;
         istride = stride[icycle];
         i -= istride;
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
         ii -= istride;
-#endif
+//#endif
     }
     // clang-format on
 }
@@ -535,36 +536,37 @@ static void bksub_interleaved2(NrnThread* nt,
                                int ncycle,
                                int* stride,
                                int firstnode) {
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
     for (int i = root; i < lastroot; i += 1) {
-#else
-    nrn_pragma_acc(loop seq)
-    for (int i = root; i < lastroot; i += warpsize) {
-#endif
+//#else
+//    nrn_pragma_acc(loop seq)
+//    for (int i = root; i < lastroot; i += warpsize) {
+//#endif
         GPU_RHS(i) /= GPU_D(i);  // the root
     }
 
     int i = firstnode + icore;
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
     int ii = i;
-#endif
+//#endif
     for (int icycle = 0; icycle < ncycle; ++icycle) {
         int istride = stride[icycle];
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
+        nrn_pragma_acc(loop)
         // serial test, gpu does this in parallel
         for (int icore = 0; icore < warpsize; ++icore) {
             int i = ii + icore;
-#endif
+//#endif
             if (icore < istride) {
                 int ip = GPU_PARENT(i);
                 GPU_RHS(i) -= GPU_B(i) * GPU_RHS(ip);
                 GPU_RHS(i) /= GPU_D(i);
             }
             i += istride;
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
         }
         ii += istride;
-#endif
+//#endif
     }
 }
 
@@ -617,14 +619,14 @@ void solve_interleaved2(int ith) {
             int lastroot = rootbegin[iwarp + 1];
             int firstnode = nodebegin[iwarp];
             int lastnode = nodebegin[iwarp + 1];
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
             if (ic == 0) {  // serial test mode. triang and bksub do all cores in warp
-#endif
+//#endif
                 triang_interleaved2(nt, ic, ncycle, stride, lastnode);
                 bksub_interleaved2(nt, root + ic, lastroot, ic, ncycle, stride, firstnode);
-#ifndef CORENEURON_ENABLE_GPU
+//#ifndef CORENEURON_ENABLE_GPU
             }  // serial test mode
-#endif
+//#endif
         }
         nrn_pragma_acc(wait(nt->stream_id))
 #ifdef _OPENACC
