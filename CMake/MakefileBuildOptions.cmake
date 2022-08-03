@@ -31,7 +31,10 @@ set(NMODL_ACC_BACKEND_ARGS "host --c acc --oacc")
 # =============================================================================
 # Construct the linker arguments that are used inside nrnivmodl-core (to build libcorenrnmech from
 # libcoreneuron-core, libcoreneuron-cuda and mechanism object files) and inside nrnivmodl (to link
-# NEURON's special against CoreNEURON's libcorenrnmech).
+# NEURON's special against CoreNEURON's libcorenrnmech). These are stored in two global properties:
+# CORENRN_LIB_LINK_FLAGS (used by NEURON/nrnivmodl to link special against CoreNEURON) and
+# CORENRN_LIB_LINK_DEP_FLAGS (used by CoreNEURON/nrnivmodl-core to link libcorenrnmech.so).
+# Conceptually: CORENRN_LIB_LINK_FLAGS = -lcorenrnmech $CORENRN_LIB_LINK_DEP_FLAGS
 # =============================================================================
 if(NOT CORENRN_ENABLE_SHARED)
   set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -Wl,--whole-archive")
@@ -46,15 +49,15 @@ function(coreneuron_process_library_path library)
   get_filename_component(library_dir "${library}" DIRECTORY)
   if(NOT library_dir)
     # In case target is not a target but is just the name of a library, e.g. "dl"
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${library}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " -l${library}")
   elseif("${library_dir}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
     # e.g. /usr/lib64/libpthread.so -> -lpthread
     get_filename_component(libname ${library} NAME_WE)
     string(REGEX REPLACE "^lib" "" libname ${libname})
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${libname}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " -l${libname}")
   else()
     # It's a full path, include that on the line
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " ${library}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " ${library}")
   endif()
 endfunction()
 function(coreneuron_process_target target)
@@ -79,7 +82,7 @@ function(coreneuron_process_target target)
       else()
         # This is probably another of our libraries, like -lcoreneuron-cuda. We might need to add -L
         # and an RPATH later.
-        set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " -l${target}")
+        set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " -l${target}")
       endif()
     endif()
     get_target_property(target_libraries ${target} LINK_LIBRARIES)
@@ -93,6 +96,8 @@ function(coreneuron_process_target target)
   coreneuron_process_library_path("${target}")
 endfunction()
 coreneuron_process_target(coreneuron-core)
+get_property(CORENRN_LIB_LINK_DEP_FLAGS GLOBAL PROPERTY CORENRN_LIB_LINK_DEP_FLAGS)
+set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_FLAGS " ${CORENRN_LIB_LINK_DEP_FLAGS}")
 # In static builds then NEURON uses dlopen(nullptr, ...) to look for the corenrn_embedded_run
 # symbol, which comes from libcoreneuron-core.a and gets included in libcorenrnmech.
 if(NOT CORENRN_ENABLE_SHARED)
@@ -123,7 +128,7 @@ list(TRANSFORM CORENRN_COMPILE_DEFS PREPEND -D OUTPUT_VARIABLE CORENRN_COMPILE_D
 # Extra link flags that we need to include when linking libcorenrnmech.{a,so} in CoreNEURON but that
 # do not need to be passed to NEURON to use when linking nrniv/special (why?)
 # =============================================================================
-string(JOIN " " CORENRN_COMMON_LDFLAGS ${CORENRN_LIB_LINK_FLAGS} ${CORENRN_EXTRA_LINK_FLAGS})
+string(JOIN " " CORENRN_COMMON_LDFLAGS ${CORENRN_LIB_LINK_DEP_FLAGS} ${CORENRN_EXTRA_LINK_FLAGS})
 if(CORENRN_SANITIZER_LIBRARY_DIR)
   string(APPEND CORENRN_COMMON_LDFLAGS " -Wl,-rpath,${CORENRN_SANITIZER_LIBRARY_DIR}")
 endif()

@@ -288,7 +288,7 @@ file(GLOB modfiles "${modfile_directory}/*.mod")
 # symbols in the translated versions of default .mod files
 set(nrniv_core_prefix "${CMAKE_BINARY_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}")
 set(corenrn_mech_library
-    "${nrniv_core_prefix}/${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_PREFIX}coreneuron${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}"
+    "${nrniv_core_prefix}/${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_PREFIX}corenrnmech${CMAKE_${COMPILE_LIBRARY_TYPE}_LIBRARY_SUFFIX}"
 )
 set(output_binaries "${nrniv_core_prefix}/special-core" "${corenrn_mech_library}")
 
