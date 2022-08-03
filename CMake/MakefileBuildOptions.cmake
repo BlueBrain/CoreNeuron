@@ -109,8 +109,13 @@ get_property(CORENRN_LIB_LINK_FLAGS GLOBAL PROPERTY CORENRN_LIB_LINK_FLAGS)
 # Detect if --start-group and --end-group are valid linker arguments. These are typically needed
 # when linking mutually-dependent .o files (or where we don't know the correct order) on Linux, but
 # they are not needed *or* recognised by the macOS linker.
-include(CheckLinkerFlag) # requires CMake 3.18
-check_linker_flag(CXX -Wl,--start-group CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+  include(CheckLinkerFlag)
+  check_linker_flag(CXX -Wl,--start-group CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
+elseif(CMAKE_SYSTEM_NAME MATCHES Linux)
+  # Assume that --start-group and --end-group are only supported on Linux
+  set(CORENRN_CXX_LINKER_SUPPORTS_START_GROUP ON)
+endif()
 if(CORENRN_CXX_LINKER_SUPPORTS_START_GROUP)
   set(CORENEURON_LINKER_START_GROUP -Wl,--start-group)
   set(CORENEURON_LINKER_END_GROUP -Wl,--end-group)
