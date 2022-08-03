@@ -26,7 +26,7 @@ namespace coreneuron {
  * @brief Check if GPU support is enabled.
  *
  * This returns true if GPU support was enabled at compile time and at runtime
- * via coreneuron.gpu = True and/or --gpu, otherwise it returnss false.
+ * via coreneuron.gpu = True and/or --gpu, otherwise it returns false.
  */
 bool gpu_enabled();
 
