@@ -67,7 +67,14 @@ if(CORENRN_ENABLE_GPU)
   # and offloaded OpenACC/OpenMP code. Using -cuda when compiling seems to improve error messages in
   # some cases, and to be recommended by NVIDIA. We pass -gpu=cudaX.Y to ensure that OpenACC/OpenMP
   # code is compiled with the same CUDA version as the explicit CUDA code.
-  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT},lineinfo")
+  set(NVHPC_ACC_COMP_FLAGS "-cuda -gpu=cuda${CORENRN_CUDA_VERSION_SHORT}")
+  # Combining -gpu=lineinfo with -O0 -g gives a warning: Conflicting options --device-debug and
+  # --generate-line-info specified, ignoring --generate-line-info option
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND NVHPC_ACC_COMP_FLAGS ",debug")
+  else()
+    string(APPEND NVHPC_ACC_COMP_FLAGS ",lineinfo")
+  endif()
   # Make sure that OpenACC code is generated for the same compute capabilities as the explicit CUDA
   # code. Otherwise there may be confusing linker errors. We cannot rely on nvcc and nvc++ using the
   # same default compute capabilities as each other, particularly on GPU-less build machines.
@@ -96,17 +103,19 @@ endif()
 # =============================================================================
 # Initialise global property that will be used by NEURON to link with CoreNEURON
 # =============================================================================
-if(CORENRN_ENABLE_GPU AND CORENRN_ENABLE_SHARED)
-  # Because of
-  # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
-  # we have to tell NEURON to pass OpenACC flags when linking special, otherwise we end up with an
-  # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds.
-  # CORENRN_LIB_LINK_FLAGS is the full set of flags needed to link against libcoreneuron.so:
-  # something like `-acc -lcoreneuron ...`. CORENRN_NEURON_LINK_FLAGS only contains flags that need
+if(CORENRN_ENABLE_GPU)
+  # CORENRN_LIB_LINK_FLAGS is the full set of flags needed to link against libcorenrnmech.so:
+  # something like `-acc -lcorenrnmech ...`. CORENRN_NEURON_LINK_FLAGS only contains flags that need
   # to be used when linking the NEURON Python module to make sure it is able to dynamically load
-  # libcoreneuron.so.
+  # libcorenrnmech.so.
   set_property(GLOBAL PROPERTY CORENRN_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
-  set_property(GLOBAL PROPERTY CORENRN_NEURON_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
+  # Because of
+  if(CORENRN_ENABLE_SHARED)
+    # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
+    # we have to tell NEURON to pass OpenACC flags when linking special, otherwise we end up with an
+    # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds.
+    set_property(GLOBAL PROPERTY CORENRN_NEURON_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
+  endif()
 endif()
 
 if(CORENRN_HAVE_NVHPC_COMPILER)

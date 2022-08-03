@@ -83,7 +83,7 @@ while getopts "n:m:a:d:i:l:Vp:r:b:h" OPT; do
         echo "  -r <0|1>                  Enable NRN_PRCELLSTATE mechanism. Default: @CORENRN_NRN_PRCELLSTATE@."
         echo "  -V                        Verbose: show commands executed by make"
         echo "  -p <n_procs>              Number of parallel builds (Default: $PARALLEL_BUILDS)"
-        echo "  -b <STATIC|SHARED>        libcoreneuron library type"
+        echo "  -b <STATIC|SHARED>        libcorenrnmech library type"
         exit 0;;
     ?)
         exit 1;;

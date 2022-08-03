@@ -145,17 +145,17 @@ endif()
 # installed as a static library, and then the nrnivmodl-core workflow extracts the object files from
 # it and does one of the following:
 #
-# * shared build: creates libcoreneuron.so from these objects plus those from the translated MOD
+# * shared build: creates libcorenrnmech.so from these objects plus those from the translated MOD
 #   files
-# * static build: creates a (temporary, does not get installed) libcoreneuron.a from these objects
+# * static build: creates a (temporary, does not get installed) libcorenrnmech.a from these objects
 #   plus those from the translated MOD files, then statically links that into special-core
 #   (nrniv-core)
 #
 # This scheme means that both core and mechanism .o files are linked in a single step, which is
 # important for GPU linking. It does, however, mean that the core code is installed twice, once in
-# libcoreneuron-core.a and once in libcoreneuron.so (shared) or nrniv-core (static). In a GPU build,
-# libcoreneuron-cuda.{a,so} is also linked to provide the CUDA implementation of the Hines solver.
-# This cannot be included in coreneuron-core because of this issue:
+# libcoreneuron-core.a and once in libcorenrnmech.so (shared) or nrniv-core (static). In a GPU
+# build, libcoreneuron-cuda.{a,so} is also linked to provide the CUDA implementation of the Hines
+# solver. This cannot be included in coreneuron-core because of this issue:
 # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
 add_library(coreneuron-core STATIC ${CORENEURON_CODE_FILES} ${CORENRN_MPI_OBJ})
 if(CORENRN_ENABLE_GPU)
@@ -307,7 +307,7 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # Create an extra target for internal use that unit tests and so on can depend on.
-# ${corenrn_mech_library} is libcoreneuron.{a,so}, which contains both the compiled default
+# ${corenrn_mech_library} is libcorenrnmech.{a,so}, which contains both the compiled default
 # mechanisms and the content of libcoreneuron-core.a.
 add_library(coreneuron-all INTERFACE)
 target_link_libraries(coreneuron-all INTERFACE "${corenrn_mech_library}")

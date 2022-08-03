@@ -99,7 +99,7 @@ ifeq (@CORENRN_ENABLE_NMODL@, ON)
 endif
 
 # name of the mechanism library with suffix if provided
-COREMECH_LIB_NAME = coreneuron$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
+COREMECH_LIB_NAME = corenrnmech$(if $(MECHLIB_SUFFIX),_$(MECHLIB_SUFFIX),)
 COREMECH_LIB_PATH = $(OUTPUT_DIR)/lib$(COREMECH_LIB_NAME)$(LIB_SUFFIX)
 
 # Various header and C++/Object file
@@ -206,7 +206,7 @@ $(SPECIAL_EXE): $(corenrnmech_lib_target)
 	@printf " => $(C_GREEN)Binary$(C_RESET) creating $(SPECIAL_EXE)\n"
 	$(CXX_LINK_EXE_CMD) -o $(SPECIAL_EXE) $(CORENRN_SHARE_CORENRN_DIR)/coreneuron.cpp \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
-	  -L$(OUTPUT_DIR) -l$(COREMECH_LIB_NAME) $(LDFLAGS) \
+	  -L$(OUTPUT_DIR) $(LDFLAGS) \
 	  -L$(CORENRN_LIB_DIR) \
 	  -Wl,-rpath,'$(LIB_RPATH)' -Wl,-rpath,$(CORENRN_LIB_DIR) -Wl,-rpath,'$(INSTALL_LIB_RPATH)'
 
@@ -230,7 +230,7 @@ coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 
 # build static library of mechanisms
 coremech_lib_static: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
-	# make a libcoreneuron.a by copying libcoreneuron-core.a and then appending
+	# make a libcorenrnmech.a by copying libcoreneuron-core.a and then appending
 	# the newly compiled objects
 	cp $(CORENRN_LIB_DIR)/libcoreneuron-core.a ${COREMECH_LIB_PATH}
 	ar r ${COREMECH_LIB_PATH} $(ENGINEMECH_OBJ) $(ALL_OBJS)
