@@ -35,6 +35,10 @@ struct Memb_func {
     mod_f_t initialize;
     mod_f_t constructor;
     mod_f_t destructor; /* only for point processes */
+    // This is used for CoreNEURON-internal cleanup; it is kept separate from
+    // the DESTRUCTOR function just above (which apparently is only for point
+    // processes) for simplicity;
+    mod_f_t private_destructor;
     Symbol* sym;
     int vectorized;
     int thread_size_;                       /* how many Datum needed in Memb_list if vectorized */
@@ -91,7 +95,8 @@ extern int register_mech(const char** m,
                          mod_f_t stat,
                          mod_f_t initialize,
                          int nrnpointerindex,
-                         int vectorized);
+                         int vectorized,
+                         mod_f_t private_destructor);
 extern int point_register_mech(const char**,
                                mod_alloc_t alloc,
                                mod_f_t cur,
@@ -101,7 +106,8 @@ extern int point_register_mech(const char**,
                                int nrnpointerindex,
                                mod_f_t constructor,
                                mod_f_t destructor,
-                               int vectorized);
+                               int vectorized,
+                               mod_f_t private_destructor);
 extern void register_constructor(mod_f_t constructor);
 using NetBufReceive_t = void (*)(NrnThread*);
 extern void hoc_register_net_receive_buffering(NetBufReceive_t, int);

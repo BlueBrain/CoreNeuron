@@ -312,10 +312,6 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
         int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
         cnrn_target_delete(ml->pdata, pcnt);
     }
-    if (ml->global_variables) {
-        // std::byte* in C++17
-        cnrn_target_delete(static_cast<char*>(ml->global_variables), ml->global_variables_size);
-    }
 
     cnrn_target_delete(ml->nodeindices, n);
     cnrn_target_delete(ml);

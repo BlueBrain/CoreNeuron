@@ -32,12 +32,13 @@ void capacitance_reg(void) {
     /* all methods deal with capacitance in special ways */
     register_mech(mechanism,
                   nrn_alloc_capacitance,
-                  (mod_f_t) 0,
-                  (mod_f_t) 0,
-                  (mod_f_t) 0,
-                  (mod_f_t) nrn_init_capacitance,
+                  nullptr,
+                  nullptr,
+                  nullptr,
+                  nrn_init_capacitance,
                   -1,
-                  1);
+                  1,
+                  nullptr);
     int mechtype = nrn_get_mechtype(mechanism[1]);
     _nrn_layout_reg(mechtype, SOA_LAYOUT);
     hoc_register_prop_size(mechtype, nparm, 0);

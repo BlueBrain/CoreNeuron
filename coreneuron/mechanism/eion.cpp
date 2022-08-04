@@ -94,11 +94,12 @@ void ion_reg(const char* name, double valence) {
         register_mech((const char**) mechanism,
                       nrn_alloc_ion,
                       nrn_cur_ion,
-                      (mod_f_t) 0,
-                      (mod_f_t) 0,
-                      (mod_f_t) nrn_init_ion,
+                      nullptr,
+                      nullptr,
+                      nrn_init_ion,
                       -1,
-                      1);
+                      1,
+                      nullptr);
         mechtype = nrn_get_mechtype(mechanism[1]);
         _nrn_layout_reg(mechtype, SOA_LAYOUT);
         hoc_register_prop_size(mechtype, nparm, 1);

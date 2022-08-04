@@ -143,8 +143,14 @@ struct Memb_list {
     NetSendBuffer_t* _net_send_buffer = nullptr;
     int nodecount; /* actual node count */
     int _nodecount_padded;
+    // Not obvious that these need to be distinct (i.e. we could just have
+    // `instance` and `instance_size`, and use them in mod2c for global
+    // variables while NMODL could use the existing instance struct for globals
+    // too). nrn_acc_manager.cpp could handle data movement to/from the
+    // accelerator if the "constructor" in the translated MOD file code was
+    // called before the main nrn_acc_manager methods that copy
+    // thread/mechanism data to the device.
     void* instance = nullptr;         /* mechanism instance struct from NMODL */
     void* global_variables = nullptr; /* global variables struct for each mechanism */
-    int global_variables_size = 0;    /* size of global variables struct in bytes */
 };
 }  // namespace coreneuron
