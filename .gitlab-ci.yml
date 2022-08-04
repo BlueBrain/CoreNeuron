@@ -106,15 +106,17 @@ build:coreneuron:mod2c:nvhpc:acc:debug:
   variables:
     SPACK_PACKAGE_SPEC: +caliper+gpu+openmp~shared+tests~legacy-unit build_type=Debug
 
+# Shared + OpenACC + OpenMP host threading has problems
 build:coreneuron:mod2c:nvhpc:acc:shared:
   extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp+shared+tests~legacy-unit build_type=RelWithDebInfo
+    SPACK_PACKAGE_SPEC: +caliper+gpu~openmp+shared+tests~legacy-unit build_type=RelWithDebInfo
 
+# Shared + OpenACC + OpenMP host threading has problems
 build:coreneuron:mod2c:nvhpc:acc:shared:debug:
   extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu+openmp+shared+tests~legacy-unit build_type=Debug
+    SPACK_PACKAGE_SPEC: +caliper+gpu~openmp+shared+tests~legacy-unit build_type=Debug
 
 # Build CoreNEURON with Unified Memory on GPU
 build:coreneuron:mod2c:nvhpc:acc:unified:
