@@ -137,7 +137,7 @@ size_t read_raster_file(const char* fname, double** tvec, int** gidvec, double t
 }
 
 // see nrn_setup.cpp:read_phase2 for how it creates NrnThreadMembList instances.
-static NrnThreadMembList* alloc_nrn_thread_memb(int type) {
+static NrnThreadMembList* alloc_nrn_thread_memb(NrnThread* nt, int type) {
     NrnThreadMembList* tml = (NrnThreadMembList*) ecalloc(1, sizeof(NrnThreadMembList));
     tml->dependencies = nullptr;
     tml->ndependencies = 0;
@@ -161,6 +161,10 @@ static NrnThreadMembList* alloc_nrn_thread_memb(int type) {
     tml->ml->_net_send_buffer = nullptr;
     tml->ml->_permute = nullptr;
 
+    if (auto* const priv_ctor = corenrn.get_memb_func(tml->index).private_constructor) {
+        priv_ctor(nt, tml->ml, tml->index);
+    }
+
     return tml;
 }
 
@@ -178,7 +182,7 @@ Point_process* nrn_artcell_instantiate(const char* mechname) {
     // printf("nrn_artcell_instantiate %s type=%d\n", mechname, type);
 
     // create and append to nt.tml
-    auto tml = alloc_nrn_thread_memb(type);
+    auto tml = alloc_nrn_thread_memb(nt, type);
 
     assert(nt->_ml_list[type] == nullptr);  // FIXME
     nt->_ml_list[type] = tml->ml;

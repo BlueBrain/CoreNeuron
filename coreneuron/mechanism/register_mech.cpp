@@ -119,6 +119,7 @@ int register_mech(const char** m,
                   mod_f_t initialize,
                   int /* nrnpointerindex */,
                   int vectorized,
+                  mod_f_t private_constructor,
                   mod_f_t private_destructor) {
     auto& memb_func = corenrn.get_memb_funcs();
 
@@ -145,6 +146,7 @@ int register_mech(const char** m,
     memb_func[type].initialize = initialize;
     memb_func[type].constructor = nullptr;
     memb_func[type].destructor = nullptr;
+    memb_func[type].private_constructor = private_constructor;
     memb_func[type].private_destructor = private_destructor;
 #if VECTORIZE
     memb_func[type].vectorized = vectorized ? 1 : 0;
@@ -346,10 +348,19 @@ int point_register_mech(const char** m,
                         mod_f_t constructor,
                         mod_f_t destructor,
                         int vectorized,
+                        mod_f_t private_constructor,
                         mod_f_t private_destructor) {
     const Symbol* s = m[1];
-    register_mech(
-        m, alloc, cur, jacob, stat, initialize, nrnpointerindex, vectorized, private_destructor);
+    register_mech(m,
+                  alloc,
+                  cur,
+                  jacob,
+                  stat,
+                  initialize,
+                  nrnpointerindex,
+                  vectorized,
+                  private_constructor,
+                  private_destructor);
     register_constructor(constructor);
     register_destructor(destructor);
     return point_reg_helper(s);
@@ -421,9 +432,7 @@ void _nrn_thread_reg1(int i, void (*f)(ThreadDatum*)) {
     corenrn.get_memb_func(i).thread_mem_init_ = f;
 }
 
-void _nrn_thread_table_reg(
-    int i,
-    void (*f)(int, int, double*, Datum*, ThreadDatum*, NrnThread*, Memb_list*, int)) {
+void _nrn_thread_table_reg(int i, thread_table_check_t f) {
     if (i == -1)
         return;
 

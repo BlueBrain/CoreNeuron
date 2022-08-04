@@ -152,5 +152,6 @@ struct Memb_list {
     // thread/mechanism data to the device.
     void* instance = nullptr;         /* mechanism instance struct from NMODL */
     void* global_variables = nullptr; /* global variables struct for each mechanism */
+    std::size_t global_variables_size{};
 };
 }  // namespace coreneuron

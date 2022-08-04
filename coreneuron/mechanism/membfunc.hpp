@@ -23,6 +23,8 @@ struct NrnThread;
 using mod_alloc_t = void (*)(double*, Datum*, int);
 using mod_f_t = void (*)(NrnThread*, Memb_list*, int);
 using pnt_receive_t = void (*)(Point_process*, int, double);
+using thread_table_check_t =
+    void (*)(int, int, double*, Datum*, ThreadDatum*, NrnThread*, Memb_list*, int);
 
 /*
  * Memb_func structure contains all related informations of a mechanism
@@ -35,17 +37,17 @@ struct Memb_func {
     mod_f_t initialize;
     mod_f_t constructor;
     mod_f_t destructor; /* only for point processes */
-    // This is used for CoreNEURON-internal cleanup; it is kept separate from
-    // the DESTRUCTOR function just above (which apparently is only for point
-    // processes) for simplicity;
+    // These are used for CoreNEURON-internal allocation/cleanup; they are kept
+    // separate from the CONSTRUCTOR/DESTRUCTOR functions just above (one of
+    // which is apparently only for point processes) for simplicity.
+    mod_f_t private_constructor;
     mod_f_t private_destructor;
     Symbol* sym;
     int vectorized;
     int thread_size_;                       /* how many Datum needed in Memb_list if vectorized */
     void (*thread_mem_init_)(ThreadDatum*); /* after Memb_list._thread is allocated */
     void (*thread_cleanup_)(ThreadDatum*);  /* before Memb_list._thread is freed */
-    void (
-        *thread_table_check_)(int, int, double*, Datum*, ThreadDatum*, NrnThread*, Memb_list*, int);
+    thread_table_check_t thread_table_check_;
     int is_point;
     void (*setdata_)(double*, Datum*);
     int* dparam_semantics; /* for nrncore writing. */
@@ -96,6 +98,7 @@ extern int register_mech(const char** m,
                          mod_f_t initialize,
                          int nrnpointerindex,
                          int vectorized,
+                         mod_f_t private_constructor,
                          mod_f_t private_destructor);
 extern int point_register_mech(const char**,
                                mod_alloc_t alloc,
@@ -107,6 +110,7 @@ extern int point_register_mech(const char**,
                                mod_f_t constructor,
                                mod_f_t destructor,
                                int vectorized,
+                               mod_f_t private_constructor,
                                mod_f_t private_destructor);
 extern void register_constructor(mod_f_t constructor);
 using NetBufReceive_t = void (*)(NrnThread*);

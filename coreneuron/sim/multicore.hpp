@@ -36,7 +36,8 @@ struct NrnThreadMembList { /* patterned after CvMembList in cvodeobj.h */
     int* dependencies; /* list of mechanism types that this mechanism depends on*/
     int ndependencies; /* for scheduling we need to know the dependency count */
 };
-NrnThreadMembList* create_tml(int mech_id,
+NrnThreadMembList* create_tml(NrnThread& nt,
+                              int mech_id,
                               Memb_func& memb_func,
                               int& shadow_rhs_cnt,
                               const std::vector<int>& mech_types,

@@ -61,7 +61,8 @@ static int table_check_cnt_;
 static ThreadDatum* table_check_;
 
 
-NrnThreadMembList* create_tml(int mech_id,
+NrnThreadMembList* create_tml(NrnThread& nt,
+                              int mech_id,
                               Memb_func& memb_func,
                               int& shadow_rhs_cnt,
                               const std::vector<int>& mech_types,
@@ -89,6 +90,10 @@ NrnThreadMembList* create_tml(int mech_id,
         if (tml->ml->nodecount > shadow_rhs_cnt) {
             shadow_rhs_cnt = tml->ml->nodecount;
         }
+    }
+
+    if (auto* const priv_ctor = corenrn.get_memb_func(tml->index).private_constructor) {
+        priv_ctor(&nt, tml->ml, tml->index);
     }
 
     return tml;

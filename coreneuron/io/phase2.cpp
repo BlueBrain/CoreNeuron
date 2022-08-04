@@ -959,7 +959,8 @@ void Phase2::populate(NrnThread& nt, const UserParams& userParams) {
 
     NrnThreadMembList* tml_last = nullptr;
     for (int i = 0; i < n_mech; ++i) {
-        auto tml = create_tml(i, memb_func[mech_types[i]], shadow_rhs_cnt, mech_types, nodecounts);
+        auto tml =
+            create_tml(nt, i, memb_func[mech_types[i]], shadow_rhs_cnt, mech_types, nodecounts);
 
         nt._ml_list[tml->index] = tml->ml;
 

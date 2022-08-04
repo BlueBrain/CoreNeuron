@@ -99,6 +99,7 @@ void ion_reg(const char* name, double valence) {
                       nrn_init_ion,
                       -1,
                       1,
+                      nullptr,
                       nullptr);
         mechtype = nrn_get_mechtype(mechanism[1]);
         _nrn_layout_reg(mechtype, SOA_LAYOUT);
