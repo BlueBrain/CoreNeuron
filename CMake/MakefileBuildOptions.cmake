@@ -51,13 +51,16 @@ function(coreneuron_process_library_path library)
     # In case target is not a target but is just the name of a library, e.g. "dl"
     set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " -l${library}")
   elseif("${library_dir}" MATCHES "^(/lib|/lib64|/usr/lib|/usr/lib64)$")
-    # e.g. /usr/lib64/libpthread.so -> -lpthread
+    # e.g. /usr/lib64/libpthread.so -> -lpthread TODO: consider using
+    # https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_IMPLICIT_LINK_DIRECTORIES.html, or
+    # dropping this special case entirely
     get_filename_component(libname ${library} NAME_WE)
     string(REGEX REPLACE "^lib" "" libname ${libname})
     set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " -l${libname}")
   else()
     # It's a full path, include that on the line
-    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS " ${library}")
+    set_property(GLOBAL APPEND_STRING PROPERTY CORENRN_LIB_LINK_DEP_FLAGS
+                                               " -Wl,-rpath,${library_dir} ${library}")
   endif()
 endfunction()
 function(coreneuron_process_target target)
