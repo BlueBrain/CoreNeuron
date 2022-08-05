@@ -96,22 +96,23 @@ extern int register_mech(const char** m,
                          mod_f_t jacob,
                          mod_f_t stat,
                          mod_f_t initialize,
-                         int nrnpointerindex,
-                         int vectorized,
                          mod_f_t private_constructor,
-                         mod_f_t private_destructor);
+                         mod_f_t private_destructor,
+                         int nrnpointerindex,
+                         int vectorized
+);
 extern int point_register_mech(const char**,
                                mod_alloc_t alloc,
                                mod_f_t cur,
                                mod_f_t jacob,
                                mod_f_t stat,
                                mod_f_t initialize,
+                               mod_f_t private_constructor,
+                               mod_f_t private_destructor,
                                int nrnpointerindex,
                                mod_f_t constructor,
                                mod_f_t destructor,
-                               int vectorized,
-                               mod_f_t private_constructor,
-                               mod_f_t private_destructor);
+                               int vectorized);
 extern void register_constructor(mod_f_t constructor);
 using NetBufReceive_t = void (*)(NrnThread*);
 extern void hoc_register_net_receive_buffering(NetBufReceive_t, int);

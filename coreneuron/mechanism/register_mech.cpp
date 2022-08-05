@@ -117,10 +117,10 @@ int register_mech(const char** m,
                   mod_f_t jacob,
                   mod_f_t stat,
                   mod_f_t initialize,
-                  int /* nrnpointerindex */,
-                  int vectorized,
                   mod_f_t private_constructor,
-                  mod_f_t private_destructor) {
+                  mod_f_t private_destructor,
+                  int /* nrnpointerindex */,
+                  int vectorized) {
     auto& memb_func = corenrn.get_memb_funcs();
 
     int type = nrn_get_mechtype(m[1]);
@@ -344,12 +344,12 @@ int point_register_mech(const char** m,
                         mod_f_t jacob,
                         mod_f_t stat,
                         mod_f_t initialize,
+                        mod_f_t private_constructor,
+                        mod_f_t private_destructor,
                         int nrnpointerindex,
                         mod_f_t constructor,
                         mod_f_t destructor,
-                        int vectorized,
-                        mod_f_t private_constructor,
-                        mod_f_t private_destructor) {
+                        int vectorized) {
     const Symbol* s = m[1];
     register_mech(m,
                   alloc,
@@ -357,10 +357,10 @@ int point_register_mech(const char** m,
                   jacob,
                   stat,
                   initialize,
-                  nrnpointerindex,
-                  vectorized,
                   private_constructor,
-                  private_destructor);
+                  private_destructor,
+                  nrnpointerindex,
+                  vectorized);
     register_constructor(constructor);
     register_destructor(destructor);
     return point_reg_helper(s);

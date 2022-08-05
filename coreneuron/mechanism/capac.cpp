@@ -36,10 +36,10 @@ void capacitance_reg(void) {
                   nullptr,
                   nullptr,
                   nrn_init_capacitance,
-                  -1,
-                  1,
                   nullptr,
-                  nullptr);
+                  nullptr,
+                  -1,
+                  1);
     int mechtype = nrn_get_mechtype(mechanism[1]);
     _nrn_layout_reg(mechtype, SOA_LAYOUT);
     hoc_register_prop_size(mechtype, nparm, 0);
