@@ -132,7 +132,7 @@ void cnrn_target_set_default_device(int device_num) {
 
 #ifdef CORENEURON_ENABLE_GPU
 #ifndef CORENEURON_UNIFIED_MEMORY
-static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_data) {
+static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     // As we never run code for artificial cell inside GPU we don't copy it.
     int is_art = corenrn.get_is_artificial()[type];
     if (is_art) {
@@ -152,9 +152,9 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type, double* dml_d
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
 
-    double* dptr = dml_data;
-
+    double* dptr = cnrn_target_deviceptr(ml->data);
     cnrn_target_memcpy_to_device(&(d_ml->data), &(dptr));
+
 
     int* d_nodeindices = cnrn_target_copyin(ml->nodeindices, n);
     cnrn_target_memcpy_to_device(&(d_ml->nodeindices), &d_nodeindices);
@@ -319,7 +319,6 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
         int pcnt = nrn_soa_padded_size(n, SOA_LAYOUT) * szdp;
         cnrn_target_delete(ml->pdata, pcnt);
     }
-
     cnrn_target_delete(ml->nodeindices, n);
 
     if (ml->global_variables) {
@@ -396,6 +395,7 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
         /*copy all double data for thread */
         d__data = cnrn_target_copyin(nt->_data, nt->_ndata);
 
+
         /* Here is the example of using OpenACC data enter/exit
          * Remember that we are not allowed to use nt->_data but we have to use:
          *      double *dtmp = nt->_data;  // now use dtmp!
@@ -465,17 +465,9 @@ void setup_nrnthreads_on_device(NrnThread* threads, int nthreads) {
             // book keeping for linked-list
             d_last_tml = d_tml;
 
-            // TODO: acc_deviceptr is returning host pointer when
-            // coreneuron is launched via python instead of special
-            //      see: https://github.com/BlueBrain/CoreNeuron/issues/141#issuecomment-1086746848
-            // As ml->data is always within nt->_data, temporarily calculate
-            // device pointer of ml->data on using offset.
-            double* dml_data = d__data + (tml->ml->data - nt->_data);
-
             /* now for every tml, there is a ml. copy that and setup pointer */
-            Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index, dml_data);
+            Memb_list* d_ml = copy_ml_to_device(tml->ml, tml->index);
             cnrn_target_memcpy_to_device(&(d_tml->ml), &d_ml);
-
             /* setup nt._ml_list */
             cnrn_target_memcpy_to_device(&(d_ml_list[tml->index]), &d_ml);
         }

@@ -16,10 +16,6 @@
 #include <unordered_map>
 #endif
 
-#ifdef __CUDACC__
-#include <nv/target>
-#endif
-
 #include <cmath>
 #include <iostream>
 #include <memory>
