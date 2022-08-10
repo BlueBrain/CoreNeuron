@@ -8,13 +8,8 @@ include_directories(${CMAKE_SOURCE_DIR}/coreneuron ${Boost_INCLUDE_DIRS})
 file(GLOB lfp_test_src "*.cpp")
 
 add_executable(lfp_test_bin ${lfp_test_src})
-target_link_libraries(
-  lfp_test_bin
-  ${MPI_CXX_LIBRARIES}
-  coreneuron
-  ${corenrn_mech_library}
-  ${reportinglib_LIBRARY}
-  ${sonatareport_LIBRARY})
+target_link_libraries(lfp_test_bin ${MPI_CXX_LIBRARIES} coreneuron ${corenrn_mech_library}
+                      ${reportinglib_LIBRARY} ${sonatareport_LIBRARY})
 # Tell CMake *not* to run an explicit device code linker step (which will produce errors); let the
 # NVHPC C++ compiler handle this implicitly.
 set_target_properties(lfp_test_bin PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
