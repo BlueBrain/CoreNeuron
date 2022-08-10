@@ -117,7 +117,7 @@ if(CORENRN_ENABLE_GPU)
   # these functions from CUDA kernels presents no issue ... TODO is it going to work to call these
   # from libcoreneuron-cuda.so? probably not...
   if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
-    list(APPEND CORENEURON_CUDA_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+    set(CORENEURON_CUDA_LIBRARY_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
   endif()
 endif()
 
@@ -159,9 +159,13 @@ endif()
 # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
 add_library(coreneuron-core STATIC ${CORENEURON_CODE_FILES} ${CORENRN_MPI_OBJ})
 if(CORENRN_ENABLE_GPU)
-  set(coreneuron_cuda_target coreneuron-cuda)
+  set(coreneuron_cuda_target coreneuron-cuda coreneuron-cuda-helpers)
+  add_library(coreneuron-cuda-helpers STATIC ${CORENEURON_CUDA_LIBRARY_FILES})
   add_library(coreneuron-cuda ${COMPILE_LIBRARY_TYPE} ${CORENEURON_CUDA_FILES})
+  target_link_libraries(coreneuron-cuda PUBLIC coreneuron-cuda-helpers)
   target_link_libraries(coreneuron-core PUBLIC coreneuron-cuda)
+  set_property(TARGET coreneuron-cuda PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
+  set_property(TARGET coreneuron-core coreneuron-cuda-helpers PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 endif()
 
 foreach(target coreneuron-core ${coreneuron_cuda_target})
