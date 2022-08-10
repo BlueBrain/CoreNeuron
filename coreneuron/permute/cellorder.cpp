@@ -479,7 +479,6 @@ static void bksub_interleaved(NrnThread* nt,
 
 // icore ranges [0:warpsize) ; stride[ncycle]
 nrn_pragma_acc(routine vector)
-nrn_pragma_omp(declare target)
 static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* stride, int lastnode) {
     int icycle = ncycle - 1;
     int istride = stride[icycle];
@@ -521,11 +520,9 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
         ii -= istride;
     }
 }
-nrn_pragma_omp(end declare target)
 
 // icore ranges [0:warpsize) ; stride[ncycle]
 nrn_pragma_acc(routine vector)
-nrn_pragma_omp(declare target)
 static void bksub_interleaved2(NrnThread* nt,
                                int root,
                                int lastroot,
@@ -558,7 +555,6 @@ static void bksub_interleaved2(NrnThread* nt,
         ii += istride;
     }
 }
-nrn_pragma_omp(end declare target)
 
 /**
  * \brief Solve Hines matrices/cells with compartment-based granularity.
@@ -598,7 +594,7 @@ void solve_interleaved2(int ith) {
                               stridedispl [0:nwarp + 1],
                               rootbegin [0:nwarp + 1],
                               nodebegin [0:nwarp + 1]) if (nt->compute_gpu) async(nt->stream_id))
-        nrn_pragma_omp(target teams distribute num_teams(nwarp) thread_limit(warpsize) if(nt->compute_gpu))
+        nrn_pragma_omp(target teams loop if(nt->compute_gpu))
         for (int icore = 0; icore < ncore; icore += warpsize) {
             int iwarp = icore / warpsize;     // figure out the >> value
             int ic = icore & (warpsize - 1);  // figure out the & mask
