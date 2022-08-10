@@ -494,7 +494,7 @@ static void triang_interleaved2(NrnThread* nt, int icore, int ncycle, int* strid
     for (; has_subtrees_to_compute; ) {  // ncycle loop
         // serial test, gpu does this in parallel
         nrn_pragma_acc(loop vector)
-        nrn_pragma_omp(simd)
+        nrn_pragma_omp(loop bind(parallel))
         for (int icore = 0; icore < warpsize; ++icore) {
             int i = ii + icore;
             if (icore < istride) {  // most efficient if istride equal  warpsize
@@ -545,7 +545,7 @@ static void bksub_interleaved2(NrnThread* nt,
         int istride = stride[icycle];
         // serial test, gpu does this in parallel
         nrn_pragma_acc(loop vector)
-        nrn_pragma_omp(simd)
+        nrn_pragma_omp(loop bind(parallel))
         for (int icore = 0; icore < warpsize; ++icore) {
             int i = ii + icore;
             if (icore < istride) {
@@ -598,7 +598,7 @@ void solve_interleaved2(int ith) {
                               stridedispl [0:nwarp + 1],
                               rootbegin [0:nwarp + 1],
                               nodebegin [0:nwarp + 1]) if (nt->compute_gpu) async(nt->stream_id))
-        nrn_pragma_omp(target teams distribute if(nt->compute_gpu))
+        nrn_pragma_omp(target teams distribute num_teams(nwarp) thread_limit(warpsize) if(nt->compute_gpu))
         for (int icore = 0; icore < ncore; icore += warpsize) {
             int iwarp = icore / warpsize;     // figure out the >> value
             int ic = icore & (warpsize - 1);  // figure out the & mask
