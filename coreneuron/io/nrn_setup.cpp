@@ -754,17 +754,14 @@ void nrn_cleanup() {
                 ml->_thread = nullptr;
             }
 
-            // Probably causes problems with NMODL, which allocates its instance
-            // in unified memory.
-            if (ml->instance) {
-                free(ml->instance);
-                ml->instance = nullptr;
-            }
-
             // Destroy the global variables struct allocated in nrn_init
             if (auto* const priv_dtor = corenrn.get_memb_func(tml->index).private_destructor) {
                 (*priv_dtor)(nt, ml, tml->index);
+                assert(!ml->instance);
+                assert(!ml->instance_size);
+                // TODO make mod2c use `instance` instead of `global_variables`
                 assert(!ml->global_variables);
+                assert(!ml->global_variables_size);
             }
 
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
