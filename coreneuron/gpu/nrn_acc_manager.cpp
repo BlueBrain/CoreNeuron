@@ -143,8 +143,7 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
 
     if (ml->instance) {
         assert(ml->instance_size);
-        void* d_inst = cnrn_target_copyin(static_cast<std::byte*>(ml->instance),
-                                               ml->instance_size);
+        void* d_inst = cnrn_target_copyin(static_cast<std::byte*>(ml->instance), ml->instance_size);
         cnrn_target_memcpy_to_device(&(d_ml->instance), &d_inst);
     }
 
@@ -337,8 +336,7 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
 
     if (ml->instance) {
         assert(ml->instance_size);
-        cnrn_target_delete(static_cast<std::byte*>(ml->instance),
-                           ml->instance_size);
+        cnrn_target_delete(static_cast<std::byte*>(ml->instance), ml->instance_size);
     }
 
     cnrn_target_delete(ml);

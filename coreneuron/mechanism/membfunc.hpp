@@ -99,8 +99,7 @@ extern int register_mech(const char** m,
                          mod_f_t private_constructor,
                          mod_f_t private_destructor,
                          int nrnpointerindex,
-                         int vectorized
-);
+                         int vectorized);
 extern int point_register_mech(const char**,
                                mod_alloc_t alloc,
                                mod_f_t cur,

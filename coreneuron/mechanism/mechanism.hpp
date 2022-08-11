@@ -150,7 +150,7 @@ struct Memb_list {
     // accelerator if the "constructor" in the translated MOD file code was
     // called before the main nrn_acc_manager methods that copy
     // thread/mechanism data to the device.
-    void* instance = nullptr;         /* mechanism instance struct from NMODL */
+    void* instance = nullptr; /* mechanism instance struct from NMODL */
     std::size_t instance_size{};
     void* global_variables = nullptr; /* global variables struct for each mechanism */
     std::size_t global_variables_size{};
