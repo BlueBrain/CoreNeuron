@@ -21,6 +21,14 @@
 #include <memory>
 #include <mutex>
 
+// Defining these attributes seems to help nvc++ in OpenMP target offload mode.
+#if defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
+    defined(_OPENMP) && defined(__CUDACC__)
+#define CORENRN_HOST_DEVICE __host__ __device__
+#else
+#define CORENRN_HOST_DEVICE
+#endif
+
 namespace {
 #ifdef CORENEURON_USE_BOOST_POOL
 /** Tag type for use with boost::fast_pool_allocator that forwards to
@@ -86,7 +94,7 @@ __attribute__((noinline)) philox4x32_key_t& global_state() {
 }
 }  // namespace
 
-philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
+CORENRN_HOST_DEVICE philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
     return philox4x32(s->c, global_state());
 }
 

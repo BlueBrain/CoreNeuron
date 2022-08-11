@@ -281,6 +281,11 @@ endif()
 # =============================================================================
 # Build option specific compiler flags
 # =============================================================================
+if(CORENRN_ENABLE_NMODL)
+  # We use Eigen for "small" matrices with thread-level parallelism handled at a
+  # higher level; tell Eigen not to try to multithread internally
+  list(APPEND CORENRN_COMPILE_DEFS EIGEN_DONT_PARALLELIZE)
+endif()
 if(CORENRN_HAVE_NVHPC_COMPILER)
   # PGI with llvm code generation doesn't have necessary assembly intrinsic headers
   list(APPEND CORENRN_COMPILE_DEFS EIGEN_DONT_VECTORIZE=1)
