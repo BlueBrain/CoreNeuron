@@ -1,6 +1,6 @@
 /*
 # =============================================================================
-# Copyright (c) 2016 - 2021 Blue Brain Project/EPFL
+# Copyright (c) 2016 - 2022 Blue Brain Project/EPFL
 #
 # See top-level LICENSE file for details.
 # =============================================================================.
@@ -51,9 +51,9 @@ const char* corenrn_version() {
     return coreneuron::bbcore_write_version;
 }
 
-// the CORENRN_USE_LEGACY_UNITS determined by CORENRN_ENABLE_LEGACY_UNITS
+// the CORENEURON_USE_LEGACY_UNITS determined by CORENRN_ENABLE_LEGACY_UNITS
 bool corenrn_units_use_legacy() {
-    return CORENRN_USE_LEGACY_UNITS;
+    return CORENEURON_USE_LEGACY_UNITS;
 }
 
 void (*nrn2core_part2_clean_)();
@@ -562,8 +562,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     }
 #endif
     bool compute_gpu = corenrn_param.gpu;
-
-    nrn_pragma_acc(update device(celsius, secondorder, pi) if (compute_gpu))
+    nrn_pragma_acc(data copyin(celsius, secondorder, pi) if (compute_gpu))
     nrn_pragma_omp(target update to(celsius, secondorder, pi) if (compute_gpu))
     {
         double v = corenrn_param.voltage;
