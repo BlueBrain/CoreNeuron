@@ -588,6 +588,16 @@ void solve_interleaved2(int ith) {
     defined(_OPENACC)
         int nstride = stridedispl[nwarp];
 #endif
+        /* If we compare this loop with the one from cellorder.cu (CUDA version), we will understand 
+         * that the parallelism here is exposed in steps, while in the CUDA version all the parallelism 
+         * is exposed from the very beginning of the loop. In more details, here we initially distribute
+         * the outermost loop, e.g. in the CUDA blocks, and for the innermost loops we explicitly use multiple
+         * threads for the parallelization (see for example the loop directives in triang/bksub_interleaved2). 
+         * On the other hand, in the CUDA version the outermost loop is distributed to all the available threads,
+         * and therefore there is no need to have the innermost loops. Here, the loop/icore jumps every warpsize,
+         * while in the CUDA version the icore increases by one. Other than this, the two loop versions
+         * are equivalent (same results).
+         */
         nrn_pragma_acc(parallel loop gang present(nt [0:1],
                               strides [0:nstride],
                               ncycles [0:nwarp],
