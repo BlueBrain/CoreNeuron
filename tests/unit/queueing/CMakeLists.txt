@@ -5,5 +5,5 @@
 # =============================================================================
 add_executable(queuing_test_bin test_queueing.cpp)
 target_link_libraries(queuing_test_bin coreneuron-unit-test)
-add_test(NAME queuing_test COMMAND ${TEST_EXEC_PREFIX} $<TARGET_FILE:queuing_test_bin>)
+add_test(NAME queuing_test COMMAND $<TARGET_FILE:queuing_test_bin>)
 cpp_cc_configure_sanitizers(TARGET queuing_test_bin TEST queuing_test)

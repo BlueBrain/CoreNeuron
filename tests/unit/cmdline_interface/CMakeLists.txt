@@ -5,5 +5,5 @@
 # =============================================================================
 add_executable(cmd_interface_test_bin test_cmdline_interface.cpp)
 target_link_libraries(cmd_interface_test_bin coreneuron-unit-test)
-add_test(NAME cmd_interface_test COMMAND ${TEST_EXEC_PREFIX} $<TARGET_FILE:cmd_interface_test_bin>)
+add_test(NAME cmd_interface_test COMMAND $<TARGET_FILE:cmd_interface_test_bin>)
 cpp_cc_configure_sanitizers(TARGET cmd_interface_test_bin TEST cmd_interface_test)
