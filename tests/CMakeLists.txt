@@ -31,8 +31,7 @@ if(Boost_FOUND)
     target_compile_options(coreneuron-unit-test
                            INTERFACE ${CORENEURON_BOOST_UNIT_TEST_COMPILE_FLAGS})
     target_include_directories(coreneuron-unit-test SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(coreneuron-unit-test INTERFACE coreneuron-all
-                                                         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_link_libraries(coreneuron-unit-test INTERFACE coreneuron-all)
     add_subdirectory(unit/cmdline_interface)
     add_subdirectory(unit/interleave_info)
     add_subdirectory(unit/alignment)
