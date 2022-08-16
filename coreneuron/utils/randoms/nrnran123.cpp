@@ -94,7 +94,8 @@ __attribute__((noinline)) philox4x32_key_t& global_state() {
 }
 }  // namespace
 
-CORENRN_HOST_DEVICE philox4x32_ctr_t coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
+CORENRN_HOST_DEVICE philox4x32_ctr_t
+coreneuron_random123_philox4x32_helper(coreneuron::nrnran123_State* s) {
     return philox4x32(s->c, global_state());
 }
 
