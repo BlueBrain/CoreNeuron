@@ -153,8 +153,6 @@ struct NrnThread {
     void* mapping;
 };
 
-extern uniform double ispc_celsius;
-
 // NOTE : this implementation is duplicated from "coreneuron/network/cvodestb.cpp"
 // If changes are required, make sure to change CPP as well.
 static inline int at_time(uniform NrnThread* nt, varying double te) {

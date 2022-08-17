@@ -58,9 +58,6 @@ bool corenrn_units_use_legacy() {
 
 void (*nrn2core_part2_clean_)();
 
-// cf. utils/ispc_globals.c
-extern double ispc_celsius;
-
 /**
  * If "export OMP_NUM_THREADS=n" is not set then omp by default sets
  * the number of threads equal to the number of cores on this node.
@@ -243,9 +240,6 @@ void nrn_init_and_load_data(int argc,
     }
 
     corenrn_param.celsius = celsius;
-
-    // for ispc backend
-    ispc_celsius = celsius;
 
     // create net_cvode instance
     mk_netcvode();
