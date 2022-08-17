@@ -130,11 +130,70 @@ build:coreneuron:nmodl:nvhpc:acc:
     SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu~shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
   needs: ["build:nmodl"]
 
+build:coreneuron:nmodl:nvhpc:acc:debug:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu~shared+tests~legacy-unit+sympy build_type=Debug
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:shared:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu+shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:shared:debug:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu+shared+tests~legacy-unit+sympy build_type=Debug
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu~shared+tests~legacy-unit~sympy build_type=RelWithDebInfo
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:debug:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu~shared+tests~legacy-unit~sympy build_type=Debug
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:shared:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu+shared+tests~legacy-unit~sympy build_type=RelWithDebInfo
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:acc:shared:debug:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl~openmp+gpu+shared+tests~legacy-unit~sympy build_type=Debug
+  needs: ["build:nmodl"]
+
 build:coreneuron:nmodl:nvhpc:omp:
   extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    # Sympy + OpenMP target offload does not currently work with NVHPC (?)
+    SPACK_PACKAGE_SPEC: +caliper+nmodl+openmp+gpu~shared+tests~legacy-unit+sympy build_type=RelWithDebInfo
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:omp:debug:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl+openmp+gpu~shared+tests~legacy-unit+sympy build_type=Debug
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:omp:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
     SPACK_PACKAGE_SPEC: +caliper+nmodl+openmp+gpu~shared+tests~legacy-unit~sympy build_type=RelWithDebInfo
+  needs: ["build:nmodl"]
+
+build:coreneuron:nmodl:nvhpc:omp:debug:legacy:
+  extends: [.build_coreneuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+nmodl+openmp+gpu~shared+tests~legacy-unit~sympy build_type=Debug
   needs: ["build:nmodl"]
 
 build:coreneuron:mod2c:intel:
@@ -206,9 +265,49 @@ test:coreneuron:nmodl:nvhpc:omp:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:nmodl:nvhpc:omp"]
 
+test:coreneuron:nmodl:nvhpc:omp:debug:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
+
+test:coreneuron:nmodl:nvhpc:omp:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
+
+test:coreneuron:nmodl:nvhpc:omp:debug:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug:legacy"]
+
 test:coreneuron:nmodl:nvhpc:acc:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:nmodl:nvhpc:acc"]
+
+test:coreneuron:nmodl:nvhpc:acc:debug:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:debug"]
+
+test:coreneuron:nmodl:nvhpc:acc:shared:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared"]
+
+test:coreneuron:nmodl:nvhpc:acc:shared:debug:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared:debug"]
+
+test:coreneuron:nmodl:nvhpc:acc:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:legacy"]
+
+test:coreneuron:nmodl:nvhpc:acc:debug:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:debug:legacy"]
+
+test:coreneuron:nmodl:nvhpc:acc:shared:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared:legacy"]
+
+test:coreneuron:nmodl:nvhpc:acc:shared:debug:legacy:
+  extends: [.ctest, .gpu_node]
+  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared:debug:legacy"]
 
 test:coreneuron:mod2c:intel:
   extends: [.ctest]
