@@ -164,6 +164,7 @@ void nrn_multithread_job(F&& job, Args&&... args) {
 
     #pragma omp parallel for private(i) shared(nrn_threads, job, nrn_nthread, \
                                            nrnmpi_myid) schedule(static, 1)
+    // FIXME: multiple forwarding of the same arguments...
     for (i = 0; i < nrn_nthread; ++i) {
         job(nrn_threads + i, std::forward<Args>(args)...);
     }

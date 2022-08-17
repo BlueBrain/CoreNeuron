@@ -32,6 +32,13 @@
 #include <cuda_runtime_api.h>
 #endif
 
+#if __has_include(<cxxabi.h>)
+#define USE_CXXABI
+#include <cxxabi.h>
+#include <memory>
+#include <string>
+#endif
+
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
 #include <cassert>
 #include <cstddef>
@@ -44,12 +51,98 @@ std::shared_mutex present_table_mutex;
 }  // namespace
 #endif
 
+namespace {
+/** @brief Try to demangle a type name, return the mangled name on failure.
+ */
+std::string cxx_demangle(const char* mangled) {
+#ifdef USE_CXXABI
+    int status{};
+    // Note that the third argument to abi::__cxa_demangle returns the length of
+    // the allocated buffer, which may be larger than strlen(demangled) + 1.
+    std::unique_ptr<char, decltype(free)*> demangled{
+        abi::__cxa_demangle(mangled, nullptr, nullptr, &status), free};
+    return status ? mangled : demangled.get();
+#else
+    return mangled;
+#endif
+}
+bool cnrn_target_debug_output_enabled() {
+    const char* env = std::getenv("CORENEURON_GPU_DEBUG");
+    if (!env) {
+        return false;
+    }
+    std::string env_s{env};
+    if (env_s == "1") {
+        return true;
+    } else if (env_s == "0") {
+        return false;
+    } else {
+        throw std::runtime_error("CORENEURON_GPU_DEBUG must be set to 0 or 1 (got " + env_s + ")");
+    }
+}
+bool cnrn_target_enable_debug{cnrn_target_debug_output_enabled()};
+}  // namespace
+
 namespace coreneuron {
 extern InterleaveInfo* interleave_info;
 void nrn_ion_global_map_copyto_device();
 void nrn_ion_global_map_delete_from_device();
 void nrn_VecPlay_copyto_device(NrnThread* nt, void** d_vecplay);
 void nrn_VecPlay_delete_from_device(NrnThread* nt);
+
+void cnrn_target_copyin_debug(std::string_view file,
+                              int line,
+                              std::size_t sizeof_T,
+                              std::type_info const& typeid_T,
+                              void const* h_ptr,
+                              std::size_t len,
+                              void* d_ptr) {
+    if (!cnrn_target_enable_debug) {
+        return;
+    }
+    std::cerr << file << ':' << line << ": cnrn_target_copyin<" << cxx_demangle(typeid_T.name())
+              << ">(" << h_ptr << ", " << len << " * " << sizeof_T << " = " << len * sizeof_T
+              << ") -> " << d_ptr << std::endl;
+}
+void cnrn_target_delete_debug(std::string_view file,
+                              int line,
+                              std::size_t sizeof_T,
+                              std::type_info const& typeid_T,
+                              void const* h_ptr,
+                              std::size_t len) {
+    if (!cnrn_target_enable_debug) {
+        return;
+    }
+    std::cerr << file << ':' << line << ": cnrn_target_delete<" << cxx_demangle(typeid_T.name())
+              << ">(" << h_ptr << ", " << len << " * " << sizeof_T << " = " << len * sizeof_T << ')'
+              << std::endl;
+}
+void cnrn_target_deviceptr_debug(std::string_view file,
+                                 int line,
+                                 std::size_t /* sizeof_T */,
+                                 std::type_info const& typeid_T,
+                                 void const* h_ptr,
+                                 void* d_ptr) {
+    if (!cnrn_target_enable_debug) {
+        return;
+    }
+    std::cerr << file << ':' << line << ": cnrn_target_device_ptr<" << cxx_demangle(typeid_T.name())
+              << ">(" << h_ptr << ") -> " << d_ptr << std::endl;
+}
+void cnrn_target_memcpy_to_device_debug(std::string_view file,
+                                        int line,
+                                        std::size_t sizeof_T,
+                                        std::type_info const& typeid_T,
+                                        void const* h_ptr,
+                                        std::size_t len,
+                                        void* d_ptr) {
+    if (!cnrn_target_enable_debug) {
+        return;
+    }
+    std::cerr << file << ':' << line << ": cnrn_target_memcpy_to_device<"
+              << cxx_demangle(typeid_T.name()) << ">(" << d_ptr << ", " << h_ptr << ", " << len
+              << " * " << sizeof_T << " = " << len * sizeof_T << ')' << std::endl;
+}
 
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
 void* cnrn_target_deviceptr_impl(void const* h_ptr) {
