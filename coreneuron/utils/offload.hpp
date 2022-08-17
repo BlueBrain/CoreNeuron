@@ -41,7 +41,6 @@ void cnrn_target_delete_debug(std::string_view file,
                               std::size_t len);
 void cnrn_target_deviceptr_debug(std::string_view file,
                                  int line,
-                                 std::size_t sizeof_T,
                                  std::type_info const& typeid_T,
                                  void const* h_ptr,
                                  void* d_ptr);
@@ -77,7 +76,7 @@ T* cnrn_target_deviceptr(std::string_view file, int line, const T* h_ptr) {
     throw std::runtime_error(
         "cnrn_target_deviceptr() not implemented without OpenACC/OpenMP and gpu build");
 #endif
-    cnrn_target_deviceptr_debug(file, line, sizeof(T), typeid(T), h_ptr, d_ptr);
+    cnrn_target_deviceptr_debug(file, line, typeid(T), h_ptr, d_ptr);
     return d_ptr;
 }
 

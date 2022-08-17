@@ -119,7 +119,6 @@ void cnrn_target_delete_debug(std::string_view file,
 }
 void cnrn_target_deviceptr_debug(std::string_view file,
                                  int line,
-                                 std::size_t /* sizeof_T */,
                                  std::type_info const& typeid_T,
                                  void const* h_ptr,
                                  void* d_ptr) {
