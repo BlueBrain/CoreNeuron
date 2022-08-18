@@ -145,11 +145,22 @@ void cnrn_target_memcpy_to_device(std::string_view file,
 #endif
 }
 
+template <typename T>
+void cnrn_target_update_on_device(std::string_view file,
+                                  int line,
+                                  const T* h_ptr,
+                                  std::size_t len = 1) {
+    auto* d_ptr = cnrn_target_deviceptr(file, line, h_ptr);
+    cnrn_target_memcpy_to_device(file, line, d_ptr, h_ptr);
+}
+
 // Replace with std::source_location once we have C++20
 #define cnrn_target_copyin(...)    cnrn_target_copyin(__FILE__, __LINE__, __VA_ARGS__)
 #define cnrn_target_delete(...)    cnrn_target_delete(__FILE__, __LINE__, __VA_ARGS__)
 #define cnrn_target_deviceptr(...) cnrn_target_deviceptr(__FILE__, __LINE__, __VA_ARGS__)
 #define cnrn_target_memcpy_to_device(...) \
     cnrn_target_memcpy_to_device(__FILE__, __LINE__, __VA_ARGS__)
+#define cnrn_target_update_on_device(...) \
+    cnrn_target_update_on_device(__FILE__, __LINE__, __VA_ARGS__)
 
 }  // namespace coreneuron

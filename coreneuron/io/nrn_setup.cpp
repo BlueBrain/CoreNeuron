@@ -759,9 +759,6 @@ void nrn_cleanup() {
                 (*priv_dtor)(nt, ml, tml->index);
                 assert(!ml->instance);
                 assert(!ml->instance_size);
-                // TODO make mod2c use `instance` instead of `global_variables`
-                assert(!ml->global_variables);
-                assert(!ml->global_variables_size);
             }
 
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;

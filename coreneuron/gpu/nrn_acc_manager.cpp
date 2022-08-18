@@ -240,13 +240,6 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
     }
 
 
-    if (ml->global_variables) {
-        assert(ml->global_variables_size);
-        void* d_glob_vars = cnrn_target_copyin(static_cast<std::byte*>(ml->global_variables),
-                                               ml->global_variables_size);
-        cnrn_target_memcpy_to_device(&(d_ml->global_variables), &d_glob_vars);
-    }
-
     int n = ml->nodecount;
     int szp = corenrn.get_prop_param_size()[type];
     int szdp = corenrn.get_prop_dparam_size()[type];
@@ -419,12 +412,6 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
         cnrn_target_delete(ml->pdata, pcnt);
     }
     cnrn_target_delete(ml->nodeindices, n);
-
-    if (ml->global_variables) {
-        assert(ml->global_variables_size);
-        cnrn_target_delete(static_cast<std::byte*>(ml->global_variables),
-                           ml->global_variables_size);
-    }
 
     if (ml->instance) {
         assert(ml->instance_size);
