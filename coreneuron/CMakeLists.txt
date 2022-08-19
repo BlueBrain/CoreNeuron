@@ -111,11 +111,13 @@ if(CORENRN_ENABLE_GPU)
   # this cannot be included in the same shared library as the rest of the OpenACC code.
   set(CORENEURON_CUDA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
 
-  # Eigen-3.5+ provides better GPU support. However, some functions cannot be called directly from
-  # within an OpenACC region. Therefore, we need to wrap them in a special API (decorate them with
-  # __device__ & acc routine tokens), which allows us to eventually call them from OpenACC. Calling
-  # these functions from CUDA kernels presents no issue ... TODO is it going to work to call these
-  # from libcoreneuron-cuda.so? probably not...
+  # Eigen functions cannot be called directly from OpenACC regions, but Eigen is sort-of compatible
+  # with being compiled as CUDA code. Because of
+  # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
+  # this has to mean `nvc++ -cuda` rather than `nvcc`. We explicitly instantiate Eigen functions for
+  # different matrix sizes in partial_piv_lu.cpp (with CUDA attributes but without OpenACC or OpenMP
+  # annotations) and dispatch to these from a wrapper in partial_piv_lu.h that does have
+  # OpenACC/OpenMP annotations.
   if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
     list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
   endif()
