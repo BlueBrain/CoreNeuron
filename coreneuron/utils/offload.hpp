@@ -51,9 +51,11 @@ void cnrn_target_memcpy_to_device_debug(std::string_view file,
                                         void const* h_ptr,
                                         std::size_t len,
                                         void* d_ptr);
-#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
-    defined(_OPENACC) && !defined(CORENEURON_UNIFIED_MEMORY)
-// Homegrown implementation for buggy NVHPC versions (<=22.3?)
+#if defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) &&              \
+    defined(_OPENACC) && !defined(CORENEURON_UNIFIED_MEMORY) && defined(__NVCOMPILER_MAJOR__) && \
+    defined(__NVCOMPILER_MINOR__) && (__NVCOMPILER_MAJOR__ <= 22) && (__NVCOMPILER_MINOR__ <= 3)
+// Homegrown implementation for buggy NVHPC versions (<=22.3), see
+// https://forums.developer.nvidia.com/t/acc-deviceptr-does-not-work-in-openacc-code-dynamically-loaded-from-a-shared-library/211599
 #define CORENEURON_ENABLE_PRESENT_TABLE
 void* cnrn_target_deviceptr_impl(void const* h_ptr);
 void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len);

@@ -172,6 +172,7 @@ void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std
         return;
     }
     std::lock_guard _{present_table_mutex};
+    // TODO include more pendantic overlap checking?
     auto const result = present_table.emplace(static_cast<std::byte const*>(h_ptr),
                                               std::make_pair(len, static_cast<std::byte*>(d_ptr)));
 }
@@ -180,6 +181,7 @@ void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len)
         return;
     }
     std::lock_guard _{present_table_mutex};
+    // TODO properly matching OpenACC semantics would require a reference count
     auto const iter = present_table.find(static_cast<std::byte const*>(h_ptr));
     assert(iter != present_table.end());
     assert(iter->second.first == len);
