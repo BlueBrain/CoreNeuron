@@ -222,8 +222,9 @@ coremech_lib_shared: $(ALL_OBJS) $(ENGINEMECH_OBJ) build_always
 	(cd $(MOD_OBJS_DIR)/libcoreneuron-core && ar x $(CORENRN_LIB_DIR)/libcoreneuron-core.a)
 	$(CXX_SHARED_LIB_CMD) $(ENGINEMECH_OBJ) -o ${COREMECH_LIB_PATH} $(ALL_OBJS) \
 	  -I$(CORENRN_INC_DIR) $(INCFLAGS) \
-	  $(LDFLAGS) ${SONAME_OPTION} @CORENEURON_LINKER_START_GROUP@ \
+	  @CORENEURON_LINKER_START_GROUP@ \
 	  $(MOD_OBJS_DIR)/libcoreneuron-core/*.o @CORENEURON_LINKER_END_GROUP@ \
+		$(LDFLAGS) ${SONAME_OPTION} \
 		-Wl,-rpath,$(CORENRN_LIB_DIR) -L$(CORENRN_LIB_DIR)
 	# cleanup
 	rm $(MOD_OBJS_DIR)/libcoreneuron-core/*.o
