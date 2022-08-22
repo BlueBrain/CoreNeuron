@@ -101,7 +101,7 @@ if(CORENRN_ENABLE_GPU)
 endif()
 
 # =============================================================================
-# Initialise global property that will be used by NEURON to link with CoreNEURON
+# Initialise global properties that will be used by NEURON to link with CoreNEURON
 # =============================================================================
 if(CORENRN_ENABLE_GPU)
   # CORENRN_LIB_LINK_FLAGS is the full set of flags needed to link against libcorenrnmech.so:
@@ -109,14 +109,18 @@ if(CORENRN_ENABLE_GPU)
   # to be used when linking the NEURON Python module to make sure it is able to dynamically load
   # libcorenrnmech.so.
   set_property(GLOBAL PROPERTY CORENRN_LIB_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
-  # Because of
   if(CORENRN_ENABLE_SHARED)
+    # Because of
     # https://forums.developer.nvidia.com/t/dynamically-loading-an-openacc-enabled-shared-library-from-an-executable-compiled-with-nvc-does-not-work/210968
     # we have to tell NEURON to pass OpenACC flags when linking special, otherwise we end up with an
     # `nrniv` binary that cannot dynamically load CoreNEURON in shared-library builds.
     set_property(GLOBAL PROPERTY CORENRN_NEURON_LINK_FLAGS "${NVHPC_ACC_COMP_FLAGS}")
   endif()
 endif()
+
+# NEURON needs to have access to this when CoreNEURON is built as a submodule. If CoreNEURON is
+# installed externally then this is set via coreneuron-config.cmake
+set_property(GLOBAL PROPERTY CORENRN_ENABLE_SHARED ${CORENRN_ENABLE_SHARED})
 
 if(CORENRN_HAVE_NVHPC_COMPILER)
   if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 20.7)
