@@ -500,6 +500,9 @@ extern "C" void mk_mech_init(int argc, char** argv) {
 #ifdef CORENEURON_ENABLE_GPU
     if (corenrn_param.gpu) {
         init_gpu();
+        cnrn_target_copyin(&celsius);
+        cnrn_target_copyin(&pi);
+        cnrn_target_copyin(&secondorder);
         nrnran123_initialise_global_state_on_device();
     }
 #endif
@@ -558,6 +561,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
 #endif
     bool compute_gpu = corenrn_param.gpu;
 
+    nrn_pragma_acc(update device(celsius, secondorder, pi) if (compute_gpu))
+    nrn_pragma_omp(target update to(celsius, secondorder, pi) if (compute_gpu))
     {
         double v = corenrn_param.voltage;
         double dt = corenrn_param.dt;
@@ -679,6 +684,9 @@ extern "C" int run_solve_core(int argc, char** argv) {
             nrn_partrans::delete_gap_indices_from_device();
         }
         nrnran123_destroy_global_state_on_device();
+        cnrn_target_delete(&secondorder);
+        cnrn_target_delete(&pi);
+        cnrn_target_delete(&celsius);
     }
 
     // Cleaning the memory
