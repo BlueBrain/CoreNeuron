@@ -758,7 +758,8 @@ void nrn_cleanup() {
             if (auto* const priv_dtor = corenrn.get_memb_func(tml->index).private_destructor) {
                 (*priv_dtor)(nt, ml, tml->index);
                 assert(!ml->instance);
-                assert(!ml->instance_size);
+                assert(!ml->global_variables);
+                assert(ml->global_variables_size == 0);
             }
 
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;

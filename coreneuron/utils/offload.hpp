@@ -19,10 +19,10 @@
 #else
 #define nrn_pragma_acc(x)
 #define nrn_pragma_omp(x)
-#include <stdexcept>
 #endif
 
 #include <cstddef>
+#include <stdexcept>
 #include <string_view>
 
 namespace coreneuron {
@@ -44,6 +44,11 @@ void cnrn_target_deviceptr_debug(std::string_view file,
                                  std::type_info const& typeid_T,
                                  void const* h_ptr,
                                  void* d_ptr);
+void cnrn_target_is_present_debug(std::string_view file,
+                                  int line,
+                                  std::type_info const& typeid_T,
+                                  void const* h_ptr,
+                                  void* d_ptr);
 void cnrn_target_memcpy_to_device_debug(std::string_view file,
                                         int line,
                                         std::size_t sizeof_T,
@@ -57,16 +62,20 @@ void cnrn_target_memcpy_to_device_debug(std::string_view file,
 // Homegrown implementation for buggy NVHPC versions (<=22.3), see
 // https://forums.developer.nvidia.com/t/acc-deviceptr-does-not-work-in-openacc-code-dynamically-loaded-from-a-shared-library/211599
 #define CORENEURON_ENABLE_PRESENT_TABLE
-void* cnrn_target_deviceptr_impl(void const* h_ptr);
+template <bool>
+std::pair<void*, bool> cnrn_target_deviceptr_impl(void const* h_ptr);
 void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len);
 void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len);
 #endif
 
-template <typename T>
+template <bool must_be_present_or_null, typename T>
 T* cnrn_target_deviceptr(std::string_view file, int line, const T* h_ptr) {
     T* d_ptr{};
+    bool error{false};
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
-    d_ptr = static_cast<T*>(cnrn_target_deviceptr_impl(h_ptr));
+    auto const d_ptr_and_error = cnrn_target_deviceptr_impl<must_be_present_or_null>(h_ptr);
+    d_ptr = static_cast<T*>(d_ptr_and_error.first);
+    error = d_ptr_and_error.second;
 #elif defined(CORENEURON_ENABLE_GPU) && !defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENACC)
     d_ptr = static_cast<T*>(acc_deviceptr(const_cast<T*>(h_ptr)));
@@ -75,10 +84,21 @@ T* cnrn_target_deviceptr(std::string_view file, int line, const T* h_ptr) {
     nrn_pragma_omp(target data use_device_ptr(h_ptr))
     { d_ptr = const_cast<T*>(h_ptr); }
 #else
-    throw std::runtime_error(
-        "cnrn_target_deviceptr() not implemented without OpenACC/OpenMP and gpu build");
+    if (must_be_present_or_null && h_ptr) {
+        throw std::runtime_error(
+            "cnrn_target_deviceptr() not implemented without OpenACC/OpenMP and gpu build");
+    }
 #endif
-    cnrn_target_deviceptr_debug(file, line, typeid(T), h_ptr, d_ptr);
+    if (must_be_present_or_null) {
+        cnrn_target_deviceptr_debug(file, line, typeid(T), h_ptr, d_ptr);
+    } else {
+        cnrn_target_is_present_debug(file, line, typeid(T), h_ptr, d_ptr);
+    }
+    if (error) {
+        throw std::runtime_error(
+            "cnrn_target_deviceptr() encountered an error, you may want to try setting "
+            "CORENEURON_GPU_DEBUG=1");
+    }
     return d_ptr;
 }
 
@@ -152,14 +172,15 @@ void cnrn_target_update_on_device(std::string_view file,
                                   int line,
                                   const T* h_ptr,
                                   std::size_t len = 1) {
-    auto* d_ptr = cnrn_target_deviceptr(file, line, h_ptr);
+    auto* d_ptr = cnrn_target_deviceptr<true>(file, line, h_ptr);
     cnrn_target_memcpy_to_device(file, line, d_ptr, h_ptr);
 }
 
 // Replace with std::source_location once we have C++20
-#define cnrn_target_copyin(...)    cnrn_target_copyin(__FILE__, __LINE__, __VA_ARGS__)
-#define cnrn_target_delete(...)    cnrn_target_delete(__FILE__, __LINE__, __VA_ARGS__)
-#define cnrn_target_deviceptr(...) cnrn_target_deviceptr(__FILE__, __LINE__, __VA_ARGS__)
+#define cnrn_target_copyin(...)     cnrn_target_copyin(__FILE__, __LINE__, __VA_ARGS__)
+#define cnrn_target_delete(...)     cnrn_target_delete(__FILE__, __LINE__, __VA_ARGS__)
+#define cnrn_target_deviceptr(...)  cnrn_target_deviceptr<true>(__FILE__, __LINE__, __VA_ARGS__)
+#define cnrn_target_is_present(...) cnrn_target_deviceptr<false>(__FILE__, __LINE__, __VA_ARGS__)
 #define cnrn_target_memcpy_to_device(...) \
     cnrn_target_memcpy_to_device(__FILE__, __LINE__, __VA_ARGS__)
 #define cnrn_target_update_on_device(...) \

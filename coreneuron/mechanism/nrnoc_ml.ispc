@@ -57,6 +57,8 @@ struct Memb_list {
     uniform int nodecount;
     uniform int _nodecount_padded;
     void* uniform instance;
+    void* uniform global_variables;
+    uniform unsigned long global_variables_size;
 };
 
 struct Point_process {

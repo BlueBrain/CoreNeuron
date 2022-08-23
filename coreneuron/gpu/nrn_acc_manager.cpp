@@ -125,7 +125,18 @@ void cnrn_target_deviceptr_debug(std::string_view file,
     if (!cnrn_target_enable_debug) {
         return;
     }
-    std::cerr << file << ':' << line << ": cnrn_target_device_ptr<" << cxx_demangle(typeid_T.name())
+    std::cerr << file << ':' << line << ": cnrn_target_deviceptr<" << cxx_demangle(typeid_T.name())
+              << ">(" << h_ptr << ") -> " << d_ptr << std::endl;
+}
+void cnrn_target_is_present_debug(std::string_view file,
+                                  int line,
+                                  std::type_info const& typeid_T,
+                                  void const* h_ptr,
+                                  void* d_ptr) {
+    if (!cnrn_target_enable_debug) {
+        return;
+    }
+    std::cerr << file << ':' << line << ": cnrn_target_is_present<" << cxx_demangle(typeid_T.name())
               << ">(" << h_ptr << ") -> " << d_ptr << std::endl;
 }
 void cnrn_target_memcpy_to_device_debug(std::string_view file,
@@ -144,28 +155,39 @@ void cnrn_target_memcpy_to_device_debug(std::string_view file,
 }
 
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
-void* cnrn_target_deviceptr_impl(void const* h_ptr) {
+template <bool must_be_present_or_null>
+std::pair<void*, bool> cnrn_target_deviceptr_impl(void const* h_ptr) {
     if (!h_ptr) {
-        return nullptr;
+        return {nullptr, false};
     }
     // Concurrent calls to this method are safe, but they must be serialised
     // w.r.t. calls to the cnrn_target_*_update_present_table methods.
     std::shared_lock _{present_table_mutex};
-    assert(!present_table.empty());
+    if (present_table.empty()) {
+        return {nullptr, must_be_present_or_null};
+    }
     // prev(first iterator greater than h_ptr or last if not found) gives the first iterator less
     // than or equal to h_ptr
     auto const iter = std::prev(std::upper_bound(
         present_table.begin(), present_table.end(), h_ptr, [](void const* hp, auto const& entry) {
             return hp < entry.first;
         }));
-    assert(iter != present_table.end());
+    if (iter == present_table.end()) {
+        return {nullptr, must_be_present_or_null};
+    }
     std::byte const* const h_byte_ptr{static_cast<std::byte const*>(h_ptr)};
     std::byte const* const h_start_of_block{iter->first};
     std::size_t const block_size{iter->second.first};
     std::byte* const d_start_of_block{iter->second.second};
-    assert(h_byte_ptr < h_start_of_block + block_size);
-    return d_start_of_block + (h_byte_ptr - h_start_of_block);
+    bool const is_present{h_byte_ptr < h_start_of_block + block_size};
+    if (!is_present) {
+        return {nullptr, must_be_present_or_null};
+    }
+    return {d_start_of_block + (h_byte_ptr - h_start_of_block), false};
 }
+template std::pair<void*, bool> cnrn_target_deviceptr_impl<true>(void const*);
+template std::pair<void*, bool> cnrn_target_deviceptr_impl<false>(void const*);
+
 void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len) {
     if (!h_ptr) {
         assert(!d_ptr);
@@ -235,10 +257,11 @@ static Memb_list* copy_ml_to_device(const Memb_list* ml, int type) {
 
     auto d_ml = cnrn_target_copyin(ml);
 
-    if (ml->instance) {
-        assert(ml->instance_size);
-        void* d_inst = cnrn_target_copyin(static_cast<std::byte*>(ml->instance), ml->instance_size);
-        cnrn_target_memcpy_to_device(&(d_ml->instance), &d_inst);
+    if (ml->global_variables) {
+        assert(ml->global_variables_size);
+        void* d_inst = cnrn_target_copyin(static_cast<std::byte*>(ml->global_variables),
+                                          ml->global_variables_size);
+        cnrn_target_memcpy_to_device(&(d_ml->global_variables), &d_inst);
     }
 
 
@@ -415,9 +438,10 @@ static void delete_ml_from_device(Memb_list* ml, int type) {
     }
     cnrn_target_delete(ml->nodeindices, n);
 
-    if (ml->instance) {
-        assert(ml->instance_size);
-        cnrn_target_delete(static_cast<std::byte*>(ml->instance), ml->instance_size);
+    if (ml->global_variables) {
+        assert(ml->global_variables_size);
+        cnrn_target_delete(static_cast<std::byte*>(ml->global_variables),
+                           ml->global_variables_size);
     }
 
     cnrn_target_delete(ml);
