@@ -46,7 +46,11 @@
 #include <map>
 #include <shared_mutex>
 namespace {
-std::map<std::byte const*, std::pair<std::size_t, std::byte*>> present_table;
+struct present_table_value {
+    std::size_t ref_count{}, size{};
+    std::byte* dev_ptr{};
+};
+std::map<std::byte const*, present_table_value> present_table;
 std::shared_mutex present_table_mutex;
 }  // namespace
 #endif
@@ -155,8 +159,7 @@ void cnrn_target_memcpy_to_device_debug(std::string_view file,
 }
 
 #ifdef CORENEURON_ENABLE_PRESENT_TABLE
-template <bool must_be_present_or_null>
-std::pair<void*, bool> cnrn_target_deviceptr_impl(void const* h_ptr) {
+std::pair<void*, bool> cnrn_target_deviceptr_impl(bool must_be_present_or_null, void const* h_ptr) {
     if (!h_ptr) {
         return {nullptr, false};
     }
@@ -177,16 +180,14 @@ std::pair<void*, bool> cnrn_target_deviceptr_impl(void const* h_ptr) {
     }
     std::byte const* const h_byte_ptr{static_cast<std::byte const*>(h_ptr)};
     std::byte const* const h_start_of_block{iter->first};
-    std::size_t const block_size{iter->second.first};
-    std::byte* const d_start_of_block{iter->second.second};
+    std::size_t const block_size{iter->second.size};
+    std::byte* const d_start_of_block{iter->second.dev_ptr};
     bool const is_present{h_byte_ptr < h_start_of_block + block_size};
     if (!is_present) {
         return {nullptr, must_be_present_or_null};
     }
     return {d_start_of_block + (h_byte_ptr - h_start_of_block), false};
 }
-template std::pair<void*, bool> cnrn_target_deviceptr_impl<true>(void const*);
-template std::pair<void*, bool> cnrn_target_deviceptr_impl<false>(void const*);
 
 void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std::size_t len) {
     if (!h_ptr) {
@@ -194,20 +195,32 @@ void cnrn_target_copyin_update_present_table(void const* h_ptr, void* d_ptr, std
         return;
     }
     std::lock_guard _{present_table_mutex};
-    // TODO include more pendantic overlap checking?
-    auto const result = present_table.emplace(static_cast<std::byte const*>(h_ptr),
-                                              std::make_pair(len, static_cast<std::byte*>(d_ptr)));
+    // TODO include more pedantic overlap checking?
+    present_table_value new_val{};
+    new_val.size = len;
+    new_val.ref_count = 1;
+    new_val.dev_ptr = static_cast<std::byte*>(d_ptr);
+    auto const [iter, inserted] = present_table.emplace(static_cast<std::byte const*>(h_ptr),
+                                                        std::move(new_val));
+    if (!inserted) {
+        // Insertion didn't occur because h_ptr was already in the present table
+        assert(iter->second.size == len);
+        assert(iter->second.dev_ptr == new_val.dev_ptr);
+        ++(iter->second.ref_count);
+    }
 }
 void cnrn_target_delete_update_present_table(void const* h_ptr, std::size_t len) {
     if (!h_ptr) {
         return;
     }
     std::lock_guard _{present_table_mutex};
-    // TODO properly matching OpenACC semantics would require a reference count
     auto const iter = present_table.find(static_cast<std::byte const*>(h_ptr));
     assert(iter != present_table.end());
-    assert(iter->second.first == len);
-    present_table.erase(iter);
+    assert(iter->second.size == len);
+    --(iter->second.ref_count);
+    if (iter->second.ref_count == 0) {
+        present_table.erase(iter);
+    }
 }
 #endif
 
