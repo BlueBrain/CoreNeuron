@@ -83,8 +83,10 @@ T* cnrn_target_deviceptr_or_present(std::string_view file,
     d_ptr = static_cast<T*>(acc_deviceptr(const_cast<T*>(h_ptr)));
 #elif defined(CORENEURON_ENABLE_GPU) && defined(CORENEURON_PREFER_OPENMP_OFFLOAD) && \
     defined(_OPENMP)
-    nrn_pragma_omp(target data use_device_ptr(h_ptr))
-    { d_ptr = const_cast<T*>(h_ptr); }
+    if (must_be_present_or_null || omp_target_is_present(h_ptr, omp_get_default_device())) {
+        nrn_pragma_omp(target data use_device_ptr(h_ptr))
+        { d_ptr = const_cast<T*>(h_ptr); }
+    }
 #else
     if (must_be_present_or_null && h_ptr) {
         throw std::runtime_error(
