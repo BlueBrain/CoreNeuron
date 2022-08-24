@@ -14,9 +14,9 @@ jobs:
     steps:
         - name: Fetch repository
           uses: actions/checkout@v3
-          submodules: true
         - name: Fetch hpc-coding-conventions submodules
           shell: bash
+          working-directory: ${{runner.workspace}}/CoreNeuron
           run: git submodule update --init --depth 1 -- CMake/hpc-coding-conventions
         - name: Run clang-format and cmake-format
           shell: bash
