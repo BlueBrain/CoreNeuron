@@ -122,10 +122,10 @@ build:coreneuron:mod2c:nvhpc:acc:debug:unified:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl+openmp~shared+tests+unified build_type=Debug
 
 # Shared + OpenACC + OpenMP host threading has problems
-build:coreneuron:mod2c:nvhpc:acc:shared:debug:
+build:coreneuron:mod2c:nvhpc:acc:shared:
   extends: [.build_coreneuron, .spack_nvhpc]
   variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:acc:legacy:
   extends: [.build_coreneuron, .spack_nvhpc]
@@ -164,9 +164,9 @@ build:neuron:nmodl:intel:shared:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:coreneuron:nmodl:intel:shared"]
 
-build:neuron:mod2c:nvhpc:acc:shared:debug:
+build:neuron:mod2c:nvhpc:acc:shared:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared:debug"]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
 
 build:neuron:nmodl:nvhpc:acc:legacy:
   extends: [.build_neuron, .spack_nvhpc]
@@ -201,9 +201,9 @@ test:coreneuron:mod2c:nvhpc:acc:debug:unified:
   extends: [.ctest, .gpu_node]
   needs: ["build:coreneuron:mod2c:nvhpc:acc:debug:unified"]
 
-test:coreneuron:mod2c:nvhpc:acc:shared:debug:
+test:coreneuron:mod2c:nvhpc:acc:shared:
   extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared:debug"]
+  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
 
 test:coreneuron:nmodl:nvhpc:acc:legacy:
   extends: [.ctest, .gpu_node]
@@ -234,9 +234,9 @@ test:neuron:nmodl:intel:shared:
   extends: [.test_neuron]
   needs: ["build:neuron:nmodl:intel:shared"]
 
-test:neuron:mod2c:nvhpc:acc:shared:debug:
+test:neuron:mod2c:nvhpc:acc:shared:
   extends: [.test_neuron, .gpu_node]
-  needs: ["build:neuron:mod2c:nvhpc:acc:shared:debug"]
+  needs: ["build:neuron:mod2c:nvhpc:acc:shared"]
 
 test:neuron:nmodl:nvhpc:acc:legacy:
   extends: [.test_neuron, .gpu_node]
