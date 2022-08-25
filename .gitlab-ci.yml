@@ -112,6 +112,7 @@ build:coreneuron:nmodl:intel:shared:
   extends: [.build_coreneuron, .spack_intel]
   needs: ["build:nmodl"]
   variables:
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc
     SPACK_PACKAGE_SPEC: ~caliper~gpu~legacy-unit+nmodl+openmp+shared+sympy+tests~unified build_type=RelWithDebInfo
 
 # Not linked to a NEURON build+test job, see
