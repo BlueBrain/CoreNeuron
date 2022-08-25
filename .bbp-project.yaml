@@ -1,0 +1,8 @@
+tools:
+  ClangFormat:
+    enable: True
+    include:
+      match:
+      - coreneuron/.*\.((cu)|(h)|([chi]pp))$
+  CMakeFormat:
+    enable: True
