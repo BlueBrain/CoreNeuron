@@ -120,6 +120,14 @@ if(CORENRN_ENABLE_GPU)
   # OpenACC/OpenMP annotations.
   if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
     list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
+    if(CORENRN_ENABLE_GPU
+       AND CORENRN_HAVE_NVHPC_COMPILER
+       AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+      # In this case OpenAccHelper.cmake passes -gpu=debug, which makes these Eigen functions
+      # extremely slow. Downgrade that to -gpu=lineinfo for this file.
+      set_source_files_properties(${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp
+                                  PROPERTIES COMPILE_FLAGS "-gpu=lineinfo,nodebug -O1")
+    endif()
   endif()
 endif()
 
