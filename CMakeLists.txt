@@ -261,8 +261,6 @@ find_package(Perl REQUIRED)
 # =============================================================================
 # build mod files for coreneuron
 list(APPEND CORENRN_COMPILE_DEFS CORENEURON_BUILD)
-list(APPEND CORENRN_COMPILE_DEFS CLI11_HAS_FILESYSTEM=0)
-
 set(CMAKE_REQUIRED_QUIET TRUE)
 check_include_files(malloc.h have_malloc_h)
 if(have_malloc_h)
