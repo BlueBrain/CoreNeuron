@@ -176,7 +176,7 @@ class MemoryManaged {
 #include <cstdlib>
 
 inline void alloc_memory(void*& pointer, size_t num_bytes, size_t alignment) {
-    size_t fill;
+    size_t fill = 0;
     if (num_bytes % alignment != 0) {
         size_t multiple = num_bytes / alignment;
         fill = alignment * (multiple + 1) - num_bytes;
