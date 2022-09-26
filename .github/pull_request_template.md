@@ -39,4 +39,4 @@ nrnivmodl mod
      These values for NEURON, nmodl and Spack are the defaults and are given
      for illustrative purposes; they can safely be removed.
 -->
-CI_BRANCHES:NEURON_BRANCH=master,NMODL_BRANCH=master,SPACK_BRANCH=develop
+CI_BRANCHES:NEURON_BRANCH=release/8.2,NMODL_TAG=0.4,SPACK_BRANCH=develop
