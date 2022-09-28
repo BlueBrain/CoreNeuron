@@ -56,6 +56,9 @@ simulation_stack:
 .spack_nvhpc:
   variables:
     SPACK_PACKAGE_COMPILER: nvhpc
+.spack_nvhpc_223:
+  variables:
+    SPACK_PACKAGE_COMPILER: nvhpc@22.3
 .build_neuron:
   extends: [.build]
   timeout: two hours
@@ -144,13 +147,13 @@ build:coreneuron:nmodl:nvhpc:acc:shared:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:legacy:
-  extends: [.build_coreneuron, .spack_nvhpc]
+  extends: [.build_coreneuron, .spack_nvhpc_223]
   needs: ["build:nmodl"]
   variables:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:debug:
-  extends: [.build_coreneuron, .spack_nvhpc]
+  extends: [.build_coreneuron, .spack_nvhpc_223]
   needs: ["build:nmodl"]
   variables:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug
@@ -181,11 +184,11 @@ build:neuron:nmodl:nvhpc:acc:shared:
   needs: ["build:coreneuron:nmodl:nvhpc:acc:shared"]
 
 build:neuron:nmodl:nvhpc:omp:legacy:
-  extends: [.build_neuron, .spack_nvhpc]
+  extends: [.build_neuron, .spack_nvhpc_223]
   needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
 
 build:neuron:nmodl:nvhpc:omp:debug:
-  extends: [.build_neuron, .spack_nvhpc]
+  extends: [.build_neuron, .spack_nvhpc_223]
   needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
 
 # Test CoreNEURON
