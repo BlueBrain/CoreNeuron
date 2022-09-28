@@ -99,6 +99,12 @@ build:nmodl:
     # TODO: fix this more robustly so we don't have to play so many games.
     SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^caliper%gcc+cuda cuda_arch=70
 
+.build_coreneuron_nvhpc_223:
+  extends: [.build_coreneuron]
+  variables:
+    # Additionally need to pin an older version of CUDA that NVHPC 22.3 knows about
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^caliper%gcc+cuda cuda_arch=70 ^cuda@11.6.1
+
 # TODO: improve coverage by switching an Intel build to be statically linked
 # TODO: improve coverage by switching an Intel build to RelWithDebInfo
 # TODO: improve coverage by enabling +openmp on an Intel build
@@ -147,13 +153,13 @@ build:coreneuron:nmodl:nvhpc:acc:shared:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:legacy:
-  extends: [.build_coreneuron, .spack_nvhpc_223]
+  extends: [.build_coreneuron_nvhpc_223, .spack_nvhpc_223]
   needs: ["build:nmodl"]
   variables:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo
 
 build:coreneuron:nmodl:nvhpc:omp:debug:
-  extends: [.build_coreneuron, .spack_nvhpc_223]
+  extends: [.build_coreneuron_nvhpc_223, .spack_nvhpc_223]
   needs: ["build:nmodl"]
   variables:
     SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug
