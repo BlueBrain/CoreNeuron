@@ -34,6 +34,7 @@ spacktainerize:
     EXTRA_COMPILER: intel-oneapi-compilers
 
 
+
 # Set up Spack
 # spack_setup:
 #   extends: .spack_setup_ccache
