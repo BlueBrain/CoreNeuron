@@ -60,8 +60,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
                 register_custom_report(nt, m_report_config, vars_to_report);
                 break;
             case LFPReport:
-                // 1 lfp value per gid
-                mapinfo->_lfp.resize(nt.ncell);
+                mapinfo->prepare_lfp();
                 vars_to_report =
                     get_lfp_vars_to_report(nt, m_report_config, mapinfo->_lfp.data(), nodes_to_gid);
                 is_soma_target = m_report_config.section_type == SectionType::Soma ||
@@ -356,8 +355,15 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
                                                    ReportConfiguration& report,
                                                    double* report_variable,
                                                    const std::vector<int>& nodes_to_gids) const {
+    const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
+    if (!mapinfo) {
+        std::cerr << "[LFP] Error : mapping information is missing for a Cell group "
+                  << nt.ncell << '\n';
+        nrn_abort(1);
+    }
     auto& summation_report = nt.summation_report_handler_->summation_reports_[report.output_path];
     VarsToReport vars_to_report;
+    off_t offset_lfp = 0;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
         if (report.target.find(gid) == report.target.end()) {
@@ -373,10 +379,22 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
                 summation_report.currents_[segment_id].push_back(std::make_pair(var_value, -1));
             }
         }
+        const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
+        if (cell_mapping == nullptr) {
+            std::cerr
+                << "[LFP] Error : Compartment mapping information is missing for gid "
+                << gid << '\n';
+            nrn_abort(1);
+        }
         std::vector<VarWithMapping> to_report;
-        double* variable = report_variable + i;
-        to_report.push_back(VarWithMapping(i, variable));
-        vars_to_report[gid] = to_report;
+        int num_electrodes = cell_mapping->num_electrodes();
+        for (int electrode_id = 0; electrode_id < num_electrodes; electrode_id++) {
+            to_report.emplace_back(VarWithMapping(electrode_id, report_variable + offset_lfp));
+            offset_lfp++;
+        }
+        if (!to_report.empty()) {
+            vars_to_report[gid] = to_report;
+        }
     }
     return vars_to_report;
 }

@@ -85,25 +85,29 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
             int gid = kv.first;
             const auto& to_report = kv.second;
             const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
-
-            int count = 0;
-            double sum = 0.0;
+            int num_electrodes = cell_mapping->num_electrodes();
+            std::vector<double> lfp_values (num_electrodes, 0.0);
             for (const auto& kv: cell_mapping->lfp_factors) {
                 int segment_id = kv.first;
-                double factor = kv.second;
-                if (std::isnan(factor)) {
-                    factor = 0.0;
+                std::vector<double> factors = kv.second;
+                int electrode_id = 0;
+                for (auto& factor: factors) {
+                    if (std::isnan(factor)) {
+                        factor = 0.0;
+                    }
+                    double iclamp = 0.0;
+                    for (const auto& value: summation_report.currents_[segment_id]) {
+                        double current_value = *value.first;
+                        int scale = value.second;
+                        iclamp += current_value * scale;
+                    }
+                    lfp_values[electrode_id] += (fast_imem_rhs[segment_id] + iclamp) * factor;
+                    electrode_id++;
                 }
-                double iclamp = 0.0;
-                for (const auto& value: summation_report.currents_[segment_id]) {
-                    double current_value = *value.first;
-                    int scale = value.second;
-                    iclamp += current_value * scale;
-                }
-                sum += (fast_imem_rhs[segment_id] + iclamp) * factor;
-                count++;
             }
-            *(to_report.front().var_value) = sum;
+            for(int i=0; i < to_report.size(); i++) {
+                *(to_report[i].var_value) = lfp_values[i];
+            }
         }
     }
 }
