@@ -24,9 +24,10 @@ variables:
 spacktainerize:
   needs: []
   trigger:
-    project: hpc/personal/bsd-292
-    include: /build-spack-container.yml
-    branch: magkanar/extra_compiler
+    include:
+      - project: hpc/personal/bsd-292
+        file: /build-spack-container.yml
+        ref: extracompiler
     strategy: depend
   variables:
     PACKAGE_NAME: neuron+coreneuron@develop%intel ^mpich%gcc ^coreneuron~report%intel ^cmake%gcc ^bison%gcc
