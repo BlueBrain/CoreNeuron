@@ -30,7 +30,7 @@ spacktainerize:
         ref: extracompiler
     strategy: depend
   variables:
-    PACKAGE_NAME: neuron+coreneuron@develop%intel ^mpich%gcc ^coreneuron~report%intel ^cmake%gcc ^bison%gcc
+    PACKAGE_NAME: neuron+coreneuron@develop%intel ^mpich%gcc ^coreneuron~report%intel ^cmake%gcc ^bison%gcc ^python%gcc ^py-numpy%gcc ^py-cython%gcc ^perl%gcc ^hwloc%gcc ^ninja%gcc
     EXTRA_COMPILER: intel-oneapi-compilers
 
 
