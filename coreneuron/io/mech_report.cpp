@@ -61,10 +61,10 @@ void write_mech_report() {
         for (size_t i = 0; i < total_mech_count.size(); i++) {
             if (total_mech_count[i] > 0) {
                 printf("%4lu %20s %10ld %25.2lf\n",
-                    i,
-                    nrn_get_mechname(i),
-                    total_mech_count[i],
-                    static_cast<double>(total_mech_size[i]) / 1024);
+                       i,
+                       nrn_get_mechname(i),
+                       total_mech_count[i],
+                       static_cast<double>(total_mech_size[i]) / 1024);
             }
         }
         printf("==============================================================\n");
