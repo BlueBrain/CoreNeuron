@@ -111,6 +111,10 @@ if(CORENRN_ENABLE_GPU)
   # this cannot be included in the same shared library as the rest of the OpenACC code.
   set(CORENEURON_CUDA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/permute/cellorder.cu)
 
+  if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+    list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cu)
+  endif()
+
   # Eigen functions cannot be called directly from OpenACC regions, but Eigen is sort-of compatible
   # with being compiled as CUDA code. Because of
   # https://forums.developer.nvidia.com/t/cannot-dynamically-load-a-shared-library-containing-both-openacc-and-cuda-code/210972
@@ -118,7 +122,7 @@ if(CORENRN_ENABLE_GPU)
   # different matrix sizes in partial_piv_lu.cpp (with CUDA attributes but without OpenACC or OpenMP
   # annotations) and dispatch to these from a wrapper in partial_piv_lu.h that does have
   # OpenACC/OpenMP annotations.
-  if(CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
+  if(FALSE AND CORENRN_ENABLE_NMODL AND EXISTS ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
     list(APPEND CORENEURON_CODE_FILES ${CORENRN_MOD2CPP_INCLUDE}/partial_piv_lu/partial_piv_lu.cpp)
     if(CORENRN_ENABLE_GPU
        AND CORENRN_HAVE_NVHPC_COMPILER
@@ -258,7 +262,7 @@ if(CORENRN_ENABLE_MPI AND CORENRN_ENABLE_MPI_DYNAMIC)
 endif()
 
 # Suppress some compiler warnings.
-target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESSIONS})
+#target_compile_options(coreneuron-core PRIVATE ${CORENEURON_CXX_WARNING_SUPPRESSIONS})
 target_link_libraries(coreneuron-core PUBLIC ${reportinglib_LIBRARY} ${sonatareport_LIBRARY}
                                              ${CORENRN_CALIPER_LIB} ${likwid_LIBRARIES})
 
@@ -322,7 +326,12 @@ set_target_properties(builtin-libcorenrnmech PROPERTIES IMPORTED_LOCATION "${cor
 
 if(CORENRN_ENABLE_GPU)
   separate_arguments(CORENRN_ACC_FLAGS UNIX_COMMAND "${NVHPC_ACC_COMP_FLAGS}")
-  target_compile_options(coreneuron-core PRIVATE ${CORENRN_ACC_FLAGS})
+  foreach(file ${CORENEURON_CODE_FILES})
+    if(NOT file MATCHES ".*partial_piv_lu.*")
+        set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${NVHPC_ACC_COMP_FLAGS} ${CORENEURON_CXX_WARNING_SUPPRESSIONS}")
+    endif()
+  endforeach()
+  #target_compile_options(coreneuron-core PRIVATE ${CORENRN_ACC_FLAGS})
 endif()
 
 # Create an extra target for use by NEURON when CoreNEURON is being built as a submodule. NEURON
