@@ -332,6 +332,7 @@ if(CORENRN_ENABLE_GPU)
     endif()
   endforeach()
   #target_compile_options(coreneuron-core PRIVATE ${CORENRN_ACC_FLAGS})
+  set_target_properties(coreneuron-core PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 endif()
 
 # Create an extra target for use by NEURON when CoreNEURON is being built as a submodule. NEURON
