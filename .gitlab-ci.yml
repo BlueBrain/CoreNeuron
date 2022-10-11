@@ -30,7 +30,7 @@ spacktainerize:
         ref: extracompiler
     strategy: depend
   variables:
-    PACKAGE_NAME: neuron+coreneuron@develop%intel ^coreneuron~report%intel
+    PACKAGE_NAME: neuron+coreneuron@develop%intel
     EXTRA_COMPILER: intel-oneapi-compilers
 
 
