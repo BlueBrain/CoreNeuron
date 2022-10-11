@@ -357,8 +357,8 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
                                                    const std::vector<int>& nodes_to_gids) const {
     const auto* mapinfo = static_cast<NrnThreadMappingInfo*>(nt.mapping);
     if (!mapinfo) {
-        std::cerr << "[LFP] Error : mapping information is missing for a Cell group "
-                  << nt.ncell << '\n';
+        std::cerr << "[LFP] Error : mapping information is missing for a Cell group " << nt.ncell
+                  << '\n';
         nrn_abort(1);
     }
     auto& summation_report = nt.summation_report_handler_->summation_reports_[report.output_path];
@@ -381,9 +381,8 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
         }
         const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
         if (cell_mapping == nullptr) {
-            std::cerr
-                << "[LFP] Error : Compartment mapping information is missing for gid "
-                << gid << '\n';
+            std::cerr << "[LFP] Error : Compartment mapping information is missing for gid " << gid
+                      << '\n';
             nrn_abort(1);
         }
         std::vector<VarWithMapping> to_report;

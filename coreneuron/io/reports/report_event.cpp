@@ -86,7 +86,7 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
             const auto& to_report = kv.second;
             const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
             int num_electrodes = cell_mapping->num_electrodes();
-            std::vector<double> lfp_values (num_electrodes, 0.0);
+            std::vector<double> lfp_values(num_electrodes, 0.0);
             for (const auto& kv: cell_mapping->lfp_factors) {
                 int segment_id = kv.first;
                 std::vector<double> factors = kv.second;
@@ -105,7 +105,7 @@ void ReportEvent::lfp_calc(NrnThread* nt) {
                     electrode_id++;
                 }
             }
-            for(int i=0; i < to_report.size(); i++) {
+            for (int i = 0; i < to_report.size(); i++) {
                 *(to_report[i].var_value) = lfp_values[i];
             }
         }

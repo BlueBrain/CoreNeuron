@@ -142,7 +142,9 @@ class FileHandler {
                 ntmapping->add_segment_id(seg[i]);
                 int factor_offset = i * num_electrodes;
                 if (total_lfp_factors > 0) {
-                    std::vector<double> segment_factors(lfp_factors.begin() + factor_offset, lfp_factors.begin() + factor_offset + num_electrodes);
+                    std::vector<double> segment_factors(lfp_factors.begin() + factor_offset,
+                                                        lfp_factors.begin() + factor_offset +
+                                                            num_electrodes);
                     cmap->add_segment_lfp_factor(seg[i], segment_factors);
                 }
             }
