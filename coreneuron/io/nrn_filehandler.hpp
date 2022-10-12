@@ -114,12 +114,13 @@ class FileHandler {
     int read_mapping_info(T* mapinfo, NrnThreadMappingInfo* ntmapping, CellMapping* cmap) {
         int nsec, nseg, n_scan;
         size_t total_lfp_factors;
+        int num_electrodes;
         char line_buf[max_line_length], name[max_line_length];
 
         F.getline(line_buf, sizeof(line_buf));
-        n_scan = sscanf(line_buf, "%s %d %d %zd", name, &nsec, &nseg, &total_lfp_factors);
+        n_scan = sscanf(line_buf, "%s %d %d %zd %d", name, &nsec, &nseg, &total_lfp_factors, &num_electrodes);
 
-        nrn_assert(n_scan == 4);
+        nrn_assert(n_scan == 5);
 
         mapinfo->name = std::string(name);
 
@@ -133,8 +134,9 @@ class FileHandler {
 
             read_array<int>(&sec[0], nseg);
             read_array<int>(&seg[0], nseg);
-            read_array<double>(&lfp_factors[0], total_lfp_factors);
-            int num_electrodes = read_int();
+            if (total_lfp_factors > 0) {
+                read_array<double>(&lfp_factors[0], total_lfp_factors);
+            }
 
             int factor_offset = 0;
             for (int i = 0; i < nseg; i++) {
