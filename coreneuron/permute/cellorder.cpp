@@ -50,11 +50,11 @@ InterleaveInfo::InterleaveInfo(const InterleaveInfo& info) {
     nwarp = info.nwarp;
     nstride = info.nstride;
 
-    copy_align_array(stridedispl, info.stridedispl, nwarp + 1);
-    copy_align_array(stride, info.stride, nstride);
-    copy_align_array(firstnode, info.firstnode, nwarp + 1);
-    copy_align_array(lastnode, info.lastnode, nwarp + 1);
-    copy_align_array(cellsize, info.cellsize, nwarp);
+    copy_array(stridedispl, info.stridedispl, nwarp + 1);
+    copy_array(stride, info.stride, nstride);
+    copy_array(firstnode, info.firstnode, nwarp + 1);
+    copy_array(lastnode, info.lastnode, nwarp + 1);
+    copy_array(cellsize, info.cellsize, nwarp);
 
     copy_array(nnode, info.nnode, nwarp);
     copy_array(ncycle, info.ncycle, nwarp);
@@ -72,25 +72,6 @@ InterleaveInfo& InterleaveInfo::operator=(const InterleaveInfo& info) {
 
     this->swap(temp);
     return *this;
-}
-
-InterleaveInfo::~InterleaveInfo() {
-    if (stride) {
-        free_memory(stride);
-        free_memory(firstnode);
-        free_memory(lastnode);
-        free_memory(cellsize);
-    }
-    if (stridedispl) {
-        free_memory(stridedispl);
-    }
-    if (idle) {
-        delete[] nnode;
-        delete[] ncycle;
-        delete[] idle;
-        delete[] cache_access;
-        delete[] child_race;
-    }
 }
 
 void create_interleave_info() {
@@ -299,8 +280,13 @@ int* interleave_order(int ith, int ncell, int nnode, int* parent) {
         }
     }
 
-    int nwarp = 0, nstride = 0, *stride = nullptr, *firstnode = nullptr;
-    int *lastnode = nullptr, *cellsize = nullptr, *stridedispl = nullptr;
+    int nwarp = 0;
+    int nstride = 0;
+    int* stride = nullptr;
+    int* firstnode = nullptr;
+    int* lastnode = nullptr;
+    int* cellsize = nullptr;
+    int* stridedispl = nullptr;
 
     int* order = node_order(
         ncell, nnode, parent, nwarp, nstride, stride, firstnode, lastnode, cellsize, stridedispl);

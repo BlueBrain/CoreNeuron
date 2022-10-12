@@ -70,7 +70,7 @@ std::unordered_map<void*, std::size_t> random123_allocate_unified::m_block_sizes
 using random123_allocator =
     boost::fast_pool_allocator<coreneuron::nrnran123_State, random123_allocate_unified>;
 #else
-using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_State>;
+using random123_allocator = coreneuron::unified_allocator<coreneuron::nrnran123_State, true>;
 #endif
 /* Global data structure per process. Using a unique_ptr here causes [minor]
  * problems because its destructor can be called very late during application

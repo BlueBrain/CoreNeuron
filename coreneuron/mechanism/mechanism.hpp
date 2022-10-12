@@ -59,30 +59,30 @@ struct NetReceiveBuffer_t {
     }
 };
 
-struct NetSendBuffer_t: MemoryManaged {
-    int* _sendtype;  // net_send, net_event, net_move
-    int* _vdata_index;
-    int* _pnt_index;
-    int* _weight_index;
-    double* _nsb_t;
-    double* _nsb_flag;
+struct NetSendBuffer_t: UnifiedMemManaged<false> {
+    unified_uniq_ptr<int[]> _sendtype;  // net_send, net_event, net_move
+    unified_uniq_ptr<int[]> _vdata_index;
+    unified_uniq_ptr<int[]> _pnt_index;
+    unified_uniq_ptr<int[]> _weight_index;
+    unified_uniq_ptr<double[]> _nsb_t;
+    unified_uniq_ptr<double[]> _nsb_flag;
     int _cnt;
-    int _size;       /* capacity */
+    std::size_t _size;       /* capacity */
     int reallocated; /* if buffer resized/reallocated, needs to be copy to cpu */
 
     NetSendBuffer_t(int size)
         : _size(size) {
         _cnt = 0;
 
-        _sendtype = (int*) ecalloc_align(_size, sizeof(int));
-        _vdata_index = (int*) ecalloc_align(_size, sizeof(int));
-        _pnt_index = (int*) ecalloc_align(_size, sizeof(int));
-        _weight_index = (int*) ecalloc_align(_size, sizeof(int));
+        _sendtype = allocate_unique<int[]>(allocator<int>{}, _size);
+        _vdata_index = allocate_unique<int[]>(allocator<int>{}, _size);
+        _pnt_index = allocate_unique<int[]>(allocator<int>{}, _size);
+        _weight_index = allocate_unique<int[]>(allocator<int>{}, _size);
         // when == 1, NetReceiveBuffer_t is newly allocated (i.e. we need to free previous copy
         // and recopy new data
         reallocated = 1;
-        _nsb_t = (double*) ecalloc_align(_size, sizeof(double));
-        _nsb_flag = (double*) ecalloc_align(_size, sizeof(double));
+        _nsb_t = allocate_unique<double[]>(allocator<double>{}, _size);
+        _nsb_flag = allocate_unique<double[]>(allocator<double>{}, _size);
     }
 
     size_t size_of_object() {
@@ -92,39 +92,15 @@ struct NetSendBuffer_t: MemoryManaged {
         return nbytes;
     }
 
-    ~NetSendBuffer_t() {
-        free_memory(_sendtype);
-        free_memory(_vdata_index);
-        free_memory(_pnt_index);
-        free_memory(_weight_index);
-        free_memory(_nsb_t);
-        free_memory(_nsb_flag);
-    }
-
     void grow() {
-#ifdef CORENEURON_ENABLE_GPU
-        int cannot_reallocate_on_device = 0;
-        assert(cannot_reallocate_on_device);
-#else
         int new_size = _size * 2;
-        grow_buf(&_sendtype, _size, new_size);
-        grow_buf(&_vdata_index, _size, new_size);
-        grow_buf(&_pnt_index, _size, new_size);
-        grow_buf(&_weight_index, _size, new_size);
-        grow_buf(&_nsb_t, _size, new_size);
-        grow_buf(&_nsb_flag, _size, new_size);
+        grow_buf(_sendtype, _size, new_size);
+        grow_buf(_vdata_index, _size, new_size);
+        grow_buf(_pnt_index, _size, new_size);
+        grow_buf(_weight_index, _size, new_size);
+        grow_buf(_nsb_t, _size, new_size);
+        grow_buf(_nsb_flag, _size, new_size);
         _size = new_size;
-#endif
-    }
-
-  private:
-    template <typename T>
-    void grow_buf(T** buf, int size, int new_size) {
-        T* new_buf = nullptr;
-        new_buf = (T*) ecalloc_align(new_size, sizeof(T));
-        memcpy(new_buf, *buf, size * sizeof(T));
-        free(*buf);
-        *buf = new_buf;
     }
 };
 

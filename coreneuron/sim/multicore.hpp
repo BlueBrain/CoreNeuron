@@ -36,6 +36,8 @@ struct NrnThreadMembList { /* patterned after CvMembList in cvodeobj.h */
     int* dependencies; /* list of mechanism types that this mechanism depends on*/
     int ndependencies; /* for scheduling we need to know the dependency count */
 };
+
+
 NrnThreadMembList* create_tml(NrnThread& nt,
                               int mech_id,
                               Memb_func& memb_func,
@@ -72,7 +74,7 @@ struct PreSynHelper {
     int flag_;
 };
 
-struct NrnThread: public MemoryManaged {
+struct NrnThread: UnifiedMemManaged<false> {
     double _t = 0;
     double _dt = -1e9;
     double cj = 0.0;

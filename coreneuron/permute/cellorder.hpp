@@ -47,12 +47,11 @@ class InterleaveInfo;  // forward declaration
  */
 void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream);
 
-class InterleaveInfo: public MemoryManaged {
+class InterleaveInfo: UnifiedMemManaged<false> {
   public:
     InterleaveInfo() = default;
     InterleaveInfo(const InterleaveInfo&);
     InterleaveInfo& operator=(const InterleaveInfo&);
-    ~InterleaveInfo();
     int nwarp = 0;  // used only by interleave2
     int nstride = 0;
     int* stridedispl = nullptr;  // interleave2: nwarp+1
@@ -106,17 +105,10 @@ int* node_order(int ncell,
                 int*& cellsize,
                 int*& stridedispl);
 
-// copy src array to dest with new allocation
-template <typename T>
-void copy_array(T*& dest, T* src, size_t n) {
-    dest = new T[n];
-    std::copy(src, src + n, dest);
-}
-
 // copy src array to dest with NRN_SOA_BYTE_ALIGN ecalloc_align allocation
 template <typename T>
-void copy_align_array(T*& dest, T* src, size_t n) {
-    dest = static_cast<T*>(ecalloc_align(n, sizeof(T)));
+void copy_array(T*& dest, T* src, size_t n) {
+    dest = static_cast<T*>(allocate_unified(n*sizeof(T) ));
     std::copy(src, src + n, dest);
 }
 
