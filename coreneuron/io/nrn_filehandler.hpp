@@ -118,7 +118,8 @@ class FileHandler {
         char line_buf[max_line_length], name[max_line_length];
 
         F.getline(line_buf, sizeof(line_buf));
-        n_scan = sscanf(line_buf, "%s %d %d %zd %d", name, &nsec, &nseg, &total_lfp_factors, &num_electrodes);
+        n_scan = sscanf(
+            line_buf, "%s %d %d %zd %d", name, &nsec, &nseg, &total_lfp_factors, &num_electrodes);
 
         nrn_assert(n_scan == 5);
 
