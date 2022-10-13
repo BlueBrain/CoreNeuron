@@ -27,11 +27,15 @@ spacktainerize:
     include:
       - project: hpc/personal/bsd-292
         file: /build-spack-container.yml
-        ref: extracompiler
+        ref: compiler-mods
     strategy: depend
   variables:
-    PACKAGE_NAME: neuron+coreneuron@develop%intel
-    EXTRA_COMPILER: intel-oneapi-compilers
+    PACKAGE_NAME: coreneuron
+    SPACK_CUSTOMIZATION: "
+      spack add neuron+coreneuron
+      spack config add packages:neuron:require:'%oneapi'
+      spack config add packages:coreneuron:require:'%oneapi'
+      "
 
 
 
