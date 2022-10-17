@@ -19,8 +19,8 @@ namespace coreneuron {
 void write_mech_report() {
     /// mechanim count across all gids, local to rank
     const auto n_memb_func = corenrn.get_memb_funcs().size();
-    std::vector<long> local_mech_count(n_memb_func, 0);
-    std::vector<long> local_mech_size(n_memb_func, 0);
+    std::vector<long long> local_mech_count(n_memb_func, 0);
+    std::vector<long long> local_mech_size(n_memb_func, 0);
 
     /// each gid record goes on separate row, only check non-empty threads
     for (int i = 0; i < nrn_nthread; i++) {
@@ -33,20 +33,20 @@ void write_mech_report() {
         }
     }
 
-    std::vector<long> total_mech_count(n_memb_func);
-    std::vector<long> total_mech_size(n_memb_func);
+    std::vector<long long> total_mech_count(n_memb_func);
+    std::vector<long long> total_mech_size(n_memb_func);
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
         /// get global sum of all mechanism instances
-        nrnmpi_long_allreduce_vec(&local_mech_count[0],
-                                  &total_mech_count[0],
-                                  local_mech_count.size(),
-                                  1);
-        nrnmpi_long_allreduce_vec(&local_mech_size[0],
-                                  &total_mech_size[0],
-                                  local_mech_size.size(),
-                                  1);
+        nrnmpi_long_long_allreduce_vec(&local_mech_count[0],
+                                       &total_mech_count[0],
+                                       local_mech_count.size(),
+                                       1);
+        nrnmpi_long_long_allreduce_vec(&local_mech_size[0],
+                                       &total_mech_size[0],
+                                       local_mech_size.size(),
+                                       1);
     } else
 #endif
     {

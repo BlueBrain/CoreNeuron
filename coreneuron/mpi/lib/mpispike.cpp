@@ -331,6 +331,20 @@ void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type) {
     return;
 }
 
+void nrnmpi_long_long_allreduce_vec_impl(long long* src, long long* dest, int cnt, int type) {
+    MPI_Op tt;
+    assert(src != dest);
+    if (type == 1) {
+        tt = MPI_SUM;
+    } else if (type == 2) {
+        tt = MPI_MAX;
+    } else {
+        tt = MPI_MIN;
+    }
+    MPI_Allreduce(src, dest, cnt, MPI_LONG_LONG, tt, nrnmpi_comm);
+    return;
+}
+
 #if NRN_MULTISEND
 
 static MPI_Comm multisend_comm;
