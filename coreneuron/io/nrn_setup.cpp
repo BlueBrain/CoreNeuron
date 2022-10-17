@@ -1053,10 +1053,10 @@ size_t model_size(bool detailed_report) {
     size_t sz_pntproc = sizeof(Point_process);
     size_t nccnt = 0;
 
-    std::vector<long> size_data(13, 0);
-    std::vector<long> global_size_data_min(13, 0);
-    std::vector<long> global_size_data_max(13, 0);
-    std::vector<long> global_size_data_sum(13, 0);
+    std::vector<long long> size_data(13, 0);
+    std::vector<long long> global_size_data_min(13, 0);
+    std::vector<long long> global_size_data_max(13, 0);
+    std::vector<long long> global_size_data_sum(13, 0);
     std::vector<float> global_size_data_avg(13, 0.0);
 
     for (int i = 0; i < nrn_nthread; ++i) {
@@ -1135,9 +1135,9 @@ size_t model_size(bool detailed_report) {
 #if NRNMPI
         if (corenrn_param.mpi_enable) {
             // last arg is op type where 1 is sum, 2 is max and any other value is min
-            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
-            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
-            nrnmpi_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
+            nrnmpi_long_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
+            nrnmpi_long_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
+            nrnmpi_long_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
             for (int i = 0; i < 13; i++) {
                 global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
             }

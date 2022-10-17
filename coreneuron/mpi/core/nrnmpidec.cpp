@@ -48,7 +48,7 @@ mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_vec_impl)> nrnmp
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_allreduce_vec_impl)>
     nrnmpi_long_allreduce_vec{"nrnmpi_long_allreduce_vec_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_long_allreduce_vec_impl)>
-    nrnmpi_long_allreduce_vec{"nrnmpi_long_long_allreduce_vec_impl"};
+    nrnmpi_long_long_allreduce_vec{"nrnmpi_long_long_allreduce_vec_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_initialized_impl)> nrnmpi_initialized{
     "nrnmpi_initialized_impl"};
 mpi_function<cnrn_make_integral_constant_t(nrnmpi_abort_impl)> nrnmpi_abort{"nrnmpi_abort_impl"};
