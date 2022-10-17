@@ -33,8 +33,8 @@ spacktainerize:
     PACKAGE_NAME: coreneuron
     SPACK_CUSTOMIZATION: |
       spack add neuron+coreneuron;
-      spack config add "packages:neuron:require:'%oneapi'";
-      spack config add "packages:coreneuron:require:'%oneapi'";
+      spack config add "packages:neuron:require:'%oneapi@2022.2.0'"
+      spack config add "packages:coreneuron:require:'%oneapi@2022.2.0'"
 
 
 
