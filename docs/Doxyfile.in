@@ -314,7 +314,6 @@ OPTIMIZE_OUTPUT_SLICE  = NO
 # the files are not read by doxygen.
 
 EXTENSION_MAPPING      = .yaml=Python
-EXTENSION_MAPPING      += .ispc=C
 
 # If the MARKDOWN_SUPPORT tag is enabled then doxygen pre-processes all comments
 # according to the Markdown format, which allows for more readable
@@ -846,7 +845,6 @@ FILE_PATTERNS          = *.c \
                          *.cpp \
                          *.c++ \
                          *.ipp \
-                         *.ispc \
                          *.h \
                          *.hh \
                          *.hxx \

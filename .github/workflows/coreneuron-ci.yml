@@ -38,7 +38,6 @@ jobs:
           - {cmake_option: "-DCORENRN_ENABLE_MPI=OFF"}
           - {use_nmodl: ON, py_version: 3.7}
           - {use_nmodl: ON}
-          - {use_ispc: ON, py_version: 3.7}
         include:
           - os: ubuntu-20.04
             config:
@@ -88,24 +87,8 @@ jobs:
         env:
           PYTHON_VERSION: ${{matrix.config.py_version || env.DEFAULT_PY_VERSION}}
 
-      - name: Install ISPC
-        if: ${{ matrix.config.use_ispc == 'ON' }}
-        working-directory: ${{runner.workspace}}
-        run: |
-          ispc_version="v1.12.0";
-          if [ "${{ startsWith(matrix.os, 'ubuntu') }}" == "true" ]; then
-            url_os="linux";
-            ispc_version_suffix="b";
-          else
-            url_os="macOS";
-            ispc_version_suffix="";
-          fi;
-          url="https://github.com/ispc/ispc/releases/download/${ispc_version}/ispc-${ispc_version}${ispc_version_suffix}-${url_os}.tar.gz";
-          wget -O ispc.tar.gz $url;
-          mkdir ispc && tar -xvzf ispc.tar.gz -C ispc --strip 1;
-
       - name: Install NMODL dependencies
-        if: ${{ matrix.config.use_nmodl == 'ON' ||  matrix.config.use_ispc == 'ON' }}
+        if: ${{ matrix.config.use_nmodl == 'ON' }}
         run: |
           python3 -m pip install --upgrade pip jinja2 pyyaml pytest sympy
 
@@ -178,9 +161,7 @@ jobs:
           
           echo "------- Build, Test and Install -------"
           mkdir build && cd build
-          if [[ "$USE_ISPC" == "ON" ]]; then
-              cmake_args+=(-DCORENRN_ENABLE_ISPC=ON -DCMAKE_ISPC_COMPILER=${{runner.workspace}}/ispc/bin/ispc)
-          elif [[ "$USE_NMODL" == "ON" ]]; then
+          if [[ "$USE_NMODL" == "ON" ]]; then
               cmake_args+=(-DCORENRN_ENABLE_NMODL=ON "-DCORENRN_NMODL_FLAGS=sympy --analytic")
           fi
           cmake .. -G Ninja "${cmake_args[@]}" \
@@ -206,7 +187,6 @@ jobs:
         env:
           CCACHE_BASEDIR: ${{runner.workspace}}/CoreNeuron
           CCACHE_DIR: ${{runner.workspace}}/ccache
-          USE_ISPC: ${{matrix.config.use_ispc}}
           USE_NMODL: ${{matrix.config.use_nmodl}}
 
       - uses: actions/upload-artifact@v3
