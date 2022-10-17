@@ -33,6 +33,7 @@ spacktainerize:
     PACKAGE_NAME: coreneuron
     SPACK_CUSTOMIZATION: |
       spack install intel-oneapi-compilers
+      spack load intel-oneapi-compilers
       spack compiler find
       spack add neuron+coreneuron;
       spack config add "packages:neuron:require:'%oneapi'"
