@@ -191,6 +191,11 @@ auto allocate_unique(const Alloc& alloc, std::size_t N) {
 }
 
 
+class [[deprecated]] MemoryManaged {
+
+
+};
+
 class HostMemManaged {
 protected:
 
@@ -239,7 +244,7 @@ protected:
         }
 #endif
         auto new_buf = allocate_unique<T[]>(allocator<T>{}, new_size);
-        memcpy(new_buf.get(), buf.get(), size * sizeof(T));
+        std::copy(buf.get(), buf.get() + size, new_buf.get());
         buf.swap(new_buf);
     }
 

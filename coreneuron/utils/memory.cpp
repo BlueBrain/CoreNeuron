@@ -27,11 +27,15 @@ bool gpu_enabled() {
 void* allocate_host(size_t num_bytes, std::size_t alignment) {
     size_t fill = 0;
     void* pointer = nullptr;
-    if (num_bytes % alignment != 0) {
-        size_t multiple = num_bytes / alignment;
-        fill = alignment * (multiple + 1) - num_bytes;
+    if (alignment > 0) {
+        if (num_bytes % alignment != 0) {
+            size_t multiple = num_bytes / alignment;
+            fill = alignment * (multiple + 1) - num_bytes;
+        }
+        nrn_assert((pointer = std::aligned_alloc(alignment, num_bytes + fill)) != nullptr);
+    } else {
+        nrn_assert((pointer = std::malloc(num_bytes)) != nullptr);
     }
-    nrn_assert((pointer = std::aligned_alloc(alignment, num_bytes + fill)) != nullptr);
     return pointer;
 }
 

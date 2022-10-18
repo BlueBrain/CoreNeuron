@@ -74,7 +74,7 @@ struct PreSynHelper {
     int flag_;
 };
 
-struct NrnThread: UnifiedMemManaged<false> {
+struct NrnThread: MemoryManaged {
     double _t = 0;
     double _dt = -1e9;
     double cj = 0.0;
