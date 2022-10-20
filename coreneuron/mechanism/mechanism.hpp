@@ -38,24 +38,47 @@ struct Point_process {
     short _tid; /* NrnThread id */
 };
 
-struct NetReceiveBuffer_t {
-    int* _displ;     /* _displ_cnt + 1 of these */
-    int* _nrb_index; /* _cnt of these (order of increasing _pnt_index) */
+struct NetReceiveBuffer_t: UnifiedMemManaged<false> {
+    unified_uniq_ptr<int[]> _displ;     /* _displ_cnt + 1 of these */
+    unified_uniq_ptr<int[]> _nrb_index; /* _cnt of these (order of increasing _pnt_index) */
 
-    int* _pnt_index;
-    int* _weight_index;
-    double* _nrb_t;
-    double* _nrb_flag;
-    int _cnt;
-    int _displ_cnt; /* number of unique _pnt_index */
-    int _size;      /* capacity */
-    int _pnt_offset;
-    size_t size_of_object() {
-        size_t nbytes = 0;
+    unified_uniq_ptr<int[]> _pnt_index;
+    unified_uniq_ptr<int[]> _weight_index;
+    unified_uniq_ptr<double[]> _nrb_t;
+    unified_uniq_ptr<double[]> _nrb_flag;
+    int _cnt = 0;
+    int _displ_cnt = 0; /* number of unique _pnt_index */
+
+    std::size_t _size = 0;      /* capacity */
+    int _pnt_offset = 0;
+    std::size_t size_of_object() {
+        std::size_t nbytes = 0;
         nbytes += _size * sizeof(int) * 3;
         nbytes += (_size + 1) * sizeof(int);
         nbytes += _size * sizeof(double) * 2;
         return nbytes;
+    }
+
+    void initialize(std::size_t size) {
+        _size = size;
+        _pnt_index = allocate_unique<int[]>(allocator<int>{}, _size);
+        auto displ_size = _size + 1;
+        _displ = allocate_unique<int[]>(allocator<int>{}, displ_size);
+        _nrb_index = allocate_unique<int[]>(allocator<int>{}, _size);
+        _weight_index = allocate_unique<int[]>(allocator<int>{}, _size);
+        _nrb_t = allocate_unique<double[]>(allocator<double>{}, _size);
+        _nrb_flag = allocate_unique<double[]>(allocator<double>{}, _size);
+    }
+
+    void grow() {
+        std::size_t new_size = _size * 2;
+        grow_buf(_pnt_index, _size, new_size);
+        grow_buf(_weight_index, _size, new_size);
+        grow_buf(_nrb_t, _size, new_size);
+        grow_buf(_nrb_flag, _size, new_size);
+        grow_buf(_displ,  _size + 1, new_size + 1);
+        grow_buf(_nrb_index, _size, new_size);
+        _size = new_size;
     }
 };
 
@@ -66,9 +89,9 @@ struct NetSendBuffer_t: UnifiedMemManaged<false> {
     unified_uniq_ptr<int[]> _weight_index;
     unified_uniq_ptr<double[]> _nsb_t;
     unified_uniq_ptr<double[]> _nsb_flag;
-    int _cnt;
-    std::size_t _size;       /* capacity */
-    int reallocated; /* if buffer resized/reallocated, needs to be copy to cpu */
+    int _cnt = 0;
+    std::size_t _size = 0;       /* capacity */
+    int reallocated = 0; /* if buffer resized/reallocated, needs to be copy to cpu */
 
     NetSendBuffer_t(int size)
         : _size(size) {
@@ -93,7 +116,7 @@ struct NetSendBuffer_t: UnifiedMemManaged<false> {
     }
 
     void grow() {
-        int new_size = _size * 2;
+        std::size_t new_size = _size * 2;
         grow_buf(_sendtype, _size, new_size);
         grow_buf(_vdata_index, _size, new_size);
         grow_buf(_pnt_index, _size, new_size);

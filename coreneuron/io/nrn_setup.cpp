@@ -764,15 +764,7 @@ void nrn_cleanup() {
 
             NetReceiveBuffer_t* nrb = ml->_net_receive_buffer;
             if (nrb) {
-                if (nrb->_size) {
-                    free_memory(nrb->_pnt_index);
-                    free_memory(nrb->_weight_index);
-                    free_memory(nrb->_nrb_t);
-                    free_memory(nrb->_nrb_flag);
-                    free_memory(nrb->_displ);
-                    free_memory(nrb->_nrb_index);
-                }
-                free_memory(nrb);
+                delete nrb;
                 ml->_net_receive_buffer = nullptr;
             }
 
