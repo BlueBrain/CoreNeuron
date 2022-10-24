@@ -108,7 +108,7 @@ int* node_order(int ncell,
 // copy src array to dest with NRN_SOA_BYTE_ALIGN ecalloc_align allocation
 template <typename T>
 void copy_array(T*& dest, T* src, size_t n) {
-    dest = static_cast<T*>(allocate_unified(n*sizeof(T) ));
+    dest = static_cast<T*>(allocate_unified(n * sizeof(T)));
     std::copy(src, src + n, dest);
 }
 

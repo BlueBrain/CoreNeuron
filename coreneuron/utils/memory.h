@@ -109,7 +109,8 @@ bool operator==(unified_allocator<T, Tforce> const&, unified_allocator<U, Uforce
 }
 
 template <typename T, bool Tforce, typename U, bool Uforce>
-bool operator!=(unified_allocator<T, Tforce> const& x, unified_allocator<U, Uforce> const& y) noexcept {
+bool operator!=(unified_allocator<T, Tforce> const& x,
+                unified_allocator<U, Uforce> const& y) noexcept {
     return !(x == y);
 }
 
@@ -128,23 +129,25 @@ template <typename Alloc>
 struct alloc_deleter {
     alloc_deleter() = default;  // OL210813 addition
     alloc_deleter(const Alloc& a)
-            : a(a), size(1) {}
+        : a(a)
+        , size(1) {}
 
     alloc_deleter(const Alloc& a, std::size_t N)
-            : a(a), size(N) {}
+        : a(a)
+        , size(N) {}
 
     using pointer = typename std::allocator_traits<Alloc>::pointer;
 
     void operator()(pointer p) const {
         Alloc aa(a);
-        auto pp = &p[size-1];
+        auto pp = &p[size - 1];
         do {
             std::allocator_traits<Alloc>::destroy(aa, std::addressof(*pp--));
         } while (pp >= p);
         std::allocator_traits<Alloc>::deallocate(aa, p, size);
     }
 
-private:
+  private:
     Alloc a;
     std::size_t size;
 };
@@ -191,20 +194,16 @@ auto allocate_unique(const Alloc& alloc, std::size_t N) {
 }
 
 
-class [[deprecated]] MemoryManaged {
-
-
-};
+class [[deprecated]] MemoryManaged {};
 
 class HostMemManaged {
-protected:
-
+  protected:
     template <typename T>
     using allocator = host_allocator<T>;
 
     template <typename U>
     using unified_uniq_ptr =
-            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
 
     template <typename T>
     void grow_buf(unified_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
@@ -218,7 +217,9 @@ protected:
      *
      */
     template <typename T>
-    void initialize_from_other(unified_uniq_ptr<T>& dest, unified_uniq_ptr<T>& src, std::size_t size) {
+    void initialize_from_other(unified_uniq_ptr<T>& dest,
+                               unified_uniq_ptr<T>& src,
+                               std::size_t size) {
         dest = allocate_unique<T[]>(allocator<T>{}, size);
         std::copy(src.get(), src.get() + size, dest.get);
     }
@@ -226,15 +227,15 @@ protected:
 
 template <bool force>
 class UnifiedMemManaged {
-public:
+  public:
     template <typename T>
     using allocator = unified_allocator<T, force>;
 
     template <typename U>
     using unified_uniq_ptr =
-            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
-protected:
+        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
 
+  protected:
     template <typename T>
     void grow_buf(unified_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
 #ifdef CORENEURON_ENABLE_GPU
@@ -253,7 +254,9 @@ protected:
      *
      */
     template <typename T>
-    void initialize_from_other(unified_uniq_ptr<T>& dest, const unified_uniq_ptr<T>& src, std::size_t size) {
+    void initialize_from_other(unified_uniq_ptr<T>& dest,
+                               const unified_uniq_ptr<T>& src,
+                               std::size_t size) {
         dest = allocate_unique<T[]>(allocator<T>{}, size);
         std::copy(src.get(), src.get() + size, dest.get);
     }

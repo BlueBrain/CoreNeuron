@@ -825,7 +825,7 @@ void realloc_net_receive_buffer(NrnThread* nt, Memb_list* ml) {
         cnrn_target_delete(nrb->_nrb_index, nrb->_size);
     }
 #endif
-   nrb->grow();
+    nrb->grow();
 #ifdef CORENEURON_ENABLE_GPU
     if (nt->compute_gpu) {
         // update device copy

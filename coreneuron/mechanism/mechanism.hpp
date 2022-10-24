@@ -49,7 +49,7 @@ struct NetReceiveBuffer_t: UnifiedMemManaged<false> {
     int _cnt = 0;
     int _displ_cnt = 0; /* number of unique _pnt_index */
 
-    std::size_t _size = 0;      /* capacity */
+    std::size_t _size = 0; /* capacity */
     int _pnt_offset = 0;
     std::size_t size_of_object() {
         std::size_t nbytes = 0;
@@ -76,7 +76,7 @@ struct NetReceiveBuffer_t: UnifiedMemManaged<false> {
         grow_buf(_weight_index, _size, new_size);
         grow_buf(_nrb_t, _size, new_size);
         grow_buf(_nrb_flag, _size, new_size);
-        grow_buf(_displ,  _size + 1, new_size + 1);
+        grow_buf(_displ, _size + 1, new_size + 1);
         grow_buf(_nrb_index, _size, new_size);
         _size = new_size;
     }
@@ -90,8 +90,8 @@ struct NetSendBuffer_t: UnifiedMemManaged<false> {
     unified_uniq_ptr<double[]> _nsb_t;
     unified_uniq_ptr<double[]> _nsb_flag;
     int _cnt = 0;
-    std::size_t _size = 0;       /* capacity */
-    int reallocated = 0; /* if buffer resized/reallocated, needs to be copy to cpu */
+    std::size_t _size = 0; /* capacity */
+    int reallocated = 0;   /* if buffer resized/reallocated, needs to be copy to cpu */
 
     NetSendBuffer_t(int size)
         : _size(size) {
