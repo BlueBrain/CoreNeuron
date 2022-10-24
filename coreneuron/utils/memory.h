@@ -197,13 +197,13 @@ auto allocate_unique(const Alloc& alloc, std::size_t N) {
 class [[deprecated]] MemoryManaged {};
 
 class HostMemManaged {
-public:
+  public:
     template <typename T>
     using allocator = host_allocator<T>;
 
     template <typename U>
     using host_uniq_ptr =
-            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
 
     static void* operator new(std::size_t count) {
         return allocate_host(count);
@@ -221,8 +221,7 @@ public:
         deallocate_host(ptr, sz);
     }
 
-protected:
-
+  protected:
     template <typename T>
     void grow_buf(host_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
         auto new_buf = allocate_unique<T[]>(allocator<T>{}, new_size);
@@ -235,9 +234,7 @@ protected:
      *
      */
     template <typename T>
-    void initialize_from_other(host_uniq_ptr<T>& dest,
-                               host_uniq_ptr<T>& src,
-                               std::size_t size) {
+    void initialize_from_other(host_uniq_ptr<T>& dest, host_uniq_ptr<T>& src, std::size_t size) {
         dest = allocate_unique<T[]>(allocator<T>{}, size);
         std::copy(src.get(), src.get() + size, dest.get);
     }
@@ -251,7 +248,7 @@ class UnifiedMemManaged {
 
     template <typename U>
     using unified_uniq_ptr =
-            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
 
     static void* operator new(std::size_t count) {
         return allocate_unified(count);
@@ -269,8 +266,7 @@ class UnifiedMemManaged {
         deallocate_unified(ptr, sz);
     }
 
-protected:
-
+  protected:
   protected:
     template <typename T>
     void grow_buf(unified_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
