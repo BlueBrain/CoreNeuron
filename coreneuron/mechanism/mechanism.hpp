@@ -38,7 +38,7 @@ struct Point_process {
     short _tid; /* NrnThread id */
 };
 
-struct NetReceiveBuffer_t: UnifiedMemManaged<false> {
+struct NetReceiveBuffer_t: public UnifiedMemManaged<> {
     unified_uniq_ptr<int[]> _displ;     /* _displ_cnt + 1 of these */
     unified_uniq_ptr<int[]> _nrb_index; /* _cnt of these (order of increasing _pnt_index) */
 
@@ -82,7 +82,7 @@ struct NetReceiveBuffer_t: UnifiedMemManaged<false> {
     }
 };
 
-struct NetSendBuffer_t: UnifiedMemManaged<false> {
+struct NetSendBuffer_t: public UnifiedMemManaged<> {
     unified_uniq_ptr<int[]> _sendtype;  // net_send, net_event, net_move
     unified_uniq_ptr<int[]> _vdata_index;
     unified_uniq_ptr<int[]> _pnt_index;

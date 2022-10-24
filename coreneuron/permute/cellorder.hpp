@@ -47,7 +47,7 @@ class InterleaveInfo;  // forward declaration
  */
 void solve_interleaved2_launcher(NrnThread* nt, InterleaveInfo* info, int ncore, void* stream);
 
-class InterleaveInfo: UnifiedMemManaged<false> {
+class InterleaveInfo: public UnifiedMemManaged<> {
   public:
     InterleaveInfo() = default;
     InterleaveInfo(const InterleaveInfo&);

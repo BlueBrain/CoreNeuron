@@ -479,9 +479,7 @@ void Phase2::set_net_send_buffer(Memb_list** ml_list, const std::vector<int>& pn
         // Does this thread have this type.
         Memb_list* ml = ml_list[type];
         if (ml) {  // needs a NetReceiveBuffer
-            NetReceiveBuffer_t* nrb =
-                (NetReceiveBuffer_t*) ecalloc_align(1, sizeof(NetReceiveBuffer_t));
-            // new(nrb) NetReceiveBuffer_t{};
+            NetReceiveBuffer_t* nrb = new NetReceiveBuffer_t();
             assert(!ml->_net_receive_buffer);
             ml->_net_receive_buffer = nrb;
             nrb->_pnt_offset = pnt_offset[type];

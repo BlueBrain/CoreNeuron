@@ -197,16 +197,34 @@ auto allocate_unique(const Alloc& alloc, std::size_t N) {
 class [[deprecated]] MemoryManaged {};
 
 class HostMemManaged {
-  protected:
+public:
     template <typename T>
     using allocator = host_allocator<T>;
 
     template <typename U>
-    using unified_uniq_ptr =
-        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+    using host_uniq_ptr =
+            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+
+    static void* operator new(std::size_t count) {
+        return allocate_host(count);
+    }
+
+    static void* operator new[](std::size_t count) {
+        return allocate_host(count);
+    }
+
+    static void operator delete(void* ptr, std::size_t sz) {
+        deallocate_host(ptr, sz);
+    }
+
+    static void operator delete[](void* ptr, std::size_t sz) {
+        deallocate_host(ptr, sz);
+    }
+
+protected:
 
     template <typename T>
-    void grow_buf(unified_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
+    void grow_buf(host_uniq_ptr<T[]>& buf, std::size_t size, std::size_t new_size) {
         auto new_buf = allocate_unique<T[]>(allocator<T>{}, new_size);
         std::copy(buf.get(), buf.get() + size, new_buf.get());
         buf.swap(new_buf);
@@ -217,15 +235,15 @@ class HostMemManaged {
      *
      */
     template <typename T>
-    void initialize_from_other(unified_uniq_ptr<T>& dest,
-                               unified_uniq_ptr<T>& src,
+    void initialize_from_other(host_uniq_ptr<T>& dest,
+                               host_uniq_ptr<T>& src,
                                std::size_t size) {
         dest = allocate_unique<T[]>(allocator<T>{}, size);
         std::copy(src.get(), src.get() + size, dest.get);
     }
 };
 
-template <bool force>
+template <bool force = false>
 class UnifiedMemManaged {
   public:
     template <typename T>
@@ -233,7 +251,25 @@ class UnifiedMemManaged {
 
     template <typename U>
     using unified_uniq_ptr =
-        std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+            std::unique_ptr<U, alloc_deleter<allocator<typename std::remove_extent<U>::type>>>;
+
+    static void* operator new(std::size_t count) {
+        return allocate_unified(count);
+    }
+
+    static void* operator new[](std::size_t count) {
+        return allocate_unified(count);
+    }
+
+    static void operator delete(void* ptr, std::size_t sz) {
+        deallocate_unified(ptr, sz);
+    }
+
+    static void operator delete[](void* ptr, std::size_t sz) {
+        deallocate_unified(ptr, sz);
+    }
+
+protected:
 
   protected:
     template <typename T>
