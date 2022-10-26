@@ -47,8 +47,9 @@ simulation_stack:
   extends: [.spack_build]
   variables:
     bb5_ntasks: 2   # so we block 16 cores
-    bb5_cpus_per_task: 8 # ninja -j {this}
-    bb5_memory: 76G # ~16*384/80
+    bb5_cpus_per_task: 16 # ninja -j {this}
+    bb5_memory: 0 # ~16*384/80
+    bb5_exclusive: full
 
 .spack_intel:
   variables:
