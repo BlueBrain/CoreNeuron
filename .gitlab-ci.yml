@@ -13,7 +13,7 @@ variables:
     value: master
   NMODL_BRANCH:
     description: Branch of NMODL to build CoreNEURON against (NMODL_COMMIT and NMODL_TAG also possible)
-    value: master
+    value: kotsalos/crout_scopmath
   SPACK_BRANCH:
     description: Branch of BlueBrain Spack to use for the CI pipeline
     value: develop
@@ -69,7 +69,7 @@ simulation_stack:
 .test_neuron:
   extends: [.ctest]
   variables:
-    bb5_ntasks: 16
+    bb5_ntasks: 8
     bb5_memory: 76G # ~16*384/80
 
 # Build NMODL once with GCC
