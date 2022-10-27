@@ -102,6 +102,7 @@ struct ReportConfiguration {
     int num_gids;                         // total number of gids
     int buffer_size;                      // hint on buffer size used for this report
     std::set<int> target;                 // list of gids for this report
+    int report_index;                     // index of the report
 };
 
 void setup_report_engine(double dt_report, double mindelay);

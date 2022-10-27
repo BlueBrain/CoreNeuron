@@ -155,6 +155,7 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
             // extra new line: skip
             report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
+        report.report_index = i;
         reports.push_back(report);
     }
     // read population information for spike report
