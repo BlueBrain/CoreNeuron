@@ -31,7 +31,7 @@ ReportEvent::ReportEvent(double dt,
     , report_path(name)
     , report_dt(report_dt)
     , vars_to_report(filtered_gids)
-    , report_index_(report_index) {
+    , report_t_shift_(1e-6 * report_index) {
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
     reporting_period = static_cast<int>(report_dt / dt);
@@ -90,9 +90,11 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
                                 gids_to_report.data(),
                                 report_path.data());
 #endif
-        // Deterministic event time per report
-        send(t + dt + 1e-6 * report_index_, nc, nt);
+        // Deterministic event time per report to avoid deadlocks
+        send(t + dt + report_t_shift_, nc, nt);
         step++;
+        // Apply shift only in the first iteration so it doesn't accumulate
+        report_t_shift_ = 0;
     }
 }
 

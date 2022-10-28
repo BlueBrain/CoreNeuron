@@ -49,7 +49,7 @@ class ReportEvent: public DiscreteEvent {
     double step;
     std::string report_path;
     double report_dt;
-    int report_index_;
+    int report_t_shift_;
     int reporting_period;
     std::vector<int> gids_to_report;
     double tstart;
