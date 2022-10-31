@@ -66,6 +66,7 @@ simulation_stack:
 .gpu_node:
   variables:
     bb5_constraint: volta
+    bb5_cpus_per_task: 2
 .test_neuron:
   extends: [.ctest]
   variables:
