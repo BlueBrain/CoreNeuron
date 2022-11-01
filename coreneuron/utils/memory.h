@@ -177,7 +177,7 @@ class MemoryManaged {
 
 inline void alloc_memory(void*& pointer, size_t num_bytes, size_t alignment) {
     size_t fill = 0;
-    if (alignment > 0) {
+    if (false) {
         if (num_bytes % alignment != 0) {
             size_t multiple = num_bytes / alignment;
             fill = alignment * (multiple + 1) - num_bytes;
@@ -232,7 +232,7 @@ inline bool is_aligned(void* pointer, std::size_t alignment) {
 inline void* emalloc_align(size_t size, size_t alignment = NRN_SOA_BYTE_ALIGN) {
     void* memptr;
     alloc_memory(memptr, size, alignment);
-    if (alignment != 0) {
+    if (false) {
         nrn_assert(is_aligned(memptr, alignment));
     }
     return memptr;
@@ -255,7 +255,7 @@ inline void* ecalloc_align(size_t n, size_t size, size_t alignment = NRN_SOA_BYT
         return nullptr;
     }
     calloc_memory(p, n * size, alignment);
-    if (alignment != 0) {
+    if (false) {
         nrn_assert(is_aligned(p, alignment));
     }
     return p;
