@@ -1249,6 +1249,7 @@ size_t model_size(bool detailed_report) {
     }
 #endif
 
+    print_buddyinfo("AFTER MODEL LOADING");
     return nbyte;
 }
 
