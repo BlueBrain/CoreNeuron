@@ -1260,8 +1260,9 @@ size_t model_size(bool detailed_report) {
         nbyte = global_nbyte;
     }
 #endif
-
-    print_buddyinfo("AFTER MODEL LOADING");
+    if (nrnmpi_myid == 0) {
+        print_buddyinfo("AFTER MODEL LOADING");
+    }
     return nbyte;
 }
 
