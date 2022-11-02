@@ -218,8 +218,8 @@ static void output_spikes_parallel(const char* outpath, const SpikesInfo& spikes
 
     // each spike record in the file is time + gid (64 chars sufficient)
     const int SPIKE_RECORD_LEN = 64;
-    unsigned num_spikes = spikevec_gid.size();
-    unsigned num_bytes = (sizeof(char) * num_spikes * SPIKE_RECORD_LEN);
+    unsigned long num_spikes = spikevec_gid.size();
+    unsigned long num_bytes = (sizeof(char) * num_spikes * SPIKE_RECORD_LEN);
     char* spike_data = (char*) malloc(num_bytes);
 
     if (spike_data == nullptr) {
@@ -232,8 +232,8 @@ static void output_spikes_parallel(const char* outpath, const SpikesInfo& spikes
 
     // populate buffer with all spike entries
     char spike_entry[SPIKE_RECORD_LEN];
-    unsigned spike_data_offset = 0;
-    for (unsigned i = 0; i < num_spikes; i++) {
+    unsigned long spike_data_offset = 0;
+    for (unsigned long i = 0; i < num_spikes; i++) {
         int spike_entry_chars =
             snprintf(spike_entry, 64, "%.8g\t%d\n", spikevec_time[i], spikevec_gid[i]);
         spike_data_offset =
