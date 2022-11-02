@@ -9,8 +9,10 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <fstream>
 #include <cstring>
 #include <mutex>
+#include <iostream>
 
 #include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/nrnconf.h"
@@ -1042,6 +1044,16 @@ size_t input_presyn_size(void) {
     printf(" gid2in table bytes=~%ld size=%ld\n", nbyte, gid2in.size());
 #endif
     return nbyte;
+}
+
+inline void print_buddyinfo(std::string message) {
+    std::cout << "=== " << message << " ===" << std::endl;
+    std::ifstream f("/proc/buddyinfo");
+
+    if (f.is_open()) {
+        std::cout << f.rdbuf();
+    }
+    std::cout << "=========================" << std::endl;
 }
 
 size_t model_size(bool detailed_report) {

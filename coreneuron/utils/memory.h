@@ -10,9 +10,7 @@
 
 #include <cstdint>
 #include <cstring>
-#include <fstream>
 #include <memory>
-#include <iostream>
 
 #include "coreneuron/utils/nrn_assert.h"
 #include "coreneuron/nrniv/nrniv_decl.h"
@@ -262,15 +260,4 @@ inline void* ecalloc_align(size_t n, size_t size, size_t alignment = NRN_SOA_BYT
     }
     return p;
 }
-
-inline void print_buddyinfo(std::string message) {
-    std::cout << "=== " << message << " ===" << std::endl;
-    std::ifstream f("/proc/buddyinfo");
-
-    if (f.is_open()) {
-        std::cout << f.rdbuf();
-    }
-    std::cout << "=========================" << std::endl;
-}
-
 }  // namespace coreneuron
