@@ -1243,8 +1243,8 @@ size_t model_size(bool detailed_report) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-        size_t global_nbyte = 0;
-        nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
+        long long global_nbyte = 0;
+        nrnmpi_long_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
         nbyte = global_nbyte;
     }
 #endif
