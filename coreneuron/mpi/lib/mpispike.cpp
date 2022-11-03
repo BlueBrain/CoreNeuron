@@ -331,7 +331,7 @@ void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type) {
     return;
 }
 
-void nrnmpi_long_long_allreduce_vec_impl(long long* src, long long* dest, int cnt, int type) {
+void nrnmpi_unsigned_long_allreduce_vec_impl(unsigned long* src, unsigned long* dest, int cnt, int type) {
     MPI_Op tt;
     assert(src != dest);
     if (type == 1) {
@@ -341,7 +341,7 @@ void nrnmpi_long_long_allreduce_vec_impl(long long* src, long long* dest, int cn
     } else {
         tt = MPI_MIN;
     }
-    MPI_Allreduce(src, dest, cnt, MPI_LONG_LONG, tt, nrnmpi_comm);
+    MPI_Allreduce(src, dest, cnt, MPI_UNSIGNED_LONG, tt, nrnmpi_comm);
     return;
 }
 

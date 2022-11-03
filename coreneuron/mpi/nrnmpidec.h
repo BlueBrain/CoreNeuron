@@ -91,9 +91,9 @@ extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_dbl_allreduce_vec_impl)
 extern "C" void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type);
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_allreduce_vec_impl)>
     nrnmpi_long_allreduce_vec;
-extern "C" void nrnmpi_long_long_allreduce_vec_impl(long long* src, long long* dest, int cnt, int type);
-extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_long_long_allreduce_vec_impl)>
-    nrnmpi_long_long_allreduce_vec;
+extern "C" void nrnmpi_unsigned_long_allreduce_vec_impl(unsigned long* src, unsigned long* dest, int cnt, int type);
+extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_unsigned_long_allreduce_vec_impl)>
+    nrnmpi_unsigned_long_allreduce_vec;
 extern "C" bool nrnmpi_initialized_impl();
 extern mpi_function<cnrn_make_integral_constant_t(nrnmpi_initialized_impl)> nrnmpi_initialized;
 extern "C" void nrnmpi_abort_impl(int);
