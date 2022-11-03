@@ -63,6 +63,7 @@ simulation_stack:
     bb5_duration: "2:00:00"
     SPACK_PACKAGE: neuron
     SPACK_PACKAGE_SPEC: +coreneuron+debug+tests~legacy-unit~rx3d model_tests=channel-benchmark,olfactory,tqperf-heavy
+    SPACK_INSTALL_EXTRA_FLAGS: --verbose
 .gpu_node:
   variables:
     bb5_constraint: volta
