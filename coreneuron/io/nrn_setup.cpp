@@ -1045,7 +1045,7 @@ size_t input_presyn_size(void) {
 }
 
 size_t model_size(bool detailed_report) {
-    long nbyte = 0;
+    size_t nbyte = 0;
     size_t sz_nrnThread = sizeof(NrnThread);
     size_t sz_presyn = sizeof(PreSyn);
     size_t sz_input_presyn = sizeof(InputPreSyn);
@@ -1243,7 +1243,7 @@ size_t model_size(bool detailed_report) {
 
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
-        long global_nbyte = 0;
+        size_t global_nbyte = 0;
         nrnmpi_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
         nbyte = global_nbyte;
     }
