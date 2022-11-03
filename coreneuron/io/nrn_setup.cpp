@@ -1135,9 +1135,9 @@ size_t model_size(bool detailed_report) {
 #if NRNMPI
         if (corenrn_param.mpi_enable) {
             // last arg is op type where 1 is sum, 2 is max and any other value is min
-            nrnmpi_unsigned_long_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
-            nrnmpi_unsigned_long_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
-            nrnmpi_unsigned_long_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
+            nrnmpi_size_t_allreduce_vec(&size_data[0], &global_size_data_sum[0], 13, 1);
+            nrnmpi_size_t_allreduce_vec(&size_data[0], &global_size_data_max[0], 13, 2);
+            nrnmpi_size_t_allreduce_vec(&size_data[0], &global_size_data_min[0], 13, 3);
             for (int i = 0; i < 13; i++) {
                 global_size_data_avg[i] = global_size_data_sum[i] / float(nrnmpi_numprocs);
             }
@@ -1244,7 +1244,7 @@ size_t model_size(bool detailed_report) {
 #if NRNMPI
     if (corenrn_param.mpi_enable) {
         size_t global_nbyte = 0;
-        nrnmpi_unsigned_long_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
+        nrnmpi_size_t_allreduce_vec(&nbyte, &global_nbyte, 1, 1);
         nbyte = global_nbyte;
     }
 #endif

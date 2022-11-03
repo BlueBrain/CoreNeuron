@@ -331,9 +331,10 @@ void nrnmpi_long_allreduce_vec_impl(long* src, long* dest, int cnt, int type) {
     return;
 }
 
-void nrnmpi_unsigned_long_allreduce_vec_impl(unsigned long* src, unsigned long* dest, int cnt, int type) {
+void nrnmpi_size_t_allreduce_vec_impl(size_t* src, size_t* dest, int cnt, int type) {
     MPI_Op tt;
-    assert(src != dest);
+    assert(src != dest); // Note: Not sure why is this here, as we can use MPI_IN_PLACE
+                         //       See https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node117.htm#Node117
     if (type == 1) {
         tt = MPI_SUM;
     } else if (type == 2) {
@@ -341,7 +342,7 @@ void nrnmpi_unsigned_long_allreduce_vec_impl(unsigned long* src, unsigned long* 
     } else {
         tt = MPI_MIN;
     }
-    MPI_Allreduce(src, dest, cnt, MPI_UNSIGNED_LONG, tt, nrnmpi_comm);
+    MPI_Allreduce(src, dest, cnt, MPI_SIZE_T, tt, nrnmpi_comm);
     return;
 }
 

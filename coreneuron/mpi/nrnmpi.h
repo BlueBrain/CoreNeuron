@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cassert>
+#include <climits>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -17,6 +18,19 @@
 
 #ifndef nrn_spikebuf_size
 #define nrn_spikebuf_size 0
+#endif
+
+// Define 'size_t' type for MPI
+#if SIZE_MAX == UCHAR_MAX
+#define MPI_SIZE_T MPI_UNSIGNED_CHAR
+#elif SIZE_MAX == USHRT_MAX
+#define MPI_SIZE_T MPI_UNSIGNED_SHORT
+#elif SIZE_MAX == UINT_MAX
+#define MPI_SIZE_T MPI_UNSIGNED
+#elif SIZE_MAX == ULONG_MAX
+#define MPI_SIZE_T MPI_UNSIGNED_LONG
+#else
+#define MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
 #endif
 
 namespace coreneuron {
