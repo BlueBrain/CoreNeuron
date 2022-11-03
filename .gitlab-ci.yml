@@ -53,9 +53,11 @@ simulation_stack:
 .spack_intel:
   variables:
     SPACK_PACKAGE_COMPILER: intel
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^python%gcc
 .spack_nvhpc:
   variables:
     SPACK_PACKAGE_COMPILER: nvhpc
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^caliper~libdw~adiak~libunwind%gcc+cuda cuda_arch=70 ^python%gcc
 .build_neuron:
   extends: [.build]
   timeout: two hours
@@ -160,40 +162,56 @@ build:nmodl:
 # Build NEURON
 build:neuron:mod2c:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
+  variables:
+    SPACK_PACKAGE_SPEC: ~caliper~gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug
 #  needs: ["build:coreneuron:mod2c:intel:shared:debug"]
 
 build:neuron:nmodl:intel:debug:legacy:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: ~caliper~gpu~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug
 #  needs: ["build:coreneuron:nmodl:intel:debug:legacy"]
 
 build:neuron:nmodl:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: ~caliper~gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=Debug
 #  needs: ["build:coreneuron:nmodl:intel:shared:debug"]
 
 build:neuron:mod2c:nvhpc:acc:shared:
   extends: [.build_neuron, .spack_nvhpc]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=RelWithDebInfo
 #  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
 
 build:neuron:nmodl:nvhpc:acc:debug:legacy:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug
 #  needs: ["build:coreneuron:nmodl:nvhpc:acc:debug:legacy"]
 
 build:neuron:nmodl:nvhpc:acc:shared:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=RelWithDebInfo
 #  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared"]
 
 build:neuron:nmodl:nvhpc:omp:legacy:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo
 #  needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
 
 build:neuron:nmodl:nvhpc:omp:debug:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug
 #  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
 
 # Test CoreNEURON
