@@ -145,7 +145,7 @@ void register_sections_to_report(const SecMapping* sections,
 }
 
 VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
-                                                       const std::set<int>& target,
+                                                       const std::vector<int>& target,
                                                        double* report_variable,
                                                        SectionType section_type,
                                                        bool all_compartments) const {
@@ -160,7 +160,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
 
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
-        if (target.find(gid) != target.end()) {
+        if (std::binary_search(target.begin(), target.end(), gid)) {
             const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
             if (cell_mapping == nullptr) {
                 std::cerr
@@ -197,7 +197,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
 
 VarsToReport ReportHandler::get_summation_vars_to_report(
     const NrnThread& nt,
-    const std::set<int>& target,
+    const std::vector<int>& target,
     ReportConfiguration& report,
     const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
@@ -211,7 +211,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
 
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
-        if (report.target.find(gid) == report.target.end()) {
+        if (!std::binary_search(report.target.begin(), report.target.end(), gid)) {
             continue;
         }
         bool has_imembrane = false;
@@ -244,7 +244,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
                 has_imembrane = true;
             }
         }
-        if (target.find(gid) != target.end()) {
+        if (std::binary_search(target.begin(), target.end(), gid)) {
             const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
             if (cell_mapping == nullptr) {
                 std::cerr
@@ -300,7 +300,7 @@ VarsToReport ReportHandler::get_synapse_vars_to_report(
     VarsToReport vars_to_report;
     for (int i = 0; i < nt.ncell; i++) {
         int gid = nt.presyns[i].gid_;
-        if (report.target.find(gid) == report.target.end()) {
+        if (!std::binary_search(report.target.begin(), report.target.end(), gid)) {
             continue;
         }
         // There can only be 1 mechanism
