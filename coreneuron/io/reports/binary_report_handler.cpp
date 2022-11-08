@@ -13,7 +13,10 @@
 
 namespace coreneuron {
 
-void BinaryReportHandler::create_report(ReportConfiguration& config, double dt, double tstop, double delay) {
+void BinaryReportHandler::create_report(ReportConfiguration& config,
+                                        double dt,
+                                        double tstop,
+                                        double delay) {
 #ifdef ENABLE_BIN_REPORTS
     records_set_atomic_step(dt);
 #endif  // ENABLE_BIN_REPORTS

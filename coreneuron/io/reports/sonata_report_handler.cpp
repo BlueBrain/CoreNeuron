@@ -17,7 +17,10 @@
 
 namespace coreneuron {
 
-void SonataReportHandler::create_report(ReportConfiguration& config, double dt, double tstop, double delay) {
+void SonataReportHandler::create_report(ReportConfiguration& config,
+                                        double dt,
+                                        double tstop,
+                                        double delay) {
 #ifdef ENABLE_SONATA_REPORTS
     sonata_set_atomic_step(dt);
 #endif  // ENABLE_SONATA_REPORTS
