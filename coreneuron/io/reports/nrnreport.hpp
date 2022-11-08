@@ -19,6 +19,7 @@
 #include <set>
 #include <unordered_map>
 #include <cstdint>
+#include <malloc.h>
 
 #define REPORT_MAX_NAME_LEN     256
 #define REPORT_MAX_FILEPATH_LEN 4096
@@ -102,6 +103,12 @@ struct ReportConfiguration {
     int num_gids;                         // total number of gids
     int buffer_size;                      // hint on buffer size used for this report
     std::vector<int> target;              // list of gids for this report
+
+    ~ReportConfiguration() {
+        // Force cleanup of the std::vector and release the memory
+        std::vector<int>().swap(target);
+        malloc_trim(0);
+    }
 };
 
 void setup_report_engine(double dt_report, double mindelay);

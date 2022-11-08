@@ -17,23 +17,23 @@
 
 namespace coreneuron {
 
-void SonataReportHandler::create_report(double dt, double tstop, double delay) {
+void SonataReportHandler::create_report(ReportConfiguration& config, double dt, double tstop, double delay) {
 #ifdef ENABLE_SONATA_REPORTS
     sonata_set_atomic_step(dt);
 #endif  // ENABLE_SONATA_REPORTS
-    ReportHandler::create_report(dt, tstop, delay);
+    ReportHandler::create_report(config, dt, tstop, delay);
 }
 
 #ifdef ENABLE_SONATA_REPORTS
 void SonataReportHandler::register_section_report(const NrnThread& nt,
-                                                  ReportConfiguration& config,
+                                                  const ReportConfiguration& config,
                                                   const VarsToReport& vars_to_report,
                                                   bool is_soma_target) {
     register_report(nt, config, vars_to_report);
 }
 
 void SonataReportHandler::register_custom_report(const NrnThread& nt,
-                                                 ReportConfiguration& config,
+                                                 const ReportConfiguration& config,
                                                  const VarsToReport& vars_to_report) {
     register_report(nt, config, vars_to_report);
 }
@@ -55,7 +55,7 @@ std::pair<std::string, int> SonataReportHandler::get_population_info(int gid) {
 }
 
 void SonataReportHandler::register_report(const NrnThread& nt,
-                                          ReportConfiguration& config,
+                                          const ReportConfiguration& config,
                                           const VarsToReport& vars_to_report) {
     sonata_create_report(config.output_path.data(),
                          config.start,
