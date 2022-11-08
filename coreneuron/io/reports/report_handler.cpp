@@ -13,6 +13,23 @@
 
 namespace coreneuron {
 
+std::vector<int> intersection(const NrnThread& nt, std::vector<int>& target_gids) {
+    std::unordered_set<int> thread_gids;
+    for (int i = 0; i < nt.ncell; i++) {
+        thread_gids.insert(nt.presyns[i].gid_);
+    }
+    std::vector<int> intersection_gids;
+    for (const auto& gid : target_gids) {
+        if (thread_gids.count(gid)) {
+            intersection_gids.push_back(gid);
+            thread_gids.erase(gid);
+        }
+    }
+    /*target_gids.clear();
+    target_gids.shrink_to_fit();*/
+    return intersection_gids;
+}
+
 void ReportHandler::create_report(double dt, double tstop, double delay) {
 #if defined(ENABLE_BIN_REPORTS) || defined(ENABLE_SONATA_REPORTS)
     if (m_report_config.start < t) {
@@ -35,6 +52,7 @@ void ReportHandler::create_report(double dt, double tstop, double delay) {
             continue;
         }
         const std::vector<int>& nodes_to_gid = map_gids(nt);
+        const std::vector<int> gids_to_report = intersection(nt, m_report_config.target);
         VarsToReport vars_to_report;
         bool is_soma_target;
         switch (m_report_config.type) {
