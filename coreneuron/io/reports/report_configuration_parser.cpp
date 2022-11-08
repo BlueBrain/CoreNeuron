@@ -150,8 +150,6 @@ std::vector<ReportConfiguration> create_report_configurations(const std::string&
             report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             report_conf.read(reinterpret_cast<char*>(report.target.data()),
                              report.num_gids * sizeof(int));
-            // Sort the bector to use binary search after
-            std::sort(report.target.begin(), report.target.end());
             // extra new line: skip
             report_conf.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
