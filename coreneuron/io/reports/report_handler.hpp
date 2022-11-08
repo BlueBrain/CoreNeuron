@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 
 #include "nrnreport.hpp"
 #include "coreneuron/io/reports/report_event.hpp"
