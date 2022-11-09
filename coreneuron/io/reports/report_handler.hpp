@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <vector>
-#include <unordered_set>
 
 #include "nrnreport.hpp"
 #include "coreneuron/io/reports/report_event.hpp"
@@ -32,16 +31,16 @@ class ReportHandler {
                                         const ReportConfiguration& config,
                                         const VarsToReport& vars_to_report);
     VarsToReport get_section_vars_to_report(const NrnThread& nt,
-                                            const std::vector<int>& gids_to_report,
+                                            const std::vector<uint64_t>& gids_to_report,
                                             double* report_variable,
                                             SectionType section_type,
                                             bool all_compartments) const;
     VarsToReport get_summation_vars_to_report(const NrnThread& nt,
-                                              const std::vector<int>& gids_to_report,
+                                              const std::vector<uint64_t>& gids_to_report,
                                               const ReportConfiguration& report,
                                               const std::vector<int>& nodes_to_gids) const;
     VarsToReport get_synapse_vars_to_report(const NrnThread& nt,
-                                            const std::vector<int>& gids_to_report,
+                                            const std::vector<uint64_t>& gids_to_report,
                                             const ReportConfiguration& report,
                                             const std::vector<int>& nodes_to_gids) const;
     std::vector<int> map_gids(const NrnThread& nt) const;

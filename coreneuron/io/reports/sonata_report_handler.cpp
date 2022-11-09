@@ -69,7 +69,7 @@ void SonataReportHandler::register_report(const NrnThread& nt,
     sonata_set_report_max_buffer_size_hint(config.output_path.data(), config.buffer_size);
 
     for (const auto& kv: vars_to_report) {
-        int gid = kv.first;
+        uint64_t gid = kv.first;
         const std::vector<VarWithMapping>& vars = kv.second;
         if (!vars.size())
             continue;
