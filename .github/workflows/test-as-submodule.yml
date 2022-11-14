@@ -29,7 +29,7 @@ jobs:
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{matrix.cores}}
       SDK_ROOT: $(xcrun --sdk macosx --show-sdk-path)
-      
+
     steps:
 
       - name: Install homebrew packages
@@ -38,8 +38,8 @@ jobs:
           brew install bison coreutils flex ninja openmpi
           python3 -m pip install --upgrade numpy pytest pytest-cov
           echo /usr/local/opt/flex/bin:/usr/local/opt/bison/bin >> $GITHUB_PATH
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
+          echo "CC=gcc" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
 
       - name: Install apt packages
         if: startsWith(matrix.os, 'ubuntu')
