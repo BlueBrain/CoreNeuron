@@ -24,12 +24,14 @@ ReportEvent::ReportEvent(double dt,
                          double tstart,
                          const VarsToReport& filtered_gids,
                          const char* name,
-                         double report_dt)
+                         double report_dt,
+                         int report_index)
     : dt(dt)
     , tstart(tstart)
     , report_path(name)
     , report_dt(report_dt)
-    , vars_to_report(filtered_gids) {
+    , vars_to_report(filtered_gids)
+    , report_t_shift_(1e-6 * report_index) {
     nrn_assert(filtered_gids.size());
     step = tstart / dt;
     reporting_period = static_cast<int>(report_dt / dt);
@@ -74,7 +76,7 @@ void ReportEvent::summation_alu(NrnThread* nt) {
 
 /** on deliver, call ReportingLib and setup next event */
 void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
-/* reportinglib is not thread safe */
+    /* reportinglib is not thread safe */
 #pragma omp critical
     {
         summation_alu(nt);
@@ -88,8 +90,11 @@ void ReportEvent::deliver(double t, NetCvode* nc, NrnThread* nt) {
                                 gids_to_report.data(),
                                 report_path.data());
 #endif
-        send(t + dt, nc, nt);
+        // Deterministic event time per report to avoid deadlocks
+        send(t + dt + report_t_shift_, nc, nt);
         step++;
+        // Apply shift only in the first iteration so it doesn't accumulate
+        report_t_shift_ = 0;
     }
 }
 
