@@ -28,6 +28,8 @@ jobs:
       fail-fast: false
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{matrix.cores}}
+      SDK_ROOT: $(xcrun --sdk macosx --show-sdk-path)
+      
     steps:
 
       - name: Install homebrew packages
