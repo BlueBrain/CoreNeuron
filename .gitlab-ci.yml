@@ -162,21 +162,21 @@ build:nmodl:
 build:neuron:mod2c:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
   variables:
-    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 #  needs: ["build:coreneuron:mod2c:intel:shared:debug"]
 
 build:neuron:nmodl:intel:debug:legacy:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:nmodl"]
   variables:
-    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 #  needs: ["build:coreneuron:nmodl:intel:debug:legacy"]
 
 build:neuron:nmodl:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
   needs: ["build:nmodl"]
   variables:
-    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 #  needs: ["build:coreneuron:nmodl:intel:shared:debug"]
 
 build:neuron:mod2c:nvhpc:acc:shared:
