@@ -13,12 +13,13 @@
 
 namespace coreneuron {
 
-std::vector<uint64_t> intersection_gids(const NrnThread& nt, std::vector<int>& target_gids) {
+template <typename T>
+std::vector<T> intersection_gids(const NrnThread& nt, std::vector<T>& target_gids) {
     std::vector<int> thread_gids;
     for (int i = 0; i < nt.ncell; i++) {
         thread_gids.push_back(nt.presyns[i].gid_);
     }
-    std::vector<uint64_t> intersection;
+    std::vector<T> intersection;
 
     std::sort(thread_gids.begin(), thread_gids.end());
     std::sort(target_gids.begin(), target_gids.end());
@@ -57,7 +58,7 @@ void ReportHandler::create_report(ReportConfiguration& report_config,
             continue;
         }
         const std::vector<int>& nodes_to_gid = map_gids(nt);
-        const std::vector<uint64_t> gids_to_report = intersection_gids(nt, report_config.target);
+        const std::vector<int> gids_to_report = intersection_gids(nt, report_config.target);
         VarsToReport vars_to_report;
         bool is_soma_target;
         switch (report_config.type) {
@@ -163,7 +164,7 @@ void register_sections_to_report(const SecMapping* sections,
 }
 
 VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
-                                                       const std::vector<uint64_t>& gids_to_report,
+                                                       const std::vector<int>& gids_to_report,
                                                        double* report_variable,
                                                        SectionType section_type,
                                                        bool all_compartments) const {
@@ -206,7 +207,7 @@ VarsToReport ReportHandler::get_section_vars_to_report(const NrnThread& nt,
 
 VarsToReport ReportHandler::get_summation_vars_to_report(
     const NrnThread& nt,
-    const std::vector<uint64_t>& gids_to_report,
+    const std::vector<int>& gids_to_report,
     const ReportConfiguration& report,
     const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
@@ -297,7 +298,7 @@ VarsToReport ReportHandler::get_summation_vars_to_report(
 
 VarsToReport ReportHandler::get_synapse_vars_to_report(
     const NrnThread& nt,
-    const std::vector<uint64_t>& gids_to_report,
+    const std::vector<int>& gids_to_report,
     const ReportConfiguration& report,
     const std::vector<int>& nodes_to_gids) const {
     VarsToReport vars_to_report;
