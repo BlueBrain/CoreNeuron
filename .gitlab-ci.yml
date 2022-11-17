@@ -203,14 +203,15 @@ build:neuron:nmodl:nvhpc:omp:legacy:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
   variables:
-    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~adiak~gotcha~libdw~libunwind
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~libdw~libunwind+cuda%gcc cuda_arch=70
 #  needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
 
 build:neuron:nmodl:nvhpc:omp:debug:
   extends: [.build_neuron, .spack_nvhpc]
   needs: ["build:nmodl"]
   variables:
-    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~adiak~gotcha~libdw~libunwind
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~libdw~libunwind+cuda%gcc cuda_arch=70
+
 #  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
 
 # Test CoreNEURON
