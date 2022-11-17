@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # standalone.
 project(
   coreneuron
-  VERSION 9.0.0
+  VERSION 8.2.1
   LANGUAGES CXX)
 
 # ~~~
