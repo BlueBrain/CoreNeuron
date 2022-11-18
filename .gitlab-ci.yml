@@ -20,7 +20,7 @@ include:
         sanitizer: address
 
 mac_m1_cmake_build:
-  stage: build
+  stage: .pre
   extends: .matrix
   cache:
     # either CI_MERGE_REQUEST_SOURCE_BRANCH_NAME or CI_COMMIT_BRANCH will be available,
@@ -37,6 +37,7 @@ mac_m1_cmake_build:
   tags:
     - macos-arm64
   script:
+    - git clone https://github.com/neuronsimulator/nrn.git && cd nrn
     - python3 -m virtualenv venv
     - venv/bin/pip install --upgrade pip -r nrn_requirements.txt
     - venv/bin/python --version
@@ -69,7 +70,6 @@ mac_m1_cmake_build:
                    -DNRN_ENABLE_RX3D=${cmake_rx3d}
                    -DCORENRN_SANITIZERS=${sanitizer})
     - cmake_args+=(-DPYTHON_EXECUTABLE="${PYTHON}")
-    - git clone https://github.com/neuronsimulator/nrn.git && cd nrn
     - mkdir build && cd build
     - echo "Building with ${cmake_args[@]}"
     - cmake .. "${cmake_args[@]}"
