@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['u_1724',['u',['../classcoreneuron_1_1_net_con.html#a781445eecc86af450e8b29a66faca41e',1,'coreneuron::NetCon']]],
+  ['ubound_5findex_1725',['ubound_index',['../structcoreneuron_1_1_phase2_1_1_vec_play_continuous__.html#abece6d5fba4da512b32bbf9f4454fb6a',1,'coreneuron::Phase2::VecPlayContinuous_']]],
+  ['ubound_5findex_5f_1726',['ubound_index_',['../classcoreneuron_1_1_vec_play_continuous.html#afb68e26c92278394a5b0f000f5c5ecd5',1,'coreneuron::VecPlayContinuous']]],
+  ['unified_5fallocator_1727',['unified_allocator',['../structcoreneuron_1_1unified__allocator.html',1,'coreneuron::unified_allocator&lt; T &gt;'],['../structcoreneuron_1_1unified__allocator.html#a462d1caea13ca2af8a82b40560a5622a',1,'coreneuron::unified_allocator::unified_allocator()=default'],['../structcoreneuron_1_1unified__allocator.html#a9a3f55cf5fdd1d85f36cdd23a906b582',1,'coreneuron::unified_allocator::unified_allocator(unified_allocator&lt; U &gt; const &amp;) noexcept']]],
+  ['unit_1728',['unit',['../structcoreneuron_1_1_report_configuration.html#a5b853f4c264ecfb7e73f97673956c292',1,'coreneuron::ReportConfiguration']]],
+  ['units_2ehpp_1729',['units.hpp',['../units_8hpp.html',1,'']]],
+  ['unlock_1730',['unlock',['../class_o_m_p___mutex.html#a3737cde0102a5c780b547e06989d3016',1,'OMP_Mutex']]],
+  ['unreffed_5fevent_5fcnt_5f_1731',['unreffed_event_cnt_',['../classcoreneuron_1_1_net_cvode_thread_data.html#ac2193ccf71ed8d3c1aa06a34fef9a319',1,'coreneuron::NetCvodeThreadData']]],
+  ['update_1732',['update',['../namespacecoreneuron.html#a47c12f6a5e3e50313998ca4551e3808a',1,'coreneuron']]],
+  ['update_5fnet_5freceive_5fbuffer_1733',['update_net_receive_buffer',['../namespacecoreneuron.html#aaa606a9a584a0b6220c9752dc0bfac10',1,'coreneuron']]],
+  ['update_5fnet_5fsend_5fbuffer_5fon_5fhost_1734',['update_net_send_buffer_on_host',['../namespacecoreneuron.html#acc05acaff750ddd9513c34464f33570d',1,'coreneuron']]],
+  ['update_5fnrnthreads_5fon_5fhost_1735',['update_nrnthreads_on_host',['../namespacecoreneuron.html#a464e68031caebeafea98c00441dadc77',1,'coreneuron']]],
+  ['update_5fpdata_5fvalues_1736',['update_pdata_values',['../namespacecoreneuron.html#a6985dcdfc7cb9fab8da9f54754044e10',1,'coreneuron']]],
+  ['update_5fweights_5ffrom_5fgpu_1737',['update_weights_from_gpu',['../namespacecoreneuron.html#af23a9009a2d838df1c72481d6f32d92b',1,'coreneuron']]],
+  ['uplink_1738',['uplink',['../tqueue_8hpp.html#a0291d2ec002fb0de79a80953c3743537',1,'tqueue.hpp']]],
+  ['usable_5fmindelay_5f_1739',['usable_mindelay_',['../namespacecoreneuron.html#a204a042f6078b9d2015dc9ac48e2e23b',1,'coreneuron']]],
+  ['use_5fmultisend_5f_1740',['use_multisend_',['../namespacecoreneuron.html#a504417daf1e077181c9b7e9cef4c6707',1,'coreneuron']]],
+  ['use_5fphase2_5f_1741',['use_phase2_',['../namespacecoreneuron.html#a09c6d974ca4e83537b9a240c6f69ff9b',1,'coreneuron']]],
+  ['use_5fsolve_5finterleave_1742',['use_solve_interleave',['../namespacecoreneuron.html#a6ef5948277937e3ec68daddde65f7e6f',1,'coreneuron']]],
+  ['user_5fparams_2ehpp_1743',['user_params.hpp',['../user__params_8hpp.html',1,'']]],
+  ['userparams_1744',['UserParams',['../structcoreneuron_1_1_user_params.html',1,'coreneuron::UserParams'],['../structcoreneuron_1_1_user_params.html#a3ca6300c2c918b2044fe19cf9e4ddb96',1,'coreneuron::UserParams::UserParams()']]],
+  ['utils_2ecpp_1745',['utils.cpp',['../utils_8cpp.html',1,'']]],
+  ['utils_2ehpp_1746',['utils.hpp',['../utils_8hpp.html',1,'']]],
+  ['utils_5fcuda_2eh_1747',['utils_cuda.h',['../utils__cuda_8h.html',1,'']]]
+];

@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['r_3294',['r',['../structcoreneuron_1_1nrnran123___state.html#a38c81f4e525c45d82fd5cc5640ac0a74',1,'coreneuron::nrnran123_State']]],
+  ['r_5fdown_3295',['r_down',['../structcoreneuron_1_1_elm.html#ac7ebba708c6e67f7c75a998826540ec1',1,'coreneuron::Elm']]],
+  ['r_5fup_3296',['r_up',['../structcoreneuron_1_1_elm.html#acc4be21922925c1a770f62fbff7ed4b3',1,'coreneuron::Elm']]],
+  ['reallocated_3297',['reallocated',['../structcoreneuron_1_1_net_send_buffer__t.html#a2d3877c742dada700e3edb0bb7312ac6',1,'coreneuron::NetSendBuffer_t']]],
+  ['report_5fbuff_5fsize_3298',['report_buff_size',['../structcoreneuron_1_1corenrn__parameters__data.html#ac24e9423a34521ea6af9fa84eb2c75d7',1,'coreneuron::corenrn_parameters_data']]],
+  ['report_5fbuff_5fsize_5fdefault_3299',['report_buff_size_default',['../structcoreneuron_1_1corenrn__parameters__data.html#a216c52d6b5c34e6f9e774b20211e2c0c',1,'coreneuron::corenrn_parameters_data']]],
+  ['report_5fdt_3300',['report_dt',['../structcoreneuron_1_1_report_configuration.html#ad2353cbd70bc8b0bdec1f24ee2de4355',1,'coreneuron::ReportConfiguration']]],
+  ['reportfilepath_3301',['reportfilepath',['../structcoreneuron_1_1corenrn__parameters__data.html#a2878f2107e546c822c81143654ecbd27',1,'coreneuron::corenrn_parameters_data']]],
+  ['restore_5f_3302',['restore_',['../classcoreneuron_1_1_check_points.html#a7f0572835bc3cbdc1ba0f16e815f3bc4',1,'coreneuron::CheckPoints']]],
+  ['restore_5fpath_3303',['restore_path',['../structcoreneuron_1_1_user_params.html#ae899e7b4f2ac81e88608bf25a9c19a7b',1,'coreneuron::UserParams']]],
+  ['restored_3304',['restored',['../classcoreneuron_1_1_check_points.html#a2b820fb7747fcbfef73198ea14dcc4be',1,'coreneuron::CheckPoints']]],
+  ['restorepath_3305',['restorepath',['../structcoreneuron_1_1corenrn__parameters__data.html#a0e2f12b034d857fa136e9f269148a189',1,'coreneuron::corenrn_parameters_data']]],
+  ['rev_5fdt_3306',['rev_dt',['../namespacecoreneuron.html#ae4b4e8bc4ae4c59ec4675570395bf59d',1,'coreneuron']]],
+  ['rhs_3307',['rhs',['../structcoreneuron_1_1_sparse_obj.html#a6689752e1add60aa84d81bc915a5882e',1,'coreneuron::SparseObj::rhs()'],['../struct_solver_data.html#ad56edaf3ee9e0f9c7d951c5318d358b4',1,'SolverData::rhs()']]],
+  ['right_5f_3308',['right_',['../classcoreneuron_1_1_t_q_item.html#a91e083d68cfdd5d94e04c5477da2a1e4',1,'coreneuron::TQItem']]],
+  ['root_3309',['root',['../structcoreneuron_1_1_s_p_t_r_e_e.html#a1af17a7874e2a9ff29346aceec362681',1,'coreneuron::SPTREE::root()'],['../namespacecoreneuron.html#aafb0a98712bf644a1e6c8411d986d555',1,'coreneuron::root()']]],
+  ['row_3310',['row',['../structcoreneuron_1_1_elm.html#ad4c64e33b87b545a6c76cdd342b74e04',1,'coreneuron::Elm']]],
+  ['rowmax_3311',['rowmax',['../structcoreneuron_1_1_newton_space.html#aed792d9deb217465985e8ace5f4fb43e',1,'coreneuron::NewtonSpace']]],
+  ['roworder_3312',['roworder',['../structcoreneuron_1_1_sparse_obj.html#a175bd62de7f22961a2b25f59d75f6866',1,'coreneuron::SparseObj']]],
+  ['rowst_3313',['rowst',['../structcoreneuron_1_1_sparse_obj.html#af33bcf0a3d616536ab69cc5c768f5d0e',1,'coreneuron::SparseObj']]]
+];

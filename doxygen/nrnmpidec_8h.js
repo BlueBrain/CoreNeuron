@@ -1,0 +1,26 @@
+var nrnmpidec_8h =
+[
+    [ "nrnmpi_init_ret_t", "structcoreneuron_1_1nrnmpi__init__ret__t.html", "structcoreneuron_1_1nrnmpi__init__ret__t" ],
+    [ "nrnmpi_abort_impl", "nrnmpidec_8h.html#a4cee95bb5e00108c5e46f33bb8a9949f", null ],
+    [ "nrnmpi_barrier_impl", "nrnmpidec_8h.html#a7bbd6274c409b5b129c706aeef166529", null ],
+    [ "nrnmpi_check_threading_support_impl", "nrnmpidec_8h.html#ac7bbe11e011a90c0052b03e8b4ff3066", null ],
+    [ "nrnmpi_dbl_allmax_impl", "nrnmpidec_8h.html#a140015930f9ab894bf2d52800d66e735", null ],
+    [ "nrnmpi_dbl_allmin_impl", "nrnmpidec_8h.html#a33ea2aeffa759f3178cb3da19f692fc6", null ],
+    [ "nrnmpi_dbl_allreduce_impl", "nrnmpidec_8h.html#a4c4001d48e6c09d49c9f64a2bab6376d", null ],
+    [ "nrnmpi_dbl_allreduce_vec_impl", "nrnmpidec_8h.html#a3168c74c81b0ae2e5405d44292fcbe05", null ],
+    [ "nrnmpi_dbl_alltoallv_impl", "nrnmpidec_8h.html#a0d018bd91a1ce0ad8a8d9740c264d742", null ],
+    [ "nrnmpi_finalize_impl", "nrnmpidec_8h.html#a45b377c6fddb94def9629da09aa8a58b", null ],
+    [ "nrnmpi_init_impl", "nrnmpidec_8h.html#a3b134f324027d648179127fde41f3c46", null ],
+    [ "nrnmpi_initialized_impl", "nrnmpidec_8h.html#ac44af2d8046b0f1e83d86be9119499e3", null ],
+    [ "nrnmpi_int_allgather_impl", "nrnmpidec_8h.html#ac1c253eebd27f6d161cd6d4f28f1df6d", null ],
+    [ "nrnmpi_int_allmax_impl", "nrnmpidec_8h.html#a8609090d12554c35cac32478b1e07123", null ],
+    [ "nrnmpi_int_alltoall_impl", "nrnmpidec_8h.html#a39b19f77ab98b3fb91901074dff1103e", null ],
+    [ "nrnmpi_int_alltoallv_impl", "nrnmpidec_8h.html#a9ad50ce1378f95767ee15f82a6e3b5e1", null ],
+    [ "nrnmpi_local_rank_impl", "nrnmpidec_8h.html#a7e5a89c5a2adf5b691c65901bfd1a811", null ],
+    [ "nrnmpi_local_size_impl", "nrnmpidec_8h.html#a6db88f2b0bd1c210300d8d4fb8ae44cf", null ],
+    [ "nrnmpi_long_allreduce_vec_impl", "nrnmpidec_8h.html#ac5e576eb7a4f37570fa7b5be9115ad8c", null ],
+    [ "nrnmpi_spike_exchange_compressed_impl", "nrnmpidec_8h.html#ac23e0446e563317f1a528ea3f4e1458c", null ],
+    [ "nrnmpi_spike_exchange_impl", "nrnmpidec_8h.html#a0615f439a58e6411e2fb4b43df0d353c", null ],
+    [ "nrnmpi_write_file_impl", "nrnmpidec_8h.html#a4d243f5354ae205b3b5121195f39a2fd", null ],
+    [ "nrnmpi_wtime_impl", "nrnmpidec_8h.html#a53f7c6cfb7de7daf781e1297bd909a89", null ]
+];
