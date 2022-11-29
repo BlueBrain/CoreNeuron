@@ -51,14 +51,8 @@ jobs:
           lcov --add-tracefile coverage-base.info --add-tracefile coverage-run.info --output-file coverage-combined.info
           lcov --remove coverage-combined.info --output-file coverage.info "*/external/*"
           lcov --list coverage.info
-      - name: Upload to codecov.io
-        run: |
-          # Download codecov script and perform integrity checks
-          curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import # One-time step 
-          curl -Os https://uploader.codecov.io/latest/linux/codecov 
-          curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM 
-          curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig 
-          gpg --verify codecov.SHA256SUM.sig codecov.SHA256SUM 
-          shasum -a 256 -c codecov.SHA256SUM 
-          chmod +x codecov 
-          ./codecov -f build/coverage.info
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./build/coverage.info
+          fail_ci_if_error: true
+          verbose: true
