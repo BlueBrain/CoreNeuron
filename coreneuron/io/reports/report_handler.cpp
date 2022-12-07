@@ -372,14 +372,13 @@ VarsToReport ReportHandler::get_lfp_vars_to_report(const NrnThread& nt,
         // IClamp is needed for the LFP calculation
         auto mech_id = nrn_get_mechtype("IClamp");
         Memb_list* ml = nt._ml_list[mech_id];
-        if (!ml) {
-            continue;
-        }
-        for (int j = 0; j < ml->nodecount; j++) {
-            auto segment_id = ml->nodeindices[j];
-            if ((nodes_to_gids[segment_id] == gid)) {
-                double* var_value = get_var_location_from_var_name(mech_id, "i", ml, j);
-                summation_report.currents_[segment_id].push_back(std::make_pair(var_value, -1));
+        if (ml) {
+            for (int j = 0; j < ml->nodecount; j++) {
+                auto segment_id = ml->nodeindices[j];
+                if ((nodes_to_gids[segment_id] == gid)) {
+                    double* var_value = get_var_location_from_var_name(mech_id, "i", ml, j);
+                    summation_report.currents_[segment_id].push_back(std::make_pair(var_value, -1));
+                }
             }
         }
         const auto& cell_mapping = mapinfo->get_cell_mapping(gid);
