@@ -7,6 +7,99 @@ include:
   - project: hpc/gitlab-upload-logs
     file: enable-upload.yml
 
+
+# see https://gitlab.com/gitlab-org/gitlab/-/issues/263401 for why we specify the flags like this now
+# 130 characters seems to be the point at which jobs refuse to run
+.matrix:
+  parallel:
+    matrix:
+      - build_mode: cmake
+        cmake_coreneuron: "ON"
+        cmake_interviews: "OFF"
+        cmake_rx3d: "OFF"
+        sanitizer: address
+
+mac_m1_cmake_build:
+  stage: .pre
+  extends: .matrix
+  cache:
+    # either CI_MERGE_REQUEST_SOURCE_BRANCH_NAME or CI_COMMIT_BRANCH will be available,
+    # depending on whether this pipeline runs for a merge request or on a branch
+    # either way, we get the active branch in the cache key
+    key: ${CI_JOB_NAME}-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}${CI_COMMIT_BRANCH}
+    paths:
+      - ./ccache
+  variables:
+    CCACHE_BASEDIR: ${CI_PROJECT_DIR}/nrn
+    CCACHE_DIR: ${CI_PROJECT_DIR}/ccache
+    CMAKE_BUILD_PARALLEL_LEVEL: 3
+    CTEST_PARALLEL_LEVEL: 3
+  tags:
+    - macos-arm64
+  script:
+    - git clone https://github.com/neuronsimulator/nrn.git && cd nrn
+    - python3 -m virtualenv venv
+    - venv/bin/pip install --upgrade pip -r nrn_requirements.txt
+    - venv/bin/python --version
+    - 'venv/bin/python -c "import os,matplotlib; f = open(os.path.join(os.path.dirname(matplotlib.__file__), \"mpl-data/matplotlibrc\"),\"a\"); f.write(\"backend: TkAgg\");f.close();"'
+    - 'export CXX=${CXX:-g++}'
+    - 'export CC=${CC:-gcc}'
+    - export PYTHON=$(pwd)/venv/bin/python3
+    - export INSTALL_DIR=$(pwd)/install
+    - echo $LANG
+    - echo $LC_ALL
+    - source venv/bin/activate
+    - 'export PYTHONPATH=$(${PYTHON} -c "import site; print(\":\".join(site.getsitepackages()))")'
+    - 'export PYTHONPATH=$PYTHONPATH:$INSTALL_DIR/lib/python/'
+    - ${PYTHON} -c 'import os,sys; os.set_blocking(sys.stdout.fileno(), True)'
+    - cmake_args=(-G Ninja)
+    - if [[ -n "${sanitizer}" ]]; then
+    -   cmake_args+=(-DCMAKE_BUILD_TYPE=Custom
+                     -DCMAKE_C_FLAGS="-O1 -g"
+                     -DCMAKE_CXX_FLAGS="-O1 -g"
+                     -DNRN_SANITIZERS=$(echo ${sanitizer} | sed -e 's/-/,/g'))
+    - fi
+    - cmake_args+=(-DCMAKE_C_COMPILER="${CC}"
+                   -DCMAKE_C_COMPILER_LAUNCHER=ccache
+                   -DCMAKE_CXX_COMPILER="${CXX}"
+                   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+                   -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}"
+                   -DNRN_ENABLE_TESTS=ON
+                   -DNRN_ENABLE_CORENEURON=${cmake_coreneuron}
+                   -DNRN_ENABLE_INTERVIEWS=${cmake_interviews}
+                   -DNRN_ENABLE_RX3D=${cmake_rx3d}
+                   -DCORENRN_SANITIZERS=${sanitizer})
+    - cmake_args+=(-DPYTHON_EXECUTABLE="${PYTHON}")
+    - mkdir build && cd build
+    - echo "Building with ${cmake_args[@]}"
+    - cmake .. "${cmake_args[@]}"
+    - ccache -z
+    - ccache -vs 2>/dev/null
+    - cmake --build . --parallel
+    - ccache -vs 2>/dev/null
+    - echo $'[install]\nprefix='>src/nrnpython/setup.cfg
+    - cat src/nrnpython/setup.cfg
+    - ctest --output-on-failure
+    - cmake --build . --target install
+    - 'export PATH=${INSTALL_DIR}/bin:${PATH}'
+    - if [[ -f "${INSTALL_DIR}/bin/nrn-enable-sanitizer" ]]; then
+    -   echo --- bin/nrn-enable-sanitizer ---
+    -   cat bin/nrn-enable-sanitizer
+    -   echo ---
+    -   nrn_enable_sanitizer=${INSTALL_DIR}/bin/nrn-enable-sanitizer
+    -   nrn_enable_sanitizer_preload="${nrn_enable_sanitizer} --preload"
+    - else
+    -   echo nrn-enable-sanitizer not found, not using it
+    - fi
+    - if [[ ! "${cmake_args[*]}" =~ "NRN_ENABLE_PYTHON=OFF" ]]; then
+    -   $PYTHON --version && ${nrn_enable_sanitizer_preload} python -c 'import neuron; neuron.test()'
+    - fi;
+    - ${nrn_enable_sanitizer} neurondemo -nogui -c 'demo(4)' -c 'run()' -c 'quit()'
+    - if [[ ! "${cmake_args[*]}" =~ "NRN_ENABLE_RX3D=OFF"
+            && ! "${cmake_args[*]}" =~ "NRN_ENABLE_CORENEURON=ON" ]]; then
+    -   ${nrn_enable_sanitizer_preload} python ../share/lib/python/neuron/rxdtests/run_all.py
+    - fi;
+
 variables:
   NEURON_BRANCH:
     description: Branch of NEURON to build against CoreNEURON (NEURON_COMMIT and NEURON_TAG also possible)
@@ -53,9 +146,11 @@ simulation_stack:
 .spack_intel:
   variables:
     SPACK_PACKAGE_COMPILER: intel
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^python%gcc
 .spack_nvhpc:
   variables:
     SPACK_PACKAGE_COMPILER: nvhpc
+    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^python%gcc
 .build_neuron:
   extends: [.build]
   timeout: two hours
@@ -81,150 +176,52 @@ build:nmodl:
     SPACK_PACKAGE_SPEC: ~legacy-unit
     SPACK_PACKAGE_COMPILER: gcc
 
-# Build CoreNEURON
-.build_coreneuron:
-  extends: [.build]
-  variables:
-    SPACK_PACKAGE: coreneuron
-    # NEURON depends on py-mpi4py, most of whose dependencies are pulled in by
-    # nmodl%gcc, with the exception of MPI, which is pulled in by
-    # coreneuron%{nvhpc,intel}. hpe-mpi is an external package anyway, so
-    # setting its compiler is just changing how it is labelled in the
-    # dependency graph and not changing which installation is used, but this
-    # means that in the NEURON step an existing py-mpi4py%gcc can be used.
-    # Otherwise a new py-mpi4py with hpe-mpi%{nvhpc,intel} will be built.
-    # caliper: papi%nvhpc does not build; use the caliper from the deployment
-    # TODO: fix this more robustly so we don't have to play so many games.
-    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc ^caliper%gcc+cuda cuda_arch=70
-
-# TODO: improve coverage by switching an Intel build to be statically linked
-# TODO: improve coverage by switching an Intel build to RelWithDebInfo
-# TODO: improve coverage by enabling +openmp on an Intel build
-build:coreneuron:mod2c:intel:shared:debug:
-  extends: [.build_coreneuron, .spack_intel]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper~gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug
-
-build:coreneuron:nmodl:intel:debug:legacy:
-  extends: [.build_coreneuron, .spack_intel]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper~gpu~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug
-
-# Disable caliper to improve coverage
-build:coreneuron:nmodl:intel:shared:debug:
-  extends: [.build_coreneuron, .spack_intel]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_DEPENDENCIES: ^hpe-mpi%gcc
-    SPACK_PACKAGE_SPEC: ~caliper~gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=Debug
-
-# Not linked to a NEURON build+test job, see
-# https://github.com/BlueBrain/CoreNeuron/issues/594
-build:coreneuron:mod2c:nvhpc:acc:debug:unified:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl+openmp~shared+tests+unified build_type=Debug
-
-# Shared + OpenACC + OpenMP host threading has problems
-build:coreneuron:mod2c:nvhpc:acc:shared:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit~nmodl~openmp+shared+tests~unified build_type=RelWithDebInfo
-
-build:coreneuron:nmodl:nvhpc:acc:debug:legacy:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug
-
-build:coreneuron:nmodl:nvhpc:acc:shared:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=RelWithDebInfo
-
-build:coreneuron:nmodl:nvhpc:omp:legacy:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=RelWithDebInfo
-
-build:coreneuron:nmodl:nvhpc:omp:debug:
-  extends: [.build_coreneuron, .spack_nvhpc]
-  needs: ["build:nmodl"]
-  variables:
-    SPACK_PACKAGE_SPEC: +caliper+gpu~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug
-
 # Build NEURON
 build:neuron:mod2c:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
-  needs: ["build:coreneuron:mod2c:intel:shared:debug"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit~nmodl~openmp+shared+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 
 build:neuron:nmodl:intel:debug:legacy:
   extends: [.build_neuron, .spack_intel]
-  needs: ["build:coreneuron:nmodl:intel:debug:legacy"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 
 build:neuron:nmodl:intel:shared:debug:
   extends: [.build_neuron, .spack_intel]
-  needs: ["build:coreneuron:nmodl:intel:shared:debug"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper~gpu+coreneuron~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 
 build:neuron:mod2c:nvhpc:acc:shared:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper+gpu+coreneuron~legacy-unit~nmodl~openmp+shared+tests~unified build_type=RelWithDebInfo model_tests=channel-benchmark,olfactory,tqperf-heavy
 
 build:neuron:nmodl:nvhpc:acc:debug:legacy:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:nmodl:nvhpc:acc:debug:legacy"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper+gpu+coreneuron~legacy-unit+nmodl~openmp~shared~sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy
 
 build:neuron:nmodl:nvhpc:acc:shared:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report~caliper+gpu+coreneuron~legacy-unit+nmodl~openmp+shared+sympy+tests~unified build_type=RelWithDebInfo model_tests=channel-benchmark,olfactory,tqperf-heavy
 
-build:neuron:nmodl:nvhpc:omp:legacy:
+build:neuron:nmodl:nvhpc:omp:legacy:debug:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared~sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~libdw~libunwind+cuda%gcc cuda_arch=70
 
 build:neuron:nmodl:nvhpc:omp:debug:
   extends: [.build_neuron, .spack_nvhpc]
-  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
-
-# Test CoreNEURON
-test:coreneuron:mod2c:intel:shared:debug:
-  extends: [.ctest]
-  needs: ["build:coreneuron:mod2c:intel:shared:debug"]
-
-test:coreneuron:nmodl:intel:debug:legacy:
-  extends: [.ctest]
-  needs: ["build:coreneuron:nmodl:intel:debug:legacy"]
-
-test:coreneuron:nmodl:intel:shared:debug:
-  extends: [.ctest]
-  needs: ["build:coreneuron:nmodl:intel:shared:debug"]
-
-test:coreneuron:mod2c:nvhpc:acc:debug:unified:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:debug:unified"]
-
-test:coreneuron:mod2c:nvhpc:acc:shared:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:mod2c:nvhpc:acc:shared"]
-
-test:coreneuron:nmodl:nvhpc:acc:debug:legacy:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:nmodl:nvhpc:acc:debug:legacy"]
-
-test:coreneuron:nmodl:nvhpc:acc:shared:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:nmodl:nvhpc:acc:shared"]
-
-test:coreneuron:nmodl:nvhpc:omp:legacy:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:nmodl:nvhpc:omp:legacy"]
-
-test:coreneuron:nmodl:nvhpc:omp:debug:
-  extends: [.ctest, .gpu_node]
-  needs: ["build:coreneuron:nmodl:nvhpc:omp:debug"]
+  needs: ["build:nmodl"]
+  variables:
+    SPACK_PACKAGE_SPEC: +debug~rx3d~report+caliper+gpu+coreneuron~legacy-unit+nmodl+openmp~shared+sympy+tests~unified build_type=Debug model_tests=channel-benchmark,olfactory,tqperf-heavy ^caliper~libdw~libunwind+cuda%gcc cuda_arch=70
 
 # Test NEURON
 test:neuron:mod2c:intel:shared:debug:
@@ -253,7 +250,7 @@ test:neuron:nmodl:nvhpc:acc:shared:
 
 test:neuron:nmodl:nvhpc:omp:legacy:
   extends: [.test_neuron, .gpu_node]
-  needs: ["build:neuron:nmodl:nvhpc:omp:legacy"]
+  needs: ["build:neuron:nmodl:nvhpc:omp:legacy:debug"]
 
 test:neuron:nmodl:nvhpc:omp:debug:
   extends: [.test_neuron, .gpu_node]
