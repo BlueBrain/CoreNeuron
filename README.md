@@ -5,6 +5,8 @@ _______________________________________________________
 
 ![CoreNEURON CI](https://github.com/BlueBrain/CoreNeuron/workflows/CoreNEURON%20CI/badge.svg) [![codecov](https://codecov.io/gh/BlueBrain/CoreNeuron/branch/master/graph/badge.svg?token=mguTdBx93p)](https://codecov.io/gh/BlueBrain/CoreNeuron)
 
+### Dummy GPU CI Check
+
 ![CoreNEURON](docs/_static/bluebrain_coreneuron.jpg)
 
 
